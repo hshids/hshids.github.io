@@ -330,8 +330,8 @@
     contact: { en: ["Can I see your CV?", "Do you have video talks?"], zh: ["可以看简历吗？", "有论文讲解视频吗？"] }
   };
   var POKES = {
-    en: ["Hi! I'm Hanjing — the pocket-sized edition.", "Pick a place and I'll walk you there!", "Psst — every book in my library is one of my papers.", "JinBingBing follows me everywhere.", "Stand on a red circle and see what I do there!"],
-    zh: ["嗨！我是 Hanjing——迷你版。", "点一个地方，我带你走过去！", "悄悄说：藏书阁里每本书都是我的论文。", "金饼饼走到哪跟到哪。", "站到红圈上，看看我会做什么！"]
+    en: ["Hi! I'm Hanjing — the pocket-sized edition.", "Pick a place and I'll walk you there!", "Psst — every book in my library is one of my papers.", "JinBingBing follows me everywhere.", "Stand on a red circle and see what I do there!", "Fun fact: I remember her papers better than she does. 😏"],
+    zh: ["嗨！我是 Hanjing——迷你版。", "点一个地方，我带你走过去！", "悄悄说：藏书阁里每本书都是我的论文。", "金饼饼走到哪跟到哪。", "站到红圈上，看看我会做什么！", "冷知识：她的论文我比她本人记得还清楚 😏"]
   };
 
   function addMsg(who, text) {

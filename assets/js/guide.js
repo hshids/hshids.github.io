@@ -319,9 +319,9 @@
 
   function identity(lang) {
     return A(lang, lang === "zh"
-      ? "算是吧！我是 Hanjing 给这个网站做的迷你分身——一个写好脚本的向导，不是聊天机器人。我背后没有大模型：每个回答都来自我的论文和主页，并附上出处；你输入的内容也不会离开你的浏览器。这是故意的——我自己就研究 AI 分身替真人说话的问题，所以我的分身只说有出处的话。其他的，欢迎发邮件给真正的我！"
-      : "Sort of! I'm the mini-me Hanjing built for this site — a scripted guide, not a chatbot. There's no large language model behind me: every answer comes from my papers and pages, with a link to the source, and nothing you type leaves your browser. That's on purpose — I study what happens when AI personas speak for real people, so my own mini-me only says things it can cite. For anything else, email the real me!",
-      '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>" +
+      ? "当然不是啦！😏 我是她的迷你分身——而且悄悄告诉你，我知道的比 Hanjing 本人还多哦～她每篇论文、每个合作者、连页码我都倒背如流，她自己还得去翻。（放心，我背后没有大模型，只是用她的作品写好的脚本，你打的字也不会离开你的浏览器。）我不知道的，就去烦真正的她吧！"
+      : "Of course not! 😏 I'm her mini-me — and between us, I know more than Hanjing does. Every paper, every co-author, even the page numbers: I've got them memorized, and she has to look them up. (Relax — no AI model in here, just a script built from her work, and nothing you type leaves your browser.) Anything I don't know? Go bother the real one!",
+      '<p class="g-note">' + (lang === "zh" ? "想知道我为什么被做成这样？因为她研究的就是这个：" : "Wondering why I'm built this way? Because this is what she studies:") + "</p>" +
       paperCard(pubById["his-name"], lang, { noMore: false }),
       lang === "zh" ? ["你研究什么？", "看看你的论文", "怎么联系你？"] : ["What do you research?", "Show me your papers", "How can I contact you?"]);
   }
@@ -582,8 +582,8 @@
 
   function fallback(lang) {
     return A(lang, lang === "zh"
-      ? "这个我答不上来——迷你版的我只知道我的论文、教程和主页上的内容。试试这些？"
-      : "Hmm, that one's beyond me — my mini-me only knows what's in my papers, tutorials and pages. Try one of these?",
+      ? "哎呀，这个把我难住了——我只懂她的论文、教程和主页（这些我可比她熟）。换个问题？"
+      : "Ooh, you stumped me — I only know her papers, tutorials and pages (those I know better than she does). Try one of these?",
       "", START_CHIPS[lang].slice(0, 5));
   }
 
