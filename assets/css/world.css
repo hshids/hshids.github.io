@@ -267,11 +267,24 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .ridge { fill: none; stroke: var(--w-line); stroke-width: 3; stroke-linecap: round; }
 
 .hill { fill: var(--w-hill); }
-.stepping ellipse { fill: var(--w-stone); stroke: var(--w-line); stroke-width: 1.2; }
-.stone { fill: var(--w-stone); stroke: var(--w-line); stroke-width: 2; }
-.stele-deg { fill: var(--w-line); font-size: 19px; font-weight: 600; }
-.stele-school { fill: var(--w-line-soft); font-size: 11.5px; letter-spacing: .04em; font-family: var(--font-body) !important; }
-.stele-base { fill: var(--w-line); opacity: .55; }
+/* Education: stacks of books with pennants */
+.bk-spine { stroke: var(--w-line); stroke-width: 1.3; }
+.bk-band { stroke: rgba(255, 250, 240, .55); stroke-width: 1.3; fill: none; }
+.bk-pages { fill: var(--w-fill); stroke: var(--w-line); stroke-width: 1.3; }
+.bk-lines { stroke: var(--w-line-soft); stroke-width: .8; opacity: .6; fill: none; }
+.stack-label { fill: #f7f0e3; font: 600 10px var(--font-body) !important; letter-spacing: .12em; }
+.stack-shadow { fill: var(--w-line); opacity: .12; }
+.flag-pole { stroke: var(--w-line); stroke-width: 2.2; stroke-linecap: round; }
+.flag-cloth { stroke: var(--w-line); stroke-width: 1.2; transform-box: fill-box; transform-origin: 0 50%; animation: flutter 3.2s ease-in-out infinite; }
+.flag-text { fill: #f7f0e3; font: 700 12px var(--font-body) !important; pointer-events: none; }
+@keyframes flutter { 50% { transform: skewY(-3deg) scaleX(.96); } }
+.ladder path { stroke: var(--w-wood-2); stroke-width: 3; stroke-linecap: round; fill: none; }
+.cap-top { fill: var(--w-ink-fill); stroke: var(--w-line); stroke-width: 1.2; }
+.cap-base { fill: var(--w-ink-fill); stroke: var(--w-line); stroke-width: 1.2; }
+.cap-tassel path { stroke: var(--w-gold); stroke-width: 2; fill: none; }
+.cap-tassel circle { fill: var(--w-gold); }
+.mortarboard { animation: capbob 3.6s ease-in-out infinite; }
+@keyframes capbob { 50% { transform: translateY(-4px); } }
 .emblem { fill: none; stroke: var(--w-line); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
 .sign-rope { stroke: var(--w-line); stroke-width: 1.5; }
 .sign-board { fill: var(--w-wood-2); stroke: var(--w-line); stroke-width: 1.5; transition: stroke-width .2s; }
@@ -459,8 +472,25 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .guide-name { margin: 0; font: 600 16px/1.2 var(--font-display); }
 .guide-note { margin: 1px 0 0; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .guide-toggle { height: 32px; min-width: 32px; padding: 0; }
-.guide-toggle svg { transition: transform .2s; }
-.guide.collapsed .guide-toggle svg { transform: rotate(180deg); }
+
+/* Folded chat: a small "Ask me" button in the corner, so nothing covers the scene. */
+.guide-fab {
+  position: fixed; left: 16px; bottom: 16px; z-index: 20;
+  display: inline-flex; align-items: center; gap: 9px;
+  padding: 5px 16px 5px 5px; border-radius: 999px; cursor: pointer;
+  background: var(--card); color: var(--ink); border: 1px solid var(--line-2); box-shadow: var(--shadow);
+  font: 600 14px/1 var(--font-body); transition: transform .15s;
+}
+.guide-fab:hover { transform: translateY(-2px); }
+.guide-fab:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.guide-fab-face { width: 40px; height: 40px; flex: none; border-radius: 50%; overflow: hidden; background: #e9dcc6; border: 1.5px solid var(--line-2); }
+[data-theme="dark"] .guide-fab-face { background: #2a303a; }
+.guide-fab-face svg { width: 100%; height: 100%; display: block; }
+.guide-fab-face .c-glow, .guide-fab-face .c-shadow { display: none; }
+.guide-fab-dot { position: absolute; top: 3px; left: 35px; width: 11px; height: 11px; border-radius: 50%; background: var(--accent); border: 2px solid var(--card); display: none; }
+.guide-fab.has-news .guide-fab-dot { display: block; }
+.title-open .guide-fab, .theater-open .guide-fab { visibility: hidden; }
+.char .bubble { max-width: 260px; }
 
 .guide-log { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px 14px 4px; }
 .msg { margin: 0 0 12px; }
@@ -470,10 +500,6 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .msg-guide .msg-text { color: var(--ink); }
 .msg-extra:empty { display: none; }
 .msg-extra { margin-top: 8px; display: grid; gap: 8px; }
-.guide.collapsed .msg:not(.latest) { display: none; }
-.guide.collapsed .msg-extra { display: none; }
-.guide.collapsed .msg-text { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.guide.collapsed .guide-log { flex: none; padding-bottom: 0; }
 
 .g-card { border: 1px solid var(--line-2); border-left: 4px solid var(--tc, var(--accent)); border-radius: 12px; padding: 10px 12px; background: var(--bg); }
 .g-kicker { display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
@@ -712,13 +738,11 @@ a { color: var(--accent); text-underline-offset: 2px; }
     border-radius: 18px 18px 0 0; border-bottom: 0;
     padding-bottom: env(safe-area-inset-bottom);
   }
-  .panel-open .guide { display: none; }
+  .panel-open .guide, .panel-open .guide-fab { display: none; }
+  .guide-fab { left: 12px; bottom: calc(12px + env(safe-area-inset-bottom)); }
   .guide-note { display: none; }
   .guide-head { padding: 8px 10px; }
   .guide-portrait { width: 36px; height: 36px; }
-  .guide.collapsed .guide-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 8px; }
-  .guide.collapsed .guide-chips::-webkit-scrollbar { display: none; }
-  .guide.collapsed .guide-log { padding-top: 8px; }
   .guide-form { padding: 8px 10px 10px; }
   .guide-form input { font-size: 16px; }
 

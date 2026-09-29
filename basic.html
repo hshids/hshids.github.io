@@ -4,60 +4,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hanjing Shi</title>
+    <title>Hanjing - Home</title>
     <meta name="description"
-        content="Hanjing Shi — Ph.D. student in Computer Science and Engineering at Lehigh University, researching human–AI interaction: agentic AI oversight, human–AI teaming, persona AI and online platforms.">
+        content="Hanjing Shi — Ph.D. student in Computer Science and Engineering at Lehigh University, researching human–AI interaction.">
     <meta property="og:title" content="Hanjing Shi">
     <meta property="og:description"
         content="Ph.D. student in Computer Science and Engineering at Lehigh University, researching human–AI interaction.">
     <meta property="og:image" content="https://hshids.github.io/images/profile.jpg">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="alternate" href="index.html?world" title="Interactive version">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="assets/css/classic.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@500&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/basic.css">
 </head>
 
-<body>
+<body class="page-home">
     <div class="background-image"></div>
     <div id="ink-container"></div>
 
     <header>
-        <nav aria-label="Sections">
+        <nav>
             <ul>
-                <li><a href="#about">About</a></li>
-                <li><a href="#news">News</a></li>
-                <li><a href="#research">Research</a></li>
-                <li><a href="#publications">Publications</a></li>
-                <li><a href="#talks">Talks</a></li>
-                <li><a href="#education">Education</a></li>
-                <li><a href="#tutorials">Tutorials</a></li>
-                <li><a href="#writing">Blog</a></li>
-                <li><a href="#contact">Contact</a></li>
+                <li><a href="basic.html" aria-current="page">Home</a></li>
+                <li><a href="about.html">About Me</a></li>
+                <li><a href="publications.html">Publications</a></li>
+                <li><a href="presentations.html">Presentations</a></li>
+                <li><a href="tutorials.html">Tutorials</a></li>
+                <li><a href="blog.html">Blog</a></li>
+                <li><a href="index.html?world" class="to-world" data-view="world">✦ Interactive</a></li>
             </ul>
         </nav>
-        <a class="switch" href="index.html?world" data-view="world">Interactive ✦</a>
     </header>
 
     <main>
-        <div class="paper-like-overlay" id="content">
-            <noscript>
-                <h1>Hanjing Shi</h1>
-                <p>Ph.D. Student in Computer Science and Engineering, Lehigh University.</p>
-                <p>Publications: <a href="https://scholar.google.com/citations?user=XezXPNQAAAAJ&amp;hl=en">Google
-                        Scholar</a> · <a href="https://www.linkedin.com/in/hanjing-shi-1803561ab/">LinkedIn</a> · <a
-                        href="https://github.com/hshids">GitHub</a></p>
-            </noscript>
-        </div>
+        <section id="intro">
+            <h1> Welcome to Hanjing's Homepage</h1>
+            <h1> A Ph.D. Student in Computer Science and Engineering</h1>
+            <p>
+                Human–AI interaction research at Lehigh University.<br>
+                This is where I share my research, presentations, tutorials, and thoughts.
+            </p>
+            <p class="intro-links">
+                <a href="publications.html">Publications</a> ·
+                <a href="presentations.html">Presentations</a> ·
+                <a href="index.html?world" data-view="world">Walk through my world ✦</a>
+            </p>
+        </section>
     </main>
-
     <footer>
-        <p id="footer">&copy; Hanjing Shi</p>
+        <p>&copy; 2026 Hanjing Shi. All rights reserved.</p>
     </footer>
 
-    <script src="assets/js/data.js"></script>
-    <script src="assets/js/basic.js"></script>
     <script src="scripts.js"></script>
+    <script src="assets/js/classic.js"></script>
+
 </body>
 
 </html>

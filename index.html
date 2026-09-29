@@ -115,9 +115,9 @@
                 <p class="guide-name">Mini-Hanjing</p>
                 <p class="guide-note">Scripted guide · answers cite my papers · nothing you type leaves your browser</p>
             </div>
-            <button type="button" class="icon-btn guide-toggle" id="guide-toggle" aria-expanded="true"
-                aria-controls="guide-log" aria-label="Collapse the conversation">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" /></svg>
+            <button type="button" class="icon-btn guide-toggle" id="guide-toggle"
+                aria-label="Fold the conversation away" title="Fold away">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
             </button>
         </header>
         <div class="guide-log" id="guide-log" role="log" aria-live="polite"></div>
@@ -131,6 +131,12 @@
             </button>
         </form>
     </section>
+    <button type="button" class="guide-fab" id="guide-fab" aria-controls="guide" aria-expanded="false" hidden>
+        <span class="guide-fab-face" id="guide-fab-face" aria-hidden="true"></span>
+        <span class="guide-fab-label">Ask me</span>
+        <span class="guide-fab-dot" aria-hidden="true"></span>
+        <span class="sr-only">— open the conversation with Mini-Hanjing</span>
+    </button>
 
     <div class="title" id="title" hidden role="dialog" aria-modal="true" aria-labelledby="title-h">
         <div class="title-card">

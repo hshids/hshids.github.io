@@ -25,7 +25,7 @@
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
   // ------------------------------------------------------------------
-  // Avatar, drawn from Hanjing's photos. By day: long wavy black hair with
+  // Avatar, drawn from Hanjing's photos. By day: long, wavy black hair with
   // a side part, a camel trench coat over a white shirt, and a red notebook.
   // By night: a black qipao with gold bamboo embroidery, an updo with a
   // white flower pin, and a small lantern. The theme picks the outfit.
@@ -61,8 +61,9 @@
     '<g class="c-root">' +
       // long hair behind the body (day)
       '<g class="c-hairback h-down">' +
-        '<path d="M32 40C26 54 29 68 26 82C23 96 28 106 25 118C24 126 30 131 36 129C42 133 48 128 54 130L68 130C74 128 80 133 86 129C92 131 97 126 96 118C93 106 98 96 95 82C92 68 95 54 89 40Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.6) + "/>" +
-        '<path d="M31 62C28 76 33 88 29 101C27 111 31 118 29 124M91 62C94 76 89 88 93 101C95 111 91 118 93 124" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>' +
+        '<path d="M33 40C29 46 27 54 28 62C29 71 21 78 20 88C20 97 27 101 24 110C21 118 17 125 21 130C24 135 31 135 32 129C36 134 44 134 46 128C52 133 70 133 76 128C78 134 86 134 90 129C91 135 98 135 101 130C105 125 101 118 98 110C95 101 102 97 102 88C101 78 93 71 94 62C95 54 93 46 89 40Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.6) + "/>" +
+        '<path d="M29 58C24 68 31 76 26 87C22 97 29 104 25 114M93 58C98 68 91 76 96 87C100 97 93 104 97 114" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.4" stroke-linecap="round" opacity=".65"/>' +
+        '<path d="M22 123C19 127 21 132 25.5 132C29 131.5 29.5 127 26.5 126.5M100 123C103 127 101 132 96.5 132C93 131.5 92.5 127 95.5 126.5" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>' +
       "</g>" +
       // legs
       '<g class="c-leg c-leg-b">' +
@@ -107,8 +108,9 @@
       "</g>" +
       // long hair falling over the shoulders (day)
       '<g class="h-down">' +
-        '<path d="M38 52C33 62 36 74 33 86C30 98 35 106 33 116C32 121 35 124 38 121C41 114 39 106 41 98C43 88 41 76 44 66ZM84 52C89 62 86 74 89 86C92 98 87 106 89 116C90 121 87 124 84 121C81 114 83 106 81 98C79 88 81 76 78 66Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.4) + "/>" +
-        '<path d="M38 62C36 76 38 90 36 104M84 62C86 76 84 90 86 104" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>' +
+        '<path d="M39 50C31 58 37 67 32 77C27 87 35 95 30 105C26 114 29 122 35 124C39 125 42 121 39 117C37 113 43 106 42 97C42 89 38 83 42 75C45 67 42 59 45 52Z' +
+          'M83 50C91 58 85 67 90 77C95 87 87 95 92 105C96 114 93 122 87 124C83 125 80 121 83 117C85 113 79 106 80 97C80 89 84 83 80 75C77 67 80 59 77 52Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.4) + "/>" +
+        '<path d="M38 58C34 66 39 72 35.5 80C32 88 37.5 94 34 102C32 108 33 114 35.5 118M84 58C88 66 83 72 86.5 80C90 88 84.5 94 88 102C90 108 89 114 86.5 118" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".75"/>' +
       "</g>" +
       // front arm: red notebook by day, a lantern by night
       '<g class="c-arm c-arm-f">' +
@@ -153,7 +155,7 @@
           '<path d="M52 23C61 26 73 30 80 38C85 44 87 50 87.5 57C83.5 49 77.5 43 69.5 39C62 35.5 56 34 49.5 34Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.3) + "/>" +
           '<path d="M52 23C46 27 40.5 35 38.5 47C41.5 39.5 46.5 34.5 52 32Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.2) + "/>" +
           '<path d="M56 24C64 26 74 30 80 37M44 26C49 21 56 19 63 19" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.3" stroke-linecap="round" opacity=".85"/>' +
-          '<path d="M39.5 45C36.5 54 36.5 62 38.5 70M85.5 47C88.5 55 88.5 63 86.5 71" fill="none" stroke="#1a1416" stroke-width="2.4" stroke-linecap="round"/>' +
+          '<path d="M39.5 45C35 52 40.5 58 37 64C35 69 38 72.5 40.5 74M85.5 47C90 54 84.5 60 87.5 66C89.5 71 86.5 74 84 76" fill="none" stroke="#1a1416" stroke-width="2.4" stroke-linecap="round"/>' +
         "</g>" +
         // hair pulled back smoothly (night)
         '<g class="h-up">' +
@@ -574,25 +576,47 @@
   // 4. Education: three stone steles along a rising path — Davis, Georgetown, Lehigh.
   S.education = function () {
     var y = GY;
-    function stele(x, base, deg, school, emblem) {
-      return '<g class="stele" transform="translate(' + x + " " + base + ')">' + emblem +
-        '<path class="stone" d="M-40 0V-78Q-40 -100 0 -102Q40 -100 40 -78V0Z"/>' +
-        '<text class="stele-deg" x="0" y="-62" text-anchor="middle">' + deg + '</text>' +
-        '<text class="stele-school" x="0" y="-40" text-anchor="middle">' + school + '</text>' +
-        '<path class="stele-base" d="M-48 0V-8H48V0Z"/></g>';
+    var colors = ["#a8432f", "#3f6b5f", "#9a6f22", "#3d5a80", "#6b4a73", "#7a6a58"];
+    // A stack of books lying flat: some show their coloured spine, some their page edges.
+    // The bottom book carries the school's name; a pennant on top carries the degree.
+    function stack(x, n, deg, school, flag, seed, poleDx) {
+      var r = rng(seed), top = y, books = "";
+      for (var i = 0; i < n; i++) {
+        var h = i === 0 ? 24 : 18 + Math.floor(r() * 5), w = i === 0 ? 104 : 84 + Math.floor(r() * 16);
+        var dx = i === 0 ? 0 : Math.round((r() - 0.5) * 12);
+        top -= h;
+        var pages = i > 0 && r() < 0.35;
+        books += '<g transform="translate(' + (x + dx) + " " + top + ')">' + (pages
+          ? '<rect class="bk-pages" x="' + (-w / 2) + '" y="0" width="' + w + '" height="' + h + '" rx="2"/>' +
+            '<path class="bk-lines" d="M' + (-w / 2 + 4) + " " + (h / 3) + "H" + (w / 2 - 4) + "M" + (-w / 2 + 4) + " " + (2 * h / 3) + "H" + (w / 2 - 4) + '"/>'
+          : '<rect class="bk-spine" x="' + (-w / 2) + '" y="0" width="' + w + '" height="' + h + '" rx="2" style="fill:' + colors[Math.floor(r() * colors.length)] + '"/>' +
+            '<path class="bk-band" d="M' + (-w / 2 + 7) + " 3V" + (h - 3) + "M" + (w / 2 - 7) + " 3V" + (h - 3) + '"/>') +
+          (i === 0 ? '<text class="stack-label" x="0" y="16" text-anchor="middle">' + school + "</text>" : "") + "</g>";
+      }
+      var px = x + (poleDx == null ? 26 : poleDx), py = top;
+      var pennant = '<g class="pennant"><path class="flag-pole" d="M' + px + " " + py + "V" + (py - 62) + '"/>' +
+        '<path class="flag-cloth" style="fill:' + flag + '" d="M' + px + " " + (py - 62) + 'h56l-11 12l11 12h-56z"/>' +
+        '<text class="flag-text" x="' + (px + 24) + '" y="' + (py - 45) + '" text-anchor="middle">' + deg + "</text></g>";
+      return { svg: '<ellipse class="stack-shadow" cx="' + x + '" cy="' + (y + 3) + '" rx="62" ry="6"/>' + books + pennant, top: top };
     }
-    var bike = '<g class="emblem" transform="translate(-84 -4)"><circle cx="-14" cy="-14" r="12"/><circle cx="18" cy="-14" r="12"/><path d="M-14 -14L-2 -34H14L18 -14M-2 -34L4 -14H-14M14 -34L10 -42H4M-4 -38H4"/></g>';
-    var tower = '<g class="emblem" transform="translate(-78 0)"><path d="M-12 0V-60H12V0ZM-16 -60H16L0 -96Z"/><circle cx="0" cy="-44" r="6"/><path d="M0 -44V-48M0 -44H3"/></g>';
-    var mountain = '<g class="emblem" transform="translate(-84 0)"><path d="M-44 0L-8 -70L10 -44L22 -58L50 0Z"/><path d="M-8 -70V-96L10 -90L-8 -84"/></g>';
-    var stones = "";
-    [[-170, 3], [-120, 1], [-50, -4], [20, -9], [110, -16], [160, -20]].forEach(function (s) { stones += '<ellipse cx="' + s[0] + '" cy="' + (y + s[1] + 2) + '" rx="18" ry="5"/>'; });
+    var bs = stack(0, 3, "B.S.", "UC DAVIS", "#3d5a80", 11);
+    var ms = stack(108, 5, "M.S.", "GEORGETOWN", "#55606f", 23);
+    var phd = stack(216, 7, "Ph.D.", "LEHIGH", "#6b4a2e", 37, -26);
+    var t = phd.top;
+    // Still climbing: a ladder against the Ph.D. stack and a cap waiting on top.
+    var ladder = '<g class="ladder"><path d="M278 ' + y + 'L256 ' + (t + 8) + 'M298 ' + y + 'L276 ' + (t + 8) + '"/>' +
+      [0.18, 0.38, 0.58, 0.78].map(function (f) {
+        var yy = y - (y - t - 8) * f, x0 = 278 - 22 * f;
+        return "<path d=\"M" + x0 + " " + yy + "h20\"/>";
+      }).join("") + "</g>";
+    var cap = '<g transform="translate(238 ' + t + ') rotate(8)"><g class="mortarboard">' +
+      '<path class="cap-base" d="M-15 -2V-12H15V-2Q0 3 -15 -2Z"/>' +
+      '<path class="cap-top" d="M-30 -14L0 -26L30 -14L0 -2Z"/>' +
+      '<g class="cap-tassel"><path d="M0 -14L20 -9V6"/><circle cx="20" cy="8" r="3"/></g></g></g>';
+    var bike = '<g class="emblem" transform="translate(-58 ' + y + ')"><circle cx="-14" cy="-14" r="12"/><circle cx="18" cy="-14" r="12"/><path d="M-14 -14L-2 -34H14L18 -14M-2 -34L4 -14H-14M14 -34L10 -42H4M-4 -38H4"/></g>';
     return '<g class="st st-education" data-station="education">' +
-      '<rect class="hit" x="-330" y="380" width="660" height="182"/>' +
-      '<path class="hill" d="M-330 ' + y + 'C-200 ' + y + ' -120 552 0 546C120 540 200 528 330 526V' + (y + 30) + 'H-330Z"/>' +
-      '<g class="stepping">' + stones + "</g>" +
-      stele(-200, y, "B.S.", "UC Davis", bike) +
-      stele(40, 546, "M.S.", "Georgetown", tower) +
-      stele(270, 527, "Ph.D.", "Lehigh", mountain) +
+      '<rect class="hit" x="-330" y="340" width="660" height="222"/>' +
+      bike + bs.svg + ms.svg + phd.svg + ladder + cap +
       '<path class="sign-post" d="M-360 392V' + y + 'M-360 392H-190"/>' +
       sign(-270, 420, "EDUCATION", 150) +
     '</g>';

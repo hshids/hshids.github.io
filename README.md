@@ -5,9 +5,9 @@ Personal site of Hanjing Shi, served by GitHub Pages. It has two versions, and v
 | Page | What it is |
 | --- | --- |
 | `index.html` | **Interactive version — "Welcome to my world."** A scrolling ink-wash world. Mini-Hanjing walks between places (Welcome, Research, Talks, Education, Tutorials, Writing, Life, Contact) with JinBingBing the cat and answers questions in a chat box. |
-| `basic.html` | **Basic version.** One plain text page in the original style (ink background, paper overlay, Roboto Mono). It has no hobbies or personal section. |
+| `basic.html` + `about.html`, `publications.html`, `presentations.html`, `tutorials.html`, `blog.html` | **Text version.** The original ink-wash site (same stylesheets: `style.css`, `about.css`, `tutorials.css`, `blog.css`), with Publications and Presentations pages added. `basic.html` is its Home page. It has no hobbies or personal section. |
 
-A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version. The old `about.html`, `tutorials.html` and `blog.html` now redirect to the matching section of `basic.html`.
+A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version.
 
 There is no build step. Every file is plain HTML, CSS and JavaScript, and the pages also work when opened straight from disk.
 
@@ -18,14 +18,15 @@ assets/js/data.js     ← ALL content: bio, papers, news, talks, posters, photos
 assets/js/guide.js    ← Mini-Hanjing's answers (rules + keyword search over data.js; no AI model, no network)
 assets/js/art.js      ← SVG drawings: the world, the avatar, JinBingBing, each place
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
-assets/js/basic.js    ← renders basic.html from data.js
-assets/css/world.css, assets/css/basic.css
+assets/js/classic.js  ← text version: fills Publications / Presentations from data.js
+assets/css/world.css  ← interactive version
+assets/css/classic.css ← small additions to the original stylesheets (nav, lists, phone layout)
 images/…              ← photos (each gallery folder has a thumbs/ subfolder)
 files/…               ← PDFs (posters, slides)
 tutorials/, blog/     ← the original tutorial and blog pages (unchanged)
 ```
 
-**To change content, edit only `assets/js/data.js`.** Both versions and the chat guide read from it.
+**To change content, edit `assets/js/data.js`.** The interactive version, the chat guide and the text version's Publications / Presentations pages all read from it. The text version's Home and About Me pages are plain HTML (`basic.html`, `about.html`), edited directly.
 
 ## Common updates
 
@@ -68,7 +69,7 @@ for f in sys.argv[1:]:
 ```
 
 ### Links still to fill in
-In `data.js`, `person.links.cv` is empty. Once it's set, the guide, the Contact place and the basic version link to it. The top-level `foodSocial` is also empty; set it to your restaurant-review account and a link appears in the Life place.
+In `data.js`, `person.links.cv` is empty. Once it's set, the guide and the Contact place link to it; add it to `about.html` by hand. The top-level `foodSocial` is also empty; set it to your restaurant-review account and a link appears in the Life place.
 
 ## How the guide works
 
@@ -95,7 +96,9 @@ python3 -m http.server 8000
 | ← / → or drag | Walk |
 | Click or tap a place | Open its panel |
 | Enter | Explore the current place |
-| `/` | Chat |
-| Esc | Close panels, lightboxes and the lecture hall |
+| `/` | Open the chat |
+| Esc | Close panels, lightboxes and the lecture hall; in an empty chat box, fold the chat away |
+
+The chat folds into a small "Ask me" button (the ⌄ button in its header), and the site remembers that choice. While it's folded, Mini-Hanjing says short answers in a speech bubble.
 
 Clicking the sun or moon switches between day and night; the avatar changes outfit too. Motion is reduced when the system asks for it.

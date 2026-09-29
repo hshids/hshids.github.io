@@ -5,16 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Hanjing - Tutorials</title>
+    <title>Hanjing - Presentations</title>
+    <meta name="description"
+        content="Talks and posters by Hanjing Shi — recorded conference presentations and poster PDFs.">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="tutorials.css">
+    <link rel="stylesheet" href="about.css">
     <link rel="stylesheet" href="assets/css/classic.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@500&display=swap"
         rel="stylesheet">
 
 </head>
 
-<body class="page-tutorials">
+<body class="page-paper">
     <div class="background-image"></div>
 
     <header>
@@ -23,35 +25,35 @@
                 <li><a href="basic.html">Home</a></li>
                 <li><a href="about.html">About Me</a></li>
                 <li><a href="publications.html">Publications</a></li>
-                <li><a href="presentations.html">Presentations</a></li>
-                <li><a href="tutorials.html" aria-current="page">Tutorials</a></li>
+                <li><a href="presentations.html" aria-current="page">Presentations</a></li>
+                <li><a href="tutorials.html">Tutorials</a></li>
                 <li><a href="blog.html">Blog</a></li>
                 <li><a href="index.html?world" class="to-world" data-view="world">✦ Interactive</a></li>
             </ul>
         </nav>
     </header>
 
-    <!-- 打字机容器 -->
-    <div class="typewriter">
-        <!-- 纸条容器 -->
-        <div class="papers">
-            <!-- 单独的纸条，每个纸条对应一个教程 -->
-            <ul>
-                <li><a href="tutorials/Rcheatsheet.html" class="paper">R</a></li>
-                <li><a href="tutorials/Python-Tutorials.html" class="paper">Python</a></li>
-                <li><a href="tutorials/statscheatsheet.html" class="paper">Statistics</a></li>
-                <li><a href="tutorials/js.html" class="paper">JavaScript/CSS/HTML</a></li>
-            </ul>
+    <main>
+
+        <div class="paper-like-overlay">
+            <div class="content">
+                <h1>Presentations</h1>
+                <h2>Talks</h2>
+                <ul class="talks" id="talks"></ul>
+                <h2>Posters</h2>
+                <ul class="posters" id="posters"></ul>
+                <noscript><p>This list needs JavaScript.</p></noscript>
+            </div>
         </div>
-    </div>
+    </main>
+
 
 
     <footer>
         <p>&copy; 2026 Hanjing Shi. All rights reserved.</p>
     </footer>
-
+    <script src="assets/js/data.js"></script>
     <script src="assets/js/classic.js"></script>
-
 </body>
 
 </html>

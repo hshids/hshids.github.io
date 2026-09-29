@@ -50,13 +50,14 @@
     keys: { left: false, right: false },
     trip: null, near: null, panel: null,
     lang: "en",   // the site is in English; the guide switches to Chinese only when asked in Chinese
-    raf: 0, last: 0, title: false, dragged: false
+    raf: 0, last: 0, title: false, dragged: false,
+    guideMin: false   // the visitor folded the chat away themselves
   };
 
   // ---------- DOM ----------
   var worldEl = $("#world"), layersEl = $("#layers"), hud = $("#hud");
   var panel = $("#panel"), panelBody = $("#panel-body");
-  var guide = $("#guide"), log = $("#guide-log"), chips = $("#guide-chips"), form = $("#guide-form"), input = $("#guide-input");
+  var guide = $("#guide"), fab = $("#guide-fab"), log = $("#guide-log"), chips = $("#guide-chips"), form = $("#guide-form"), input = $("#guide-input");
   var charEl, catEl, groundEl, layerEls = [];
 
   function svgWrap(width, inner, cls) {
@@ -94,11 +95,13 @@
     charEl = $("#char");
     catEl = $("#cat");
     $("#guide-portrait").innerHTML = ART.portrait("p");
+    $("#guide-fab-face").innerHTML = ART.portrait("f");
   }
 
   // ---------- layout ----------
   function guideReserve() {
-    return state.mobile ? Math.min(170, state.ch * 0.3) : 0;
+    // On phones the scene sits above the open chat sheet; folded, it uses the full height.
+    return state.mobile && !guide.classList.contains("collapsed") ? Math.min(170, state.ch * 0.3) : 0;
   }
 
   function layout() {
@@ -351,6 +354,7 @@
     var cps = /[㐀-鿿]/.test(full) ? 55 : 110;
     var step = Math.max(1, Math.ceil(full.length / (2.2 * 60)));   // never type for more than ~2.2 s
     charEl.classList.add("is-talking");
+    if (guide.classList.contains("collapsed") && !opts.silent) sayShort(full);
     function done() {
       clearInterval(timer);
       textEl.textContent = full;
@@ -376,13 +380,29 @@
     if (a.action) doAction(a.action);
   }
 
-  function ask(text, label) {
+  // A short version of a reply, spoken by the avatar while the chat is folded away.
+  function sayShort(text) {
+    var t = String(text).replace(/\s+/g, " ").trim();
+    // Cut after the first full sentence (not after "Ph.D." or "Prof.").
+    var re = /[.!?。！？](?=\s|$)/g, m;
+    while ((m = re.exec(t))) {
+      if (m.index < 24 || /(Ph\.D|Prof|Dr|e\.g|i\.e|vs|U\.S)$/.test(t.slice(0, m.index))) continue;
+      t = t.slice(0, m.index + 1);
+      break;
+    }
+    if (t.length > 120) t = t.slice(0, 117).replace(/\s+\S*$/, "") + "…";
+    bubble(charEl, t, Math.min(7000, 1800 + t.length * 45));
+    fab.classList.add("has-news");
+  }
+
+  function ask(text, label, soft) {
     if (!text) return;
     addMsg("user", label || text);
     if (/[㐀-鿿]/.test(label || text)) setLang("zh", true);
     else if (!/^(paper|theme):/.test(text)) setLang("en", true);
+    // A click in the world ("soft") doesn't reopen a chat the visitor folded away.
+    if (!(soft && state.guideMin)) expandGuide(true);
     reply(G.answer(text, state.lang));
-    expandGuide(true);
   }
 
   function stationGreeting(id) {
@@ -401,11 +421,16 @@
     if (!quiet) setChips(null);
   }
 
-  function expandGuide(open) {
+  // open: show the whole conversation; closed: fold it into the small "Ask me" button.
+  function expandGuide(open, byUser) {
+    var was = !guide.classList.contains("collapsed");
+    if (byUser) { state.guideMin = !open; store("hj-guide", open ? "open" : "min"); }
     guide.classList.toggle("collapsed", !open);
-    $("#guide-toggle").setAttribute("aria-expanded", open ? "true" : "false");
-    $("#guide-toggle").setAttribute("aria-label", open ? "Collapse the conversation" : "Expand the conversation");
-    if (open) log.scrollTop = log.scrollHeight;
+    guide.hidden = !open;
+    fab.hidden = open;
+    fab.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) { fab.classList.remove("has-news"); log.scrollTop = log.scrollHeight; }
+    if (state.mobile && was !== open) layout();
     start();   // the free area changed, so the camera re-centres
   }
 
@@ -586,7 +611,9 @@
     panel.classList.remove("open");
     document.body.classList.remove("panel-open");
     setTimeout(function () { if (!state.panel) panel.hidden = true; }, 260);
-    state.focusX = null;
+    // Keep the place she's standing at in frame (phones can't show a whole place around her).
+    state.focusX = state.near && !state.trip ? state.near.x : null;
+    if (!state.mobile && !state.guideMin) expandGuide(true);
     showHud(); start();
     if (lastFocus && lastFocus.focus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
   }
@@ -886,7 +913,7 @@
     if (t.classList && t.classList.contains("hit") && overSun(e)) { toggleTheme(); return; }
     if (t.closest("#char")) { flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
     if (t.closest("#cat")) { doAction("meow"); return; }
-    if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, (state.lang === "zh" ? "讲讲这本：" : "Tell me about ") + G.pubById[id].title); return; }
+    if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, (state.lang === "zh" ? "讲讲这本：" : "Tell me about ") + G.pubById[id].title, true); return; }
     if ((el = t.closest(".slip"))) { goTo("tutorials", { focus: { tutorial: el.dataset.tutorial } }); return; }
     if ((el = t.closest(".crane"))) { goTo("writing", { focus: { gpt: +el.dataset.gpt } }); return; }
     if ((el = t.closest(".life-item"))) {
@@ -964,7 +991,11 @@
       // Arrow keys still walk while the (empty) chat box has focus.
       var walkKey = e.key === "ArrowLeft" || e.key === "ArrowRight";
       if (isTypingTarget(e.target) && !(walkKey && e.target === input && !input.value)) {
-        if (e.key === "Escape") e.target.blur();
+        if (e.key === "Escape") {
+          // Esc in an empty chat box folds the chat away; otherwise it just leaves the field.
+          if (e.target === input && !input.value && !state.panel) { expandGuide(false, true); fab.focus(); }
+          else e.target.blur();
+        }
         return;
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
@@ -972,8 +1003,8 @@
       if (k === "ArrowLeft" || k === "a" || k === "A") { state.keys.left = true; start(); e.preventDefault(); }
       else if (k === "ArrowRight" || k === "d" || k === "D") { state.keys.right = true; start(); e.preventDefault(); }
       else if ((k === "Enter" || k === "e" || k === "E") && (e.target === document.body || e.target === worldEl) && state.near) { goTo(state.near.id); e.preventDefault(); }
-      else if (k === "/") { e.preventDefault(); expandGuide(true); input.focus(); }
-      else if (k === "Escape") { if (state.panel) closePanel(); else expandGuide(false); }
+      else if (k === "/") { e.preventDefault(); expandGuide(true, true); input.focus(); }
+      else if (k === "Escape") { if (state.panel) closePanel(); else if (!guide.hidden) { expandGuide(false, true); fab.focus(); } }
     });
     document.addEventListener("keyup", function (e) {
       var k = e.key;
@@ -1003,7 +1034,11 @@
       var img = e.target;
       if (img.tagName === "IMG" && /\/thumbs\//.test(img.src) && !img.dataset.full) { img.dataset.full = "1"; img.src = img.src.replace("/thumbs/", "/"); }
     }, true);
-    $("#guide-toggle").addEventListener("click", function () { expandGuide(guide.classList.contains("collapsed")); });
+    $("#guide-toggle").addEventListener("click", function () { expandGuide(false, true); fab.focus(); });
+    fab.addEventListener("click", function () {
+      expandGuide(true, true);
+      if (!state.mobile) input.focus({ preventScroll: true }); else $("#guide-toggle").focus();
+    });
     $$(".lang-btn").forEach(function (b) { b.addEventListener("click", function () { setLang(b.dataset.lang); }); });
     $("#enter-btn").addEventListener("click", enterWorld);
     $("#video-close").addEventListener("click", closeVideo);
@@ -1072,7 +1107,8 @@
       setTimeout(function () { reply(G.greet(state.lang), { noMove: true }); }, 400);
       if (byId[hash]) setTimeout(function () { goTo(hash); }, 600);
     }
-    expandGuide(!state.mobile);
+    state.guideMin = store("hj-guide") === "min";
+    expandGuide(!state.mobile && !state.guideMin);
     document.body.classList.add("ready");
   }
 

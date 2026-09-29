@@ -1,0 +1,133 @@
+.background-image {
+    position: fixed;
+    /* 或者absolute, 取决于你想如何定位它 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('images/back1.png');
+    background-size: cover;
+    background-position: center;
+
+    z-index: -1;
+
+}
+
+body {
+    font-family: 'Roboto Mono', monospace;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    /* 确保header在最上面 */
+    background-color: #333;
+    color: #fff;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style-type: none;
+    padding: 0;
+    text-align: center;
+}
+
+nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+main {
+    margin-top: 60px;
+    /* header的高度 */
+    height: calc(100% - 120px);
+    /* 减去header和footer的高度 */
+    color: #333;
+    text-align: center;
+    padding: 45px 0;
+    background-color: rgba(255, 255, 255, 0.45);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 78vh;
+    text-align: center;
+    font-size: 1.25rem;
+    -webkit-overflow-scrolling: touch;
+
+}
+
+main h1 {
+    font-family: 'Orbitron', sans-serif;
+    /* 段落字体大小 */
+}
+
+
+footer {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+/* add ink animation*/
+
+@keyframes ink-splash {
+    0% {
+        transform: scale(0);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0;
+    }
+}
+
+.ink-drop {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.4);
+
+    animation: ink-splash 1s linear infinite;
+}
+
+/* 对于宽度小于或等于600px的屏幕应用样式 */
+@media screen and (max-width: 600px) {
+    .some-class {
+        padding: 10px;
+    }
+
+    /* 其他样式... */
+}
+
+/* 对于宽度在601px到800px之间的屏幕应用样式 */
+@media screen and (min-width: 601px) and (max-width: 800px) {
+    .some-class {
+        padding: 20px;
+    }
+
+    /* 其他样式... */
+}
+
+/* 对于宽度大于800px的屏幕应用样式 */
+@media screen and (min-width: 801px) {
+    .some-class {
+        padding: 30px;
+    }
+
+    /* 其他样式... */
+}
