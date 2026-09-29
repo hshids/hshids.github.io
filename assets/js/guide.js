@@ -456,10 +456,12 @@
   }
 
   function advisor(lang) {
+    var adv = D.person.advisor || {};
     return A(lang, lang === "zh"
-      ? "我的导师是 Lehigh University 的 Dominic DiFranzo 教授。我的大部分论文都是和他合作完成的。"
-      : "My advisor is Prof. Dominic DiFranzo at Lehigh University — he's a co-author on most of my papers.",
-      "", lang === "zh" ? ["你和谁合作？", "教育背景"] : ["Who do you work with?", "Education"], "education");
+      ? "我的导师是 Lehigh 的 Dominic DiFranzo 教授，他是 Social Design Lab 的负责人。他把社会科学理论变成真正能用的设计：让人敢于站出来对抗网络霸凌、质疑虚假信息、在网上更友善。他还做了开源的 Truman Platform 和 Social Media TestDrive，已经有一百多万名中学生用过。我的大部分论文都是和他一起写的。说真的，他是个天才——一定要去看看他的网站，那简直是一个迷你操作系统 🖥️"
+      : "My advisor is Prof. Dominic DiFranzo at Lehigh — he directs the Social Design Lab and turns social-science theory into designs that help people stand up to cyberbullies, question misinformation and be kinder online. He also built the Truman Platform and Social Media TestDrive, used by more than a million middle schoolers. He's a co-author on most of my papers. Honestly? He's a genius — you should definitely look at his website. It's literally a tiny operating system. 🖥️",
+      adv.url ? linkList([{ label: lang === "zh" ? "Dominic DiFranzo 的网站" : "Dominic DiFranzo's website", href: adv.url }]) : "",
+      lang === "zh" ? ["你和谁合作？", "教育背景"] : ["Who do you work with?", "Education"], "education");
   }
 
   function coauthors(lang) {

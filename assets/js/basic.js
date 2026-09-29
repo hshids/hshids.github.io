@@ -22,6 +22,12 @@
     return null;
   }
 
+  // Link the advisor's name to his website wherever the education notes mention him.
+  function advisorNote(note) {
+    var adv = D.person.advisor || {}, t = esc(note);
+    return adv.url && adv.name ? t.replace(esc(adv.name), '<a href="' + esc(adv.url) + '" target="_blank" rel="noopener">' + esc(adv.name) + "</a>") : t;
+  }
+
   var themeById = {};
   D.themes.forEach(function (t) { themeById[t.id] = t; });
   var pubs = D.publications.slice().sort(byDateDesc);
@@ -108,7 +114,7 @@
 
     html += section("education", "Education", '<ul class="timeline">' + D.education.map(function (e) {
       return '<li><div class="deg">' + esc(e.degree) + "</div><div>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</div>" +
-        (e.note ? '<div class="pub-note">' + esc(e.note) + "</div>" : "") + "</li>";
+        (e.note ? '<div class="pub-note">' + advisorNote(e.note) + "</div>" : "") + "</li>";
     }).join("") + "</ul>");
 
     html += section("tutorials", "Tutorials", "<p>Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>" +

@@ -25,15 +25,21 @@
   function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
 
   // ------------------------------------------------------------------
-  // Avatar, drawn from Hanjing's photos. By day: long, wavy black hair with
-  // a side part, a camel trench coat over a white shirt, and a red notebook.
-  // By night: a black qipao with gold bamboo embroidery, an updo with a
-  // white flower pin, and a small lantern. The theme picks the outfit.
+  // Avatar, drawn from Hanjing's photos in a storybook, semi-realistic style
+  // (about five and a half heads tall, softly shaded). By day: long, wavy
+  // black hair with a side part, a camel trench coat over a white shirt, and
+  // a red book. By night: a black qipao with gold bamboo embroidery, an updo
+  // with a white flower pin, and a small lantern. The theme picks the outfit.
+  //
+  // Besides the standing figure, the red-circle actions use: two arm poses
+  // (reading, typing), a crouch (petting XiaoHei) and a seated view from
+  // behind (writing at the desk). All share the 120 x 200 box; feet at y 192.
   // ------------------------------------------------------------------
-  var LINE = "#33241f", SKIN = "#f7dccb";
-  var HAIR_LINE = "#0e0b0c", HAIR_HI = "#51464c";
-  var COAT_SH = "#a9855d", COAT_HI = "#dcc09a", COAT_LINE = "#5b4129";
-  var SHIRT = "#f8f4ec", QIPAO = "#17161b", QIPAO_LINE = "#3d3c46", GOLD = "#d2ad62", GOLD_2 = "#ecd29a";
+  var INK = "#2a1f1b", SKIN = "#f2d7c6", SKIN_SH = "#dfb8a4", BLUSH = "#eea69c";
+  var HAIR_LINE = "#0e0a0b", HAIR_HI = "#574c52";
+  var COAT_SH = "#a07b52", COAT_HI = "#d9bd95", COAT_LINE = "#4e3825", BUTTON = "#e4d0a8";
+  var SHIRT = "#f6f1e7", QIPAO = "#17161b", QIPAO_LINE = "#3a3942", GOLD = "#cda75e", GOLD_2 = "#e8cf98";
+  var TIGHTS = "#2d2a30", SHOE = "#3a2920", HEEL = "#101014";
 
   function bamboo(x, y, s, rot) {
     return '<g transform="translate(' + x + " " + y + ") rotate(" + rot + ") scale(" + s + ')">' +
@@ -45,191 +51,297 @@
       "</g>";
   }
 
+  function sk(col, w) { return ' stroke="' + col + '" stroke-width="' + w + '"'; }
+  function P(d, fill, stroke, w, extra) {
+    return '<path d="' + d + '" fill="' + (fill || "none") + '"' + (stroke ? sk(stroke, w) : "") + (extra || "") + "/>";
+  }
+  // Mirror a path's x coordinates around the figure's centre line (x = 60).
+  function mirrorPath(d) {
+    var out = "", cmd = "", k = 0;
+    d.replace(/([MLCQHVZ])|(-?\d*\.?\d+)/g, function (m, c, num) {
+      if (c) { cmd = c; k = 0; out += c; return m; }
+      var v = parseFloat(num);
+      var isX = cmd === "H" || (cmd !== "V" && k % 2 === 0);
+      out += (out && /[\d.]$/.test(out) ? " " : "") + (isX ? f1(120 - v) : v);
+      k++;
+      return m;
+    });
+    return out;
+  }
+
+  // The head: face, features and both hairstyles. `look` = "front" | "down" (eyes lowered, for petting).
+  function head(h, s, look) {
+    var down = look === "down";
+    var face = "M50.2 27.5C50 19.5 54.4 15 60 15C65.6 15 70 19.5 69.8 27.5C69.6 34.5 66.2 40.6 60 43C53.8 40.6 50.4 34.5 50.2 27.5Z";
+    return '' +
+      // night: low bun and flower pin behind the head, ears with pearl studs
+      '<g class="h-up">' +
+        '<circle cx="47.4" cy="31.4" r="6.4" fill="url(#' + h + ')"' + sk(HAIR_LINE, 1.2) + "/>" +
+        P("M42.6 29.6Q47.4 26.4 52 29.2M42.8 33.6Q47.4 36.6 51.8 33.4", "", HAIR_HI, 0.8) +
+        P("M48.6 25.2L55.2 28.8", "", GOLD, 1) +
+        '<g fill="#f7f3ea"' + sk("#cfc4b0", 0.5) + '><circle cx="44.6" cy="25.4" r="1.9"/><circle cx="47.6" cy="23.8" r="1.9"/><circle cx="47.2" cy="27.4" r="1.8"/><circle cx="43.4" cy="28.2" r="1.7"/></g>' +
+        '<g fill="' + GOLD + '"><circle cx="44.6" cy="25.4" r=".55"/><circle cx="47.6" cy="23.8" r=".55"/></g>' +
+        P("M50.4 27.9Q47.8 27.4 48.2 30.9Q48.8 34 51.1 33.6Z", SKIN, INK, 1) +
+        P("M69.6 27.9Q72.2 27.4 71.8 30.9Q71.2 34 68.9 33.6Z", SKIN, INK, 1) +
+        '<circle cx="49.4" cy="35" r=".9" fill="#f5f2ea"' + sk("#b9b2a6", 0.4) + "/>" +
+        '<circle cx="70.6" cy="35" r=".9" fill="#f5f2ea"' + sk("#b9b2a6", 0.4) + "/>" +
+      "</g>" +
+      P(face, "url(#" + s + ")", INK, 1.2) +
+      P("M66.4 21.6C69.4 27.6 68.6 35.6 62.8 41.6C66.8 39.8 69.5 34.9 69.8 27.5C69.8 25.3 69.3 23.3 68.4 21.6Z", SKIN_SH, "", 0, ' opacity=".4"') +
+      '<g opacity=".3" fill="' + BLUSH + '"><ellipse cx="53.6" cy="33.2" rx="2.5" ry="1.3"/><ellipse cx="66.4" cy="33.2" rx="2.5" ry="1.3"/></g>' +
+      (down
+        ? P("M53 28.8Q55.4 30.4 57.8 28.8M62.2 28.8Q64.6 30.4 67 28.8", "", INK, 1.1)
+        : '<g class="c-eyes">' +
+            P("M52.8 28.4Q55.4 26.4 58 28.3Q55.4 29.9 52.8 28.4Z", "#fbf7f2") +
+            P("M62 28.3Q64.6 26.4 67.2 28.4Q64.6 29.9 62 28.3Z", "#fbf7f2") +
+            '<circle cx="55.5" cy="28.2" r="1.35" fill="#2c1d17"/><circle cx="64.5" cy="28.2" r="1.35" fill="#2c1d17"/>' +
+            '<circle cx="55.9" cy="27.7" r=".42" fill="#fff"/><circle cx="64.9" cy="27.7" r=".42" fill="#fff"/>' +
+            P("M52.5 28.5Q55.4 25.9 58.2 28.1M61.8 28.1Q64.6 25.9 67.5 28.5M52.5 28.5L51.7 28M67.5 28.5L68.3 28", "", "#1b1210", 1.1) +
+            P("M53.5 29.2Q55.4 30.1 57.5 29M62.5 29Q64.6 30.1 66.5 29.2", "", "#b98f7e", 0.5) +
+          "</g>" +
+          '<g class="c-eyes-shut">' + P("M53 28.8Q55.4 30.4 57.8 28.8M62.2 28.8Q64.6 30.4 67 28.8", "", INK, 1.1) + "</g>") +
+      P("M52.6 24.5Q55.2 23 58 24.1M62 24.1Q64.8 23 67.4 24.5", "", "#2a1f1c", 1.05) +
+      P("M60.3 29.6Q59.3 32.6 59.9 33.4Q60.7 33.9 61.5 33.3", "", "#c38f7b", 0.8) +
+      '<path class="c-mouth" d="M57.4 37.1Q58.8 36.2 60 36.6Q61.2 36.2 62.6 37.1Q61.2 38.9 60 38.9Q58.8 38.9 57.4 37.1Z" fill="#c9726f"' + sk("#a6504e", 0.5) + "/>" +
+      '<ellipse class="c-mouth-open" cx="60" cy="37.7" rx="1.6" ry="1.2" fill="#7b2f2c"/>' +
+      // day: side-parted wavy hair framing the face
+      '<g class="h-down">' +
+        P("M49.2 29C48 19 53 11.6 60.5 11.6C68 11.6 72.7 18.4 71 29C69.6 24 67 20.4 63 18.8C60 21.8 55 24 51 25.4C50.3 26.6 49.6 27.8 49.2 29Z", "url(#" + h + ")", HAIR_LINE, 1.2) +
+        P("M56 12.6C52 15.8 50.2 20.8 50 27.4C52.4 23.3 55.4 20.7 59.5 19.1Z", "url(#" + h + ")", HAIR_LINE, 1) +
+        P("M50.4 22C46.6 30 51.6 36 47.4 43C45.6 48 49 51.8 51.8 50C53.4 45 50.4 40 52.9 34C54.1 30 52 26 50.4 22Z", "url(#" + h + ")", HAIR_LINE, 1) +
+        P("M69.6 22C73.4 30 68.4 36 72.6 43C74.4 48 71 51.8 68.2 50C66.6 45 69.6 40 67.1 34C65.9 30 68 26 69.6 22Z", "url(#" + h + ")", HAIR_LINE, 1) +
+        P("M56.6 14.4C62 14.6 67.6 17.4 69.8 23M53.6 17.2C55.6 15 58.4 13.8 61.4 13.6", "", HAIR_HI, 0.9, ' opacity=".85"') +
+      "</g>" +
+      // night: hair pulled back smoothly
+      '<g class="h-up">' +
+        P("M49.4 28C48.4 18.4 53.2 12 60.2 11.8C67.4 11.8 72 18 70.8 28C69 22.4 65.4 19.2 60.2 19C55 19.2 51.2 22.4 49.4 28Z", "url(#" + h + ")", HAIR_LINE, 1.2) +
+        P("M53.2 16.6C56.6 14.2 62.6 13.6 67 15.6M51 22C53.6 18.2 57.6 16.4 62 16.2", "", HAIR_HI, 0.85, ' opacity=".85"') +
+      "</g>";
+  }
+
   function character(uid) {
-    var h = "hjHair" + uid, c = "hjCoat" + uid, g = "hjGlow" + uid;
-    var stroke = function (col, w) { return ' stroke="' + col + '" stroke-width="' + w + '" stroke-linejoin="round"'; };
+    var h = "hjHair" + uid, c = "hjCoat" + uid, g = "hjGlow" + uid, s = "hjSkin" + uid, q = "hjQipao" + uid;
+
+    // --- shapes shared by several poses ---
+    var SLEEVE_F = "M75.4 53.2C80.4 55.8 82.9 61.8 83.3 71.8L84.5 107.6C84.7 111.6 81.9 114.2 78.9 114C76.3 113.8 75.1 111.6 75.1 108.6L73.9 75.6C73.5 67.6 72.3 60.6 71.3 55.6Z";
+    var ARM_F = "M75.8 53.6C80.2 56 82.4 61.6 82.6 70.6L83.4 107.6C83.6 112 81.6 114.6 79 114.4C76.8 114.2 75.8 112.2 75.8 109L75.2 74.6C74.8 66.6 73.6 59.6 72.6 55.6Z";
+    var HAND_F = "M83.6 112.8C84.2 117.2 82.4 120.4 79.6 120.2C77 120 75.7 117.2 75.9 113.2Z";
+    var handF = P(HAND_F, SKIN, INK, 1.1);
+    var handB = P(mirrorPath(HAND_F), SKIN, INK, 1.1);
+    var coatBody = "M45.5 51.5C41.5 53 40.3 57.5 40.3 63.5L37.6 150C48 153.8 72 153.8 82.4 150L79.7 63.5C79.7 57.5 78.5 53 74.5 51.5C68.5 49.4 51.5 49.4 45.5 51.5Z";
+    var qipaoBody = "M47.2 51C43.8 52.4 42.8 56.8 43 61.8C43.4 69.8 45 77.8 46.2 86C44.4 94 43.2 102 43.2 110C43.2 132 44.6 156 45.8 176H74.2C75.4 156 76.8 132 76.8 110C76.8 102 75.6 94 73.8 86C75 77.8 76.6 69.8 77 61.8C77.2 56.8 76.2 52.4 72.8 51C68 49.4 52 49.4 47.2 51Z";
+    var neck = P("M56.4 40L56.1 52H63.9L63.6 40Z", SKIN, INK, 1) + P("M56.3 42.4Q60 46.4 63.7 42.4V46Q60 49.4 56.3 46Z", SKIN_SH, "", 0, ' opacity=".7"');
+    // a red hardcover: coloured cover, cream page block, spine, gold title and a ribbon
+    function book(col, title, ribbon) {
+      return P("M76.6 106.4H89.2C89.9 106.4 90.4 106.9 90.4 107.6V124.6C90.4 125.3 89.9 125.8 89.2 125.8H76.6Z", col, INK, 1.1) +
+        P("M89.4 107.3H91.7V124.9H89.4", "#f4ecdb", INK, 0.8) + P("M90.2 109.6V122.6M91 109.6V122.6", "", "#cdbfa6", 0.45) +
+        P("M79 106.8V125.4", "", "rgba(0,0,0,.28)", 1.1) + P("M81.4 111.2H87.4M81.4 113.8H86", "", title, 0.9) +
+        (ribbon ? P("M85.6 125.8V130.6L84.6 129.5L83.6 130.6V125.8", GOLD) : "");
+    }
+    function readArms(day) {
+      var fill = day ? "url(#" + c + ")" : SKIN, line = day ? COAT_LINE : INK;
+      var upper = day ? "M44.6 53.2C39.6 55.8 37.4 61.8 37.2 70L37 86C37 90 40 92.4 43 91.8C45.6 91.2 46.8 89 46.8 86L47.4 72C47.6 65 48.2 59.6 48.7 55.6Z"
+        : "M44.2 53.6C39.8 56 37.8 61.6 37.6 69.6L37.4 86C37.4 90 40.2 92.2 43 91.6C45.4 91 46.4 89 46.4 86L46.8 72C47 65 47.6 59.6 47.8 55.6Z";
+      var fore = day ? "M39.6 85.4C43 83.6 49.6 88.6 54.4 92.6C56.2 94.4 55.2 97.6 52.6 97.8C48 96 42 93.4 39.4 91.4C37.4 89.4 37.8 86.4 39.6 85.4Z"
+        : "M40 85.8C43.2 84.2 49.6 88.8 54 92.6C55.8 94.4 54.8 97.4 52.4 97.6C48 95.8 42.4 93.4 39.8 91.4C37.8 89.4 38.2 86.6 40 85.8Z";
+      return P(upper, fill, line, 1.3) + P(fore, fill, line, 1.3) + P(mirrorPath(upper), fill, line, 1.3) + P(mirrorPath(fore), fill, line, 1.3);
+    }
+    function typeArms(day) {
+      var fill = day ? "url(#" + c + ")" : SKIN, line = day ? COAT_LINE : INK;
+      var upperB = day ? "M44.6 53.2C39.6 55.8 37.4 61.8 37.2 70L37 86C37 90 40 92.4 43 91.8C45.6 91.2 46.8 89 46.8 86L47.4 72C47.6 65 48.2 59.6 48.7 55.6Z"
+        : "M44.2 53.6C39.8 56 37.8 61.6 37.6 69.6L37.4 86C37.4 90 40.2 92.2 43 91.6C45.4 91 46.4 89 46.4 86L46.8 72C47 65 47.6 59.6 47.8 55.6Z";
+      return P(upperB, fill, line, 1.3) +
+        '<g class="type-hand type-hand-b">' + P("M40 85.4C46 86 64 92 76 96.4C78.6 97.6 78 101 75.4 101.2C62 99.6 46 94.6 40.4 91.6C38.2 90 38.2 86.4 40 85.4Z", fill, line, 1.3) +
+          '<ellipse cx="78.4" cy="99.2" rx="3.4" ry="2.8" fill="' + SKIN + '"' + sk(INK, 1.1) + "/></g>" +
+        P(mirrorPath(upperB), fill, line, 1.3) +
+        '<g class="type-hand type-hand-f">' + P("M78 85.8C82.6 86.8 90 91.6 95.4 95.2C97.4 96.8 96.6 100 94 100.2C88.4 99 81.4 96.2 77.6 92.8C75.8 91 76.2 86.6 78 85.8Z", fill, line, 1.3) +
+          '<ellipse cx="97" cy="98.4" rx="3.4" ry="2.8" fill="' + SKIN + '"' + sk(INK, 1.1) + "/></g>";
+    }
+
     return '' +
     '<svg class="hj-char-svg" viewBox="0 0 120 200" aria-hidden="true" focusable="false">' +
-    '<defs>' +
-      '<linearGradient id="' + h + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2c2528"/><stop offset="1" stop-color="#131012"/></linearGradient>' +
-      '<linearGradient id="' + c + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#b8946a"/><stop offset=".5" stop-color="#cfad83"/><stop offset="1" stop-color="#b28e64"/></linearGradient>' +
+    "<defs>" +
+      '<linearGradient id="' + h + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2d2528"/><stop offset=".55" stop-color="#1a1517"/><stop offset="1" stop-color="#100c0e"/></linearGradient>' +
+      '<linearGradient id="' + c + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ab8659"/><stop offset=".42" stop-color="#c9a67b"/><stop offset=".7" stop-color="#bf9b6f"/><stop offset="1" stop-color="#9f7a50"/></linearGradient>' +
+      '<radialGradient id="' + s + '" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#f7e0d1"/><stop offset=".75" stop-color="' + SKIN + '"/><stop offset="1" stop-color="#e6c3b0"/></radialGradient>' +
+      '<linearGradient id="' + q + '" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#101014"/><stop offset=".3" stop-color="#2a2830"/><stop offset=".55" stop-color="#18171c"/><stop offset="1" stop-color="#0e0e12"/></linearGradient>' +
       '<radialGradient id="' + g + '" cx=".5" cy=".55" r=".5"><stop offset="0" style="stop-color:var(--c-glow)"/><stop offset="1" style="stop-color:var(--c-glow);stop-opacity:0"/></radialGradient>' +
     "</defs>" +
-    '<ellipse class="c-glow" cx="60" cy="120" rx="84" ry="100" fill="url(#' + g + ')"/>' +
+    '<ellipse class="c-glow" cx="60" cy="112" rx="82" ry="104" fill="url(#' + g + ')"/>' +
     '<g class="c-flip">' +
-    '<ellipse class="c-shadow" cx="61" cy="196" rx="27" ry="4.2"/>' +
+    '<ellipse class="c-shadow" cx="61" cy="192.4" rx="21" ry="3.4"/>' +
+
+    // ===== standing figure =====
     '<g class="c-root">' +
-      // long hair behind the body (day)
-      '<g class="c-hairback h-down">' +
-        '<path d="M33 40C29 46 27 54 28 62C29 71 21 78 20 88C20 97 27 101 24 110C21 118 17 125 21 130C24 135 31 135 32 129C36 134 44 134 46 128C52 133 70 133 76 128C78 134 86 134 90 129C91 135 98 135 101 130C105 125 101 118 98 110C95 101 102 97 102 88C101 78 93 71 94 62C95 54 93 46 89 40Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.6) + "/>" +
-        '<path d="M29 58C24 68 31 76 26 87C22 97 29 104 25 114M93 58C98 68 91 76 96 87C100 97 93 104 97 114" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.4" stroke-linecap="round" opacity=".65"/>' +
-        '<path d="M22 123C19 127 21 132 25.5 132C29 131.5 29.5 127 26.5 126.5M100 123C103 127 101 132 96.5 132C93 131.5 92.5 127 95.5 126.5" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".7"/>' +
-      "</g>" +
-      // legs
       '<g class="c-leg c-leg-b">' +
-        '<g class="o-day"><path d="M52.5 140L59.5 140L59 188L53 188Z" fill="#2e2b30"' + stroke("#18161a", 1.3) + "/>" +
-          '<path d="M51.5 186.5L59.5 186.5C64 186.5 67 188.5 67 191.5C67 193.6 65.8 194.8 63.8 194.8L52.5 194.8C50.8 194.8 50.3 193.8 50.3 192.4Z" fill="#3b2a21"' + stroke(LINE, 1.3) + "/></g>" +
-        '<g class="o-night"><path d="M51 188L59 188C63.5 188 66.5 190 66.5 192.5C66.5 194.2 65.4 195.2 63.6 195.2L52 195.2C50.3 195.2 50 194.2 50 193Z" fill="#0f0e12"' + stroke("#000", 1.1) + "/></g>" +
+        '<g class="o-day">' + P("M52.4 140H57.4L57 186.5H53Z", TIGHTS, "#17151a", 1.1) +
+          P("M51.6 185H57.6C60.8 185 62.6 186.6 62.6 189C62.6 190.6 61.6 191.6 60.1 191.6H52.6C51.4 191.6 50.9 190.8 50.9 189.6Z", SHOE, INK, 1.1) + "</g>" +
+        '<g class="o-night">' + P("M53 166H57L56.6 186H53.4Z", SKIN, INK, 1) +
+          P("M52.6 185.4H57C59.6 185.8 61.4 187.4 61.6 190L58 190.2L57.4 188.6L56.8 191.6H53.8C53 191.6 52.5 190.9 52.6 189.6Z", HEEL, "#000", 1) + "</g>" +
       "</g>" +
       '<g class="c-leg c-leg-f">' +
-        '<g class="o-day"><path d="M61.5 140L68.5 140L68 188L62 188Z" fill="#35323a"' + stroke("#18161a", 1.3) + "/>" +
-          '<path d="M60.5 186.5L68.5 186.5C73 186.5 76 188.5 76 191.5C76 193.6 74.8 194.8 72.8 194.8L61.5 194.8C59.8 194.8 59.3 193.8 59.3 192.4Z" fill="#46332a"' + stroke(LINE, 1.3) + "/></g>" +
-        '<g class="o-night"><path d="M60 188L68 188C72.5 188 75.5 190 75.5 192.5C75.5 194.2 74.4 195.2 72.6 195.2L61 195.2C59.3 195.2 59 194.2 59 193Z" fill="#141318"' + stroke("#000", 1.1) + "/></g>" +
+        '<g class="o-day">' + P("M62.6 140H67.6L67 186.5H63Z", "#35323a", "#17151a", 1.1) +
+          P("M62 185H68C71.2 185 73 186.6 73 189C73 190.6 72 191.6 70.5 191.6H63C61.8 191.6 61.3 190.8 61.3 189.6Z", "#46332a", INK, 1.1) + "</g>" +
+        '<g class="o-night">' + P("M63 166H67L66.6 186H63.4Z", SKIN, INK, 1) +
+          P("M62.6 185.4H67C69.6 185.8 71.4 187.4 71.6 190L68 190.2L67.4 188.6L66.8 191.6H63.8C63 191.6 62.5 190.9 62.6 189.6Z", HEEL, "#000", 1) + "</g>" +
       "</g>" +
-      // torso
-      '<g class="c-torso">' +
-        '<g class="o-day">' +
-          '<path d="M56.5 76L65.5 76L66 89L56 89Z" fill="' + SKIN + '"/>' +
-          '<path d="M43 88C39 90 37 97 37 105L33 170C45 176 77 176 89 170L85 105C85 97 83 90 79 88C72 86 50 86 43 88Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.6) + "/>" +
-          '<path d="M53 87L61 106L69 87Z" fill="' + SHIRT + '"' + stroke("#cfc6b8", 0.9) + "/>" +
-          '<path d="M53 87L55.5 95L59 90ZM69 87L66.5 95L63 90Z" fill="' + SHIRT + '"' + stroke("#bfb4a4", 1) + "/>" +
-          '<path d="M53 87L60.5 106L52 108L47 100L44 97L46 90Z" fill="' + COAT_HI + '"' + stroke(COAT_LINE, 1.2) + "/>" +
-          '<path d="M69 87L61.5 106L70 108L75 100L78 97L76 90Z" fill="' + COAT_HI + '"' + stroke(COAT_LINE, 1.2) + "/>" +
-          '<path d="M61.5 106L62 172" stroke="' + COAT_LINE + '" stroke-width="1" opacity=".6"/>' +
-          '<g fill="#e9d6b1"' + stroke(COAT_LINE, 0.8) + '><circle cx="54" cy="114" r="1.8"/><circle cx="68.5" cy="114" r="1.8"/><circle cx="54" cy="136" r="1.8"/><circle cx="68.5" cy="136" r="1.8"/></g>' +
-          '<path d="M36.6 120L85.4 120L85.7 125.5L36.3 125.5Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1) + "/>" +
-          '<path d="M60.5 124L57 143L60.5 143.5L63 125ZM65 124L69.5 141L72.5 140L67 124Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1) + "/>" +
-          '<rect x="59.5" y="119" width="7" height="7.5" rx="2" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1) + "/>" +
-          '<path d="M41 142L50 141M73 141L82 142M35 165C47 170 75 170 87 165" fill="none" stroke="' + COAT_LINE + '" stroke-width="1" opacity=".55"/>' +
+      '<g class="c-upper">' +
+        // long hair behind the body (day)
+        '<g class="c-hairback h-down">' +
+          P("M49 20C43 30 45.4 42 39.4 54C33.6 66 42.4 76 35.8 88C30.6 99 38 108.4 44 111C49 113.6 55 109.6 60 111.6C65 109.6 71 113.6 76 111C82 108.4 89.4 99 84.2 88C77.6 76 86.4 66 80.6 54C74.6 42 77 30 71 20C67 11 53 11 49 20Z", "url(#" + h + ")", HAIR_LINE, 1.3) +
+          P("M44 57C38.6 67 46.4 76 40.6 87.6C36.4 97 41.6 104 45.2 107.6M76 57C81.4 67 73.6 76 79.4 87.6C83.6 97 78.4 104 74.8 107.6", "", HAIR_HI, 1.1, ' opacity=".6"') +
+          P("M36.4 102.6C33.8 107 37.2 112.2 42 111M83.6 102.6C86.2 107 82.8 112.2 78 111", "", HAIR_HI, 1.1, ' opacity=".75"') +
         "</g>" +
-        '<g class="o-night">' +
-          '<path d="M46 86C42 89 41 97 42 106C43 116 40 128 40 140C40 158 42 176 44 190L78 190C80 176 82 158 82 140C82 128 79 116 80 106C81 97 80 89 76 86C70 84 52 84 46 86Z" fill="' + QIPAO + '"' + stroke("#050507", 1.6) + "/>" +
-          '<path d="M52.5 79C52.5 76.5 69.5 76.5 69.5 79L70 88C64 90.5 58 90.5 52 88Z" fill="' + QIPAO + '"' + stroke(QIPAO_LINE, 1.2) + "/>" +
-          '<path d="M53 86.4C58 88.4 64 88.4 69 86.4M61 89C64 92 68 94 74 96M79 172L78 189" fill="none" stroke="' + QIPAO_LINE + '" stroke-width=".9"/>' +
-          bamboo(49, 116, 0.8, -15) + bamboo(72, 184, 1.05, 10) + bamboo(66, 173, 0.7, 28) +
+        '<g class="c-torso">' +
+          '<g class="o-day">' + neck +
+            P("M54.6 50.5L60 66L65.4 50.5Z", SHIRT, "#cfc6b8", 0.8) +
+            P(coatBody, "url(#" + c + ")", COAT_LINE, 1.4) +
+            P("M72 56C76 60 78 66 78.4 74L80.8 150C78 151 75.6 151.6 73 152L71.6 90Z", COAT_SH, "", 0, ' opacity=".35"') +
+            P("M54.6 50.2L59.8 66.5L53 72.5L48.4 63L46.6 55.4L50.4 51.2Z", COAT_HI, COAT_LINE, 1.1) +
+            P("M65.4 50.2L60.2 66.5L67 72.5L71.6 63L73.4 55.4L69.6 51.2Z", COAT_HI, COAT_LINE, 1.1) +
+            P("M48.4 63L51.5 61.6M71.6 63L68.5 61.6M44.6 53.6L51 55.2M75.4 53.6L69 55.2", "", COAT_LINE, 0.8) +
+            P("M60.2 66.5L62 151.6", "", COAT_LINE, 0.9, ' opacity=".6"') +
+            '<g fill="' + BUTTON + '"' + sk(COAT_LINE, 0.7) + '><circle cx="54.5" cy="77" r="1.5"/><circle cx="66.5" cy="77" r="1.5"/><circle cx="54.5" cy="101" r="1.5"/><circle cx="66.5" cy="101" r="1.5"/><circle cx="54.5" cy="117" r="1.5"/><circle cx="66.5" cy="117" r="1.5"/></g>' +
+            P("M39.1 86.6H80.9L81.1 92.6H38.9Z", COAT_SH, COAT_LINE, 1) +
+            '<rect x="57.2" y="85.6" width="7.6" height="8" rx="1.4" fill="none"' + sk(COAT_LINE, 1.1) + "/>" +
+            P("M61.5 92.6L58.8 107.5L61.8 108.1L64 93.1Z", COAT_SH, COAT_LINE, 0.9) +
+            P("M43.4 113.5L51 111.4M69 111.4L76.6 113.5M40.6 146C50 148.6 70 148.6 79.4 146", "", COAT_LINE, 0.9, ' opacity=".7"') +
+          "</g>" +
+          '<g class="o-night">' + neck +
+            P(qipaoBody, "url(#" + q + ")", "#050507", 1.4) +
+            P("M55.2 44.6H64.8V51.2C62 52.4 58 52.4 55.2 51.2Z", QIPAO, QIPAO_LINE, 1) +
+            P("M55.2 50.8C58 52 62 52 64.8 50.8M65 54.6H67.4M70.2 56.2H72.4", "", GOLD, 0.8) +
+            P("M60.2 52.2C64 54.2 68 56 72.6 57M74.2 176L73.4 152", "", QIPAO_LINE, 0.9) +
+            P("M49 60C48 80 50 100 49 120C48.4 140 49.6 160 50.6 174", "", "#3a3844", 1.4, ' opacity=".5"') +
+            bamboo(50, 84, 0.62, -14) + bamboo(69, 170, 0.82, 10) + bamboo(64.5, 160, 0.55, 30) +
+          "</g>" +
         "</g>" +
-      "</g>" +
-      // long hair falling over the shoulders (day)
-      '<g class="h-down">' +
-        '<path d="M39 50C31 58 37 67 32 77C27 87 35 95 30 105C26 114 29 122 35 124C39 125 42 121 39 117C37 113 43 106 42 97C42 89 38 83 42 75C45 67 42 59 45 52Z' +
-          'M83 50C91 58 85 67 90 77C95 87 87 95 92 105C96 114 93 122 87 124C83 125 80 121 83 117C85 113 79 106 80 97C80 89 84 83 80 75C77 67 80 59 77 52Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.4) + "/>" +
-        '<path d="M38 58C34 66 39 72 35.5 80C32 88 37.5 94 34 102C32 108 33 114 35.5 118M84 58C88 66 83 72 86.5 80C90 88 84.5 94 88 102C90 108 89 114 86.5 118" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".75"/>' +
-      "</g>" +
-      // the other arm, also in front of the coat so both arms read clearly
-      '<g class="c-arm c-arm-b">' +
-        '<g class="o-day"><path d="M44 92C37 97 34 110 34 126C34 131 38 134 42 133C44 122 45 110 49 99Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.4) + "/>" +
-          '<path d="M34.5 124L42.5 126" stroke="' + COAT_LINE + '" stroke-width="1"/><circle cx="39" cy="136" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-        '<g class="o-night"><path d="M45 90C39 93 36.5 104 36.5 117C36.5 125 37 130 38 134C40 136.5 42.5 135 42.5 132C42.5 124 43 112 47 100Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-          '<circle cx="39.5" cy="135.5" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-      "</g>" +
-      // front arm: red notebook by day, a lantern by night
-      '<g class="c-arm c-arm-f">' +
-        '<g class="o-day"><path d="M78 92C85 97 88 110 88 126C88 131 84 134 80 133C78 122 77 110 73 99Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.4) + "/>" +
-          '<path d="M80 126L87.5 124" stroke="' + COAT_LINE + '" stroke-width="1"/>' +
-          '<g class="c-notebook" transform="rotate(9 86 134)"><rect x="79" y="124" width="15" height="20" rx="2" fill="#b8322a"' + stroke(LINE, 1.3) + '/><path d="M82 128.5H91M82 132H88.5" stroke="#f1d9cf" stroke-width="1.1" stroke-linecap="round"/></g>' +
-          '<circle cx="84" cy="134.5" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-        '<g class="o-night"><path d="M77 90C83 93 85.5 104 85.5 117C85.5 125 85 130 84 134C82 136.5 79.5 135 79.5 132C79.5 124 79 112 75 100Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-          '<g class="c-lantern"><circle class="c-lantern-glow" cx="83" cy="153" r="20" fill="url(#' + g + ')"/>' +
-          '<path d="M82.5 138L83 145" stroke="#2a2020" stroke-width="1"/>' +
-          '<ellipse cx="83" cy="153" rx="6.5" ry="8" fill="#d4574a"' + stroke(LINE, 1.2) + "/>" +
-          '<path d="M83 145V161M79.6 146.5C78 150 78 156 79.6 159.5M86.4 146.5C88 150 88 156 86.4 159.5" fill="none" stroke="#8e2d24" stroke-width=".8"/>' +
-          '<rect x="80" y="143.6" width="6" height="2.4" rx=".8" fill="#2a2020"/><rect x="80" y="160.2" width="6" height="2.4" rx=".8" fill="#2a2020"/>' +
-          '<path d="M83 162.6V170" stroke="#d4574a" stroke-width="1.3" stroke-linecap="round"/></g>' +
-          '<circle cx="82.5" cy="135.5" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-        // props for the red-circle actions (hidden until an action shows them)
-        '<g class="p-book"><rect x="77.5" y="121" width="13" height="17" rx="1.6" fill="#3f6b5f"' + stroke(LINE, 1.2) + '/>' +
-          '<path d="M80.2 122.4V136.6" stroke="#e6ddcb" stroke-width="1.1" stroke-linecap="round"/><path d="M83 126H88M83 129H86.5" stroke="#d9e6dd" stroke-width=".9" stroke-linecap="round"/>' +
-          '<circle cx="84" cy="134.5" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-        '<g class="p-letter"><rect x="75" y="124" width="19" height="13" rx="1.6" fill="#fbf7ee"' + stroke(LINE, 1.1) + '/>' +
-          '<path d="M75.8 124.8L84.5 131.4L93.2 124.8" fill="none" stroke="' + LINE + '" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/><circle cx="84.5" cy="131.6" r="2.1" fill="#b8322a"/>' +
-          '<circle cx="84" cy="134.5" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-      "</g>" +
-      // an open book, held up to read (research)
-      '<g class="p-book-open">' +
-        '<path d="M44.5 120.5Q52.5 116.5 61 121V136Q52.5 132 44.5 135Z" fill="#fbf7ee"' + stroke(LINE, 1.2) + "/>" +
-        '<path d="M77.5 120.5Q69.5 116.5 61 121V136Q69.5 132 77.5 135Z" fill="#fbf7ee"' + stroke(LINE, 1.2) + "/>" +
-        '<path d="M43.6 121V136.4Q52.5 132.8 61 137.6Q69.5 132.8 78.4 136.4V121" fill="none" stroke="#3f6b5f" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>' +
-        '<path d="M48 124.3Q52.5 122.3 57.5 124.6M48 127.6Q52.5 125.6 57.5 127.9M48 130.9Q52.5 128.9 57.5 131.2M64.5 124.6Q69.5 122.3 74 124.3M64.5 127.9Q69.5 125.6 74 127.6M64.5 131.2Q69.5 128.9 74 130.9" fill="none" stroke="#a39a8b" stroke-width=".85" stroke-linecap="round"/>' +
-        '<path class="page-flip" d="M61 121Q66.5 117.8 73 120V134Q66.5 131.2 61 135Z" fill="#fffdf7"' + stroke(LINE, 1) + "/>" +
-        '<circle cx="51.5" cy="135" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-        '<circle cx="70.5" cy="135" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-      "</g>" +
-      // head
-      '<g class="c-head">' +
-        // updo: low bun and white flower pin (night)
-        '<g class="h-up"><circle cx="35" cy="50" r="10.5" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
-          '<path d="M28 47C31 42 38 41 42 45M29 54C33 58 39 57 41 53" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.1" stroke-linecap="round"/>' +
-          '<path d="M38 41L45 45" stroke="' + GOLD + '" stroke-width="1.1"/>' +
-          '<g fill="#f7f3ea" stroke="#cfc4b0" stroke-width=".6"><circle cx="33" cy="37.5" r="2.3"/><circle cx="37.2" cy="35.5" r="2.3"/><circle cx="36.5" cy="40.2" r="2.1"/><circle cx="31.2" cy="41.2" r="2"/><circle cx="39.8" cy="39" r="1.8"/></g>' +
-          '<g fill="' + GOLD + '"><circle cx="33" cy="37.5" r=".7"/><circle cx="37.2" cy="35.5" r=".7"/><circle cx="36.5" cy="40.2" r=".6"/></g>' +
-          '<ellipse cx="38.6" cy="56" rx="4" ry="5.6" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-          '<circle cx="38.3" cy="62.6" r="1.4" fill="#f4f1ea" stroke="#b9b2a6" stroke-width=".6"/>' +
+        // wavy locks falling over the shoulders (day)
+        '<g class="c-hairfront h-down">' +
+          P("M47.4 43.5C41.8 51.5 48.8 59.5 42.6 67.5C37.6 75.5 46.6 83.5 41.6 91.5C39.6 95.8 43.8 99.4 47.8 96.6C50.2 90.4 45.6 84.6 49.8 77.4C53.4 69.6 47.8 62.4 51.8 55C52.8 50.8 50.8 46.6 47.4 43.5Z", "url(#" + h + ")", HAIR_LINE, 1.1) +
+          P(mirrorPath("M47.4 43.5C41.8 51.5 48.8 59.5 42.6 67.5C37.6 75.5 46.6 83.5 41.6 91.5C39.6 95.8 43.8 99.4 47.8 96.6C50.2 90.4 45.6 84.6 49.8 77.4C53.4 69.6 47.8 62.4 51.8 55C52.8 50.8 50.8 46.6 47.4 43.5Z"), "url(#" + h + ")", HAIR_LINE, 1.1) +
+          P("M46.6 51.6C43.8 59.6 48.2 65.6 44.8 73.6C42 80.6 46.4 86.6 44.2 92.6M73.4 51.6C76.2 59.6 71.8 65.6 75.2 73.6C78 80.6 73.6 86.6 75.8 92.6", "", HAIR_HI, 0.9, ' opacity=".75"') +
+          P("M41.8 92.2C40.4 95.8 43 99 46.4 97.6M78.2 92.2C79.6 95.8 77 99 73.6 97.6", "", HAIR_HI, 0.9, ' opacity=".8"') +
         "</g>" +
-        '<path d="M38 47C38 64 45 75 54 79.5C58 81.5 64 81.5 68 79.5C77 75 84 64 84 47C84 33 74 25 61 25C48 25 38 33 38 47Z" fill="' + SKIN + '"' + stroke(LINE, 1.6) + "/>" +
-        '<g opacity=".38" fill="#f3a59a"><ellipse cx="48.5" cy="63" rx="4.3" ry="2.4"/><ellipse cx="73.5" cy="63" rx="4.3" ry="2.4"/></g>' +
-        '<g class="c-eyes">' +
-          '<ellipse cx="52.5" cy="54.6" rx="3.3" ry="3.7" fill="#231a1a"/><circle cx="53.7" cy="53.2" r="1.1" fill="#fff"/>' +
-          '<ellipse cx="69.5" cy="54.6" rx="3.3" ry="3.7" fill="#231a1a"/><circle cx="70.7" cy="53.2" r="1.1" fill="#fff"/>' +
-          '<path d="M48.3 52.2Q52.5 49.4 56.8 52M65.2 52Q69.5 49.4 73.7 52.2" fill="none" stroke="#1a1212" stroke-width="1.4" stroke-linecap="round"/>' +
+        // arms (straight, rotated at the shoulder for waving, pointing, posting a letter, cheering)
+        '<g class="c-arm c-arm-b">' +
+          '<g class="o-day">' + P(mirrorPath(SLEEVE_F), "url(#" + c + ")", COAT_LINE, 1.3) + P("M35.5 104.4L45 105.2", "", COAT_LINE, 0.9) + handB + "</g>" +
+          '<g class="o-night">' + P(mirrorPath(ARM_F), SKIN, INK, 1.1) + handB + "</g>" +
         "</g>" +
-        '<path d="M48 46.3Q52.5 44.6 57 45.8M65 45.8Q69.5 44.6 74 46.3" stroke="#2a1f1f" stroke-width="1.5" fill="none" stroke-linecap="round"/>' +
-        '<path d="M61.5 59.6Q62.9 62.4 60.8 63.4" stroke="#d19f8b" stroke-width="1.2" fill="none" stroke-linecap="round"/>' +
-        '<path class="c-mouth" d="M57.2 68.2Q61 71.3 64.8 68.2Q61 69.8 57.2 68.2Z" fill="#d98886"' + stroke("#b8605c", 1) + "/>" +
-        '<ellipse class="c-mouth-open" cx="61" cy="69" rx="3" ry="2.4" fill="#8e3a35"/>' +
-        // side-parted wavy hair (day)
-        '<g class="h-down">' +
-          '<path d="M37 51C35 30 46 17 62 16C79 16 90 30 87 52C84 43 80 37 74 34C68 31 60 30 54 31C47 35 41 42 38.5 51Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
-          '<path d="M52 23C61 26 73 30 80 38C85 44 87 50 87.5 57C83.5 49 77.5 43 69.5 39C62 35.5 56 34 49.5 34Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.3) + "/>" +
-          '<path d="M52 23C46 27 40.5 35 38.5 47C41.5 39.5 46.5 34.5 52 32Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.2) + "/>" +
-          '<path d="M56 24C64 26 74 30 80 37M44 26C49 21 56 19 63 19" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.3" stroke-linecap="round" opacity=".85"/>' +
-          '<path d="M39.5 45C35 52 40.5 58 37 64C35 69 38 72.5 40.5 74M85.5 47C90 54 84.5 60 87.5 66C89.5 71 86.5 74 84 76" fill="none" stroke="#1a1416" stroke-width="2.4" stroke-linecap="round"/>' +
+        '<g class="c-arm c-arm-f">' +
+          '<g class="o-day">' + P(SLEEVE_F, "url(#" + c + ")", COAT_LINE, 1.3) + P("M84.5 104.4L75 105.2", "", COAT_LINE, 0.9) +
+            '<g class="c-notebook" transform="rotate(6 82 116)">' + book("#a8352c", GOLD, true) + "</g>" + handF + "</g>" +
+          '<g class="o-night">' + P(ARM_F, SKIN, INK, 1.1) +
+            '<g class="c-lantern">' +
+              P("M79.6 119.6V127.8", "", "#2a2020", 0.9) +
+              '<circle class="c-lantern-glow" cx="80" cy="138" r="18" fill="url(#' + g + ')"/>' +
+              '<ellipse cx="80" cy="138" rx="6.2" ry="7.8" fill="#cf5646"' + sk(INK, 1.1) + "/>" +
+              P("M80 130.6V145.4M76.8 132C75.3 135.4 75.3 140.6 76.8 144M83.2 132C84.7 135.4 84.7 140.6 83.2 144", "", "#8e2d24", 0.7) +
+              '<rect x="77.2" y="128.8" width="5.6" height="2.2" rx=".8" fill="#2a2020"/><rect x="77.2" y="145.2" width="5.6" height="2.2" rx=".8" fill="#2a2020"/>' +
+              P("M80 147.4V154.4", "", "#cf5646", 1.2) +
+            "</g>" + handF + "</g>" +
+          // props for the red-circle actions (hidden until an action shows them)
+          '<g class="p-book">' + book("#3f6b5f", "#dbe6de", false) + handF + "</g>" +
+          '<g class="p-letter">' + P("M73.8 109.6H90.4V121.2H73.8Z", "#fbf7ee", INK, 1) + P("M74.4 110.2L82.1 116.2L89.8 110.2", "", INK, 0.9) +
+            '<circle cx="82.1" cy="116.4" r="1.8" fill="#b8322a"/>' + handF + "</g>" +
         "</g>" +
-        // hair pulled back smoothly (night)
-        '<g class="h-up">' +
-          '<path d="M37 50C35 31 46 18 62 17C79 17 89 30 87 50C84 40 78 34 70 31.5C63 29.5 55 30 49 32.5C43 36 39.5 42 37.5 50Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
-          '<path d="M45 24C52 20 62 19 70 20M40 36C44 28 52 24 60 23" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".85"/>' +
-          '<path d="M40.5 46C38.5 52 38.8 58 40.3 63" fill="none" stroke="#1a1416" stroke-width="1.5" stroke-linecap="round"/>' +
+        // arms bent to hold an open book (Research)
+        '<g class="c-arms-read">' +
+          '<g class="o-day">' + readArms(true) + "</g>" + '<g class="o-night">' + readArms(false) + "</g>" +
+          P("M47 86.4Q53 83 60 86.8V99Q53 95.6 47 98.4Z", "#fbf7ee", INK, 1) + P("M73 86.4Q67 83 60 86.8V99Q67 95.6 73 98.4Z", "#fbf7ee", INK, 1) +
+          P("M46.2 87V99.2Q53 96.2 60 100.2Q67 96.2 73.8 99.2V87", "", "#3f6b5f", 1.6) +
+          P("M49.6 89.6Q53.4 88 57.4 89.8M49.6 92.4Q53.4 90.8 57.4 92.6M49.6 95.2Q53.4 93.6 57.4 95.4M62.6 89.8Q66.6 88 70.4 89.6M62.6 92.6Q66.6 90.8 70.4 92.4", "", "#a39a8b", 0.7) +
+          '<path class="page-flip" d="M60 86.8Q64.6 84 70 86V97.6Q64.6 95.2 60 98.4Z" fill="#fffdf7"' + sk(INK, 0.8) + "/>" +
+          '<ellipse cx="51.4" cy="97.6" rx="3.2" ry="2.7" fill="' + SKIN + '"' + sk(INK, 1.1) + '/><ellipse cx="68.6" cy="97.6" rx="3.2" ry="2.7" fill="' + SKIN + '"' + sk(INK, 1.1) + "/>" +
         "</g>" +
+        // arms reaching forward to the keys (Tutorials)
+        '<g class="c-arms-type"><g class="o-day">' + typeArms(true) + '</g><g class="o-night">' + typeArms(false) + "</g></g>" +
+        '<g class="c-head">' + head(h, s, "front") + "</g>" +
       "</g>" +
     "</g>" +
-    // graduation cap, tossed at the Education milestones
+
+    // ===== graduation cap, tossed at the Education milestones =====
     '<g class="p-cap"><g class="p-cap-in">' +
-      '<path d="M48.5 22V29.5Q61 35 73.5 29.5V22Z" fill="#26232c"' + stroke(LINE, 1.3) + "/>" +
-      '<path d="M33.5 21L61 10.5L88.5 21L61 31.5Z" fill="#2f2c36"' + stroke(LINE, 1.4) + "/>" +
-      '<path d="M61 21L79.5 26.2V35.5" fill="none" stroke="' + GOLD + '" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>' +
-      '<circle cx="61" cy="21" r="1.7" fill="' + GOLD + '"/><path d="M78 35.2H81L81.9 40.6H77.1Z" fill="' + GOLD + '"/>' +
+      P("M50.5 12.4V18Q60 22 69.5 18V12.4Z", "#26232c", INK, 1.1) +
+      P("M41.5 11.4L60 4.8L78.5 11.4L60 18Z", "#302d37", INK, 1.2) +
+      P("M60 11.4L73 15V22", "", GOLD, 1.2) +
+      '<circle cx="60" cy="11.4" r="1.3" fill="' + GOLD + '"/>' + P("M71.9 21.8H74.1L74.8 25.6H71.2Z", GOLD) +
     "</g></g>" +
-    // seen from behind, sitting on the cushion at the writing desk
+
+    // ===== seen from behind, kneeling on the cushion at the writing desk =====
     '<g class="c-back">' +
       '<g class="o-day">' +
-        '<path d="M42.5 118C38.5 138 34.5 170 30.5 190.5Q61 195.5 91.5 190.5C87.5 170 83.5 138 79.5 118C73.5 113.5 48.5 113.5 42.5 118Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.6) + "/>" +
-        '<path d="M61 150V191" stroke="' + COAT_LINE + '" stroke-width="1" stroke-linecap="round" opacity=".55"/>' +
-        '<path d="M37.4 147.5H84.6L85.2 153.5H36.8Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.1) + "/>" +
-        '<rect x="56" y="146" width="10" height="9" rx="1.6" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.1) + "/>" +
-        '<path d="M46.5 190.5Q51.5 186 56.5 190.5Q51.5 195 46.5 190.5ZM65.5 190.5Q70.5 186 75.5 190.5Q70.5 195 65.5 190.5Z" fill="#3b2a21"' + stroke(LINE, 1.1) + "/>" +
-        '<path d="M42.5 120C35.5 124 32.5 134 35.5 142C38.5 145 43 142 45 136Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.4) + "/>" +
-        '<g class="cb-arm"><path d="M79.5 120C86.5 124 89.5 134 86.5 142C83.5 145 79 142 77 136Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.4) + "/></g>" +
-        '<path d="M40 94C36 106 41 116 36 128C32 140 39 150 35 160C33 168 40 171 45 167C50 171 56 167 61 169C66 167 72 171 77 167C82 171 89 168 87 160C83 150 90 140 86 128C81 116 86 106 82 94C82 76 73 66 61 66C49 66 40 76 40 94Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
-        '<path d="M47 80C44 92 49 104 45 116C42 128 47 140 44 152M61 71C59 87 63 104 60 122C58 138 62 150 60 162M75 80C78 92 73 104 77 116C80 128 75 140 78 152" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>' +
+        P("M43.5 101C39.5 120 35.5 160 30.5 191Q60 196 89.5 191C84.5 160 80.5 120 76.5 101C71 97 49 97 43.5 101Z", "url(#" + c + ")", COAT_LINE, 1.4) +
+        P("M60 142V192", "", COAT_LINE, 0.9, ' opacity=".55"') +
+        P("M38.2 131H81.8L82.4 137H37.6Z", COAT_SH, COAT_LINE, 1) +
+        '<rect x="55.4" y="129.6" width="9.2" height="8.6" rx="1.5" fill="' + COAT_SH + '"' + sk(COAT_LINE, 1) + "/>" +
+        P("M46 190.5Q51 186.6 56 190.5Q51 194.6 46 190.5ZM64 190.5Q69 186.6 74 190.5Q69 194.6 64 190.5Z", SHOE, INK, 1) +
+        P("M43.6 103C37.6 107 35.6 117 38.2 125C41 128 45 125 46.4 119Z", COAT_SH, COAT_LINE, 1.3) +
+        '<g class="cb-arm">' + P("M76.4 103C82.4 107 85.4 117 82.8 125C80 128 76 125 74.6 119Z", "url(#" + c + ")", COAT_LINE, 1.3) + "</g>" +
+        P("M46 86C42 98 46.5 108 42 120C38 131 44 141 40.5 150C39 156 44.5 159 48.5 156C52 159 56.5 156 60 158C63.5 156 68 159 71.5 156C75.5 159 81 156 79.5 150C76 141 82 131 78 120C73.5 108 78 98 74 86C74 72 68 64 60 64C52 64 46 72 46 86Z", "url(#" + h + ")", HAIR_LINE, 1.4) +
+        P("M50.5 76C48 88 52 100 48.5 112C45.5 124 50 136 47 146M60 68C58.4 86 61.6 104 59.2 122C57.6 136 60.8 146 59.4 154M69.5 76C72 88 68 100 71.5 112C74.5 124 70 136 73 146", "", HAIR_HI, 1.1, ' opacity=".55"') +
       "</g>" +
       '<g class="o-night">' +
-        '<path d="M43.5 118C40.5 138 36.5 170 32.5 190.5Q61 195.5 89.5 190.5C85.5 170 81.5 138 78.5 118C72.5 114 49.5 114 43.5 118Z" fill="' + QIPAO + '"' + stroke("#050507", 1.6) + "/>" +
-        bamboo(51, 182, 0.9, -12) + bamboo(71, 152, 0.7, 20) +
-        '<path d="M47.5 190.5Q52 186.5 56.5 190.5Q52 194.5 47.5 190.5ZM65.5 190.5Q70 186.5 74.5 190.5Q70 194.5 65.5 190.5Z" fill="#0f0e12"' + stroke("#000", 1) + "/>" +
-        '<path d="M43.5 120C37.5 124 34.5 133 36.5 140C39.5 143 43.5 140 45.5 135Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-        '<g class="cb-arm"><path d="M78.5 120C84.5 124 87.5 133 85.5 140C82.5 143 78.5 140 76.5 135Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-        '<path d="M55.5 102H66.5V118H55.5Z" fill="' + SKIN + '"' + stroke(LINE, 1.2) + "/>" +
-        '<path d="M52 114.5C57 112.5 65 112.5 70 114.5V120C64 122 58 122 52 120Z" fill="' + QIPAO + '"' + stroke(QIPAO_LINE, 1.2) + "/>" +
-        '<path d="M40.5 85Q36 87 38 93.5Q40 96 41.5 93.5ZM81.5 85Q86 87 84 93.5Q82 96 80.5 93.5Z" fill="' + SKIN + '"' + stroke(LINE, 1.1) + "/>" +
-        '<path d="M40 87C40 72 49.5 64 61 64C72.5 64 82 72 82 87C82 99 73 106.5 61 106.5C49 106.5 40 99 40 87Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
-        '<path d="M49 71Q61 77 73 71M45.5 80Q61 89 76.5 80" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.1" stroke-linecap="round" opacity=".8"/>' +
-        '<circle cx="61" cy="99" r="9" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.4) + "/>" +
-        '<path d="M55 96.5Q61 92.5 67 96.5M55 101.5Q61 105.5 67 101.5" fill="none" stroke="' + HAIR_HI + '" stroke-width="1" stroke-linecap="round"/>' +
-        '<g fill="#f7f3ea" stroke="#cfc4b0" stroke-width=".6"><circle cx="69" cy="92" r="2.3"/><circle cx="72.8" cy="94.4" r="2.2"/><circle cx="68.4" cy="96.4" r="2.1"/><circle cx="72" cy="90" r="1.9"/></g>' +
-        '<g fill="' + GOLD + '"><circle cx="69" cy="92" r=".7"/><circle cx="72.8" cy="94.4" r=".7"/></g>' +
+        P("M45 101C42 120 38 160 33 191Q60 196 87 191C82 160 78 120 75 101C70 97.6 50 97.6 45 101Z", "url(#" + q + ")", "#050507", 1.4) +
+        bamboo(51, 182, 0.9, -12) + bamboo(70, 150, 0.7, 20) +
+        P("M47 190.5Q51.6 186.8 56.2 190.5Q51.6 194.2 47 190.5ZM63.8 190.5Q68.4 186.8 73 190.5Q68.4 194.2 63.8 190.5Z", HEEL, "#000", 1) +
+        P("M45 103C39.6 107 37.6 116 39.8 123.6C42.4 126.6 46 123.6 47.2 118Z", SKIN, INK, 1.1) +
+        '<g class="cb-arm">' + P("M75 103C80.4 107 82.4 116 80.2 123.6C77.6 126.6 74 123.6 72.8 118Z", SKIN, INK, 1.1) + "</g>" +
+        P("M55.6 86H64.4V100H55.6Z", SKIN, INK, 1) +
+        P("M53 96.6C57 95 63 95 67 96.6V101.4C63 102.8 57 102.8 53 101.4Z", QIPAO, QIPAO_LINE, 1) +
+        P("M47.2 75.4Q44.4 76.4 45.6 81Q47 83.4 48.4 81.4ZM72.8 75.4Q75.6 76.4 74.4 81Q73 83.4 71.6 81.4Z", SKIN, INK, 1) +
+        P("M46.6 78C46.6 66.4 52.6 60 60 60C67.4 60 73.4 66.4 73.4 78C73.4 88 67.6 93.6 60 93.6C52.4 93.6 46.6 88 46.6 78Z", "url(#" + h + ")", HAIR_LINE, 1.3) +
+        P("M52 65Q60 69 68 65M49.4 72Q60 79 70.6 72", "", HAIR_HI, 0.9, ' opacity=".8"') +
+        '<circle cx="60" cy="88.6" r="7.2" fill="url(#' + h + ')"' + sk(HAIR_LINE, 1.2) + "/>" +
+        P("M55 86Q60 82.6 65 86M55 91Q60 94.4 65 91", "", HAIR_HI, 0.8) +
+        '<g fill="#f7f3ea"' + sk("#cfc4b0", 0.5) + '><circle cx="66.6" cy="82.6" r="2"/><circle cx="69.8" cy="84.6" r="1.9"/><circle cx="66.2" cy="86.4" r="1.8"/><circle cx="69.4" cy="81" r="1.6"/></g>' +
+        '<g fill="' + GOLD + '"><circle cx="66.6" cy="82.6" r=".6"/><circle cx="69.8" cy="84.6" r=".6"/></g>' +
       "</g>" +
     "</g>" +
-    // her shoes, peeking out under the hem when she crouches (Life)
-    '<g class="c-crouch-feet">' +
-      '<path class="o-day" d="M44.5 188.5C44.5 185 51.5 184.5 56.5 187L57.5 195H46C44.5 195 44.5 192.5 44.5 188.5ZM66.5 188.5C66.5 185 73.5 184.5 78.5 187L79.5 195H68C66.5 195 66.5 192.5 66.5 188.5Z" fill="#3b2a21"' + stroke(LINE, 1.2) + "/>" +
-      '<path class="o-night" d="M44.5 189C44.5 186 51.5 185.5 56.5 188L57.5 195H46C44.5 195 44.5 193 44.5 189ZM66.5 189C66.5 186 73.5 185.5 78.5 188L79.5 195H68C66.5 195 66.5 193 66.5 189Z" fill="#0f0e12"' + stroke("#000", 1.1) + "/>" +
+
+    // ===== crouching to pet XiaoHei (faces right) =====
+    '<g class="c-crouch">' +
+      '<g class="o-day">' +
+        P("M55.5 66C50.5 76 52.5 88 48.5 100C45.5 110 49.5 118 55.5 119C60.5 120 64.5 116 67.5 118C70.5 114 72.5 106 70.5 96C68.5 84 72.5 74 70.5 66C66.5 58 58.5 58 55.5 66Z", "url(#" + h + ")", HAIR_LINE, 1.3) +
+        P("M40 186.6H47.4C49.8 186.6 50.8 188.4 50.4 190.2C50.2 191.2 49.4 191.8 48.2 191.8H40.6C39.4 191.8 38.8 190.8 39 189.6Z", SHOE, INK, 1) +
+        P("M80.6 185H87C90.2 185 92 186.6 92 189C92 190.6 91 191.6 89.5 191.6H81.4C80.2 191.6 79.8 190.8 79.8 189.6Z", "#46332a", INK, 1.1) +
+        P("M54.6 98.6C50.6 100.6 49.2 104.6 49.2 109.6L47 150C45 164 41 178 37 190C52 194 80 194 96 190C92.4 180 87.4 170 82 161L78.2 109.6C78.2 104.6 76.8 100.6 72.8 98.6C67.8 97 59.6 97 54.6 98.6Z", "url(#" + c + ")", COAT_LINE, 1.4) +
+        P("M57.6 97.4L63.2 110L68.8 97.4Z", SHIRT, "#cfc6b8", 0.8) +
+        P("M57.6 97.2L63 110.4L57 115.4L53 108L51.6 101.6L54.6 98.4Z", COAT_HI, COAT_LINE, 1) +
+        P("M68.8 97.2L63.4 110.4L69.4 115.4L73.4 108L74.8 101.6L71.8 98.4Z", COAT_HI, COAT_LINE, 1) +
+        P("M48.4 128.6H78.8L79.2 134.4H48Z", COAT_SH, COAT_LINE, 1) +
+        '<rect x="59.6" y="127.6" width="7.2" height="7.8" rx="1.3" fill="none"' + sk(COAT_LINE, 1) + "/>" +
+        P("M53.4 101.4C47.8 106 47.6 118 53 130C57.6 140 66 148 74.4 151.4C78 152.4 80 149.4 78.4 146.8C71 141.2 63.6 132.4 60.6 122C58.8 114.6 59 106.6 57.8 103Z", "url(#" + c + ")", COAT_LINE, 1.3) +
+        '<ellipse cx="77.6" cy="150.2" rx="3.4" ry="2.8" fill="' + SKIN + '"' + sk(INK, 1.1) + "/>" +
+        P("M61.6 84L61.2 98.4H69.2L68.8 84Z", SKIN, INK, 1) +
+        '<g class="cr-arm">' + P("M72.4 100C79 103 87 114 95.4 126.4C99.4 132.2 104 136 106.6 138.6C108.6 141.2 106.2 144.2 103.4 142.8C98 139.4 92 134 87.4 128C81.4 120.2 74.8 111.4 70 106Z", "url(#" + c + ")", COAT_LINE, 1.3) +
+          P("M103.4 136.2C107.6 136.4 110.6 139 110.2 141.8C109.8 144.2 106.4 145 103.6 143.8Z", SKIN, INK, 1.1) + "</g>" +
+      "</g>" +
+      '<g class="o-night">' +
+        P("M40.4 187.4H47.2C49.4 187.8 50.6 189 50.6 190.6L47 190.8L46.4 191.8H41C39.6 191.8 39.2 190.6 39.6 189.6Z", HEEL, "#000", 1) +
+        P("M80.2 185.8H86.8C89.4 186.2 91.2 187.8 91.4 190.4L87.8 190.6L87.2 189L86.6 191.8H81.2C80.4 191.8 79.9 191.1 80 189.8Z", HEEL, "#000", 1) +
+        P("M56.2 98.6C52.8 100 52 104 52.4 109C53 116 54.6 122 55.6 128C52 140 44 170 38.4 190C54 193.6 80 193.6 94 190C90 180 85 170 80 161L75.4 128C76.4 122 77.8 116 78.2 109C78.6 104 77.6 100 74.2 98.6C69.6 97.2 60.8 97.2 56.2 98.6Z", "url(#" + q + ")", "#050507", 1.4) +
+        bamboo(56, 124, 0.62, -12) + bamboo(78, 186, 0.8, 8) +
+        P("M61.6 84L61.2 98.4H69.2L68.8 84Z", SKIN, INK, 1) +
+        P("M59 93.2H68.6V99.6C65.4 100.8 62.2 100.8 59 99.6Z", QIPAO, QIPAO_LINE, 1) +
+        P("M55 101C50.2 106 50.6 118 55.6 130C59.6 139.6 67 147.6 74.8 151C78.4 152 80.2 149 78.6 146.6C71.6 141 65 132.4 62.4 122.4C60.8 115 61 107 60 103.4Z", SKIN, INK, 1.1) +
+        '<ellipse cx="77.8" cy="150.2" rx="3.3" ry="2.7" fill="' + SKIN + '"' + sk(INK, 1.1) + "/>" +
+        '<g class="cr-arm">' + P("M73 100.6C79.4 103.6 87 114.4 95.2 126.6C99.2 132.4 103.8 136.2 106.4 138.8C108.4 141.4 106 144.4 103.2 143C97.8 139.6 92 134.2 87.4 128.2C81.6 120.4 75.2 111.8 70.6 106.4Z", SKIN, INK, 1.1) +
+          P("M103.4 136.2C107.6 136.4 110.6 139 110.2 141.8C109.8 144.2 106.4 145 103.6 143.8Z", SKIN, INK, 1.1) + "</g>" +
+        // the lantern, set down beside her
+        '<circle cx="30" cy="180" r="14" fill="url(#' + g + ')"/>' + '<ellipse cx="30" cy="182" rx="5.6" ry="7" fill="#cf5646"' + sk(INK, 1) + "/>" +
+        '<rect x="27.4" y="174" width="5.2" height="2" rx=".7" fill="#2a2020"/><rect x="27.4" y="188.4" width="5.2" height="2" rx=".7" fill="#2a2020"/>' +
+      "</g>" +
+      // her head, lowered and turned toward the cat
+      '<g transform="translate(5 46) rotate(9 60 44)">' + head(h, s, "down") + "</g>" +
     "</g>" +
+
     "</g></svg>";
   }
 
   // Just the face, for the guide's portrait.
   function portrait(uid) {
-    return character(uid).replace('viewBox="0 0 120 200"', 'viewBox="22 6 78 78"');
+    return character(uid).replace('viewBox="0 0 120 200"', 'viewBox="37 5 46 46"');
   }
 
   // ------------------------------------------------------------------
@@ -403,6 +515,12 @@
       '<linearGradient id="gMist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mist);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--w-mist);stop-opacity:.85"/><stop offset="1" style="stop-color:var(--w-mist);stop-opacity:0"/></linearGradient>' +
       '<linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-ground-1)"/><stop offset="1" style="stop-color:var(--w-ground-2)"/></linearGradient>' +
       '<radialGradient id="gGlow"><stop offset="0" style="stop-color:var(--w-glow)"/><stop offset="1" style="stop-color:var(--w-glow);stop-opacity:0"/></radialGradient>' +
+      // materials: soft light from the upper left, so surfaces read as solid rather than flat
+      '<linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-fill)"/><stop offset="1" style="stop-color:var(--w-interior)"/></linearGradient>' +
+      '<linearGradient id="gStone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--w-stone)"/><stop offset="1" style="stop-color:var(--w-rock)"/></linearGradient>' +
+      '<linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-wood-2)"/><stop offset="1" style="stop-color:var(--w-wood)"/></linearGradient>' +
+      '<linearGradient id="gRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--w-accent)"/><stop offset="1" style="stop-color:var(--w-accent-deep)"/></linearGradient>' +
+      '<linearGradient id="gMachine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-machine-2)"/><stop offset="1" style="stop-color:var(--w-machine)"/></linearGradient>' +
       '</defs>';
   }
 
@@ -723,9 +841,9 @@
       cranes +
       sign(-170, 262, "WRITING", 130) +
       '<path class="desk" d="M-160 500H160V512H-160ZM-146 512V' + y + 'H-132V522H132V' + y + 'H146V512Z"/>' +
-      '<g class="scroll"><rect x="-120" y="488" width="150" height="12"/><rect x="-126" y="485" width="10" height="18" rx="3"/><rect x="26" y="485" width="10" height="18" rx="3"/><path class="scroll-ink" d="M-104 493h24M-74 493h18"/></g>' +
-      // characters that appear as she writes
-      '<g class="write-ink"><path pathLength="1" d="M-19 490.5Q-16 492 -18 497"/><path pathLength="1" d="M-12 489.5V497.5M-15 492.5H-9"/><path pathLength="1" d="M-4 490.5Q0 491.5 -2 496Q-4 497.5 -6 495.5"/><path pathLength="1" d="M5 489.5L8 497.5M3 492.8H10.5"/><path pathLength="1" d="M15 490.5Q13 494.5 17 497.5M17 489.5V492.5"/><path pathLength="1" d="M23 491H29.5M26.2 488.8V497.8"/></g>' +
+      '<g class="scroll"><rect x="-120" y="484" width="150" height="16"/><rect x="-126" y="481" width="10" height="22" rx="3"/><rect x="26" y="481" width="10" height="22" rx="3"/><path class="scroll-ink" d="M-104 492h24M-74 492h18"/></g>' +
+      // what she writes when she sits down (revealed stroke by stroke)
+      '<g class="write-hello"><text class="hello-text" x="-31" y="496.6">Hello World!</text><rect class="hello-cover" x="-33" y="485.2" width="58" height="13.6"/></g>' +
       '<rect class="inkstone" x="46" y="488" width="34" height="12" rx="4"/>' +
       '<g class="brushes"><path d="M92 500V476M102 500V470M112 500V478"/><path class="brush-tip" d="M92 476l-2 -9h4zM102 470l-2 -9h4zM112 478l-2 -9h4z"/></g>' +
       '<g class="lamp" transform="translate(138 500)"><circle class="lamp-glow" cx="0" cy="-26" r="36"/><path d="M-10 0h20l-4 -8h-12z"/><path class="flame" d="M0 -26C-5 -18 -4 -12 0 -10C4 -12 5 -18 0 -26Z"/><path d="M-5 -8V-12H5V-8Z"/></g>' +

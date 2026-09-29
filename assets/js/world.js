@@ -18,10 +18,10 @@
     { id: "research", x: 1750, stand: 1630, half: 290, label: "Research", zh: "研究" },
     { id: "talks", x: 2850, stand: 2880, half: 350, label: "Talks", zh: "报告" },
     { id: "education", x: 4000, stand: 3880, half: 340, label: "Education", zh: "求学" },
-    { id: "tutorials", x: 5050, stand: 4900, half: 240, label: "Tutorials", zh: "教程" },
+    { id: "tutorials", x: 5050, stand: 4930, half: 240, label: "Tutorials", zh: "教程" },
     { id: "writing", x: 5950, stand: 5890, half: 240, label: "Writing", zh: "写作" },
-    { id: "life", x: 6900, stand: 6836, half: 330, label: "Life", zh: "生活" },
-    { id: "contact", x: 7800, stand: 7696, half: 260, label: "Contact", zh: "联系" }
+    { id: "life", x: 6900, stand: 6844, half: 330, label: "Life", zh: "生活" },
+    { id: "contact", x: 7800, stand: 7680, half: 260, label: "Contact", zh: "联系" }
   ];
   var byId = {};
   STATIONS.forEach(function (s) { byId[s.id] = s; });
@@ -414,7 +414,11 @@
   }
 
   function stationGreeting(id) {
-    reply({ text: pick(state.lang, ARRIVE[id]), html: "", chips: STATION_CHIPS[id][state.lang] }, { noMove: true });
+    var text = pick(state.lang, ARRIVE[id]), chipList = STATION_CHIPS[id][state.lang];
+    // Coming back to the same place (e.g. clicking Welcome twice) doesn't repeat the line.
+    var msgs = $$(".msg-guide .msg-text", log), last = msgs[msgs.length - 1];
+    if (last && last.textContent === text) { setChips(chipList); return; }
+    reply({ text: text, html: "", chips: chipList }, { noMove: true });
   }
 
   function setChips(list) {
@@ -440,6 +444,12 @@
     if (open) { fab.classList.remove("has-news"); log.scrollTop = log.scrollHeight; }
     if (state.mobile && was !== open) layout();
     start();   // the free area changed, so the camera re-centres
+  }
+
+  // Link the advisor's name to his website wherever the education notes mention him.
+  function advisorNote(note) {
+    var adv = D.person.advisor || {}, t = esc(note);
+    return adv.url && adv.name ? t.replace(esc(adv.name), '<a href="' + esc(adv.url) + '" target="_blank" rel="noopener">' + esc(adv.name) + "</a>") : t;
   }
 
   // ---------- station panels ----------
@@ -511,7 +521,7 @@
       return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "求学之路" : "Education") + "</h2>" +
         '<ol class="p-timeline">' + D.education.map(function (e) {
           return "<li><h3>" + esc(e.degree) + "</h3><p>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</p>" +
-            (e.note ? '<p class="p-muted">' + esc(e.note) + "</p>" : "") + "</li>";
+            (e.note ? '<p class="p-muted">' + advisorNote(e.note) + "</p>" : "") + "</li>";
         }).join("") + "</ol>" +
         '<h3>' + (state.lang === "zh" ? "研究兴趣" : "Research interests") + '</h3><ul class="p-tags">' +
         D.person.interests.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul>";

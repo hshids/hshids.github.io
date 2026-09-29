@@ -20,7 +20,7 @@ window.HJ_DATA = {
     role: "Ph.D. Student in Computer Science and Engineering",
     affiliation: "Lehigh University",
     location: "Bethlehem, PA",
-    advisor: { name: "Dominic DiFranzo" },
+    advisor: { name: "Dominic DiFranzo", url: "https://difranzo.com/" },
     tagline: {
       en: "HCI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.",
       zh: "HCI 研究者：当 AI 成为队友、智能体或“分身”时，人如何保持实质的掌控。"
@@ -791,8 +791,8 @@ window.HJ_DATA = {
       zh: "我是个吃货——几乎什么都爱吃，也喜欢尝试新东西。业余时间我会在社交媒体上发探店记录。我也喜欢做饭：从零开始做出一顿饭，有一种很深的满足感。",
       keywords: "food foodie eat eating restaurant restaurants cuisine dish dishes try new things social media reviews cooking cook meal 美食 吃货 探店 餐厅 做饭 烹饪" },
     { id: "cats", icon: "cat", title: "Cats",
-      en: "I love cats — I have six: JinBingBing, DaHuang, XiaoHei, XiaoHeiHei, TuanZi and GuoZi. The fluffy golden kitty walking with me is JinBingBing, the youngest sister.",
-      zh: "我超爱猫——家里有六只：金饼饼、大黄、小黑、小黑黑、团子和果子。跟着我走的金渐层是金饼饼，最小的妹妹。",
+      en: "Six. Yes, six. 🐾 JinBingBing, DaHuang, XiaoHei, XiaoHeiHei, TuanZi and GuoZi. Technically I live in their house. JinBingBing is the youngest, so of course she runs the place — that's why she follows me all around this world.",
+      zh: "六只！没错，六只 🐾 金饼饼、大黄、小黑、小黑黑、团子和果子。严格来说，是我住在它们家。金饼饼是最小的妹妹，所以家里当然她说了算——这就是为什么她一路跟着我逛这个世界。",
       keywords: "cat cats kitten kitty kitties pet pets golden shaded youngest sister six gallery meow jinbingbing dahuang xiaohei xiaoheihei tuanzi guozi ragdoll orange silver 猫 猫咪 小猫 宠物 金渐层 妹妹 六只 金饼饼 大黄 小黑 小黑黑 团子 果子 布偶 银渐层" },
     { id: "blogging", icon: "brush", title: "Writing",
       en: "I'm an avid blogger — I like sharing my experiences and thoughts with a wider audience.",
