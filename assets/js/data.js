@@ -1,0 +1,802 @@
+/*
+ * Hanjing Shi — site content (single source of truth).
+ *
+ * Both versions of the site read from this file:
+ *   - index.html  (interactive world + Mini-Hanjing guide)
+ *   - basic.html  (one-page basic version)
+ * To update the site, edit this file only. See README.md for recipes
+ * (adding a paper, a news item, or a LinkedIn video).
+ *
+ * Sources used for the first version (checked 2026-09-29):
+ *   Google Scholar profile XezXPNQAAAAJ, arXiv author search,
+ *   Crossref / Semantic Scholar (DOIs), PMLR v339, Lehigh CSE PhD student list,
+ *   and the previous about.html / tutorials.html / blog.html pages.
+ */
+window.HJ_DATA = {
+  updated: "2026-09-29",
+
+  person: {
+    name: "Hanjing Shi",
+    role: "Ph.D. Student in Computer Science and Engineering",
+    affiliation: "Lehigh University",
+    location: "Bethlehem, PA",
+    advisor: { name: "Dominic DiFranzo" },
+    tagline: {
+      en: "HCI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.",
+      zh: "HCI 研究者：当 AI 成为队友、智能体或“分身”时，人如何保持实质的掌控。"
+    },
+    interests: [
+      "Human–AI Interaction",
+      "Human–AI Teaming",
+      "Agentic AI & Accountability",
+      "Online Communities",
+      "Experimental Design"
+    ],
+    bio: {
+      en: [
+        "I'm a Ph.D. student in Computer Science and Engineering at Lehigh University, advised by Prof. Dominic DiFranzo. I work in human–computer interaction, studying what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor — or a persona of a real person. I'm especially interested in the structures that keep people meaningfully in charge: how AI help is disclosed, how claims get verified, and who remains accountable when systems act on our behalf.",
+        "My work combines online experiments, computational social science on platforms such as Reddit and RedNote, structured audits of AI systems and research literature, and building research prototypes. Before Lehigh, I studied Data Science and Analytics at Georgetown University (M.S.) and Computer Science and Statistics at UC Davis (B.S.)."
+      ],
+      zh: [
+        "我是 Lehigh University 计算机科学与工程系的博士生，导师是 Dominic DiFranzo 教授。我的方向是人机交互（HCI）：当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至某个真实的人的“分身”出现时，会发生什么变化？我尤其关心那些让人保有实质掌控的机制——AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。",
+        "我的研究方法包括在线实验、基于 Reddit 和小红书等平台的计算社会科学分析、对 AI 系统与研究文献的结构化审计，以及研究原型的设计与开发。来 Lehigh 之前，我在 Georgetown University 读了数据科学与分析硕士，在 UC Davis 读了计算机科学与统计学本科。"
+      ]
+    },
+    photo: "images/profile.jpg",
+    // Portraits for the "meet the real me" photo booth in the interactive version.
+    portraits: [
+      "images/portraits/white-shirt.jpg",
+      "images/portraits/trench-coat.jpg",
+      "images/portraits/qipao.jpg",
+      "images/portraits/hand-on-cheek.jpg",
+      "images/portraits/white-studio.jpg",
+      "images/portraits/black-dress.jpg"
+    ],
+    links: {
+      scholar: "https://scholar.google.com/citations?user=XezXPNQAAAAJ&hl=en",
+      linkedin: "https://www.linkedin.com/in/hanjing-shi-1803561ab/",
+      github: "https://github.com/hshids",
+      email: "hasa23@lehigh.edu", // as printed on the CSCW / AIES 2026 posters; set to "" to hide
+      cv: ""     // e.g. "files/Hanjing_Shi_CV.pdf" — shown once filled in
+    }
+  },
+
+  education: [
+    {
+      id: "phd",
+      degree: "Ph.D., Computer Science and Engineering",
+      school: "Lehigh University",
+      years: "2023 – present",
+      note: "Advised by Prof. Dominic DiFranzo",
+      emblem: "mountain",
+      zh: "Lehigh University 计算机科学与工程 博士（2023 年至今），导师 Dominic DiFranzo 教授"
+    },
+    {
+      id: "ms",
+      degree: "M.S., Data Science and Analytics",
+      school: "Georgetown University",
+      years: "",
+      emblem: "tower",
+      zh: "Georgetown University 数据科学与分析 硕士"
+    },
+    {
+      id: "bs",
+      degree: "B.S., Computer Science and Statistics",
+      school: "University of California, Davis",
+      years: "",
+      emblem: "bike",
+      zh: "UC Davis 计算机科学与统计学 本科"
+    }
+  ],
+
+  themes: [
+    {
+      id: "agents",
+      title: "Agentic AI, Oversight & Accountability",
+      zhTitle: "智能体 AI 的监督与问责",
+      color: "#a8432f",
+      blurb: {
+        en: "As AI agents act with less step-by-step supervision, where does accountability go? I study how communities negotiate “human control”, how popularity can outrun verification in AI discourse, and which runtime mechanisms must stay visible so that delegated actions remain answerable.",
+        zh: "当 AI 智能体在更少的逐步监督下自主行动时，问责落在哪里？我研究社区如何理解“人类控制”、AI 讨论中热度如何跑在验证前面，以及哪些运行时机制必须保持可见，才能让被委托的行动仍然可追责。"
+      },
+      keywords: "agent agents agentic autonomous oversight supervision control accountability verification orchestration alignment 智能体 代理 监督 问责 自主"
+    },
+    {
+      id: "teaming",
+      title: "Human–AI Teaming, Trust & Disclosure",
+      zhTitle: "人机协作、信任与 AI 披露",
+      color: "#3f6b5f",
+      blurb: {
+        en: "What counts as a “team” when AI joins it? I design and test how AI assistance is disclosed, how capability cues shape different kinds of trust, and how evidence about human–AI teams should — and should not — be pooled.",
+        zh: "当 AI 加入团队，什么才算“团队”？我研究 AI 协助应如何被披露、能力线索如何塑造不同维度的信任，以及人机团队研究的证据该如何（以及不该如何）合并比较。"
+      },
+      keywords: "team teams teaming teammate collaboration trust disclosure anthropomorphism credit authorship translation hat 团队 协作 合作 信任 披露 拟人"
+    },
+    {
+      id: "persona",
+      title: "Persona AI & Digital Afterlives",
+      zhTitle: "人格化 AI 与数字来生",
+      color: "#6b4a73",
+      blurb: {
+        en: "AI can now speak in the voice of people who have died — family members, pets, even well-known experts. I study who holds authority over these representations after they are created, and what operators owe to the people who rely on them.",
+        zh: "AI 已经能以逝者的声音说话——家人、宠物，甚至知名专家。我研究这些“数字复活”被创建之后由谁拥有权威，以及运营者对依赖它们的人负有什么责任。"
+      },
+      keywords: "persona afterlife afterlives resurrection deceased posthumous griefbot grief death consent digital immortality 分身 逝者 复活 数字永生 来生 人格"
+    },
+    {
+      id: "platforms",
+      title: "Online Platforms, Safety & Public Discourse",
+      zhTitle: "社交平台、安全与公共话语",
+      color: "#3d5a80",
+      blurb: {
+        en: "I study how platform design and framing shape what people see and feel safe saying — from COVID-19 framing across Reddit, news and government, to pseudonymity and verification friction in sensitive communities, to tools for running controlled experiments inside real interfaces, and culturally grounded governance for multilingual language models.",
+        zh: "我研究平台设计与话语框架如何影响人们看到什么、敢说什么：从 Reddit、新闻与政府之间的新冠框架差异，到敏感社区中的化名与验证门槛，再到在真实界面中开展受控实验的工具，以及面向多语言大模型的文化根植治理。"
+      },
+      keywords: "platform platforms social media reddit online community communities safety discourse framing covid news governance multilingual 社交媒体 平台 社区 安全 话语 框架 新冠 治理"
+    },
+    {
+      id: "education",
+      title: "AI in Education",
+      zhTitle: "教育中的 AI",
+      color: "#9a6f22",
+      blurb: {
+        en: "Students already use generative AI for homework. I build and theorize systems that keep AI help visible and bounded — giving instructors useful teaching signals without turning help-seeking into surveillance.",
+        zh: "学生已经在用生成式 AI 写作业。我设计并论证让 AI 帮助“可见且有边界”的系统——既给老师有用的教学信号，又不把求助变成监控。"
+      },
+      keywords: "education learning students student teaching instructors homework tutor tutoring children classroom course 教育 学习 学生 教学 老师 作业 辅导 儿童 课堂"
+    }
+  ],
+
+  /*
+   * Publications. `type` is one of:
+   *   "proceedings" — archival conference / proceedings papers
+   *   "workshop"    — workshop papers and conference presentations
+   *   "poster"      — conference posters
+   *   "preprint"    — preprints (arXiv)
+   * `links` may include paper, doi, arxiv, pdf, poster and slides.
+   * Videos live in the `videos` list further down.
+   */
+  publications: [
+    {
+      id: "pathway-lab",
+      title: "Pathway Lab: A Design Probe for Redirecting Adolescent Peer Conflict Before It Becomes Bullying",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-09-29",
+      year: 2026,
+      type: "poster",
+      venue: "Poster at CSCW 2026 (ACM Conference on Computer-Supported Cooperative Work and Social Computing)",
+      venueShort: "CSCW 2026 Poster",
+      theme: "platforms",
+      links: { poster: "files/pathwaylab-cscw2026-poster.pdf" },
+      methods: ["Design probe", "Literature-informed scenario design"],
+      summary: {
+        en: "A simulated group-chat platform with eight literature-grounded scenarios for exploring how teen peer conflict escalates — and ways to exit, repair, or seek help before it becomes bullying.",
+        zh: "一个模拟群聊平台，包含八个基于文献的情境，用来探讨青少年之间的冲突如何升级，以及在演变成霸凌之前如何退出、修复或求助。"
+      },
+      takeaway: {
+        en: "A reusable “pathway grammar” links a risky draft's possible pressure and its impact on the target and group to distinct next steps: a safer next message, accountable repair after harm, or escalation for severe cases. Participants interpret first, then accept, reject or rewrite the support. It is a scripted design probe whose effects are not yet tested; expert review and IRB-approved teen studies come next.",
+        zh: "一套可复用的“路径语法”：把一条有风险的草稿可能承受的压力、对被针对者和群体的影响，连接到不同的下一步——更安全的下一条消息、伤害之后负责任的修复，或严重情况下的升级求助。参与者先自己判断，再接受、拒绝或改写建议。它是一个脚本化的设计探针，效果尚未检验；下一步是专家评审和经 IRB 批准的青少年研究。"
+      },
+      keywords: "bullying cyberbullying adolescents teens youth peer conflict group chat design probe upstander repair escalation digital citizenship cscw poster 霸凌 青少年 群聊",
+      abstract: "In adolescent group chats, a joke, public comeback, or screenshot request can turn one peer into a target and invite others to join; status, belonging, or prior hurt may make stepping back difficult. Pathway Lab is a simulated chat platform for exploring teen peer conflict and ways to exit, repair, or seek help. It asks how a simulated environment can help participants reason about a fictional sender's situation, consider effects on the target and group, and identify an exit, repair, or escalation route. Developmental and public-health concepts were organized into eight frames (status-seeking, control-seeking, retaliation, bully-victim transfer, learned aggression, moral disengagement, group pile-on, and post-harm repair), each translated into a fictional chat with possible pressure, target/group impact, and redirection options. The contribution is an inspectable pathway grammar and a scripted environment for third-person critique; pressure labels describe possible situations, not diagnoses. Effects are untested; next steps are expert review and IRB-approved teen studies of interpretation, reasoning, and perceived agency."
+    },
+    {
+      id: "borrowed-authority",
+      title: "Tracing Borrowed Authority in Relational AI Systems",
+      authors: ["Hanjing Shi"],
+      date: "2026-09-28",
+      year: 2026,
+      type: "poster",
+      venue: "Poster at the AIES 2026 Student Program (AAAI/ACM Conference on AI, Ethics, and Society) — upcoming",
+      venueShort: "AIES 2026 Student Program · upcoming",
+      upcoming: true,
+      theme: "persona",
+      links: { poster: "files/tracing-borrowed-authority-aies2026-poster.pdf", arxiv: "https://arxiv.org/abs/2609.29544" },
+      methods: ["Public-service audit (93 records)", "Analytic framework"],
+      summary: {
+        en: "Persona AI speaks through a recognizable identity — an expert, a family member or friend, or a companion animal. This poster traces who supplies, checks, authorizes and can challenge the output across those three identity contexts.",
+        zh: "人格化 AI 借一个熟悉的身份说话——专家、家人朋友，或陪伴动物。这张海报追问：在这三种身份情境里，谁提供、谁核查、谁授权、谁能质疑它的输出。"
+      },
+      takeaway: {
+        en: "A familiar identity does not guarantee sound judgment or accountability: it can lend an answer weight without supplying the judgment, permission or support behind it. Systems should make authorization, sources, updating responsibilities, behavioral limits, objection and exit visible.",
+        zh: "熟悉的身份并不保证可靠的判断或问责：它能让一个回答显得有分量，却不附带背后的判断、许可和支持。系统应当让授权、来源、更新责任、行为边界、异议与退出都清晰可见。"
+      },
+      keywords: "persona identity borrowed authority relational ai expert family friend pet companion animal afterlife accountability consent aies poster 分身 身份 权威 宠物",
+      abstract: "Persona AI presents generated responses through a recognizable identity. That identity can lend an answer weight without supplying the judgment, permission or support behind it. Across experts, family/friends and pets, this work examines who supplies, checks, authorizes and can challenge the output. A public-service audit of 93 records (product pages, FAQs and policies read before sign-up or payment) found creation easier to inspect than authorization, objection or exit. Situated evidence comes from an analysis of unofficial posthumous personas of education advisor Zhang Xuefeng, public family and friend cases, and a pet-memorial prototype. The poster proposes tracing authority, work and responsibility: make authorization, sources, updating responsibilities, behavioral limits, objection and exit visible, and keep professional verification and relational care explicit."
+    },
+    {
+      id: "his-name",
+      title: "His Name, Their Judgment: Expert Authority in Posthumous Persona AI",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-09-26",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2609.32989",
+      venueShort: "arXiv 2026",
+      theme: "persona",
+      links: { arxiv: "https://arxiv.org/abs/2609.32989", pdf: "https://arxiv.org/pdf/2609.32989" },
+      methods: ["Qualitative thematic analysis", "Social media (RedNote)"],
+      summary: {
+        en: "A thematic analysis of 115 RedNote (Xiaohongshu) posts, plus a nested comment sample, about unofficial posthumous AI personas of Chinese education advisor Zhang Xuefeng.",
+        zh: "对小红书上 115 篇帖子及其评论样本的主题分析，这些内容都围绕教育咨询师张雪峰的非官方“逝后 AI 分身”。"
+      },
+      takeaway: {
+        en: "Access to an expert's identity is not access to professional help. Whoever keeps a posthumous persona current effectively controls what the deceased appears to recommend — so operators must actually deliver the support the persona promises, and keep their use of the person's identity open to challenge.",
+        zh: "能访问专家的“身份”不等于获得专业帮助。谁在更新逝者的 AI 分身，谁就实际上决定了“他”会推荐什么——所以运营者需要真正承担分身所承诺的支持，并让自己对这个人身份的使用始终可以被质疑。"
+      },
+      keywords: "persona posthumous deceased expert authority rednote xiaohongshu zhang xuefeng education advisor afterlife 小红书 逝者 分身 专家 张雪峰",
+      abstract: "Persona AI can make deceased experts available for decisions they never encountered. Users may seek these personas precisely because they lack the knowledge needed to judge their advice. We thematically analyze 115 focal RedNote/Xiaohongshu posts and a nested comment sample concerning unofficial personas of Chinese education advisor Zhang Xuefeng. An installation offer promised expert guidance, while a family's reported use required current records and contextual judgment. Other posts positioned the persona as a questioning aid rather than an expert replacement. Commenters connected continued expertise to updating, permission, and the ability to refuse further work. These findings distinguish access to an expert identity from access to professional help. Keeping the persona current puts living actors in control of what the deceased appears to recommend. Operators therefore need to undertake the support promised by the persona while making their continued use of the person's identity open to challenge."
+    },
+    {
+      id: "capability-cues",
+      title: "How Far Do Capability Cues Travel? Anthropomorphism and Differentiated Trust in a Platform-Embedded AI Assistant",
+      authors: ["Chenchen Mao", "Hanjing Shi", "Haiyan Jia", "Dominic DiFranzo"],
+      date: "2026-09-09",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2609.09713",
+      venueShort: "arXiv 2026",
+      theme: "teaming",
+      links: { arxiv: "https://arxiv.org/abs/2609.09713", pdf: "https://arxiv.org/pdf/2609.09713" },
+      methods: ["Randomized online experiment (N = 270)"],
+      summary: {
+        en: "A randomized 2×2 experiment with 270 U.S. Reddit users testing how an embedded AI assistant showing one vs. three functions, with or without a brief rationale, shapes perceptions and trust.",
+        zh: "一项有 270 名美国 Reddit 用户参与的 2×2 随机实验：内嵌的 AI 助手展示 1 个还是 3 个功能、是否附带简短解释，会如何影响用户的感知与信任。"
+      },
+      takeaway: {
+        en: "Visible capabilities don't automatically become trust. Showing more functions raised perceived multifunctionality but little else, and anthropomorphism was associated with benevolence but not reliably with integrity or ability — so the dimensions of trust should be evaluated separately.",
+        zh: "可见的能力并不会自动变成信任。展示更多功能只提升了“多功能”的感知；拟人化与“善意”相关，却与“正直”和“能力”没有稳定关联——信任的不同维度应当分开评估。"
+      },
+      keywords: "trust anthropomorphism capability cues assistant reddit experiment ai literacy benevolence integrity ability 信任 拟人化 能力 实验 助手",
+      abstract: "Visible AI capabilities need not translate into broader judgments of trustworthiness. In a randomized 2 x 2 experiment with 270 U.S.-based Reddit users, an embedded assistant displayed one or three functions, with or without a brief rationale. Displaying three functions increased perceived multifunctionality; no other randomized main effect survived correction across the six outcomes. Rationale availability did not reliably increase perceived intelligence. Exploratory analysis indicated stronger uptake of the functional display at higher objective AI literacy. Among concurrently measured judgments, perceived multifunctionality was associated with perceived intelligence, which was associated with anthropomorphism and all three trust dimensions. After accounting for perceived intelligence, anthropomorphism was positively associated with benevolence, but not reliably with integrity or ability. These findings separate interface effects from relationships among users' perceptions and show why ability, integrity, and benevolence should be evaluated separately."
+    },
+    {
+      id: "reduced-supervision",
+      title: "When Agents Act Unwatched: The Reduced-Supervision Paradox in Agentic AI",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-08-28",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2609.29547",
+      venueShort: "arXiv 2026",
+      theme: "agents",
+      links: { arxiv: "https://arxiv.org/abs/2609.29547", pdf: "https://arxiv.org/pdf/2609.29547" },
+      methods: ["Structured audit of 63 public artifacts"],
+      summary: {
+        en: "A structured audit of 63 public artifacts — 46 research papers and 17 engineering, documentation, security and governance sources — asking how visible the accountability mechanisms of AI agents are.",
+        zh: "对 63 份公开材料（46 篇论文，以及 17 份工程、文档、安全与治理资料）的结构化审计，考察 AI 智能体的问责机制到底有多“可见”。"
+      },
+      takeaway: {
+        en: "As step-by-step supervision recedes, verification doesn't disappear — it moves into runtime infrastructure. Agents' action surfaces are easy to see, but checkpoints, independent validators, recovery and contestability rarely are; observability can quietly become a substitute for accountability.",
+        zh: "逐步监督减少之后，验证并没有消失，而是转移进了运行时基础设施。智能体“能做什么”很容易看到，但检查点、独立验证、恢复与申诉机制却很少公开——可观测性可能正在悄悄替代问责。"
+      },
+      keywords: "agents agentic supervision oversight accountability audit observability harness verification checkpoint recovery contestability 智能体 监督 问责 审计 可观测",
+      abstract: "Agentic AI is sold on a simple promise: the system keeps acting when the user stops watching. That promise creates an accountability inversion. As stepwise supervision recedes, verification does not disappear; it moves into the runtime infrastructure that defines authority, records action, interrupts execution, checks outcomes, and supports repair. We call this the reduced-supervision paradox. Using a 63-artifact audit, we examine its public visibility across 46 research papers and 17 engineering, documentation, security, and governance sources. We find that agents' action surfaces are far easier to reconstruct than the mechanisms needed to answer for their actions. Tool mediation and monitoring traces were clearly visible in 40 and 37 artifacts, whereas checkpoint placement was clearly visible in 6, validator independence in 4, recovery in 2, and contestability in 1. Three action paths show why this imbalance matters. A repository path can preserve rich diffs after a consequential change. A browser path can cross organizational boundaries faster than permissions travel. A service path can follow policy while leaving affected people without recourse. We argue that observability can become a substitute for accountability when it shifts verification onto users after meaningful intervention is no longer possible. Our action-path diagnostic instead asks whether a delegated action remains connected to authority, evidence, interruption, independent judgment, recovery, and challenge. The claim is deliberately bounded to public visibility; it does not establish the prevalence or effectiveness of undisclosed controls. We contribute an action-level account that recasts the harness from a technical wrapper into accountability infrastructure."
+    },
+    {
+      id: "beloved-afterlives",
+      title: "Beloved Afterlives: Governing AI Resurrection Beyond Consent",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-08-28",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2609.29544",
+      venueShort: "arXiv 2026",
+      theme: "persona",
+      links: { arxiv: "https://arxiv.org/abs/2609.29544", pdf: "https://arxiv.org/pdf/2609.29544" },
+      methods: ["Public-record audit of 93 systems", "Case analysis"],
+      summary: {
+        en: "A public-record audit of 93 “AI resurrection” systems — human afterlives, companion-animal afterlives and adjacent persona systems — plus four public cases.",
+        zh: "对 93 个“AI 复活”系统（逝者、陪伴动物以及相关人格化系统）的公开资料审计，并分析了四个公开案例。"
+      },
+      takeaway: {
+        en: "Consent at the moment of creation isn't enough. Authority over a digital afterlife is relational — spread across people, records, providers and audiences — and must stay traceable as the representation moves. Most systems made creation easy to inspect but said little about objection, redress, deletion or export.",
+        zh: "只有创建那一刻的同意是不够的。对数字来生的权威是“关系性”的——分布在亲友、数据记录、服务商和受众之间，并且必须在分身流转时保持可追溯。大多数系统让“创建”很容易查看，却很少说明异议、救济、删除或导出。"
+      },
+      keywords: "afterlife afterlives resurrection deceased griefbot consent pets companion animal digital immortality governance relational authority 数字永生 复活 逝者 宠物 同意 来生",
+      abstract: "AI resurrection is often framed as a question of consent: did the represented person authorize being made to speak? That question matters, but it freezes authority at the moment of creation. A representation can later change models, pass to relatives, depend on a provider, incorporate records shared with others, or circulate far beyond its intended audience. We argue that the central governance problem is therefore not whether authorization exists once, but whether it remains legible as the representation moves. Across a public-record audit of 93 systems, creation was far easier to inspect than the conditions for speaking, contesting, preserving, or leaving: consent or authority information was thin in 82 systems, objection or redress in 82, and deletion or export in 77. The differences among systems reveal why these gaps cannot be reduced to one transparency score. Human afterlives show consent becoming incomplete over time. Companion-animal afterlives begin where subject consent is unavailable and shared care must allocate authority. Adjacent persona and mimetic systems show how voices, likenesses, and personalities can travel into later afterlife uses. Four public cases follow the same movement from premortem participation, through intimate postmortem creation, to third-party circulation and family contestation. From this evidence we develop relational authority: authorization is distributed across people, records, providers, and audiences, and must remain traceable as those relations change. This reframes AI resurrection from a product authorized once into an accountability chain linking creation authority, source boundaries, circulation, contestation, and exit. The study measures what users and affected parties can inspect publicly; private implementation and lived outcomes remain open empirical questions."
+    },
+    {
+      id: "same-team-label",
+      title: "Same Team Label, Different Evidence: A Full-Text Audit of Claim Denominators in Human-AI Teaming Research",
+      authors: ["Hanjing Shi", "Kimberly Wang", "Sabrina Doherty", "Dominic DiFranzo"],
+      date: "2026-08-25",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2609.27849",
+      venueShort: "arXiv 2026",
+      theme: "teaming",
+      links: { arxiv: "https://arxiv.org/abs/2609.27849", pdf: "https://arxiv.org/pdf/2609.27849" },
+      methods: ["Full-text literature audit (86 papers)", "LLM labeling comparison"],
+      summary: {
+        en: "A full-text audit of 86 human–AI teaming papers, drawn from a 419-record map, showing that the same “team” label can hide very different human arrangements.",
+        zh: "对 86 篇人机协作（HAT）论文的全文审计（取自 419 篇的题录图谱），发现同样的“团队”标签背后，可能是完全不同的人员安排。"
+      },
+      takeaway: {
+        en: "Reading full texts changed which studies belong behind a claim for 40 of 86 records, and blinded language-model labels differed from full-text labels about a third of the time. Reviews need a “claim-pooling checkpoint” before comparing evidence on trust, coordination, performance or accountability.",
+        zh: "读全文之后，86 篇里有 40 篇的归类发生了变化；盲测的大模型标注与全文标注约有三分之一不一致。在比较信任、协调、绩效或问责的证据之前，综述需要一个“主张合并检查点”。"
+      },
+      keywords: "human-ai teaming hat review literature audit systematic review claim denominator llm labeling synthesis 综述 团队 人机协作 文献",
+      abstract: "Human-AI Teaming (HAT) reviews often group studies by labels such as advisor, teammate, or coordinator. Yet the same label can describe one person taking AI advice, several people coordinating around AI, or a workflow that distributes authority and responsibility. Pooling these studies can therefore change the human unit behind a claim. We examine how full-text evidence changes the set of studies behind a claim. We audited 86 full texts purposively selected from a 419-record title/abstract map. We find that full-text reading changed core membership for 40 records: 36 of 74 apparent core candidates moved out, while 4 of 12 boundary candidates moved in. Team vocabulary did not reliably identify the social unit: 14 of 27 human-AI dyads and 20 of 23 multi-human peer teams used team or collaboration terms. Only 20 of 86 papers specified who could see AI output. Four blinded language-model runs unanimously labeled 53 screening cases and 59 arrangements, yet 32% and 34% of those consensus decisions differed from the full-text labels. These results identify claim-denominator drift as a synthesis problem in HAT research. We contribute a full-text audit centered on human arrangements and a claim-pooling checkpoint for deciding when evidence about trust, coordination, performance, efficiency, and accountability can be compared."
+    },
+    {
+      id: "readability-evaluability",
+      title: "When Readability and Source Retention Diverge: An Evaluability Gap in AI Translation",
+      authors: ["Chenchen Mao", "Hanjing Shi", "Haiyan Jia", "Emily Wegrzyn", "Dominic DiFranzo"],
+      date: "2026-08-19",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2608.19083",
+      venueShort: "arXiv 2026",
+      theme: "teaming",
+      links: { arxiv: "https://arxiv.org/abs/2608.19083", pdf: "https://arxiv.org/pdf/2608.19083" },
+      methods: ["Online experiment (N = 306)", "Structural equation modeling"],
+      summary: {
+        en: "A 2×2 experiment (N = 306) using the TransLingo interface that compares readability-oriented LLM translations with fidelity-oriented revisions, for simple and complex source texts.",
+        zh: "一项 2×2 实验（N = 306）：在 TransLingo 界面中比较“重可读性”的大模型译文与“重忠实度”的修订译文，分别用于简单与复杂的原文。"
+      },
+      takeaway: {
+        en: "Showing the source is not the same as making it evaluable. For complex prose, one overall quality rating didn't reflect how much content a fluent translation kept, and task-performance trust was the closest correlate of people's willingness to hand over personal text.",
+        zh: "展示原文不等于让人能评估译文。面对复杂文本，一个整体质量评分反映不出流畅译文保留了多少内容；而对任务表现的信任，是人们是否愿意交出个人文本的最直接相关因素。"
+      },
+      keywords: "translation readability fidelity source retention trust disclosure llm evaluability sem translingo 翻译 可读性 忠实 信任 译文",
+      abstract: "Readable AI output can leave an evaluability gap: even when the source is shown, an overall-quality judgment may not reflect what an output preserves. We investigated how source-text condition and output rendering relate to perceived translation quality, and how output and system appraisals relate to trust and stated disclosure willingness in a plain-text interface. A focal 2 * 2 comparison (N=306) using TransLingo examined simple generated narratives and complex literary-philosophical prose alongside LLM-generated readability-oriented outputs and researcher-revised fidelity-oriented outputs. A descriptive stimulus audit indicated greater source retention in fidelity-oriented outputs in both source-text conditions. Factorial analyses showed a significant rendering-by-source-text-condition interaction in perceived quality. Participants rated fidelity-oriented outputs higher than readability-oriented outputs for the simple narratives, whereas no reliable rendering difference emerged for the complex prose. A corresponding source-condition-dependent pattern was observed for perceived intelligence, agency-oriented anthropomorphic attribution, and task-performance trust. A separate theory-ordered appraisal-structure SEM characterized concurrent associations among perceived quality, perceived intelligence, agency-oriented anthropomorphic attribution, task-performance trust, and stated disclosure willingness across six domains, with task-performance trust as the proximal correlate of stated willingness. The observed rating pattern distinguishes source access from source evaluability: for the complex stimuli, displaying the source did not ensure that one overall-quality rating reflected differences in retained content. It also separates support for evaluating translation output from data-handling support for decisions about what personal text to entrust to a system."
+    },
+    {
+      id: "learning-signals",
+      title: "When Learning Signals Become Safety Signals: A Bounded-Confidentiality Framework for Educational AI Agents",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-08-10",
+      year: 2026,
+      type: "proceedings",
+      venue: "Proceedings of the Impactful and Responsible AI Systems for Education Workshop, PMLR 339, pp. 123–128",
+      venueShort: "PMLR 339 · Workshop",
+      theme: "education",
+      links: {
+        paper: "https://proceedings.mlr.press/v339/shi26a.html",
+        pdf: "https://raw.githubusercontent.com/mlresearch/v339/main/assets/shi26a/shi26a.pdf"
+      },
+      methods: ["Position paper", "Design framework"],
+      summary: {
+        en: "A position paper on what child-facing educational AI agents should keep private, share under the student's control, or route to accountable adults when tutoring turns into disclosure.",
+        zh: "一篇立场论文：当面向儿童的教育 AI 在辅导中听到倾诉（比如被霸凌、害怕大人的反应）时，哪些应当保密、哪些在学生同意下分享、哪些必须转给负责任的成年人。"
+      },
+      takeaway: {
+        en: "Neither full parental visibility (which turns help-seeking into surveillance) nor full secrecy (which leaves serious harm unsupported) works. We argue for bounded confidentiality: ordinary tutoring stays private unless student choice or credible danger gives a reason to involve adults — with a response ladder from minimal records to escalation to accountable humans.",
+        zh: "家长完全可见会把求助变成监控，完全保密又会让严重的伤害得不到支持。我们提出“有边界的保密”：日常辅导默认保密，只有学生主动选择或存在可信的危险时才让成年人介入，并给出从最少记录到升级给负责人员的回应阶梯。"
+      },
+      keywords: "education children child tutor tutoring privacy confidentiality safety disclosure bullying surveillance parents 教育 儿童 隐私 保密 安全 霸凌 家长 监控",
+      abstract: "Educational AI agents are usually introduced as tutors, homework helpers, or study companions. As children use them regularly, learning help can become a disclosure site: a student may begin with a math problem and then describe bullying, fear of adult reaction, or school avoidance. This position paper asks how child-facing educational agents should preserve student trust while deciding what stays private, what can be shared under student control, and what must be routed to accountable adults. Full parental visibility would turn help-seeking into surveillance; full secrecy would leave serious harm unsupported. We argue for bounded confidentiality as a communication-governance framework: ordinary tutoring remains private unless student choice or credible danger creates a reason to involve adults. The paper specifies a response ladder for minimal records, student-reviewed communication, care-oriented adult prompts, and escalation to locally accountable humans."
+    },
+    {
+      id: "outer-limits",
+      title: "Outer Limits: An Experimental Approach to Controlled Content Manipulation within the Reddit Interface",
+      authors: ["Chenchen Mao", "Hanjing Shi", "Haiyan Jia", "Daniel Unhuryan", "Eric Baumer", "Dominic DiFranzo"],
+      date: "2026-08-10",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2608.10115",
+      venueShort: "arXiv 2026",
+      theme: "platforms",
+      links: { arxiv: "https://arxiv.org/abs/2608.10115", pdf: "https://arxiv.org/pdf/2608.10115" },
+      methods: ["Research system", "Perceptual-fidelity study (N = 219)"],
+      summary: {
+        en: "A browser-based system that lets independent researchers run controlled content experiments inside the real Old Reddit interface — without constructed content or experimental interactions ever reaching Reddit.",
+        zh: "一个基于浏览器的系统，让独立研究者可以在真实的 Old Reddit 界面里开展受控内容实验，而实验内容和实验交互都不会传到 Reddit 上。"
+      },
+      takeaway: {
+        en: "Precise experimental control, a real platform interface, and containment from the host community can be combined. In a 219-participant perceptual-fidelity study, ratings showed no significant effects of post type or participant awareness.",
+        zh: "精确的实验控制、真实的平台界面、与宿主社区的隔离——三者可以同时做到。在 219 人的感知保真度研究中，帖子类型和参与者是否知情都没有产生显著影响。"
+      },
+      keywords: "reddit experiment system browser platform content manipulation field experiment interface independent researchers 实验 平台 系统 浏览器",
+      abstract: "Independent researchers often lack access to intervention capabilities for controlled experiments on live social media platforms. We present Outer Limits, a browser-based system for controlled content experiments within the existing Old Reddit interface, rather than in a reconstructed simulation. The system renders content locally, records study events, and contains configured voting and commenting actions so that neither constructed content nor experimental write interactions reach Reddit. In a 219-participant perceptual-fidelity study, ART ANOVAs found no significant Post Type, Participant Awareness, or interaction effects. Exploratory TOSTs met the d = plus-minus 0.50 equivalence criterion for the marginal contrasts and for Post Type within the forewarned subgroup. We also illustrate the system with a factorial study varying post frame, comment frame, and comment stance. Outer Limits combines three properties that the approaches considered here provide separately: precise control over experimental content, an existing platform interface, and containment of experimental content and interactions from the host community."
+    },
+    {
+      id: "classpulse",
+      title: "ClassPulse: A Bidirectional AI-Supported Programming Homework Platform for Teaching Signals and Student Learning Support",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-06-27",
+      year: 2026,
+      type: "proceedings",
+      venue: "Artificial Intelligence in Education (AIED 2026), Communications in Computer and Information Science, Springer, pp. 282–288",
+      venueShort: "AIED 2026",
+      theme: "education",
+      links: { doi: "https://doi.org/10.1007/978-3-032-29788-4_40", poster: "images/posters/classpulse-aied2026.jpg" },
+      methods: ["System prototype"],
+      summary: {
+        en: "A prototype for introductory programming courses that keeps AI help inside the homework platform: students move among Tier 0–3 support states, and instructors see anonymous class-level patterns before opening individual process traces.",
+        zh: "一个面向编程入门课的原型系统：把 AI 帮助留在作业平台里，学生在 0–3 级支持之间切换；老师先看到匿名的班级整体模式，再查看个人的过程记录。"
+      },
+      takeaway: {
+        en: "Rather than banning AI or leaving it loosely regulated, keep AI help on-platform and visible — so instructors get better context for office hours and class meetings, without turning AI use into an automatic grading rule.",
+        zh: "与其禁止 AI 或放任不管，不如让 AI 帮助留在平台内、保持可见——让老师在答疑和上课时有更好的依据，而不是把 AI 使用变成自动扣分的规则。"
+      },
+      keywords: "education programming homework students instructors teaching cs1 platform aied tutor generative ai 编程 作业 教学 学生 老师 课程",
+      abstract: "Generative AI is already part of how many students work through programming assignments, while course policy often treats AI use as either prohibited or only loosely regulated. We present ClassPulse, a bidirectional prototype for introductory programming courses that keeps AI help inside the homework environment instead of pushing students to external chatbots. ClassPulse gives students AI help within the course platform and records those interactions so instructors can see where students are getting stuck, without turning AI use into an automatic grading rule. Students move among Tier 0–3 support states and receive targeted practice and a personal learning profile. Instructors first see anonymous class-level patterns before opening individual process traces. The prototype is meant to keep students on-platform and give instructors better context for office hours and later class meetings."
+    },
+    {
+      id: "designing-safety",
+      title: "Designing for Safety in Sensitive Online Spaces: The Role of Pseudonymity and Verification Friction",
+      authors: ["Adyn Gallagher", "Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-05-26",
+      year: 2026,
+      type: "proceedings",
+      venue: "Proceedings of the 18th ACM Web Science Conference (WebSci '26), pp. 381–391",
+      venueShort: "WebSci 2026",
+      theme: "platforms",
+      links: { doi: "https://doi.org/10.1145/3795766.3799746" },
+      methods: ["Between-subjects experiment (N = 309)"],
+      summary: {
+        en: "A 2×3 between-subjects experiment (N = 309, U.S.) on how identity visibility (anonymous, pseudonymous, real name) and verification friction shape psychological safety in a fictional abortion-discussion community.",
+        zh: "一项 2×3 组间实验（N = 309，美国）：在一个虚构的堕胎话题讨论社区里，身份可见度（匿名、化名、实名）与入群验证门槛如何影响心理安全感。"
+      },
+      takeaway: {
+        en: "Anonymous and pseudonymous designs felt psychologically safer than real names — pseudonymity did about as well as full anonymity while keeping a persistent identity — whereas a high-friction phone-interview verification step lowered psychological safety. Privacy-preserving verification and pseudonyms are promising for communities facing stigma or legal risk.",
+        zh: "匿名和化名设计比实名带来更高的心理安全感——化名与完全匿名效果相当，同时还能保留稳定的身份；而高门槛的电话面试验证反而降低了心理安全感。保护隐私的验证方式和化名，是在污名或法律风险下支持参与的可行方向。"
+      },
+      keywords: "safety psychological safety pseudonymity pseudonym anonymity anonymous real name verification friction online community abortion sensitive stigma 匿名 化名 实名 心理安全 社区 验证",
+      abstract: "Safety is a central design concern for online communities that support discussions of sensitive topics. Prior work has examined privacy, data security, and harassment, but the psychological dimension of safety remains less systematically theorized as an outcome of platform design. This paper investigates how two common design levers—identity presentation and membership gatekeeping—relate to users' perceived psychological safety and participation intentions. We conceptualize these levers along two dimensions: identity visibility (anonymous, pseudonymous, or real name) and verification friction (open access versus identity-revealing, high-friction vetting). We conducted a 2 × 3 between-subjects experiment with participants in the United States (N = 309) who evaluated a fictional abortion-discussion community. Psychological safety was measured using an adapted Edmondson scale, and we modeled downstream effects on action comfort and joining interest. Anonymous and pseudonymous designs were associated with higher psychological safety than real-name designs, with pseudonymity performing comparably to full anonymity while supporting persistent identity. In contrast, a high-friction phone-interview verification step was associated with lower psychological safety relative to open access, illustrating how some forms of gatekeeping can introduce identity exposure that offsets their intended protective function. Taken together, these findings foreground verification friction as a sociotechnical trade-off in sensitive online spaces and suggest that privacy-preserving verification and pseudonymous identity are promising directions for supporting participation under conditions of stigma or legal risk."
+    },
+    {
+      id: "covid-framing",
+      title: "Exploring COVID-19 Framing Across Diverse Platforms: Analyzing Semantic and Contextual Shifts in Public Discussion, News Media, and Government Communication",
+      authors: ["Hanjing Shi", "Zhila Aghajari", "Dominic DiFranzo", "Haiyan Jia", "Eric P. S. Baumer"],
+      date: "2026-05-25",
+      year: 2026,
+      type: "proceedings",
+      venue: "Proceedings of the International AAAI Conference on Web and Social Media (ICWSM), 20(1), pp. 2149–2164",
+      venueShort: "ICWSM 2026",
+      theme: "platforms",
+      links: {
+        paper: "https://ojs.aaai.org/index.php/ICWSM/article/view/42742",
+        pdf: "https://ojs.aaai.org/index.php/ICWSM/article/download/42742/50302",
+        slides: "files/covid-framing-icwsm2026-slides.pdf"
+      },
+      methods: ["Computational text analysis (LLTR, Jensen–Shannon divergence)"],
+      summary: {
+        en: "Compares how Reddit posts, mainstream news and state public-health bulletins framed eight COVID-19 topics, using the Linked Latent Theta Role (LLTR) model and Jensen–Shannon divergence over grammatical relation–argument pairs.",
+        zh: "比较 Reddit 帖子、主流新闻和州公共卫生通报如何框架化八个新冠话题：使用 LLTR 模型，并用句法“关系–论元”对上的 JS 散度衡量差异。"
+      },
+      takeaway: {
+        en: "Sources often share the same topic words but diverge in grammar — in who gets agency, who is held responsible, and how evaluations are structured. Grammar-aware representations reveal framing differences that word counts alone miss.",
+        zh: "不同来源常常用同样的话题词，但在句法上差异很大——谁被赋予能动性、谁被归责、评价如何组织。关注语法的表示能发现只看词频时看不到的框架差异。"
+      },
+      keywords: "covid covid-19 pandemic framing news media government public health reddit nlp computational social science syntax icwsm 新冠 疫情 框架 新闻 政府 话语 语法",
+      abstract: "Understanding how shared issues are framed differently across public, news, and government discourse is central to the study of COVID-19 communication. This paper uses the previously validated Linked Latent Theta Role (LLTR) model as part of a novel analytic technique to examine framing differences across Reddit posts, mainstream news articles, and state public health bulletins. Rather than introducing a new model, we operationalize LLTR outputs to compare cross-source framing by examining how shared topic words are embedded in different syntactic constructions. Using a source-balanced corpus, we measure cross-source differences using Jensen–Shannon divergence over distributions of dependency-based relation–argument pairs, and contrast these results with a lexical baseline. Across eight COVID-19 topics, we find that sources often rely on overlapping topic vocabularies, yet diverge substantially in their syntactic realizations of those topics. Inspection of high-divergence grammatical evidence reveals systematic differences in how sources assign agency, attribute responsibility, and structure evaluative context around shared topical concepts. These findings suggest that grammar-aware representations provide an interpretable and scalable basis for identifying framing differences that are not visible at the lexical level alone."
+    },
+    {
+      id: "who-gets-credit",
+      title: "Who Gets Credit? Operationalizing AI Disclosure as Epistemic Coordination in Human-AI Teams",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-04-13",
+      year: 2026,
+      type: "proceedings",
+      venue: "Extended Abstracts of the 2026 CHI Conference on Human Factors in Computing Systems (CHI EA '26), pp. 1–5",
+      venueShort: "CHI 2026 EA",
+      theme: "teaming",
+      links: { doi: "https://doi.org/10.1145/3772363.3799006" },
+      methods: ["Design space", "Research instrument"],
+      summary: {
+        en: "Introduces an AI Disclosure Design Space — No AI, Hidden AI, Translucent AI and Visible AI — and a research instrument that operationalizes these configurations in collaborative chat.",
+        zh: "提出“AI 披露设计空间”——无 AI、隐藏 AI、半透明 AI、可见 AI——并开发了在协作聊天中实现这些配置的研究工具。"
+      },
+      takeaway: {
+        en: "What matters in practice isn't whether AI is present but how its assistance is disclosed. Disclosure is an epistemic-coordination mechanism that trades off accountability, autonomy and coordination cost in teams.",
+        zh: "关键不在于 AI 是否在场，而在于它的帮助如何被披露。披露是一种“认知协调”机制，在团队的问责、自主与协调成本之间权衡。"
+      },
+      keywords: "disclosure authorship credit teams collaboration generative ai chat epistemic coordination hidden translucent visible chi 披露 署名 功劳 协作 团队",
+      abstract: "As generative AI becomes an ambient presence in collaborative work, a new social ambiguity emerges around authorship and responsibility. This condition of authorship uncertainty reshapes how teams attribute ideas, negotiate accountability, and coordinate collective reasoning. Prior research often treats AI presence as binary, framing it either as a hidden tool or a visible teammate. We argue that what matters in practice is the design of disclosure: how systems reveal, signal, or conceal AI assistance within collaboration. We introduce an AI Disclosure Design Space that conceptualizes disclosure as an epistemic coordination mechanism, articulating four configurations—No AI, Hidden AI, Translucent AI, and Visible AI—each trading off among accountability, autonomy, and coordination cost. We further contribute a research instrument that operationalizes these configurations in a collaborative chat setting and articulate testable design conjectures. By framing disclosure as epistemic infrastructure, this work outlines a conceptual roadmap for future empirical and design research on Human–AI collaboration."
+    },
+    {
+      id: "alignment-in-time",
+      title: "Alignment in Time: Peak-Aware Orchestration for Long-Horizon Agentic Systems",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-02-20",
+      year: 2026,
+      type: "workshop",
+      venue: "CHI 2026 Workshop: AutomationXP26 — Agentic Automation Experiences",
+      venueShort: "CHI 2026 Workshop",
+      theme: "agents",
+      links: { arxiv: "https://arxiv.org/abs/2602.17910", pdf: "https://arxiv.org/pdf/2602.17910" },
+      methods: ["System (APEMO)", "Multi-agent simulation"],
+      summary: {
+        en: "Introduces APEMO (Affect-aware Peak-End Modulation for Orchestration), a runtime scheduling layer that targets repairs at the peak moments and ending of a long-horizon agent trajectory under a fixed compute budget.",
+        zh: "提出 APEMO（情感感知的峰终调制编排）：在固定算力预算下，针对长程智能体轨迹的“峰值时刻”和“结尾”做定向修复的运行时调度层。"
+      },
+      takeaway: {
+        en: "Alignment is also a temporal control problem. Without changing model weights, peak-aware orchestration improved trajectory-level quality and reuse probability over structural orchestrators in multi-agent simulations and planner–executor flows.",
+        zh: "对齐也是一个“时间上的控制”问题。无需修改模型权重，峰值感知的编排就在多智能体模拟和规划–执行流程中提升了轨迹整体质量与复用概率。"
+      },
+      keywords: "alignment orchestration agents long-horizon peak-end scheduling multi-agent llm apemo planner executor workflow 对齐 编排 智能体 调度",
+      abstract: "Traditional AI alignment primarily focuses on individual model outputs; however, autonomous agents in long-horizon workflows require sustained reliability across entire interaction trajectories. We introduce APEMO (Affect-aware Peak-End Modulation for Orchestration), a runtime scheduling layer that optimizes computational allocation under fixed budgets by operationalizing temporal-affective signals. Instead of modifying model weights, APEMO detects trajectory instability through behavioral proxies and targets repairs at critical segments, such as peak moments and endings. Evaluation across multi-agent simulations and LLM-based planner--executor flows demonstrates that APEMO consistently enhances trajectory-level quality and reuse probability over structural orchestrators. Our results reframe alignment as a temporal control problem, offering a resilient engineering pathway for the development of long-horizon agentic systems."
+    },
+    {
+      id: "visibility-verification",
+      title: "When Visibility Outpaces Verification: Delayed Verification and Narrative Lock-in in Agentic AI Discourse",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-02-11",
+      year: 2026,
+      type: "workshop",
+      venue: "12th International Conference on Computational Social Science (IC2S2 2026)",
+      venueShort: "IC2S2 2026",
+      theme: "agents",
+      links: { arxiv: "https://arxiv.org/abs/2602.11412", pdf: "https://arxiv.org/pdf/2602.11412" },
+      methods: ["Survival analysis", "Reddit data"],
+      summary: {
+        en: "A longitudinal, right-censored survival analysis of r/OpenClaw and r/Moltbook that models “time-to-first-verification” in online discussions of agentic AI.",
+        zh: "对 r/OpenClaw 与 r/Moltbook 的纵向（右删失）生存分析，建模智能体 AI 讨论中的“首次验证时间”。"
+      },
+      takeaway: {
+        en: "A “popularity paradox”: high-visibility threads get verification cues later or never, opening a window for narrative lock-in. Engagement-driven platforms may need “epistemic friction” to counter credibility-by-visibility.",
+        zh: "“热度悖论”：越热门的讨论，验证线索出现得越晚甚至缺席，给“叙事锁定”留下了窗口。以互动为导向的平台可能需要“认知摩擦”来对冲“以热度代替可信”。"
+      },
+      keywords: "reddit verification misinformation popularity survival analysis discourse social proof upvotes narrative lock-in epistemic friction agentic ai 验证 热度 叙事 社交媒体 谣言",
+      abstract: "Agentic AI systems-autonomous entities capable of independent planning and execution-reshape the landscape of human-AI trust. Long before direct system exposure, user expectations are mediated through high-stakes public discourse on social platforms. However, platform-mediated engagement signals (e.g., upvotes) may inadvertently function as a “credibility proxy,” potentially stifling critical evaluation. This paper investigates the interplay between social proof and verification timing in online discussions of agentic AI. Analyzing a longitudinal dataset from two distinct Reddit communities with contrasting interaction cultures-r/OpenClaw and r/Moltbook-we operationalize verification cues via reproducible lexical rules and model the “time-to-first-verification” using a right-censored survival analysis framework. Our findings reveal a systemic “Popularity Paradox”: high-visibility discussions in both subreddits experience significantly delayed or entirely absent verification cues compared to low-visibility threads. This temporal lag creates a critical window for “Narrative Lock-in,” where early, unverified claims crystallize into collective cognitive biases before evidence-seeking behaviors emerge. We discuss the implications of this “credibility-by-visibility” effect for AI safety and propose “epistemic friction” as a design intervention to rebalance engagement-driven platforms."
+    },
+    {
+      id: "human-control-anchor",
+      title: "Human Control Is the Anchor, Not the Answer: Early Divergence of Oversight in Agentic AI Communities",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-02-10",
+      year: 2026,
+      type: "workshop",
+      venue: "CHI 2026 Workshop on Human-Agent Collaboration",
+      venueShort: "CHI 2026 Workshop",
+      theme: "agents",
+      links: { arxiv: "https://arxiv.org/abs/2602.09286", pdf: "https://arxiv.org/pdf/2602.09286" },
+      methods: ["Topic modeling", "Divergence tests", "Reddit data"],
+      summary: {
+        en: "Compares two newly active Reddit communities (r/OpenClaw and r/Moltbook, Jan–Feb 2026) with topic modeling, engagement-weighted salience and divergence tests, to see how oversight expectations crystallize.",
+        zh: "比较两个新兴 Reddit 社区（r/OpenClaw 与 r/Moltbook，2026 年 1–2 月），用主题模型、按互动加权的显著性和差异检验，观察监督期望如何形成。"
+      },
+      takeaway: {
+        en: "“Human control” is a shared anchor term, but its meaning diverges by role: the deployment community stresses execution guardrails and recovery (action-risk), while the agent-social community stresses identity, legitimacy and accountability (meaning-risk). Oversight should match the agent's role, not follow one-size-fits-all policies.",
+        zh: "“人类控制”是两个社区共同的锚点词，但含义因角色而异：部署运维社区强调执行护栏与恢复（行动风险），智能体社交社区强调身份、正当性与问责（意义风险）。监督机制应当与智能体的角色相匹配，而不是一刀切。"
+      },
+      keywords: "oversight human control agents agentic reddit topic modeling community openclaw moltbook guardrails 监督 人类控制 智能体 社区 主题模型",
+      abstract: "Oversight for agentic AI is often discussed as a single goal (“human control”), yet early adoption may produce role-specific expectations. We present a comparative analysis of two newly active Reddit communities in Jan–Feb 2026 that reflect different socio-technical roles: r/OpenClaw (deployment and operations) and r/Moltbook (agent-centered social interaction). We conceptualize this period as an early-stage crystallization phase, where oversight expectations form before norms reach equilibrium. Using topic modeling in a shared comparison space, a coarse-grained oversight-theme abstraction, engagement-weighted salience, and divergence tests, we show the communities are strongly separable (JSD = 0.418, cosine = 0.372, permutation p = 0.0005). Across both communities, “human control” is an anchor term, but its operational meaning diverges: r/OpenClaw emphasizes execution guardrails and recovery (action-risk), while r/Moltbook emphasizes identity, legitimacy, and accountability in public interaction (meaning-risk). The resulting distinction offers a portable lens for designing and evaluating oversight mechanisms that match agent role, rather than applying one-size-fits-all control policies."
+    },
+    {
+      id: "cultural-governance",
+      title: "Culturally-Grounded Governance for Multilingual Language Models: Rights, Data Boundaries, and Accountable AI Design",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2025-06-01",
+      year: 2025,
+      type: "workshop",
+      venue: "HCII 2025 Workshop “Generative AI for Collaborative Experiences and Enhanced User Interactions in Mixed Reality”",
+      venueShort: "HCII 2025 Workshop",
+      theme: "platforms",
+      links: { arxiv: "https://arxiv.org/abs/2602.00497", pdf: "https://arxiv.org/pdf/2602.00497" },
+      methods: ["Conceptual / synthesis"],
+      summary: {
+        en: "A conceptual agenda that reframes the governance of multilingual large language models as a sociocultural, rights-based problem.",
+        zh: "一个概念性议程：把多语言大模型的治理重新理解为社会文化与权利问题。"
+      },
+      takeaway: {
+        en: "English-centric data and abstract notions of fairness put low-resource languages and marginalized communities at risk. Governance needs culturally grounded data stewardship, transparency and participatory accountability, so that scale doesn't reproduce global inequalities.",
+        zh: "以英语为中心的数据和抽象的“公平”观念，会让低资源语言与边缘社群承担风险。治理需要文化根植的数据管理、透明度和参与式问责，避免“规模化”复制全球不平等。"
+      },
+      keywords: "multilingual language models llm governance culture cultural low-resource languages rights fairness data stewardship 多语言 大模型 治理 文化 公平",
+      abstract: "Multilingual large language models (MLLMs) are increasingly deployed across cultural, linguistic, and political contexts, yet existing governance frameworks largely assume English-centric data, homogeneous user populations, and abstract notions of fairness. This creates systematic risks for low-resource languages and culturally marginalized communities, where data practices, model behavior, and accountability mechanisms often fail to align with local norms, rights, and expectations. Drawing on cross-cultural perspectives in human-centered computing and AI governance, this paper synthesizes existing evidence on multilingual model behavior, data asymmetries, and sociotechnical harm, and articulates a culturally grounded governance framework for MLLMs. We identify three interrelated governance challenges: cultural and linguistic inequities in training data and evaluation practices, misalignment between global deployment and locally situated norms, values, and power structures, and limited accountability mechanisms for addressing harms experienced by marginalized language communities. Rather than proposing new technical benchmarks, we contribute a conceptual agenda that reframes multilingual AI governance as a sociocultural and rights based problem. We outline design and policy implications for data stewardship, transparency, and participatory accountability, and argue that culturally grounded governance is essential for ensuring that multilingual language models do not reproduce existing global inequalities under the guise of scale and neutrality."
+    },
+    {
+      id: "critique-hat",
+      title: "A Critique of Human-Autonomous Team Dynamics: Contrasting Qualitative and Quantitative Perspectives",
+      authors: ["Hanjing Shi"],
+      date: "2023-12-11",
+      year: 2023,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2312.06789",
+      venueShort: "arXiv 2023",
+      theme: "teaming",
+      links: { arxiv: "https://arxiv.org/abs/2312.06789", pdf: "https://arxiv.org/pdf/2312.06789" },
+      methods: ["Critical review"],
+      summary: {
+        en: "A critique contrasting a qualitative study (Musick et al.) and a quantitative study (Schelble et al.) of human–autonomy teams.",
+        zh: "一篇评论：对比人–自主体团队（HAT）研究中的一项定性研究（Musick 等）与一项定量研究（Schelble 等）。"
+      },
+      takeaway: {
+        en: "Both lines of work find that teams with more humans tend to outperform teams with more agents, highlighting the role of human perception. Future work should study teams where AI plays the dominant role — and how trust and skepticism form there.",
+        zh: "两类研究都发现以人为主的团队往往优于以智能体为主的团队，凸显了人类感知的作用。未来应当研究 AI 占主导的团队，以及那里的信任与怀疑如何形成。"
+      },
+      keywords: "human-autonomy teaming hat critique qualitative quantitative teams team cognition perception 团队 人机协作 评论",
+      abstract: "The critique paper provides an in-depth analysis of two influential studies in the field of Human-Autonomous Teams (HATs). Musick et al. explored qualitative dimensions of HAT dynamics, examining the influence of team composition on emotions, cognitive processes, and the development of team cognition. Their research revealed that teams with a majority of human members, known as Multi-Human HATs, generally surpass Multi-Agent HATs in performance, highlighting the critical influence of human perception on team dynamics. Employing qualitative interview analysis anchored in theoretical frameworks, Musick et al. captured the detailed subtleties of participants' experiences. In contrast, Schelble et al. utilized a quantitative methodology to provide data-driven insights into how the perception of AI teammates affects team performance. Despite the rich insights from Musick et al.'s qualitative research, their findings face limitations in terms of broader applicability. Both Musick et al. and Schelble et al. agree in their conclusions that Multi-Human HATs typically outperform their Multi-Agent counterparts, again emphasizing the crucial role of human perception in team dynamics. The critique paper suggests that future research should focus on understanding perceptions of teams heavily reliant on AI. Such investigations could illuminate how trust and skepticism are shaped in teams where AI plays a dominant role."
+    }
+  ],
+
+  news: [
+    { date: "Soon", paper: "borrowed-authority",
+      en: "Coming up: I'll be presenting “Tracing Borrowed Authority in Relational AI Systems” at the AIES 2026 Student Program.",
+      zh: "即将到来：我会在 AIES 2026 学生项目展示《Tracing Borrowed Authority in Relational AI Systems》。" },
+    { date: "2026", paper: "pathway-lab",
+      en: "Poster at CSCW 2026: “Pathway Lab”, a design probe for redirecting adolescent peer conflict before it becomes bullying.",
+      zh: "CSCW 2026 海报《Pathway Lab》：在青少年冲突演变成霸凌之前，引导他们转向的设计探针。" },
+    { date: "2026-09", paper: "his-name",
+      en: "New preprint: “His Name, Their Judgment” — what happens when AI personas speak for a deceased expert.",
+      zh: "新预印本《His Name, Their Judgment》——当 AI 分身替逝去的专家“说话”时会发生什么。" },
+    { date: "2026-08", paper: "beloved-afterlives",
+      en: "Three new preprints: evidence pooling in human–AI teaming research, the reduced-supervision paradox of AI agents, and governing AI resurrection beyond consent.",
+      zh: "三篇新预印本：人机协作研究中的证据合并问题、AI 智能体的“减少监督悖论”，以及超越“同意”的 AI 复活治理。" },
+    { date: "2026-08", paper: "learning-signals",
+      en: "Our bounded-confidentiality framework for educational AI agents is out in PMLR 339.",
+      zh: "关于教育 AI 智能体“有边界的保密”的论文收录于 PMLR 339。" },
+    { date: "2026-06", paper: "classpulse",
+      en: "ClassPulse, an AI-supported programming homework platform, appears at AIED 2026.",
+      zh: "AI 辅助编程作业平台 ClassPulse 发表于 AIED 2026。" },
+    { date: "2026-05", paper: "covid-framing",
+      en: "Two papers out: COVID-19 framing across platforms (ICWSM 2026) and pseudonymity & verification friction (ACM WebSci 2026).",
+      zh: "两篇论文发表：跨平台的新冠话语框架（ICWSM 2026），以及化名与验证门槛（ACM WebSci 2026）。" },
+    { date: "2026-04", paper: "who-gets-credit",
+      en: "“Who Gets Credit?” appears in CHI 2026 Extended Abstracts, alongside two CHI 2026 workshop papers on agentic AI.",
+      zh: "《Who Gets Credit?》收录于 CHI 2026 Extended Abstracts，另有两篇关于智能体 AI 的 CHI 2026 workshop 论文。" }
+  ],
+
+  /*
+   * Talks & videos. Add one entry per LinkedIn (or YouTube) video, e.g.
+   *   { paper: "who-gets-credit", title: "Who Gets Credit? — 3-minute walkthrough",
+   *     linkedin: "https://www.linkedin.com/posts/...",               // link-out (always works)
+   *     embed: "https://www.linkedin.com/embed/feed/update/urn:li:..." } // from “Embed this post”
+   * YouTube: { paper: "...", title: "...", youtube: "https://youtu.be/VIDEO_ID" }
+   */
+  videos: [
+    { paper: "who-gets-credit", drive: "1RcvT4t2lLVgGDG28kfh8wDOy0kr-qV2S", thumb: "images/talks/who-gets-credit.jpg",
+      title: "Who Gets Credit? Operationalizing AI Disclosure as Epistemic Coordination", venue: "CHI 2026" },
+    { paper: "designing-safety", drive: "1ebqSK1dKOPiPprcQFx82D4kv32BOh_sw", thumb: "images/talks/designing-safety.jpg",
+      title: "Designing for Safety in Sensitive Online Spaces", venue: "ACM WebSci 2026" },
+    { paper: "alignment-in-time", drive: "1tfT0H80TEhxTJmCsSepJhtPaIP_Jm4K4", thumb: "images/talks/alignment-in-time.jpg",
+      title: "From Accuracy to Appropriate Reliance: A Peak-End Perspective on Long-Horizon Automation Experience", venue: "AutomationXP26 Workshop @ CHI 2026" }
+  ],
+
+  // Posters and slides shown at the Talks & Posters hall.
+  posters: [
+    { paper: "pathway-lab", venue: "CSCW 2026", image: "images/posters/pathwaylab-cscw2026.jpg", thumb: "images/posters/thumbs/pathwaylab-cscw2026.jpg", file: "files/pathwaylab-cscw2026-poster.pdf" },
+    { paper: "borrowed-authority", venue: "AIES 2026 Student Program (upcoming)", image: "images/posters/tracing-borrowed-authority-aies2026.jpg", thumb: "images/posters/thumbs/tracing-borrowed-authority-aies2026.jpg", file: "files/tracing-borrowed-authority-aies2026-poster.pdf" },
+    { paper: "classpulse", venue: "AIED 2026", image: "images/posters/classpulse-aied2026.jpg", thumb: "images/posters/thumbs/classpulse-aied2026.jpg" },
+    { paper: "covid-framing", venue: "ICWSM 2026 · slides", image: "images/posters/icwsm2026-slides.jpg", thumb: "images/posters/thumbs/icwsm2026-slides.jpg", file: "files/covid-framing-icwsm2026-slides.pdf" }
+  ],
+
+  // Conference photos (interactive version only).
+  conferencePhotos: [
+    { src: "images/conference/la-talk.jpg", caption: "Giving a talk at ICWSM 2026, Los Angeles" },
+    { src: "images/conference/poster-covid-framing.jpg", caption: "With my COVID-19 framing poster at ICWSM 2026" },
+    { src: "images/conference/poster-session.jpg", caption: "Poster session at ICWSM 2026" },
+    { src: "images/conference/aied2026-classpulse.jpg", caption: "Demoing ClassPulse at AIED 2026, Seoul" },
+    { src: "images/conference/aied2026-cats-workshop.jpg", caption: "8th International Workshop on Culturally-Aware Tutoring Systems at AIED 2026, Seoul" },
+    { src: "images/conference/aied2026-session.jpg", caption: "AIED 2026, Seoul" },
+    { src: "images/conference/aied2026-table.jpg", caption: "Between sessions at AIED 2026" },
+    { src: "images/conference/seoul-group.jpg", caption: "Seoul, during AIED 2026" },
+    { src: "images/conference/css2025-talk.jpg", caption: "Presenting COVID-19 framing at CSSSA 2025" }
+  ],
+
+  tutorials: [
+    {
+      id: "r",
+      title: "R Cheat Sheet",
+      label: "R",
+      href: "tutorials/Rcheatsheet.html",
+      pdf: "tutorials/Rcheatsheet.pdf",
+      lang: "中文",
+      desc: {
+        en: "From installing packages and R Markdown to cleaning data (missing values, outliers), reshaping wide/long tables, the apply family, and ggplot2 plotting.",
+        zh: "从装包、R Markdown，到数据清洗（缺失值、异常值）、宽表长表转换、apply 系列函数和 ggplot2 绘图。"
+      },
+      keywords: "r rstudio rmarkdown ggplot data cleaning na outlier apply reshape tidyverse 数据清洗 绘图"
+    },
+    {
+      id: "python",
+      title: "Python Tutorials",
+      label: "Python",
+      href: "tutorials/Python-Tutorials.html",
+      lang: "中文",
+      desc: {
+        en: "14 beginner lessons: data types, operators, control flow, functions, modules, OOP, exceptions, files, networking, databases, regular expressions and multithreading.",
+        zh: "14 节入门课：数据类型、运算符、控制流、函数、模块、面向对象、异常处理、文件、网络、数据库、正则表达式和多线程。"
+      },
+      keywords: "python programming beginner lessons oop functions regex database 编程 入门"
+    },
+    {
+      id: "stats",
+      title: "Statistics Cheat Sheet",
+      label: "Stats",
+      href: "tutorials/statscheatsheet.html",
+      lang: "中文",
+      desc: {
+        en: "Core statistics with R code: distributions, significance and confidence intervals, t-tests, ANOVA with post-hoc tests, multi-factor ANOVA, regression, chi-square and SEM.",
+        zh: "配有 R 代码的统计学基础：分布、显著性与置信区间、t 检验、方差分析与事后检验、多因素方差分析、回归、卡方检验和结构方程模型。"
+      },
+      keywords: "statistics stats t-test anova regression chi-square sem hypothesis testing confidence interval 统计 检验 方差分析 回归"
+    },
+    {
+      id: "web",
+      title: "Front-end Basics: HTML, CSS & JavaScript",
+      label: "Web",
+      href: "tutorials/js.html",
+      lang: "中文",
+      desc: {
+        en: "HTML and CSS foundations, practical CSS recipes (paper-like overlays, circular profile photos, alignment), responsive design, then JavaScript, the DOM, events and animation.",
+        zh: "HTML 和 CSS 基础、实用 CSS 技巧（仿纸张层、圆形头像、对齐）、响应式设计，再到 JavaScript、DOM、事件和动画。"
+      },
+      keywords: "html css javascript js web front-end frontend dom animation responsive 前端 网页"
+    }
+  ],
+
+  writing: [
+    {
+      id: "bayesian",
+      title: "Bayesian Statistics",
+      zhTitle: "贝叶斯统计",
+      href: "blog/bayesian.html",
+      desc: {
+        en: "Bayes' theorem, Bayesian networks, MCMC and hierarchical models — with a Hogwarts-themed example.",
+        zh: "贝叶斯定理、贝叶斯网络、MCMC 和层次模型——还有一个霍格沃茨主题的例子。"
+      },
+      keywords: "bayesian bayes statistics mcmc hierarchical model prior posterior 贝叶斯 统计"
+    },
+    {
+      id: "timeseries",
+      title: "Time Series Analysis",
+      zhTitle: "时间序列分析",
+      href: "blog/timeseries.html",
+      desc: {
+        en: "Components of a time series and how to fit MA, AR, ARMA, ARIMA and SARIMA models in R.",
+        zh: "时间序列的组成部分，以及如何在 R 中拟合 MA、AR、ARMA、ARIMA 和 SARIMA 模型。"
+      },
+      keywords: "time series arima sarima forecasting autoregressive moving average 时间序列 预测"
+    }
+  ],
+
+  gpts: [
+    { name: "Academic Mentor", zh: "研博申请", href: "https://chat.openai.com/g/g-nnEjq1bY7-academic-mentor",
+      desc: "Grad-school application coach for Master's and Ph.D. hopefuls." },
+    { name: "DataScience-GPT", zh: "数据科学", href: "https://chat.openai.com/g/g-Q3jdUYlBh-datascience-gpt",
+      desc: "Your data analysis expert." },
+    { name: "Academic Ace", zh: "STEM 学术写作", href: "https://chat.openai.com/g/g-PbOe4SHqm-academic-ace",
+      desc: "Academic writing coach for STEM and CS grad students." },
+    { name: "ML Mastermind", zh: "机器学习 / NLP", href: "https://chat.openai.com/g/g-O7uAQ9PJd-ml-mastermind",
+      desc: "Tutor in ML, NLP and CV, blending theory with Python practice." },
+    { name: "Genome Analyst", zh: "生物信息", href: "https://chat.openai.com/g/g-WAXy42h5O-genome-analyst",
+      desc: "Bilingual (English/Chinese) bioinformatics helper focused on genetics." },
+    { name: "Sorting Hat", zh: "霍格沃茨分院帽 · 个人任务管家", href: "https://chat.openai.com/g/g-RUFv6ZEyU-sorting-hat",
+      desc: "A Hogwarts-style daily planner that maps magical class names to real coursework." }
+  ],
+
+  // Life outside research — shown only in the interactive version
+  // (the basic version stays strictly academic).
+  // Social link for restaurant posts: set `foodSocial` to show it.
+  foodSocial: "",
+
+  // Cat gallery (interactive version only). To add a photo, put it in
+  // images/cats/ (plus a small copy in images/cats/thumbs/) and list it under
+  // the cat; to add a cat, add an entry.
+  cats: [
+    { name: "JinBingBing", zh: "金饼饼", about: "Golden shaded · girl", note: "The youngest sister — she walks with me around this world.",
+      photos: ["images/cats/img-7121.jpg", "images/cats/img-6573.jpg"] },
+    { name: "DaHuang", zh: "大黄", about: "Orange · boy", photos: ["images/cats/img-3783.jpg"] },
+    { name: "XiaoHei", zh: "小黑", about: "Gray & black · boy", photos: ["images/cats/img-0668.jpg"] },
+    { name: "XiaoHeiHei", zh: "小黑黑", about: "Black · girl", photos: ["images/cats/img-0499.jpg"] },
+    { name: "TuanZi", zh: "团子", about: "Ragdoll · boy", photos: ["images/cats/img-1804.jpg"] },
+    { name: "GuoZi", zh: "果子", about: "Silver shaded", photos: ["images/cats/img-1185.jpg", "images/cats/img-1187.jpg", "images/cats/dsc00311.jpg"] }
+  ],
+
+  // The "try something new" food wheel.
+  dishes: ["Hot pot", "Ramen", "Tacos", "Dim sum", "Pho", "Korean BBQ", "Pizza", "Biryani", "Sushi", "Brisket", "Dumplings", "Paella"],
+  life: [
+    { id: "travel", icon: "suitcase", title: "Road trips",
+      en: "I love to travel. I've driven all the way around the U.S. twice, visited 46 of the 50 states, and lived for years on both the East and West Coasts.",
+      zh: "我很爱旅行：自驾环绕美国两圈，去过美国 50 个州里的 46 个，在东西海岸都生活过很多年。",
+      stats: { trips: 2, states: 46 },
+      keywords: "travel traveling trip trips road trip roadtrip drive driving drove states state usa america united east coast west coast lived live places explore 旅行 旅游 自驾 州 美国 东海岸 西海岸" },
+    { id: "food", icon: "pot", title: "Food",
+      en: "I'm a foodie — I'll eat just about anything, and I love trying new things. In my spare time I post my restaurant finds on social media. I also love cooking: there's something deeply satisfying about making a meal from scratch.",
+      zh: "我是个吃货——几乎什么都爱吃，也喜欢尝试新东西。业余时间我会在社交媒体上发探店记录。我也喜欢做饭：从零开始做出一顿饭，有一种很深的满足感。",
+      keywords: "food foodie eat eating restaurant restaurants cuisine dish dishes try new things social media reviews cooking cook meal 美食 吃货 探店 餐厅 做饭 烹饪" },
+    { id: "cats", icon: "cat", title: "Cats",
+      en: "I love cats — I have six: JinBingBing, DaHuang, XiaoHei, XiaoHeiHei, TuanZi and GuoZi. The fluffy golden kitty walking with me is JinBingBing, the youngest sister.",
+      zh: "我超爱猫——家里有六只：金饼饼、大黄、小黑、小黑黑、团子和果子。跟着我走的金渐层是金饼饼，最小的妹妹。",
+      keywords: "cat cats kitten kitty kitties pet pets golden shaded youngest sister six gallery meow jinbingbing dahuang xiaohei xiaoheihei tuanzi guozi ragdoll orange silver 猫 猫咪 小猫 宠物 金渐层 妹妹 六只 金饼饼 大黄 小黑 小黑黑 团子 果子 布偶 银渐层" },
+    { id: "blogging", icon: "brush", title: "Writing",
+      en: "I'm an avid blogger — I like sharing my experiences and thoughts with a wider audience.",
+      zh: "我很爱写博客，和更多人分享我的经历和想法。",
+      keywords: "blog blogging write writing share 博客 写作 分享" }
+  ]
+};
