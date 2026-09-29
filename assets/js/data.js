@@ -42,7 +42,7 @@ window.HJ_DATA = {
         "我的研究方法包括在线实验、基于 Reddit 和小红书等平台的计算社会科学分析、对 AI 系统与研究文献的结构化审计，以及研究原型的设计与开发。来 Lehigh 之前，我在 Georgetown University 读了数据科学与分析硕士，在 UC Davis 读了计算机科学与统计学本科。"
       ]
     },
-    photo: "images/profile.jpg",
+    photo: "images/profile-qipao.jpg",   // the basic version's profile picture
     // Portraits for the "meet the real me" photo booth in the interactive version.
     portraits: [
       "images/portraits/white-shirt.jpg",
@@ -770,7 +770,7 @@ window.HJ_DATA = {
   // the cat; to add a cat, add an entry.
   cats: [
     { name: "JinBingBing", zh: "金饼饼", about: "Golden shaded · girl", note: "The youngest sister — she walks with me around this world.",
-      photos: ["images/cats/img-7121.jpg", "images/cats/img-6573.jpg"] },
+      photos: ["images/cats/img-6573.jpg", "images/cats/img-7121.jpg"] },
     { name: "DaHuang", zh: "大黄", about: "Orange · boy", photos: ["images/cats/img-3783.jpg"] },
     { name: "XiaoHei", zh: "小黑", about: "Gray & black · boy", photos: ["images/cats/img-0668.jpg"] },
     { name: "XiaoHeiHei", zh: "小黑黑", about: "Black · girl", photos: ["images/cats/img-0499.jpg"] },

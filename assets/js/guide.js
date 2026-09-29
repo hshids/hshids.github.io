@@ -290,8 +290,8 @@
   }
 
   var DISCLAIMER = {
-    en: "I only speak from Hanjing's published work — for anything beyond it, ask her directly.",
-    zh: "我只根据 Hanjing 已公开的论文回答；超出这些的问题，建议直接问她本人。"
+    en: "My mini-me only says what's in my published work — for anything beyond that, email the real me!",
+    zh: "迷你版的我只说我公开发表过的内容；更多的，欢迎直接问真正的我！"
   };
 
   function themeChips(lang) {
@@ -312,15 +312,15 @@
 
   function greet(lang) {
     return A(lang, lang === "zh"
-      ? "嗨！我是迷你版的 Hanjing 👋 Lehigh University 计算机系的博士生，做人机交互（HCI）研究。想了解我的研究、论文，还是随便逛逛？"
-      : "Hi! I'm Mini-Hanjing 👋 — a pocket-sized guide to Hanjing Shi, a Ph.D. student in Computer Science & Engineering at Lehigh University working on human–AI interaction. Ask me anything, or pick a place to visit.",
+      ? "嗨，我是 Hanjing！👋 准确地说，是迷你版的我。我在 Lehigh 读计算机博士，研究人和 AI 怎么一起工作。想听我的研究、看我的报告，还是见见我的猫？随便问，或者点一个地方，我带你走过去～"
+      : "Hey, I'm Hanjing! 👋 Well — the pocket-sized me. I'm a Ph.D. student at Lehigh, and I study how people and AI work together. Want to hear about my research, watch a talk, or meet my cats? Ask me anything, or pick a place and I'll walk you there.",
       "", START_CHIPS[lang]);
   }
 
   function identity(lang) {
     return A(lang, lang === "zh"
-      ? "我不是 Hanjing 本人，而是她的“迷你分身”——一个脚本化的向导。我没有接入任何大模型：所有回答都来自她公开的论文和资料，并附上出处；你输入的内容也不会被发送到任何地方。这其实和她自己的研究有关：她研究 AI 分身替真人说话时的权威与问责，所以我被设计成“只说有出处的话”。"
-      : "I'm not Hanjing herself — I'm her scripted mini-avatar. There's no large language model behind me: every answer is assembled from her public papers and profile, with a link to the source, and nothing you type leaves your browser. That's deliberate — Hanjing studies what happens when AI personas speak for real people, so I only say things I can cite.",
+      ? "算是吧！我是 Hanjing 给这个网站做的迷你分身——一个写好脚本的向导，不是聊天机器人。我背后没有大模型：每个回答都来自我的论文和主页，并附上出处；你输入的内容也不会离开你的浏览器。这是故意的——我自己就研究 AI 分身替真人说话的问题，所以我的分身只说有出处的话。其他的，欢迎发邮件给真正的我！"
+      : "Sort of! I'm the mini-me Hanjing built for this site — a scripted guide, not a chatbot. There's no large language model behind me: every answer comes from my papers and pages, with a link to the source, and nothing you type leaves your browser. That's on purpose — I study what happens when AI personas speak for real people, so my own mini-me only says things it can cite. For anything else, email the real me!",
       '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>" +
       paperCard(pubById["his-name"], lang, { noMore: false }),
       lang === "zh" ? ["你研究什么？", "看看你的论文", "怎么联系你？"] : ["What do you research?", "Show me your papers", "How can I contact you?"]);
@@ -393,23 +393,23 @@
   function about(lang) {
     return A(lang, pick(lang, { en: D.person.bio.en[0], zh: D.person.bio.zh[0] }),
       '<p class="g-note">' + (lang === "zh"
-        ? "（我是她的迷你分身，一个只根据公开资料回答的脚本向导。）"
-        : "(I'm her mini-avatar — a scripted guide that only answers from her public work.)") + "</p>",
+        ? "（这是我的迷你分身在说话——只根据我公开的内容回答。）"
+        : "(This is my mini-me talking — a scripted guide that only answers from my public work.)") + "</p>",
       lang === "zh" ? ["你研究什么？", "教育背景", "工作之外喜欢做什么？"] : ["What do you research?", "Education", "What do you do for fun?"], "home");
   }
 
   function privateQ(lang) {
     return A(lang, lang === "zh"
-      ? "这个属于个人隐私，我这里不提供～我只介绍 Hanjing 公开的学术和兴趣信息。"
-      : "That's personal, so I'll keep it private — I only share Hanjing's public academic profile and the hobbies she's written about.",
+      ? "哈，这个就保密啦～不过研究、报告、旅行、美食和猫，我都很乐意聊！"
+      : "Ha — that one stays private! But I'm always happy to talk research, talks, travel, food and cats.",
       "", START_CHIPS[lang].slice(0, 4));
   }
 
   function favorite(lang) {
     var full = pubs.filter(function (p) { return p.id === "covid-framing" || p.id === "designing-safety"; });
     return A(lang, lang === "zh"
-      ? "我不替她挑“最喜欢”的——这得问她本人。不过这两篇是她目前发表的完整长文（ICWSM 2026 和 ACM WebSci 2026）："
-      : "I won't pick favorites on her behalf — that's one to ask her. But these two are her full-length conference papers so far (ICWSM 2026 and ACM WebSci 2026):",
+      ? "让我选最喜欢的论文，就像让我选最喜欢的猫——选不出来！不过这两篇是我目前的完整长文（ICWSM 2026 和 ACM WebSci 2026）："
+      : "Picking a favorite paper is like picking a favorite cat — I can't! But these two are my full-length conference papers so far (ICWSM 2026 and ACM WebSci 2026):",
       full.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["最近有什么新动态？", "你研究什么？"] : ["What's new?", "What do you research?"], "research");
   }
@@ -569,8 +569,8 @@
     var top = r.hits.filter(function (h) { return h.score > 1.2; }).slice(0, 2);
     if (!top.length) {
       return A(lang, lang === "zh"
-        ? "这个问题我在她的论文里找不到直接的依据，所以不替她下结论。可以换个和她研究相关的问法，或者直接问她本人。"
-        : "I can't find anything in her papers that speaks to that, so I won't put words in her mouth. Try asking about one of her research topics — or ask her directly.",
+        ? "嗯……这个我在论文里没写过，就不乱说啦。可以问问我的研究方向，或者直接问真正的我！"
+        : "Hmm, I haven't written about that, so I'd rather not make something up. Try one of my research topics — or ask the real me!",
         '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>", themeChips(lang).slice(0, 3), null);
     }
     return A(lang, lang === "zh" ? "这是我在论文里提出过的观点：" : "Here's what I've argued in my papers:",
@@ -582,8 +582,8 @@
 
   function fallback(lang) {
     return A(lang, lang === "zh"
-      ? "这个我不太确定——我只知道 Hanjing 公开的论文、教程和个人资料里的内容。可以试试下面这些问题："
-      : "Hmm, I'm not sure about that one — I only know what's in Hanjing's public papers, tutorials and profile. Try one of these:",
+      ? "这个我答不上来——迷你版的我只知道我的论文、教程和主页上的内容。试试这些？"
+      : "Hmm, that one's beyond me — my mini-me only knows what's in my papers, tutorials and pages. Try one of these?",
       "", START_CHIPS[lang].slice(0, 5));
   }
 

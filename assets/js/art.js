@@ -76,13 +76,6 @@
           '<path d="M60.5 186.5L68.5 186.5C73 186.5 76 188.5 76 191.5C76 193.6 74.8 194.8 72.8 194.8L61.5 194.8C59.8 194.8 59.3 193.8 59.3 192.4Z" fill="#46332a"' + stroke(LINE, 1.3) + "/></g>" +
         '<g class="o-night"><path d="M60 188L68 188C72.5 188 75.5 190 75.5 192.5C75.5 194.2 74.4 195.2 72.6 195.2L61 195.2C59.3 195.2 59 194.2 59 193Z" fill="#141318"' + stroke("#000", 1.1) + "/></g>" +
       "</g>" +
-      // back arm
-      '<g class="c-arm c-arm-b">' +
-        '<g class="o-day"><path d="M44 92C37 97 34 110 34 126C34 131 38 134 42 133C44 122 45 110 49 99Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.4) + "/>" +
-          '<path d="M34.5 124L42.5 126" stroke="' + COAT_LINE + '" stroke-width="1"/><circle cx="39" cy="136" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-        '<g class="o-night"><path d="M45 90C39 93 36.5 104 36.5 117C36.5 125 37 130 38 134C40 136.5 42.5 135 42.5 132C42.5 124 43 112 47 100Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-          '<circle cx="39.5" cy="135.5" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
-      "</g>" +
       // torso
       '<g class="c-torso">' +
         '<g class="o-day">' +
@@ -112,20 +105,44 @@
           'M83 50C91 58 85 67 90 77C95 87 87 95 92 105C96 114 93 122 87 124C83 125 80 121 83 117C85 113 79 106 80 97C80 89 84 83 80 75C77 67 80 59 77 52Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.4) + "/>" +
         '<path d="M38 58C34 66 39 72 35.5 80C32 88 37.5 94 34 102C32 108 33 114 35.5 118M84 58C88 66 83 72 86.5 80C90 88 84.5 94 88 102C90 108 89 114 86.5 118" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".75"/>' +
       "</g>" +
+      // the other arm, also in front of the coat so both arms read clearly
+      '<g class="c-arm c-arm-b">' +
+        '<g class="o-day"><path d="M44 92C37 97 34 110 34 126C34 131 38 134 42 133C44 122 45 110 49 99Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.4) + "/>" +
+          '<path d="M34.5 124L42.5 126" stroke="' + COAT_LINE + '" stroke-width="1"/><circle cx="39" cy="136" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
+        '<g class="o-night"><path d="M45 90C39 93 36.5 104 36.5 117C36.5 125 37 130 38 134C40 136.5 42.5 135 42.5 132C42.5 124 43 112 47 100Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
+          '<circle cx="39.5" cy="135.5" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
+      "</g>" +
       // front arm: red notebook by day, a lantern by night
       '<g class="c-arm c-arm-f">' +
         '<g class="o-day"><path d="M78 92C85 97 88 110 88 126C88 131 84 134 80 133C78 122 77 110 73 99Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.4) + "/>" +
           '<path d="M80 126L87.5 124" stroke="' + COAT_LINE + '" stroke-width="1"/>' +
-          '<g transform="rotate(9 86 134)"><rect x="79" y="124" width="15" height="20" rx="2" fill="#b8322a"' + stroke(LINE, 1.3) + '/><path d="M82 128.5H91M82 132H88.5" stroke="#f1d9cf" stroke-width="1.1" stroke-linecap="round"/></g>' +
+          '<g class="c-notebook" transform="rotate(9 86 134)"><rect x="79" y="124" width="15" height="20" rx="2" fill="#b8322a"' + stroke(LINE, 1.3) + '/><path d="M82 128.5H91M82 132H88.5" stroke="#f1d9cf" stroke-width="1.1" stroke-linecap="round"/></g>' +
           '<circle cx="84" cy="134.5" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
         '<g class="o-night"><path d="M77 90C83 93 85.5 104 85.5 117C85.5 125 85 130 84 134C82 136.5 79.5 135 79.5 132C79.5 124 79 112 75 100Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
-          '<circle class="c-lantern-glow" cx="83" cy="153" r="20" fill="url(#' + g + ')"/>' +
+          '<g class="c-lantern"><circle class="c-lantern-glow" cx="83" cy="153" r="20" fill="url(#' + g + ')"/>' +
           '<path d="M82.5 138L83 145" stroke="#2a2020" stroke-width="1"/>' +
           '<ellipse cx="83" cy="153" rx="6.5" ry="8" fill="#d4574a"' + stroke(LINE, 1.2) + "/>" +
           '<path d="M83 145V161M79.6 146.5C78 150 78 156 79.6 159.5M86.4 146.5C88 150 88 156 86.4 159.5" fill="none" stroke="#8e2d24" stroke-width=".8"/>' +
           '<rect x="80" y="143.6" width="6" height="2.4" rx=".8" fill="#2a2020"/><rect x="80" y="160.2" width="6" height="2.4" rx=".8" fill="#2a2020"/>' +
-          '<path d="M83 162.6V170" stroke="#d4574a" stroke-width="1.3" stroke-linecap="round"/>' +
+          '<path d="M83 162.6V170" stroke="#d4574a" stroke-width="1.3" stroke-linecap="round"/></g>' +
           '<circle cx="82.5" cy="135.5" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
+        // props for the red-circle actions (hidden until an action shows them)
+        '<g class="p-book"><rect x="77.5" y="121" width="13" height="17" rx="1.6" fill="#3f6b5f"' + stroke(LINE, 1.2) + '/>' +
+          '<path d="M80.2 122.4V136.6" stroke="#e6ddcb" stroke-width="1.1" stroke-linecap="round"/><path d="M83 126H88M83 129H86.5" stroke="#d9e6dd" stroke-width=".9" stroke-linecap="round"/>' +
+          '<circle cx="84" cy="134.5" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
+        '<g class="p-letter"><rect x="75" y="124" width="19" height="13" rx="1.6" fill="#fbf7ee"' + stroke(LINE, 1.1) + '/>' +
+          '<path d="M75.8 124.8L84.5 131.4L93.2 124.8" fill="none" stroke="' + LINE + '" stroke-width="1" stroke-linejoin="round" stroke-linecap="round"/><circle cx="84.5" cy="131.6" r="2.1" fill="#b8322a"/>' +
+          '<circle cx="84" cy="134.5" r="4.3" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
+      "</g>" +
+      // an open book, held up to read (research)
+      '<g class="p-book-open">' +
+        '<path d="M44.5 120.5Q52.5 116.5 61 121V136Q52.5 132 44.5 135Z" fill="#fbf7ee"' + stroke(LINE, 1.2) + "/>" +
+        '<path d="M77.5 120.5Q69.5 116.5 61 121V136Q69.5 132 77.5 135Z" fill="#fbf7ee"' + stroke(LINE, 1.2) + "/>" +
+        '<path d="M43.6 121V136.4Q52.5 132.8 61 137.6Q69.5 132.8 78.4 136.4V121" fill="none" stroke="#3f6b5f" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>' +
+        '<path d="M48 124.3Q52.5 122.3 57.5 124.6M48 127.6Q52.5 125.6 57.5 127.9M48 130.9Q52.5 128.9 57.5 131.2M64.5 124.6Q69.5 122.3 74 124.3M64.5 127.9Q69.5 125.6 74 127.6M64.5 131.2Q69.5 128.9 74 130.9" fill="none" stroke="#a39a8b" stroke-width=".85" stroke-linecap="round"/>' +
+        '<path class="page-flip" d="M61 121Q66.5 117.8 73 120V134Q66.5 131.2 61 135Z" fill="#fffdf7"' + stroke(LINE, 1) + "/>" +
+        '<circle cx="51.5" cy="135" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
+        '<circle cx="70.5" cy="135" r="4" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
       "</g>" +
       // head
       '<g class="c-head">' +
@@ -164,7 +181,50 @@
           '<path d="M40.5 46C38.5 52 38.8 58 40.3 63" fill="none" stroke="#1a1416" stroke-width="1.5" stroke-linecap="round"/>' +
         "</g>" +
       "</g>" +
-    "</g></g></svg>";
+    "</g>" +
+    // graduation cap, tossed at the Education milestones
+    '<g class="p-cap"><g class="p-cap-in">' +
+      '<path d="M48.5 22V29.5Q61 35 73.5 29.5V22Z" fill="#26232c"' + stroke(LINE, 1.3) + "/>" +
+      '<path d="M33.5 21L61 10.5L88.5 21L61 31.5Z" fill="#2f2c36"' + stroke(LINE, 1.4) + "/>" +
+      '<path d="M61 21L79.5 26.2V35.5" fill="none" stroke="' + GOLD + '" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>' +
+      '<circle cx="61" cy="21" r="1.7" fill="' + GOLD + '"/><path d="M78 35.2H81L81.9 40.6H77.1Z" fill="' + GOLD + '"/>' +
+    "</g></g>" +
+    // seen from behind, sitting on the cushion at the writing desk
+    '<g class="c-back">' +
+      '<g class="o-day">' +
+        '<path d="M42.5 118C38.5 138 34.5 170 30.5 190.5Q61 195.5 91.5 190.5C87.5 170 83.5 138 79.5 118C73.5 113.5 48.5 113.5 42.5 118Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.6) + "/>" +
+        '<path d="M61 150V191" stroke="' + COAT_LINE + '" stroke-width="1" stroke-linecap="round" opacity=".55"/>' +
+        '<path d="M37.4 147.5H84.6L85.2 153.5H36.8Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.1) + "/>" +
+        '<rect x="56" y="146" width="10" height="9" rx="1.6" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.1) + "/>" +
+        '<path d="M46.5 190.5Q51.5 186 56.5 190.5Q51.5 195 46.5 190.5ZM65.5 190.5Q70.5 186 75.5 190.5Q70.5 195 65.5 190.5Z" fill="#3b2a21"' + stroke(LINE, 1.1) + "/>" +
+        '<path d="M42.5 120C35.5 124 32.5 134 35.5 142C38.5 145 43 142 45 136Z" fill="' + COAT_SH + '"' + stroke(COAT_LINE, 1.4) + "/>" +
+        '<g class="cb-arm"><path d="M79.5 120C86.5 124 89.5 134 86.5 142C83.5 145 79 142 77 136Z" fill="url(#' + c + ')"' + stroke(COAT_LINE, 1.4) + "/></g>" +
+        '<path d="M40 94C36 106 41 116 36 128C32 140 39 150 35 160C33 168 40 171 45 167C50 171 56 167 61 169C66 167 72 171 77 167C82 171 89 168 87 160C83 150 90 140 86 128C81 116 86 106 82 94C82 76 73 66 61 66C49 66 40 76 40 94Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
+        '<path d="M47 80C44 92 49 104 45 116C42 128 47 140 44 152M61 71C59 87 63 104 60 122C58 138 62 150 60 162M75 80C78 92 73 104 77 116C80 128 75 140 78 152" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.2" stroke-linecap="round" opacity=".6"/>' +
+      "</g>" +
+      '<g class="o-night">' +
+        '<path d="M43.5 118C40.5 138 36.5 170 32.5 190.5Q61 195.5 89.5 190.5C85.5 170 81.5 138 78.5 118C72.5 114 49.5 114 43.5 118Z" fill="' + QIPAO + '"' + stroke("#050507", 1.6) + "/>" +
+        bamboo(51, 182, 0.9, -12) + bamboo(71, 152, 0.7, 20) +
+        '<path d="M47.5 190.5Q52 186.5 56.5 190.5Q52 194.5 47.5 190.5ZM65.5 190.5Q70 186.5 74.5 190.5Q70 194.5 65.5 190.5Z" fill="#0f0e12"' + stroke("#000", 1) + "/>" +
+        '<path d="M43.5 120C37.5 124 34.5 133 36.5 140C39.5 143 43.5 140 45.5 135Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/>" +
+        '<g class="cb-arm"><path d="M78.5 120C84.5 124 87.5 133 85.5 140C82.5 143 78.5 140 76.5 135Z" fill="' + SKIN + '"' + stroke(LINE, 1.3) + "/></g>" +
+        '<path d="M55.5 102H66.5V118H55.5Z" fill="' + SKIN + '"' + stroke(LINE, 1.2) + "/>" +
+        '<path d="M52 114.5C57 112.5 65 112.5 70 114.5V120C64 122 58 122 52 120Z" fill="' + QIPAO + '"' + stroke(QIPAO_LINE, 1.2) + "/>" +
+        '<path d="M40.5 85Q36 87 38 93.5Q40 96 41.5 93.5ZM81.5 85Q86 87 84 93.5Q82 96 80.5 93.5Z" fill="' + SKIN + '"' + stroke(LINE, 1.1) + "/>" +
+        '<path d="M40 87C40 72 49.5 64 61 64C72.5 64 82 72 82 87C82 99 73 106.5 61 106.5C49 106.5 40 99 40 87Z" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.5) + "/>" +
+        '<path d="M49 71Q61 77 73 71M45.5 80Q61 89 76.5 80" fill="none" stroke="' + HAIR_HI + '" stroke-width="1.1" stroke-linecap="round" opacity=".8"/>' +
+        '<circle cx="61" cy="99" r="9" fill="url(#' + h + ')"' + stroke(HAIR_LINE, 1.4) + "/>" +
+        '<path d="M55 96.5Q61 92.5 67 96.5M55 101.5Q61 105.5 67 101.5" fill="none" stroke="' + HAIR_HI + '" stroke-width="1" stroke-linecap="round"/>' +
+        '<g fill="#f7f3ea" stroke="#cfc4b0" stroke-width=".6"><circle cx="69" cy="92" r="2.3"/><circle cx="72.8" cy="94.4" r="2.2"/><circle cx="68.4" cy="96.4" r="2.1"/><circle cx="72" cy="90" r="1.9"/></g>' +
+        '<g fill="' + GOLD + '"><circle cx="69" cy="92" r=".7"/><circle cx="72.8" cy="94.4" r=".7"/></g>' +
+      "</g>" +
+    "</g>" +
+    // her shoes, peeking out under the hem when she crouches (Life)
+    '<g class="c-crouch-feet">' +
+      '<path class="o-day" d="M44.5 188.5C44.5 185 51.5 184.5 56.5 187L57.5 195H46C44.5 195 44.5 192.5 44.5 188.5ZM66.5 188.5C66.5 185 73.5 184.5 78.5 187L79.5 195H68C66.5 195 66.5 192.5 66.5 188.5Z" fill="#3b2a21"' + stroke(LINE, 1.2) + "/>" +
+      '<path class="o-night" d="M44.5 189C44.5 186 51.5 185.5 56.5 188L57.5 195H46C44.5 195 44.5 193 44.5 189ZM66.5 189C66.5 186 73.5 185.5 78.5 188L79.5 195H68C66.5 195 66.5 193 66.5 189Z" fill="#0f0e12"' + stroke("#000", 1.1) + "/>" +
+    "</g>" +
+    "</g></svg>";
   }
 
   // Just the face, for the guide's portrait.
@@ -232,18 +292,35 @@
       "</g></svg>";
   }
 
-  // A curled-up sleeping cat (one of the six, at the Life station).
-  var CAT = "#8e8a90", CAT_W = "#f1ece3", CAT_L = "#3d3a40";
+  // XiaoHei, a chibi gray tabby napping on a cushion in the Life corner (head to the left,
+  // so Hanjing can crouch and pet him).
   function sleepingCat(x, y) {
-    return '<g class="sleep-cat" transform="translate(' + x + ' ' + y + ')">' +
-      '<path d="M-26 0C-30 -18 -10 -30 8 -26C24 -22 30 -8 26 0Z" fill="' + CAT + '" stroke="' + CAT_L + '" stroke-width="1.3"/>' +
-      '<path d="M-22 0C-26 6 12 8 24 1" stroke="' + CAT + '" stroke-width="6" fill="none" stroke-linecap="round"/>' +
-      '<path d="M-24 -6C-30 -14 -22 -24 -12 -20C-6 -18 -8 -8 -14 -4Z" fill="' + CAT + '" stroke="' + CAT_L + '" stroke-width="1.2"/>' +
-      '<path d="M-26 -16L-27 -26L-20 -21ZM-14 -21L-10 -29L-6 -19Z" fill="' + CAT + '" stroke="' + CAT_L + '" stroke-width="1.1" stroke-linejoin="round"/>' +
-      '<path d="M-22 -13q2 1.5 4 0M-15 -12q2 1.5 4 0" stroke="' + CAT_W + '" stroke-width="1" fill="none" stroke-linecap="round"/>' +
-      '<path d="M-19 -8C-17 -6 -13 -6 -12 -8" fill="' + CAT_W + '"/>' +
-      '<g class="zzz" font-family="var(--font-display)" font-size="11" style="fill:var(--w-line)"><text x="-4" y="-32">z</text><text x="4" y="-42" font-size="9">z</text><text x="10" y="-50" font-size="7">z</text></g>' +
-    '</g>';
+    var G1 = "#a4a7b0", G2 = "#7d8089", GL = "#474952", CR = "#ecebe7", PK = "#eeb4ba";
+    var line = function (w) { return ' stroke="' + GL + '" stroke-width="' + w + '" stroke-linejoin="round" stroke-linecap="round"'; };
+    var tail = "M30 -3C45 -1 43 11 25 11C9 11 -7 9 -15 7";
+    return '<g class="sleep-cat" transform="translate(' + x + " " + y + ')">' +
+      '<g class="sc-tail"><path d="' + tail + '" fill="none"' + line(9.4) + "/>" +
+        '<path d="' + tail + '" fill="none" stroke="' + G1 + '" stroke-width="6.6" stroke-linecap="round"/>' +
+        '<path d="M36.5 1.5Q34 3.5 36.5 6M29 8.5Q27 10.5 29.5 12M18 9Q16.5 11 18.5 12.6" fill="none" stroke="' + G2 + '" stroke-width="2" stroke-linecap="round"/></g>' +
+      '<path class="sc-body" d="M-16 2C-20 -16 -6 -30 12 -30C30 -30 40 -18 37 -2C36 4 30 6 22 6H-8C-13 6 -15.4 5 -16 2Z" fill="' + G1 + '"' + line(1.5) + "/>" +
+      '<path d="M8 -29.4Q11.2 -23 8.2 -17M17 -29Q20.6 -22.4 17.6 -16M26 -26.4Q29.2 -21 27 -15.6M33.6 -19.5Q35.6 -15.5 34 -12" fill="none" stroke="' + G2 + '" stroke-width="2.4" stroke-linecap="round"/>' +
+      '<ellipse cx="-5" cy="4.2" rx="6.2" ry="3.4" fill="' + CR + '"' + line(1.2) + '/><ellipse cx="5.6" cy="4.8" rx="5.8" ry="3.2" fill="' + CR + '"' + line(1.2) + "/>" +
+      '<g class="sc-head">' +
+        '<g class="sc-ear-l"><path d="M-37 -21.5L-35.6 -36L-25 -29Z" fill="' + G1 + '"' + line(1.3) + '/><path d="M-34.4 -24.4L-33.8 -32.2L-28.4 -28.4Z" fill="' + PK + '"/></g>' +
+        '<g class="sc-ear-r"><path d="M-18.5 -30L-9 -37.5L-7.6 -23.5Z" fill="' + G1 + '"' + line(1.3) + '/><path d="M-15.6 -28.8L-10.6 -33L-10 -26Z" fill="' + PK + '"/></g>' +
+        '<path d="M-40.5 -14C-40.5 -26 -31.5 -32 -22.5 -32C-12.5 -32 -5 -25 -5 -14C-5 -4 -13 1 -22.5 1C-32 1 -40.5 -4 -40.5 -14Z" fill="' + G1 + '"' + line(1.5) + "/>" +
+        '<path d="M-26.2 -30.4V-25.6M-22.5 -31.4V-25M-18.8 -30.4V-25.6" fill="none" stroke="' + G2 + '" stroke-width="2" stroke-linecap="round"/>' +
+        '<path d="M-31.4 -8.6C-31.4 -12.2 -27.6 -13.2 -22.5 -11.2C-17.4 -13.2 -13.6 -12.2 -13.6 -8.6C-13.6 -5 -17.8 -3.4 -22.5 -5C-27.2 -3.4 -31.4 -5 -31.4 -8.6Z" fill="' + CR + '"/>' +
+        '<path class="sc-eyes-sleep" d="M-33 -15Q-30 -12.4 -27 -15M-18 -15Q-15 -12.4 -12 -15" fill="none"' + line(1.5) + "/>" +
+        '<path class="sc-eyes-happy" d="M-33 -13.6Q-30 -17.2 -27 -13.6M-18 -13.6Q-15 -17.2 -12 -13.6" fill="none"' + line(1.5) + "/>" +
+        '<path d="M-24 -10.6H-21L-22.5 -8.8Z" fill="' + PK + '"' + line(0.7) + "/>" +
+        '<path d="M-22.5 -8.8Q-24 -6.5 -25.8 -7.6M-22.5 -8.8Q-21 -6.5 -19.2 -7.6" fill="none"' + line(1) + "/>" +
+        '<ellipse cx="-34.6" cy="-8" rx="3" ry="1.8" fill="' + PK + '" opacity=".55"/><ellipse cx="-10.4" cy="-8" rx="3" ry="1.8" fill="' + PK + '" opacity=".55"/>' +
+        '<path d="M-36.5 -10.2H-43.5M-36.5 -7.6L-42.6 -5.4M-8.5 -10.2H-1.5M-8.5 -7.6L-2.4 -5.4" fill="none"' + line(0.8) + ' opacity=".7"/>' +
+      "</g>" +
+      '<g class="zzz" font-family="var(--font-display)" font-size="11" style="fill:var(--w-line)"><text x="-10" y="-40">z</text><text x="-2" y="-50" font-size="9">z</text><text x="4" y="-58" font-size="7">z</text></g>' +
+      '<text class="sc-purr" x="-40" y="-44" font-size="10" style="fill:var(--w-line)">purr~</text>' +
+    "</g>";
   }
 
   // ------------------------------------------------------------------
@@ -304,6 +381,8 @@
   }
 
   // Wooden hanging sign used as each station's label.
+  function gshadow(x, rx) { return '<ellipse class="gshadow" cx="' + x + '" cy="' + (GY + 2) + '" rx="' + rx + '" ry="' + Math.max(3, rx * 0.12).toFixed(1) + '"/>'; }
+
   function sign(x, y, text, w) {
     w = w || 150;
     return '<g class="sign" transform="translate(' + x + " " + y + ')">' +
@@ -576,47 +655,26 @@
   // 4. Education: three stone steles along a rising path — Davis, Georgetown, Lehigh.
   S.education = function () {
     var y = GY;
-    var colors = ["#a8432f", "#3f6b5f", "#9a6f22", "#3d5a80", "#6b4a73", "#7a6a58"];
-    // A stack of books lying flat: some show their coloured spine, some their page edges.
-    // The bottom book carries the school's name; a pennant on top carries the degree.
-    function stack(x, n, deg, school, flag, seed, poleDx) {
-      var r = rng(seed), top = y, books = "";
-      for (var i = 0; i < n; i++) {
-        var h = i === 0 ? 24 : 18 + Math.floor(r() * 5), w = i === 0 ? 104 : 84 + Math.floor(r() * 16);
-        var dx = i === 0 ? 0 : Math.round((r() - 0.5) * 12);
-        top -= h;
-        var pages = i > 0 && r() < 0.35;
-        books += '<g transform="translate(' + (x + dx) + " " + top + ')">' + (pages
-          ? '<rect class="bk-pages" x="' + (-w / 2) + '" y="0" width="' + w + '" height="' + h + '" rx="2"/>' +
-            '<path class="bk-lines" d="M' + (-w / 2 + 4) + " " + (h / 3) + "H" + (w / 2 - 4) + "M" + (-w / 2 + 4) + " " + (2 * h / 3) + "H" + (w / 2 - 4) + '"/>'
-          : '<rect class="bk-spine" x="' + (-w / 2) + '" y="0" width="' + w + '" height="' + h + '" rx="2" style="fill:' + colors[Math.floor(r() * colors.length)] + '"/>' +
-            '<path class="bk-band" d="M' + (-w / 2 + 7) + " 3V" + (h - 3) + "M" + (w / 2 - 7) + " 3V" + (h - 3) + '"/>') +
-          (i === 0 ? '<text class="stack-label" x="0" y="16" text-anchor="middle">' + school + "</text>" : "") + "</g>";
-      }
-      var px = x + (poleDx == null ? 26 : poleDx), py = top;
-      var pennant = '<g class="pennant"><path class="flag-pole" d="M' + px + " " + py + "V" + (py - 62) + '"/>' +
-        '<path class="flag-cloth" style="fill:' + flag + '" d="M' + px + " " + (py - 62) + 'h56l-11 12l11 12h-56z"/>' +
-        '<text class="flag-text" x="' + (px + 24) + '" y="' + (py - 45) + '" text-anchor="middle">' + deg + "</text></g>";
-      return { svg: '<ellipse class="stack-shadow" cx="' + x + '" cy="' + (y + 3) + '" rx="62" ry="6"/>' + books + pennant, top: top };
+    function stele(x, base, deg, school, emblem) {
+      return '<g class="stele" transform="translate(' + x + " " + base + ')">' + emblem +
+        '<path class="stone" d="M-40 0V-78Q-40 -100 0 -102Q40 -100 40 -78V0Z"/>' +
+        '<text class="stele-deg" x="0" y="-62" text-anchor="middle">' + deg + '</text>' +
+        '<text class="stele-school" x="0" y="-40" text-anchor="middle">' + school + '</text>' +
+        '<path class="stele-base" d="M-48 0V-8H48V0Z"/></g>';
     }
-    var bs = stack(0, 3, "B.S.", "UC DAVIS", "#3d5a80", 11);
-    var ms = stack(108, 5, "M.S.", "GEORGETOWN", "#55606f", 23);
-    var phd = stack(216, 7, "Ph.D.", "LEHIGH", "#6b4a2e", 37, -26);
-    var t = phd.top;
-    // Still climbing: a ladder against the Ph.D. stack and a cap waiting on top.
-    var ladder = '<g class="ladder"><path d="M278 ' + y + 'L256 ' + (t + 8) + 'M298 ' + y + 'L276 ' + (t + 8) + '"/>' +
-      [0.18, 0.38, 0.58, 0.78].map(function (f) {
-        var yy = y - (y - t - 8) * f, x0 = 278 - 22 * f;
-        return "<path d=\"M" + x0 + " " + yy + "h20\"/>";
-      }).join("") + "</g>";
-    var cap = '<g transform="translate(238 ' + t + ') rotate(8)"><g class="mortarboard">' +
-      '<path class="cap-base" d="M-15 -2V-12H15V-2Q0 3 -15 -2Z"/>' +
-      '<path class="cap-top" d="M-30 -14L0 -26L30 -14L0 -2Z"/>' +
-      '<g class="cap-tassel"><path d="M0 -14L20 -9V6"/><circle cx="20" cy="8" r="3"/></g></g></g>';
-    var bike = '<g class="emblem" transform="translate(-58 ' + y + ')"><circle cx="-14" cy="-14" r="12"/><circle cx="18" cy="-14" r="12"/><path d="M-14 -14L-2 -34H14L18 -14M-2 -34L4 -14H-14M14 -34L10 -42H4M-4 -38H4"/></g>';
+    var bike = '<g class="emblem" transform="translate(-84 -4)"><circle cx="-14" cy="-14" r="12"/><circle cx="18" cy="-14" r="12"/><path d="M-14 -14L-2 -34H14L18 -14M-2 -34L4 -14H-14M14 -34L10 -42H4M-4 -38H4"/></g>';
+    var tower = '<g class="emblem" transform="translate(-78 0)"><path d="M-12 0V-60H12V0ZM-16 -60H16L0 -96Z"/><circle cx="0" cy="-44" r="6"/><path d="M0 -44V-48M0 -44H3"/></g>';
+    var mountain = '<g class="emblem" transform="translate(-84 0)"><path d="M-44 0L-8 -70L10 -44L22 -58L50 0Z"/><path d="M-8 -70V-96L10 -90L-8 -84"/></g>';
+    var stones = "";
+    [[-170, 3], [-120, 1], [-50, -4], [20, -9], [110, -16], [160, -20]].forEach(function (s) { stones += '<ellipse cx="' + s[0] + '" cy="' + (y + s[1] + 2) + '" rx="18" ry="5"/>'; });
     return '<g class="st st-education" data-station="education">' +
-      '<rect class="hit" x="-330" y="340" width="660" height="222"/>' +
-      bike + bs.svg + ms.svg + phd.svg + ladder + cap +
+      '<rect class="hit" x="-330" y="380" width="660" height="182"/>' +
+      gshadow(-200, 52) +
+      '<path class="hill" d="M-330 ' + y + 'C-200 ' + y + ' -120 552 0 546C120 540 200 528 330 526V' + (y + 30) + 'H-330Z"/>' +
+      '<g class="stepping">' + stones + "</g>" +
+      stele(-200, y, "B.S.", "UC Davis", bike) +
+      stele(40, 546, "M.S.", "Georgetown", tower) +
+      stele(270, 527, "Ph.D.", "Lehigh", mountain) +
       '<path class="sign-post" d="M-360 392V' + y + 'M-360 392H-190"/>' +
       sign(-270, 420, "EDUCATION", 150) +
     '</g>';
@@ -635,9 +693,10 @@
     var splat = '<g class="splat"><circle cx="-176" cy="548" r="9"/><circle cx="-160" cy="538" r="4"/><circle cx="-190" cy="532" r="3"/><circle cx="172" cy="546" r="7"/><circle cx="188" cy="536" r="3"/><circle cx="158" cy="530" r="2.5"/></g>';
     return '<g class="st st-tutorials" data-station="tutorials">' +
       '<rect class="hit" x="-230" y="230" width="460" height="332"/>' +
+      gshadow(0, 182) +
       '<circle class="halo" cx="0" cy="400" r="150"/>' +
       '<path class="slab" d="M-170 ' + y + 'V530Q-170 522 -160 522H160Q170 522 170 530V' + y + 'Z"/>' +
-      '<g class="sheet"><path d="M-62 440V344Q-62 340 -58 340H58Q62 340 62 344V440Z"/><text x="0" y="372" text-anchor="middle">Tutorials</text><path class="sheet-lines" d="M-44 390H40M-44 402H30M-44 414H36"/></g>' +
+      '<g class="sheet"><path d="M-62 440V344Q-62 340 -58 340H58Q62 340 62 344V440Z"/><text x="0" y="372" text-anchor="middle">Tutorials</text><path class="sheet-lines" pathLength="1" d="M-44 390H40M-44 402H30M-44 414H36"/></g>' +
       '<path class="tw-body" d="M-128 522V470Q-128 452 -110 448L-80 440H80L110 448Q128 452 128 470V522Z"/>' +
       '<path class="tw-arc" d="M-60 458Q0 420 60 458"/>' +
       '<g class="tw-keys">' + keys + "</g>" +
@@ -658,24 +717,31 @@
     });
     return '<g class="st st-writing" data-station="writing">' +
       '<rect class="hit" x="-230" y="240" width="460" height="322"/>' +
+      gshadow(0, 170) +
       '<path class="branch" d="M-230 250C-120 238 40 246 200 232M120 240C140 226 160 222 180 222"/>' +
       '<path class="leafs" d="M180 222c6 -8 16 -8 20 -4c-8 4 -14 6 -20 4zM150 236c4 -8 14 -10 18 -6c-6 4 -12 6 -18 6z"/>' +
       cranes +
       sign(-170, 262, "WRITING", 130) +
-      '<path class="desk" d="M-160 470H160V484H-160ZM-146 484V' + y + 'H-132V496H132V' + y + 'H146V484Z"/>' +
-      '<g class="scroll"><rect x="-120" y="458" width="150" height="12"/><rect x="-126" y="455" width="10" height="18" rx="3"/><rect x="26" y="455" width="10" height="18" rx="3"/><path class="scroll-ink" d="M-104 463h24M-74 463h18M-50 463h30M-14 463h26"/></g>' +
-      '<rect class="inkstone" x="46" y="458" width="34" height="12" rx="4"/>' +
-      '<g class="brushes"><path d="M92 470V446M102 470V440M112 470V448"/><path class="brush-tip" d="M92 446l-2 -9h4zM102 440l-2 -9h4zM112 448l-2 -9h4z"/></g>' +
-      '<g class="lamp" transform="translate(138 470)"><circle class="lamp-glow" cx="0" cy="-26" r="36"/><path d="M-10 0h20l-4 -8h-12z"/><path class="flame" d="M0 -26C-5 -18 -4 -12 0 -10C4 -12 5 -18 0 -26Z"/><path d="M-5 -8V-12H5V-8Z"/></g>' +
-      '<ellipse class="cushion" cx="-40" cy="' + (y - 4) + '" rx="46" ry="9"/>' +
+      '<path class="desk" d="M-160 500H160V512H-160ZM-146 512V' + y + 'H-132V522H132V' + y + 'H146V512Z"/>' +
+      '<g class="scroll"><rect x="-120" y="488" width="150" height="12"/><rect x="-126" y="485" width="10" height="18" rx="3"/><rect x="26" y="485" width="10" height="18" rx="3"/><path class="scroll-ink" d="M-104 493h24M-74 493h18"/></g>' +
+      // characters that appear as she writes
+      '<g class="write-ink"><path pathLength="1" d="M-19 490.5Q-16 492 -18 497"/><path pathLength="1" d="M-12 489.5V497.5M-15 492.5H-9"/><path pathLength="1" d="M-4 490.5Q0 491.5 -2 496Q-4 497.5 -6 495.5"/><path pathLength="1" d="M5 489.5L8 497.5M3 492.8H10.5"/><path pathLength="1" d="M15 490.5Q13 494.5 17 497.5M17 489.5V492.5"/><path pathLength="1" d="M23 491H29.5M26.2 488.8V497.8"/></g>' +
+      '<rect class="inkstone" x="46" y="488" width="34" height="12" rx="4"/>' +
+      '<g class="brushes"><path d="M92 500V476M102 500V470M112 500V478"/><path class="brush-tip" d="M92 476l-2 -9h4zM102 470l-2 -9h4zM112 478l-2 -9h4z"/></g>' +
+      '<g class="lamp" transform="translate(138 500)"><circle class="lamp-glow" cx="0" cy="-26" r="36"/><path d="M-10 0h20l-4 -8h-12z"/><path class="flame" d="M0 -26C-5 -18 -4 -12 0 -10C4 -12 5 -18 0 -26Z"/><path d="M-5 -8V-12H5V-8Z"/></g>' +
+      '<ellipse class="cushion" cx="-60" cy="' + (y - 4) + '" rx="46" ry="9"/>' +
     '</g>';
   };
 
   // 7. Life: suitcase (travel), stove and pot (cooking), a sleeping cat, and a film screen (movies).
-  S.life = function () {
+  S.life = function (catThumbs) {
     var y = GY;
+    var slides = (catThumbs || []).map(function (src, i, all) {
+      return '<image class="cat-slide" href="' + esc(src) + '" x="74" y="' + (y - 152) + '" width="82" height="76" preserveAspectRatio="xMidYMid slice" style="animation-duration:' + (all.length * 2.5) + 's;animation-delay:' + (i * 2.5) + 's"/>';
+    }).join("");
     return '<g class="st st-life" data-station="life">' +
       '<rect class="hit" x="-320" y="300" width="640" height="262"/>' +
+      gshadow(-250, 36) + gshadow(-130, 32) + gshadow(130, 34) + gshadow(247, 22) +
       sign(-120, 330, "LIFE", 100) +
       '<path class="branch" d="M-300 300C-200 290 -60 296 40 288"/>' +
       // suitcase
@@ -695,7 +761,8 @@
         '<path class="beam-light" d="M-40 ' + (y - 58) + 'L70 ' + (y - 150) + 'V' + (y - 60) + 'Z"/>' +
         '<path class="pole" d="M68 ' + y + 'V' + (y - 164) + 'M162 ' + y + 'V' + (y - 164) + '"/>' +
         '<rect class="screen" x="70" y="' + (y - 156) + '" width="90" height="100"/>' +
-        '<g class="screen-cat" transform="translate(88 ' + (y - 140) + ') scale(.6)"><path d="M31 68C20 68 19 51 28 43C34 38 51 38 57 44C65 52 63 68 53 68Z"/><path d="M30 66C14 67 9 57 15 50" stroke-width="8" fill="none" stroke-linecap="round"/><ellipse cx="47" cy="26" rx="20" ry="17"/><path d="M30 17L29 4L40 12ZM55 12L66 5L65 18Z"/></g>' +
+        (slides || '<g class="screen-cat" transform="translate(88 ' + (y - 140) + ') scale(.6)"><path d="M31 68C20 68 19 51 28 43C34 38 51 38 57 44C65 52 63 68 53 68Z"/><ellipse cx="47" cy="26" rx="20" ry="17"/><path d="M30 17L29 4L40 12ZM55 12L66 5L65 18Z"/></g>') +
+        '<rect class="screen-edge" x="74" y="' + (y - 152) + '" width="82" height="76"/>' +
         '<text class="screen-label" x="115" y="' + (y - 64) + '" text-anchor="middle">6 CATS</text>' +
         '<path class="tripod" d="M-40 ' + (y - 50) + 'L-58 ' + y + 'M-40 ' + (y - 50) + 'L-22 ' + y + 'M-40 ' + (y - 50) + 'V' + y + '"/>' +
         '<rect class="projector" x="-62" y="' + (y - 74) + '" width="38" height="24" rx="4"/><circle class="reel" cx="-52" cy="' + (y - 84) + '" r="10"/><circle class="reel" cx="-30" cy="' + (y - 84) + '" r="8"/></g>' +
@@ -707,10 +774,11 @@
     var y = GY;
     return '<g class="st st-contact" data-station="contact">' +
       '<rect class="hit" x="-200" y="330" width="460" height="232"/>' +
+      gshadow(-60, 22) + gshadow(110, 20) +
       '<g class="mailbox" transform="translate(-60 0)"><path class="post" d="M0 ' + y + 'V482"/>' +
         '<path class="box" d="M-34 482V446Q-34 420 0 420Q34 420 34 446V482Z"/><path class="slot" d="M-16 440H16"/>' +
-        '<path class="flag" d="M34 452H48V430H62V444H48"/>' +
-        '<g class="letters"><rect x="-26" y="392" width="30" height="20" rx="2" transform="rotate(-10 -11 402)"/><path d="M-26 394l15 9l15 -12" transform="rotate(-10 -11 402)"/></g></g>' +
+        '<g class="post-letter"><rect x="-10" y="428" width="20" height="13" rx="1.6"/><path d="M-9.2 428.8L0 435.6L9.2 428.8"/></g>' +
+        '<g class="flag"><path class="flag-arm" d="M30 452V426"/><path class="flag-plate" d="M30 425H46V436H30Z"/><circle class="flag-pin" cx="30" cy="452" r="2.6"/></g></g>' +
       '<g class="signpost" transform="translate(110 0)"><path class="post" d="M0 ' + y + 'V380"/>' +
         '<g class="arrow" transform="translate(0 392)"><path d="M-6 -12H64L76 0L64 12H-6Z"/><text x="30" y="5" text-anchor="middle">Scholar</text></g>' +
         '<g class="arrow" transform="translate(0 424)"><path d="M6 -12H-64L-76 0L-64 12H6Z"/><text x="-30" y="5" text-anchor="middle">LinkedIn</text></g>' +

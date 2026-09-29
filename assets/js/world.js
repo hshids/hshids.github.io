@@ -12,15 +12,16 @@
   var CHAR_W = 102, CHAR_H = 170;   // avatar box in world units (120x200 art at 0.85)
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
+  // "stand" is each place's red circle: stop on it and she does something there (see ACTIONS).
   var STATIONS = [
     { id: "home", x: 700, stand: 610, half: 320, label: "Welcome", zh: "入口" },
-    { id: "research", x: 1750, stand: 1530, half: 290, label: "Research", zh: "研究" },
+    { id: "research", x: 1750, stand: 1630, half: 290, label: "Research", zh: "研究" },
     { id: "talks", x: 2850, stand: 2880, half: 350, label: "Talks", zh: "报告" },
     { id: "education", x: 4000, stand: 3880, half: 340, label: "Education", zh: "求学" },
-    { id: "tutorials", x: 5050, stand: 4835, half: 240, label: "Tutorials", zh: "教程" },
-    { id: "writing", x: 5950, stand: 5745, half: 240, label: "Writing", zh: "写作" },
-    { id: "life", x: 6900, stand: 6710, half: 330, label: "Life", zh: "生活" },
-    { id: "contact", x: 7800, stand: 7665, half: 260, label: "Contact", zh: "联系" }
+    { id: "tutorials", x: 5050, stand: 4900, half: 240, label: "Tutorials", zh: "教程" },
+    { id: "writing", x: 5950, stand: 5890, half: 240, label: "Writing", zh: "写作" },
+    { id: "life", x: 6900, stand: 6836, half: 330, label: "Life", zh: "生活" },
+    { id: "contact", x: 7800, stand: 7696, half: 260, label: "Contact", zh: "联系" }
   ];
   var byId = {};
   STATIONS.forEach(function (s) { byId[s.id] = s; });
@@ -69,7 +70,13 @@
     var inner = st.id === "research" ? fn(D.publications, D.themes)
       : st.id === "talks" ? fn(D.videos, D.posters)
       : st.id === "tutorials" ? fn(D.tutorials)
-      : st.id === "writing" ? fn(D.gpts) : fn();
+      : st.id === "writing" ? fn(D.gpts)
+      : st.id === "life" ? fn(D.cats.filter(function (c) { return c.photos && c.photos.length; }).map(function (c) { return thumbOf(c.photos[0]); }))
+      : fn();
+    if (st.id !== "writing") {
+      var spot = '<ellipse class="spot" cx="' + (st.stand - st.x) + '" cy="' + (GY + 3) + '" rx="27" ry="6.5"/>';
+      inner = inner.replace(/(<g class="st [^>]*>(?:<rect class="hit"[^>]*>)?)/, "$1" + spot);
+    }
     return '<g transform="translate(' + st.x + ' 0)">' + inner + "</g>";
   }
 
@@ -210,6 +217,7 @@
 
     render();
     updateNear();
+    checkSpot();
     if (busy || state.keys.left || state.keys.right) state.raf = requestAnimationFrame(tick);
     else { state.raf = 0; state.last = 0; }
   }
@@ -302,14 +310,14 @@
 
   // ---------- guide (dialogue box) ----------
   var ARRIVE = {
-    home: { en: "Welcome to my little world! The notice board has what's new lately.", zh: "欢迎来到我的小世界！公告栏上是最近的动态。" },
-    research: { en: "This is my library — every book on the shelves is a paper. Pick one, or ask me about a topic.", zh: "这是我的藏书阁——书架上的每一本书都是一篇论文。挑一本，或者问我某个主题。" },
-    talks: { en: "Welcome to my lecture hall! Take a seat — pick a talk and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下——选一场报告，我讲给你听。" },
-    education: { en: "My path so far: UC Davis → Georgetown → Lehigh.", zh: "我的求学之路：UC Davis → Georgetown → Lehigh。" },
-    tutorials: { en: "My old typewriter! These are the tutorials I wrote — R, Python, statistics and web basics.", zh: "我的老打字机！这些是我写的教程：R、Python、统计和前端基础。" },
-    writing: { en: "My writing desk: blog posts, and the paper cranes are GPTs I built.", zh: "我的书桌：博客文章，还有纸鹤——那是我做的 GPTs。" },
-    life: { en: "Off the clock: my six cats, road trips around the U.S., and food. Click around!", zh: "下班后的我：六只猫、环美自驾和美食。随便点点看！" },
-    contact: { en: "Want to talk research or collaborate? Here's where to find me.", zh: "想聊研究或合作？在这里可以找到我。" }
+    home: { en: "Welcome to my little world! Come on in — the notice board has what I've been up to lately.", zh: "欢迎来到我的小世界！进来吧～公告栏上是我最近在忙的事。" },
+    research: { en: "My library! Every book on these shelves is one of my papers — let me grab one for you.", zh: "我的藏书阁！书架上每一本都是我的论文——我给你拿一本。" },
+    talks: { en: "Welcome to my lecture hall! Grab a seat — pick a talk and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下——选一场报告，我讲给你听。" },
+    education: { en: "UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
+    tutorials: { en: "My old typewriter! I typed up these tutorials — R, Python, statistics and web basics.", zh: "我的老打字机！这些教程都是我敲出来的：R、Python、统计和前端基础。" },
+    writing: { en: "Let me sit down and write for a bit… My posts are on the desk, and those paper cranes are GPTs I built.", zh: "让我坐下来写一会儿……书桌上是我的博客，那些纸鹤是我做的 GPTs。" },
+    life: { en: "Off the clock! Hold on — XiaoHei is napping, I have to pet him first. 🐾 Then: road trips, food and my cat gallery.", zh: "下班时间！等一下——小黑在睡觉，我先摸摸他 🐾 然后看看我的自驾、美食和猫咪画廊。" },
+    contact: { en: "Let me mail you a letter! ✉️ Want to talk research or collaborate? Here's where to find me.", zh: "给你寄封信！✉️ 想聊研究或合作？在这里可以找到我。" }
   };
   var STATION_CHIPS = {
     home: { en: ["What's new?", "Who are you?", "What do you research?"], zh: ["最近有什么新动态？", "你是谁？", "你研究什么？"] },
@@ -322,8 +330,8 @@
     contact: { en: ["Can I see your CV?", "Do you have video talks?"], zh: ["可以看简历吗？", "有论文讲解视频吗？"] }
   };
   var POKES = {
-    en: ["Hi! Ask me anything below 👇", "Click a place and I'll walk you there.", "Psst — every book in my library is a paper.", "My cat follows me everywhere."],
-    zh: ["嗨！在下面问我任何问题 👇", "点一个地方，我带你走过去。", "悄悄说：用英文问我也可以。", "我的猫走到哪跟到哪。"]
+    en: ["Hi! I'm Hanjing — the pocket-sized edition.", "Pick a place and I'll walk you there!", "Psst — every book in my library is one of my papers.", "JinBingBing follows me everywhere.", "Stand on a red circle and see what I do there!"],
+    zh: ["嗨！我是 Hanjing——迷你版。", "点一个地方，我带你走过去！", "悄悄说：藏书阁里每本书都是我的论文。", "金饼饼走到哪跟到哪。", "站到红圈上，看看我会做什么！"]
   };
 
   function addMsg(who, text) {
@@ -687,16 +695,131 @@
     }, reduced ? 0 : 3300);
   }
 
-  function hearts(host) {
+  function hearts(host, from, to) {
+    from = from == null ? 30 : from; to = to == null ? 70 : to;
     for (var i = 0; i < 5; i++) {
       var h = document.createElement("span");
       h.className = "heart";
       h.textContent = "♥";
-      h.style.left = (30 + Math.random() * 40) + "%";
+      h.style.left = (from + Math.random() * (to - from)) + "%";
       h.style.animationDelay = (i * 0.08) + "s";
       host.appendChild(h);
       setTimeout(function (el) { el.remove(); }.bind(null, h), 1400);
     }
+  }
+
+  function sparkles(host) {
+    for (var i = 0; i < 8; i++) {
+      var sp = document.createElement("span");
+      sp.className = "sparkle";
+      sp.textContent = i % 3 ? "✦" : "✧";
+      sp.style.left = (10 + Math.random() * 80) + "%";
+      sp.style.bottom = (105 + Math.random() * 70) + "%";
+      sp.style.animationDelay = (i * 0.05) + "s";
+      host.appendChild(sp);
+      setTimeout(function (el) { el.remove(); }.bind(null, sp), 1400);
+    }
+  }
+
+  // ---------- red circles: stand on one and she does something there ----------
+  var acting = null, actTimers = [];
+  function later(fn, ms) { actTimers.push(setTimeout(fn, reduced ? Math.min(ms, 40) : ms)); }
+  function stEl(id) { return $(".st-" + id, groundEl); }
+  function sayIfQuiet(line, ms) {
+    if (!$("#char-bubble").classList.contains("show")) bubble(charEl, pick(state.lang, line), ms || 2000);
+  }
+  // The book on the shelves nearest her raised hand (top shelf first).
+  function nearestBook() {
+    var best = null, bd = 1e9, cr = charEl.getBoundingClientRect(), hx = cr.left + cr.width * (state.dir > 0 ? 0.72 : 0.28);
+    $$(".st-research .book", groundEl).forEach(function (b) {
+      var r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - hx) + Math.max(0, r.top - cr.top) * 0.6;
+      if (d < bd) { bd = d; best = b; }
+    });
+    return best;
+  }
+  var ACTIONS = {
+    home: { face: 1, repeat: true, run: function () {
+      flash(charEl, "is-waving", 1400);
+      later(function () { flash(charEl, "is-bowing", 900); }, 1400);
+      later(function () { sayIfQuiet({ en: "Welcome in!", zh: "欢迎光临！" }); }, 300);
+    } },
+    research: { face: 1, hands: true, busy: { en: "Shh — I'm reading 📖", zh: "嘘——我在看书 📖" }, run: function () {
+      var book = nearestBook();
+      charEl.classList.add("act-reach");
+      later(function () { if (book) book.classList.add("is-taken"); charEl.classList.add("has-book"); }, 550);
+      later(function () { charEl.classList.remove("act-reach"); charEl.classList.add("act-read"); sayIfQuiet({ en: "Ooh, this one…", zh: "嗯，就这本……" }); }, 1150);
+    } },
+    talks: { face: -1, repeat: true, run: function () {
+      charEl.classList.add("act-point");
+      later(function () { sayIfQuiet({ en: "Next slide, please!", zh: "下一页！" }); }, 500);
+      later(function () { charEl.classList.remove("act-point"); }, 2700);
+    } },
+    education: { face: 1, hands: true, repeat: true, run: function () {
+      charEl.classList.add("has-cap");
+      later(function () { charEl.classList.add("act-toss"); }, 250);
+      later(function () { flash(charEl, "is-jumping", 800); }, 420);
+      later(function () { sparkles(charEl); sayIfQuiet({ en: "Caps off! 🎓", zh: "毕业快乐！🎓" }); }, 1250);
+      later(function () { charEl.classList.remove("act-toss", "has-cap"); }, 3300);
+    } },
+    tutorials: { face: 1, hands: true, busy: { en: "Almost done typing!", zh: "马上打完！" }, run: function () {
+      charEl.classList.add("act-type");
+      later(function () { sayIfQuiet({ en: "clack clack clack… ding!", zh: "咔哒咔哒……叮！" }); }, 900);
+    } },
+    writing: { busy: { en: "Shh — writing…", zh: "嘘——在写字……" }, run: function () {
+      charEl.classList.add("act-write");
+    } },
+    life: { face: 1, hands: true, busy: { en: "XiaoHei loves this part.", zh: "小黑最喜欢被摸了。" }, run: function () {
+      charEl.classList.add("act-pet");
+      later(function () { sayIfQuiet({ en: "Who's a sleepy boy? 🐾", zh: "谁是小懒猫呀？🐾" }); }, 900);
+      if (!reduced) (function loop() { later(function () { hearts(charEl, 74, 100); loop(); }, 1700); })();
+    } },
+    contact: { face: 1, hands: true, repeat: true, run: function () {
+      var mb = $(".mailbox", stEl("contact"));
+      mb.classList.remove("is-mailed");
+      charEl.classList.add("has-letter", "act-mail");
+      later(function () { charEl.classList.remove("has-letter"); mb.classList.add("is-mailed"); }, 1300);
+      later(function () { sayIfQuiet({ en: "Posted! ✉️ Write back anytime.", zh: "寄出去啦！✉️ 随时回信～" }); }, 1500);
+      later(function () { charEl.classList.remove("act-mail"); }, 2700);
+    } }
+  };
+  var ACT_CLASSES = ["is-acting", "hands-free", "act-reach", "act-read", "has-book", "act-point", "has-cap", "act-toss",
+    "act-type", "act-write", "act-pet", "has-letter", "act-mail", "is-bowing"];
+
+  function startAction(id) {
+    var a = ACTIONS[id];
+    if (!a) return;
+    acting = id;
+    if (a.face) { state.dir = a.face; render(); }
+    charEl.classList.add("is-acting");
+    if (a.hands) charEl.classList.add("hands-free");
+    stEl(id).classList.add("is-acting");
+    a.run();
+  }
+  function stopAction() {
+    if (!acting) return;
+    actTimers.forEach(clearTimeout); actTimers = [];
+    ACT_CLASSES.forEach(function (c) { charEl.classList.remove(c); });
+    stEl(acting).classList.remove("is-acting");
+    $$(".is-taken, .is-mailed", groundEl).forEach(function (el) { el.classList.remove("is-taken", "is-mailed"); });
+    acting = null;
+  }
+  // Clicking her while she's at a circle replays the action (or says what she's busy with).
+  function pokeAction() {
+    if (!acting) return false;
+    var a = ACTIONS[acting];
+    if (a.repeat) { var id = acting; stopAction(); startAction(id); }
+    else if (a.busy) bubble(charEl, pick(state.lang, a.busy), 1800);
+    return true;
+  }
+  // Called every frame: once she has come to rest on a red circle, start that place's action.
+  function checkSpot() {
+    var id = null;
+    if (!state.title && !state.keys.left && !state.keys.right && Math.abs(state.vel) < 1 && Math.abs(state.target - state.x) < 0.5) {
+      for (var i = 0; i < STATIONS.length; i++) if (Math.abs(state.x - STATIONS[i].stand) <= 26) { id = STATIONS[i].id; break; }
+    }
+    if (id === acting) return;
+    stopAction();
+    if (id) startAction(id);
   }
 
   var pokes = 0;
@@ -911,7 +1034,7 @@
     if (t.closest("#sun")) return;   // handled by the sun's own listener
     // A station's invisible hit area can reach up over the sun; let the sun win there.
     if (t.classList && t.classList.contains("hit") && overSun(e)) { toggleTheme(); return; }
-    if (t.closest("#char")) { flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
+    if (t.closest("#char")) { if (pokeAction()) return; flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
     if (t.closest("#cat")) { doAction("meow"); return; }
     if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, (state.lang === "zh" ? "讲讲这本：" : "Tell me about ") + G.pubById[id].title, true); return; }
     if ((el = t.closest(".slip"))) { goTo("tutorials", { focus: { tutorial: el.dataset.tutorial } }); return; }

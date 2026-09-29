@@ -5,9 +5,9 @@ Personal site of Hanjing Shi, served by GitHub Pages. It has two versions, and v
 | Page | What it is |
 | --- | --- |
 | `index.html` | **Interactive version — "Welcome to my world."** A scrolling ink-wash world. Mini-Hanjing walks between places (Welcome, Research, Talks, Education, Tutorials, Writing, Life, Contact) with JinBingBing the cat and answers questions in a chat box. |
-| `basic.html` + `about.html`, `publications.html`, `presentations.html`, `tutorials.html`, `blog.html` | **Text version.** The original ink-wash site (same stylesheets: `style.css`, `about.css`, `tutorials.css`, `blog.css`), with Publications and Presentations pages added. `basic.html` is its Home page. It has no hobbies or personal section. |
+| `basic.html` | **Basic version.** One plain text page in the original style (ink-wash background, paper overlay, Roboto Mono). It has no hobbies or personal section. |
 
-A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version.
+A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version. The old `about.html`, `tutorials.html` and `blog.html` redirect to the matching section of `basic.html`.
 
 There is no build step. Every file is plain HTML, CSS and JavaScript, and the pages also work when opened straight from disk.
 
@@ -18,15 +18,14 @@ assets/js/data.js     ← ALL content: bio, papers, news, talks, posters, photos
 assets/js/guide.js    ← Mini-Hanjing's answers (rules + keyword search over data.js; no AI model, no network)
 assets/js/art.js      ← SVG drawings: the world, the avatar, JinBingBing, each place
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
-assets/js/classic.js  ← text version: fills Publications / Presentations from data.js
-assets/css/world.css  ← interactive version
-assets/css/classic.css ← small additions to the original stylesheets (nav, lists, phone layout)
+assets/js/basic.js    ← renders basic.html from data.js
+assets/css/world.css, assets/css/basic.css
 images/…              ← photos (each gallery folder has a thumbs/ subfolder)
 files/…               ← PDFs (posters, slides)
 tutorials/, blog/     ← the original tutorial and blog pages (unchanged)
 ```
 
-**To change content, edit `assets/js/data.js`.** The interactive version, the chat guide and the text version's Publications / Presentations pages all read from it. The text version's Home and About Me pages are plain HTML (`basic.html`, `about.html`), edited directly.
+**To change content, edit only `assets/js/data.js`.** Both versions and the chat guide read from it. `person.photo` is the basic version's profile picture.
 
 ## Common updates
 
@@ -69,7 +68,7 @@ for f in sys.argv[1:]:
 ```
 
 ### Links still to fill in
-In `data.js`, `person.links.cv` is empty. Once it's set, the guide and the Contact place link to it; add it to `about.html` by hand. The top-level `foodSocial` is also empty; set it to your restaurant-review account and a link appears in the Life place.
+In `data.js`, `person.links.cv` is empty. Once it's set, the guide, the Contact place and the basic version link to it. The top-level `foodSocial` is also empty; set it to your restaurant-review account and a link appears in the Life place.
 
 ## How the guide works
 
@@ -81,6 +80,23 @@ Mini-Hanjing does not use a language model:
 Visitors who type in Chinese get Chinese answers. Everything else on the page is English.
 
 To teach the guide a new question, add words to the matching intent in `INTENTS` or to the relevant `keywords` in `data.js`.
+
+## Red circles (what she does at each place)
+
+Each place has a red circle on the ground (at Writing it's the red cushion). This is the place's `stand` point in `STATIONS` in `world.js`. When the avatar comes to rest on it, she does that place's action; walking away stops it, and clicking her replays the one-off actions.
+
+| Place | Action |
+| --- | --- |
+| Welcome | waves and bows |
+| Research | takes a book off the shelf and reads it |
+| Talks | points at the slides |
+| Education | tosses her graduation cap into the sky |
+| Tutorials | types on the typewriter |
+| Writing | turns around, sits on the cushion and writes |
+| Life | crouches down and pets XiaoHei |
+| Contact | posts a letter (the mailbox flag goes up) |
+
+The poses are CSS classes on `#char` (`act-*`, see `world.css`), driven by `ACTIONS` in `world.js`; the props (book, cap, letter, back view) are drawn in `character()` in `art.js`.
 
 ## Preview locally
 
