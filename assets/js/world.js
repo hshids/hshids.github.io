@@ -18,10 +18,10 @@
     { id: "research", x: 1750, stand: 1630, half: 290, label: "Research", zh: "研究" },
     { id: "talks", x: 2850, stand: 2880, half: 350, label: "Talks", zh: "报告" },
     { id: "education", x: 4000, stand: 3880, half: 340, label: "Education", zh: "求学" },
-    { id: "tutorials", x: 5050, stand: 4930, half: 240, label: "Tutorials", zh: "教程" },
+    { id: "tutorials", x: 5050, stand: 4940, half: 240, label: "Tutorials", zh: "教程" },
     { id: "writing", x: 5950, stand: 5890, half: 240, label: "Writing", zh: "写作" },
-    { id: "life", x: 6900, stand: 6844, half: 330, label: "Life", zh: "生活" },
-    { id: "contact", x: 7800, stand: 7680, half: 260, label: "Contact", zh: "联系" }
+    { id: "life", x: 6900, stand: 6843, half: 330, label: "Life", zh: "生活" },
+    { id: "contact", x: 7800, stand: 7688, half: 260, label: "Contact", zh: "联系" }
   ];
   var byId = {};
   STATIONS.forEach(function (s) { byId[s.id] = s; });

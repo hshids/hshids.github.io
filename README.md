@@ -16,7 +16,9 @@ There is no build step. Every file is plain HTML, CSS and JavaScript, and the pa
 ```
 assets/js/data.js     ← ALL content: bio, papers, news, talks, posters, photos, cats, tutorials…
 assets/js/guide.js    ← Mini-Hanjing's answers (rules + keyword search over data.js; no AI model, no network)
-assets/js/art.js      ← SVG drawings: the world, the avatar, JinBingBing, each place
+assets/js/art.js      ← SVG drawings: the avatar (and her pose drawings), JinBingBing and XiaoHei, the Tang
+                        architecture kit (tangRoof, dougong, architrave, columns, lattice, terrace), each
+                        place, and the layered backdrop (distant palaces, pagodas, towers, clouds)
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
 assets/js/basic.js    ← renders basic.html from data.js
 assets/css/world.css, assets/css/basic.css

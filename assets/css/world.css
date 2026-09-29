@@ -37,7 +37,7 @@
   --w-roof: #2b2825; --w-column: #9e3b2c;
   --w-plaque: #2b2825; --w-plaque-text: #f3e9d6;
   --w-machine: #242221; --w-machine-2: #4a4541; --w-key: #efe8da;
-  --w-accent: #b8322a; --w-accent-deep: #8a241d; --w-accent-soft: #e2b8ad; --w-jade: #5f8a78; --w-gold: #c9a24a; --w-pot: #7b6a5a;
+  --w-dougong: #8e4a34; --w-accent: #b8322a; --w-accent-deep: #8a241d; --w-accent-soft: #e2b8ad; --w-jade: #5f8a78; --w-gold: #c9a24a; --w-pot: #7b6a5a;
   --w-halo: #2b2724;
   --w-glow: rgba(255, 190, 110, 0); --w-lamp: #efe3c8; --w-beam: rgba(255, 236, 196, .5); --w-screen: #fcf9f2;
   --w-hill: rgba(58, 52, 46, .08);
@@ -74,7 +74,7 @@
   --w-roof: #0a0d11; --w-column: #8a3426;
   --w-plaque: #0e1116; --w-plaque-text: #e8dcc2;
   --w-machine: #0b0e12; --w-machine-2: #39414c; --w-key: #2c333d;
-  --w-accent: #d4574a; --w-accent-deep: #9c392f; --w-accent-soft: #6b3c38; --w-jade: #4d7466; --w-gold: #b89040; --w-pot: #4a4036;
+  --w-dougong: #5c3326; --w-accent: #d4574a; --w-accent-deep: #9c392f; --w-accent-soft: #6b3c38; --w-jade: #4d7466; --w-gold: #b89040; --w-pot: #4a4036;
   --w-halo: #06080b;
   --w-glow: rgba(255, 180, 90, .55); --w-lamp: #ffcf7a; --w-beam: rgba(255, 220, 150, .2); --w-screen: #252d38;
   --w-hill: rgba(0, 0, 0, .25);
@@ -207,7 +207,44 @@ a { color: var(--accent); text-underline-offset: 2px; }
 /* sky layer */
 .circuit { fill: none; stroke: var(--w-circuit); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
 .circuit-dot { fill: var(--w-circuit); }
-.pagoda { fill: var(--w-far); opacity: .55; }
+/* ---------- Tang architecture ---------- */
+.terrace { fill: url(#gStone); stroke: var(--w-line); stroke-width: 1.5; }
+.terrace-edge { fill: none; stroke: var(--w-line); stroke-width: 1; opacity: .4; }
+.t-step { fill: url(#gStone); stroke: var(--w-line); stroke-width: 1.1; }
+.col { fill: var(--w-column); stroke: var(--w-line); stroke-width: 1.3; }
+.col-base { fill: var(--w-stone); stroke: var(--w-line); stroke-width: 1.1; }
+.lane { fill: var(--w-column); stroke: var(--w-line); stroke-width: 1.2; }
+.lane-white { fill: var(--w-fill); opacity: .9; }
+.dougong { fill: var(--w-dougong); stroke: var(--w-line); stroke-width: .9; }
+.t-wall { fill: url(#gWall); stroke: var(--w-line); stroke-width: 1.4; }
+.win-frame { fill: var(--w-interior); stroke: var(--w-line); stroke-width: 1.3; }
+.win-bars { fill: none; stroke: var(--w-wood-2); stroke-width: 2.6; }
+.eave-board { fill: var(--w-wood); stroke: var(--w-line); stroke-width: 1; }
+.tile-end circle { fill: var(--w-roof); stroke: var(--w-fill); stroke-width: .7; }
+.roof-ridge { fill: var(--w-roof); stroke: var(--w-line); stroke-width: 1.3; }
+.roof-hip { fill: none; stroke: var(--w-fill); stroke-width: 1.5; opacity: .3; }
+.chiwei { fill: var(--w-roof); stroke: var(--w-line); stroke-width: 1.2; }
+.chiwei-fin { fill: none; stroke: var(--w-fill); stroke-width: 1; opacity: .5; }
+.door-leaf { fill: url(#gRed); stroke: var(--w-line); stroke-width: 1.3; }
+.door-stud circle { fill: var(--w-gold); }
+.sill { fill: var(--w-stone-dark); }
+.pf-panel { fill: var(--w-note); stroke: var(--w-wood-2); stroke-width: 3; }
+.pf-ink { fill: none; stroke: var(--w-line-soft); stroke-width: 1.6; opacity: .55; }
+.pf-sun { fill: var(--w-accent-soft); }
+/* distant architecture: single-colour silhouettes with a few light details */
+.bg-arch { color: var(--w-far); opacity: .5; }
+.bg-arch.far-soft { opacity: .34; filter: blur(.7px); }
+.bg-arch.mid { color: var(--w-mid); opacity: .82; }
+.bg-arch .sil { fill: currentColor; }
+.bg-arch .det { fill: none; stroke: var(--w-sky-1); stroke-width: 1.2; opacity: .4; }
+.bg-arch .win-light { fill: var(--w-lamp); opacity: 0; transition: opacity .8s; }
+[data-theme="dark"] .bg-arch .win-light { opacity: .8; }
+.xiangyun path { fill: none; stroke: var(--w-far); stroke-width: 2; opacity: .4; }
+.xiangyun .yun-fill { fill: var(--w-sky-1); opacity: .5; }
+.willow .trunk { fill: none; stroke: currentColor; stroke-width: 3; }
+.willow .fronds { fill: none; stroke: currentColor; stroke-width: 1.3; opacity: .8; }
+.mid-willow { color: var(--w-mid); opacity: .6; }
+.near-willow { color: var(--w-near); opacity: .8; }
 .cun { fill: none; stroke-width: 1.4; stroke-linecap: round; }
 .layer-mid .cun { stroke: var(--w-mid); opacity: .25; }
 .layer-near .cun { stroke: var(--w-near); opacity: .3; }
@@ -231,6 +268,14 @@ a { color: var(--accent); text-underline-offset: 2px; }
 
 /* front layer */
 .reeds { fill: none; stroke: var(--w-edge); stroke-width: 2; stroke-linecap: round; opacity: .5; }
+.paving { fill: none; stroke: var(--w-edge); stroke-width: 1; opacity: .12; }
+.pond { fill: var(--w-sky-2); opacity: .55; }
+.ripple { fill: none; stroke: var(--w-fill); stroke-width: 1.4; opacity: .6; }
+.lotus-leaf ellipse { fill: var(--w-jade); opacity: .7; }
+.lotus-leaf .leaf-vein { fill: none; stroke: var(--w-fill); stroke-width: 1; opacity: .5; }
+.lotus-stem { fill: none; stroke: var(--w-jade); stroke-width: 1.6; opacity: .8; }
+.lotus-petal { fill: #eab6b3; stroke: #b8645f; stroke-width: 1; }
+[data-theme="dark"] .lotus-petal { fill: #8f5e62; stroke: #c98b86; }
 .ink-dots { fill: var(--w-edge); opacity: .4; }
 
 /* ---------- stations ---------- */
@@ -381,17 +426,17 @@ a { color: var(--accent); text-underline-offset: 2px; }
 [data-theme="dark"] .c-shadow, [data-theme="dark"] .cat-shadow { fill: rgba(0, 0, 0, .45); }
 .face-left .c-flip { transform: scaleX(-1); transform-origin: 60px 0; }
 .c-root { animation: breathe 3.6s ease-in-out infinite; }
-.c-head { animation: tilt 7s ease-in-out infinite; transform-origin: 60px 44px; }
-.c-eyes { animation: blink 5.3s infinite; transform-origin: 60px 28.2px; }
-.c-hairback { animation: sway 4.6s ease-in-out infinite; transform-origin: 60px 20px; }
-.c-mouth-open { opacity: 0; transform-origin: 60px 37.7px; }
+.c-head { animation: tilt 7s ease-in-out infinite; transform-origin: 60px 58px; }
+.c-eyes { animation: blink 5.3s infinite; transform-origin: 60px 40.6px; }
+.c-hairback { animation: sway 4.6s ease-in-out infinite; transform-origin: 60px 28px; }
+.c-mouth-open { opacity: 0; transform-origin: 60px 50.8px; }
 @keyframes breathe { 50% { transform: translateY(.8px); } }
 @keyframes tilt { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1deg); } }
 @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(.08); } }
 @keyframes sway { 0%, 100% { transform: rotate(-1deg); } 50% { transform: rotate(1.3deg); } }
 
-.is-walking .c-leg-f { animation: legF .56s linear infinite; transform-origin: 65px 104px; }
-.is-walking .c-leg-b { animation: legB .56s linear infinite; transform-origin: 55px 104px; }
+.is-walking .c-leg-f { animation: legF .56s linear infinite; transform-origin: 65px 110px; }
+.is-walking .c-leg-b { animation: legB .56s linear infinite; transform-origin: 55px 110px; }
 .is-walking .c-arm-f { animation: armF .56s ease-in-out infinite; }
 .is-walking .c-arm-b { animation: armB .56s ease-in-out infinite; }
 .is-walking .c-root { animation: bobWalk .28s ease-in-out infinite alternate; }
@@ -762,12 +807,15 @@ a { color: var(--accent); text-underline-offset: 2px; }
 
 /* props and alternate views stay hidden until an action needs them */
 .p-book, .p-letter, .p-cap, .c-back, .c-crouch, .c-arms-read, .c-arms-type, .c-eyes-shut, .sc-eyes-happy, .sc-purr { display: none; }
-.c-arm-f { transform-origin: 76px 57px; }
-.c-arm-b { transform-origin: 44px 57px; }
-.hands-free .c-notebook, .hands-free .c-lantern { display: none; }
+.c-arm-f { transform-origin: 74px 70px; }
+.c-arm-b { transform-origin: 46px 70px; }
+/* by day her left arm hugs a book; actions that need both hands swap in the free arm */
+.c-arm-b .arm-free { display: none; }
+.hands-free .c-arm-b .arm-free { display: inline; }
+.hands-free .c-hug, .hands-free .c-lantern { display: none; }
 
 /* Welcome: a wave, then a little bow */
-.is-bowing .c-upper { animation: bowUpper 1.1s ease-in-out; transform-origin: 60px 104px; }
+.is-bowing .c-upper { animation: bowUpper 1.1s ease-in-out; transform-origin: 60px 110px; }
 .is-bowing .c-head { animation: bowHead 1.1s ease-in-out; }
 .is-bowing .c-arm-f { animation: bowArmF 1.1s ease-in-out; }
 .is-bowing .c-arm-b { animation: bowArmB 1.1s ease-in-out; }
@@ -845,7 +893,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 /* Life: crouch down and pet XiaoHei */
 .act-pet .c-root { display: none; }
 .act-pet .c-crouch { display: inline; }
-.cr-arm { transform-origin: 72px 102px; animation: pet 1.1s ease-in-out infinite; }
+.cr-arm { transform-origin: 72px 114px; animation: pet 1.1s ease-in-out infinite; }
 @keyframes pet { 0%, 100% { transform: none; } 50% { transform: rotate(-6deg) translateY(-1px); } }
 .sc-body { transform-box: fill-box; transform-origin: 50% 100%; animation: catBreathe 3.2s ease-in-out infinite; }
 @keyframes catBreathe { 50% { transform: scaleY(1.035); } }
