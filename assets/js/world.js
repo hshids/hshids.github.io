@@ -48,7 +48,7 @@
     s: 1, cw: 0, ch: 0, viewW: 1000, sceneBottom: 0, mobile: false,
     x: 610, target: 610, vel: 0, vmax: 500, dir: 1,
     cam: 0, camRate: 6, focusX: null, drift: 0,
-    catX: 520, catDir: 1,
+    catX: 520, catDir: 1, catTrail: 1, catVel: 0, catStride: 0,
     keys: { left: false, right: false },
     trip: null, near: null, panel: null,
     lang: "en",   // the site is in English; the guide switches to Chinese only when asked in Chinese
@@ -60,7 +60,7 @@
   var worldEl = $("#world"), layersEl = $("#layers"), hud = $("#hud");
   var panel = $("#panel"), panelBody = $("#panel-body");
   var guide = $("#guide"), fab = $("#guide-fab"), log = $("#guide-log"), chips = $("#guide-chips"), form = $("#guide-form"), input = $("#guide-input");
-  var charEl, catEl, groundEl, waterLightEl, layerEls = [];
+  var charEl, catEl, butterflyEl, groundEl, waterLightEl, catLegs = [], layerEls = [];
 
   function svgWrap(width, inner, cls) {
     return '<svg class="' + cls + '" viewBox="0 0 ' + width + " " + VH + '" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">' + inner + "</svg>";
@@ -89,7 +89,8 @@
       L.width = L.id === "ground" ? W : Math.ceil(W * L.f + 2600);
       if (L.id === "ground") {
         el.innerHTML = svgWrap(W, ART.ground(W, STATIONS) + STATIONS.map(stationArt).join(""), "scene") +
-          '<div class="actor cat" id="cat">' + ART.cat() + '<button type="button" class="cat-butterfly" aria-label="Let JinBingBing chase the butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></svg></button><div class="bubble" id="cat-bubble"></div></div>' +
+          '<div class="actor cat" id="cat">' + ART.cat() + '<div class="bubble" id="cat-bubble"></div></div>' +
+          '<button type="button" class="cat-butterfly" hidden aria-label="Let JinBingBing chase this visiting butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bf-flight"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></g></svg></button>' +
           '<div class="actor char" id="char">' + ART.character("w") + '<div class="bubble" id="char-bubble"></div></div>';
         el.insertAdjacentHTML("beforeend", '<button type="button" id="xiaohei-control" class="sleeper-control" aria-label="Wake XiaoHei, our oldest brother, for a little grooming" style="left:calc(var(--s) * ' + (byId.life.x - 33) + 'px)"></button>');
         ART.screenPlants.forEach(function (plant, i) {
@@ -111,6 +112,12 @@
     });
     charEl = $("#char");
     catEl = $("#cat");
+    butterflyEl = $(".cat-butterfly");
+    catLegs = $$(".cat-gait-leg", catEl).map(function (leg) {
+      var phases = { 'hind-near': 0, 'fore-near': .25, 'hind-far': .5, 'fore-far': .75 };
+      return { length: +leg.dataset.legLength, phase: phases[leg.dataset.catLeg], hind: leg.dataset.catLeg.indexOf('hind') === 0,
+        fur: $(".cat-leg-fur", leg), fibres: $(".cat-leg-fibres", leg), paw: $(".cat-gait-paw", leg) };
+    });
     waterLightEl = $("#water-light");
     $("#guide-portrait").innerHTML = ART.portrait("p");
     $("#guide-fab-face").innerHTML = ART.portrait("f");
@@ -165,6 +172,7 @@
     catEl.style.transform = "translate3d(" + ((state.catX - CAT_W / 2) * s).toFixed(1) + "px,0,0)";
     charEl.classList.toggle("face-left", state.dir < 0);
     catEl.classList.toggle("face-left", state.catDir < 0);
+    catEl.style.setProperty("--cat-facing", state.catDir);
     // Sun and moon stay in the sky while their broken reflection stays beneath them.
     waterLightEl.setAttribute("transform", "translate(" + (state.cam * 1.18 + state.waterLightX).toFixed(1) + " 0)");
   }
@@ -178,6 +186,21 @@
   }
 
   // ---------- loop ----------
+  function poseCatLegs(moving) {
+    catLegs.forEach(function (leg) {
+      var phase = (state.catStride + leg.phase) % 1, stance = .62;
+      var swing = Math.max(0, (phase - stance) / (1 - stance));
+      var x = moving ? (phase < stance ? 7 * (1 - 2 * phase / stance) : -7 * Math.cos(swing * Math.PI)) : 0;
+      var y = leg.length - (moving ? Math.sin(swing * Math.PI) * 4.5 : 0);
+      var kneeX = x * .35 + (leg.hind ? -1.3 : .7), kneeY = leg.length * .52;
+      function n(v) { return v.toFixed(2); }
+      leg.fur.setAttribute("d", "M-3 0Q" + n(kneeX - 3) + " " + n(kneeY) + " " + n(x - 2.4) + " " + n(y - 1) + "L" + n(x + 2.4) + " " + n(y - 1) + "Q" + n(kneeX + 3) + " " + n(kneeY) + " 3 0Z");
+      leg.fibres.setAttribute("d", "M-1 3Q" + n(kneeX - .5) + " " + n(kneeY) + " " + n(x - .8) + " " + n(y - 4) + "M1 4l.3 2");
+      leg.paw.setAttribute("transform", "translate(" + n(x) + " " + n(y) + ")");
+    });
+    catEl.style.setProperty("--cat-body-lift", moving ? (Math.sin(state.catStride * Math.PI * 4) * .35).toFixed(2) + "px" : "0px");
+  }
+
   function start() { if (!state.raf) { state.last = 0; state.raf = requestAnimationFrame(tick); } }
 
   function tick(t) {
@@ -198,7 +221,7 @@
       state.vel += clamp(desired - state.vel, -3200 * dt, 3200 * dt);
       state.x += state.vel * dt;
       if ((dx > 0 && state.x >= state.target) || (dx < 0 && state.x <= state.target)) { state.x = state.target; state.vel = 0; }
-      if (Math.abs(state.vel) > 5) state.dir = state.vel > 0 ? 1 : -1;
+      if (Math.abs(state.vel) > 5) { state.dir = state.vel > 0 ? 1 : -1; state.catTrail = state.dir; }
     } else if (state.trip) {
       var trip = state.trip; state.trip = null;
       arrive(trip);
@@ -206,18 +229,33 @@
     charEl.classList.toggle("is-walking", Math.abs(state.vel) > 20);
     charEl.classList.toggle("is-running", Math.abs(state.vel) > 700);
 
-    // the cat trots after her
-    var catGoal = state.x - state.dir * 82;
-    var cdx = catGoal - state.catX;
-    if (Math.abs(cdx) > 1) {
+    // Ease into following, keep facing the actual motion, and finish the last step before sitting.
+    var catGoal = state.x - state.catTrail * 82;
+    var cdx = catGoal - state.catX, cstep = 0;
+    if (!reduced && (Math.abs(cdx) > .4 || Math.abs(state.catVel) > 3)) {
       busy = true;
-      var cstep = cdx * (1 - Math.exp(-dt * 3.4));
+      var catMax = Math.max(320, Math.abs(state.vel) * 1.12);
+      var catDesired = Math.sign(cdx) * Math.min(catMax, Math.sqrt(2 * 2600 * Math.abs(cdx)));
+      state.catVel += clamp(catDesired - state.catVel, -3200 * dt, 3200 * dt);
+      cstep = state.catVel * dt;
+      if (Math.sign(cstep) === Math.sign(cdx) && Math.abs(cstep) >= Math.abs(cdx)) { cstep = cdx; state.catVel = 0; }
       state.catX += cstep;
-      if (Math.abs(cstep) > 0.4) state.catDir = cstep > 0 ? 1 : -1;
-      else state.catDir = state.dir;
+      if (Math.abs(cstep) > .01) state.catDir = cstep > 0 ? 1 : -1;
+    } else {
+      state.catX = catGoal; state.catVel = 0;
     }
-    catEl.classList.toggle("is-walking", Math.abs(cdx) > 14);
-    if (Math.abs(cdx) > 14) catEl.classList.remove("is-pouncing", "is-tail-playing");
+    var catMoving = Math.abs(cstep) > .01;
+    var wasCatMoving = catEl.classList.contains("is-walking");
+    catEl.classList.toggle("is-walking", catMoving);
+    if (catMoving) {
+      // Keep the tiny steps readable even during a fast trip across the whole world.
+      state.catStride = (state.catStride + Math.min(Math.abs(cstep) / 54, dt / .42)) % 1;
+      poseCatLegs(true);
+      catEl.classList.remove("is-pouncing", "is-tail-playing", "is-happy");
+      if (!butterflyEl.hidden) dismissButterfly(true);
+    } else if (wasCatMoving) {
+      poseCatLegs(false);
+    }
 
     // camera
     if (state.title && !reduced) {
@@ -250,7 +288,9 @@
     state.focusX = opts.focus != null ? opts.focus : null;
     state.trip = opts.trip || null;
     if (reduced) {
-      state.x = state.target; state.catX = state.x - 82 * (state.target >= state.x ? 1 : -1);
+      if (dist > .5) state.dir = state.target > state.x ? 1 : -1;
+      state.x = state.target; state.catX = state.x - 82 * state.dir;
+      state.catDir = state.catTrail = state.dir; state.catVel = 0;
       state.vel = 0; state.cam = camGoal();
       render();
       if (state.trip) { var t = state.trip; state.trip = null; arrive(t); }
@@ -329,6 +369,8 @@
     var btn = $("#theme-btn");
     btn.setAttribute("aria-pressed", t === "dark" ? "true" : "false");
     btn.setAttribute("aria-label", t === "dark" ? "Switch to day" : "Switch to night");
+    dismissButterfly(false);
+    if (t !== "dark") scheduleButterfly();
   }
   function toggleTheme() {
     setTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
@@ -644,6 +686,7 @@
 
   var lastFocus = null;
   function openPanel(id, focus, fromChat) {
+    if (!butterflyEl.hidden) dismissButterfly(true);
     var fresh = state.panel !== id;
     if (fresh) {
       panelBody.innerHTML = RENDER[id]();
@@ -877,6 +920,59 @@
 
   var pokes = 0;
   var kittyPlayTimer = 0;
+  var butterflyVisitTimer = 0, butterflyChaseTimer = 0, butterflyLeaveTimer = 0;
+
+  function butterflyReady() {
+    if (reduced || document.hidden || state.title || state.panel || state.trip ||
+        document.documentElement.getAttribute("data-theme") === "dark" ||
+        document.body.classList.contains("theater-open") || !$("#video-modal").hidden ||
+        Math.abs(state.vel) > 1 || Math.abs(state.target - state.x) > .5 || Math.abs(state.catVel) > 1 ||
+        catEl.classList.contains("is-walking") || catEl.classList.contains("is-tail-playing") || catEl.classList.contains("is-pouncing")) return false;
+    var box = catEl.getBoundingClientRect(), scene = worldEl.getBoundingClientRect();
+    return box.left > scene.left + 24 && box.right < scene.right - 24 && box.top > scene.top + 44;
+  }
+
+  function scheduleButterfly(delay) {
+    clearTimeout(butterflyVisitTimer);
+    if (reduced || document.hidden || state.title || document.documentElement.getAttribute("data-theme") === "dark") return;
+    butterflyVisitTimer = setTimeout(function () {
+      if (!butterflyReady()) { scheduleButterfly(8000 + Math.random() * 6000); return; }
+      var screenX = (state.catX - state.cam) * state.s;
+      if (screenX < 110) state.catDir = 1;
+      else if (screenX > state.cw - 110) state.catDir = -1;
+      render();
+      butterflyEl.style.left = "calc(var(--s) * " + (state.catX + state.catDir * 47).toFixed(1) + "px - 22px)";
+      butterflyEl.style.setProperty("--butterfly-facing", state.catDir);
+      butterflyEl.classList.remove("is-escaping");
+      butterflyEl.hidden = false;
+      butterflyChaseTimer = setTimeout(chaseButterfly, 2100);
+      butterflyLeaveTimer = setTimeout(function () { dismissButterfly(true); }, 7600);
+    }, delay == null ? 18000 + Math.random() * 12000 : delay);
+  }
+
+  function dismissButterfly(again) {
+    clearTimeout(butterflyVisitTimer); clearTimeout(butterflyChaseTimer); clearTimeout(butterflyLeaveTimer);
+    if (butterflyEl) {
+      if (document.activeElement === butterflyEl) (!state.mobile && state.near ? $('.nav-btn[data-go="' + state.near.id + '"]') : fab).focus({ preventScroll: true });
+      butterflyEl.hidden = true;
+      butterflyEl.classList.remove("is-escaping");
+    }
+    if (catEl && catEl.classList.contains("is-pouncing")) {
+      clearTimeout(kittyPlayTimer); catEl.classList.remove("is-pouncing");
+    }
+    if (again) scheduleButterfly(45000 + Math.random() * 30000);
+  }
+
+  function chaseButterfly() {
+    if (butterflyEl.hidden || catEl.classList.contains("is-pouncing")) return;
+    if (!butterflyReady()) { dismissButterfly(true); return; }
+    clearTimeout(butterflyChaseTimer); clearTimeout(butterflyLeaveTimer);
+    poseCatLegs(false);
+    kittyPlay("butterfly");
+    butterflyEl.classList.add("is-escaping");
+    butterflyLeaveTimer = setTimeout(function () { dismissButterfly(true); }, 2800);
+  }
+
   function groomXiaoHei() {
     var sleeper = $(".sleep-cat", groundEl);
     clearTimeout(sleeper._groomTimer);
@@ -886,6 +982,7 @@
     bubble(charEl, state.lang === "zh" ? "小黑是家里的大哥哥，也是大黄的双胞胎兄弟。" : "XiaoHei, our oldest brother — DaHuang's twin!", 3600);
   }
   function kittyPlay(kind) {
+    if (kind === "tail" && !butterflyEl.hidden) dismissButterfly(true);
     clearTimeout(kittyPlayTimer);
     catEl.classList.remove("is-pouncing", "is-tail-playing");
     if (reduced || catEl.classList.contains("is-walking")) { kittyPoke(); return; }
@@ -1071,6 +1168,7 @@
   function enterWorld() {
     if (!state.title) return;
     state.title = false;
+    scheduleButterfly();
     store("hj-entered", "1");
     store("hj-view", "world");
     document.body.classList.remove("title-open");
@@ -1122,7 +1220,7 @@
     // A station's invisible hit area can reach up over the sun; let the sun win there.
     if (t.classList && t.classList.contains("hit") && overSun(e)) { toggleTheme(); return; }
     if (t.closest("#char")) { if (pokeAction()) return; flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
-    if (t.closest(".cat-butterfly")) { kittyPlay("butterfly"); return; }
+    if (t.closest(".cat-butterfly")) { chaseButterfly(); return; }
     if (t.closest("#cat")) { doAction("meow"); return; }
     if ((el = t.closest(".lotus-pond"))) {
       stirPond(e.clientX, e.clientY); return;
@@ -1330,8 +1428,10 @@
     var ro = window.ResizeObserver ? new ResizeObserver(function () { layout(); }) : null;
     if (ro) ro.observe(worldEl); else window.addEventListener("resize", layout);
     document.addEventListener("visibilitychange", function () {
-      if (document.hidden && state.raf) { cancelAnimationFrame(state.raf); state.raf = 0; }
-      else if (!document.hidden) start();
+      if (document.hidden) {
+        if (state.raf) { cancelAnimationFrame(state.raf); state.raf = 0; }
+        dismissButterfly(false);
+      } else { scheduleButterfly(); start(); }
     });
   }
 

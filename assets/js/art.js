@@ -461,12 +461,13 @@
   // A separate three-quarter profile makes turning and walking read as a living cat.
   function kittyProfile(uid) {
     return '<g class="cat-head">' +
-      P("M53 21L52 7Q52 5.5 53.4 6.5L62 17L70 17Q76 17 80 23L84 31L89 34Q91 37 87 40L81 41Q78 49 69 50L62 53L59 48L52 46L54 42Q48 35 53 21Z", "url(#kG" + uid + ")", G_LINE, 1.1) +
+      P("M66 20L71 10Q72 8 73 11L77 24Z", "#b7a58b", G_LINE, .8) +
+      P("M53 22Q51 14 52 8Q52 6.5 53.4 7.5L61 18Q67 15 74 18Q81 21 81 28Q81 31 85 33Q88 36 84 39L82 40Q82 47 74 50L69 52L66 50Q60 52 55 47L51 46L53 42Q47 34 53 22Z", "url(#kG" + uid + ")", G_LINE, 1.1) +
       P("M54 10L59 18L54 18Z", G_PINK) + P("M54 13l2 4M55 11l2 5", "", G_CREAM, .4) +
-      P("M74 32Q81 30 85 35L89 36L86 41L79 43L73 42Z", G_CREAM) +
-      '<g class="cat-eyes"><path d="M67 29Q72 24 77 29Q73 34 68 33Z" fill="#8a9e8b" stroke="#474539" stroke-width=".9"/><ellipse cx="73" cy="29" rx="1.5" ry="3.1" fill="#24302a"/><circle cx="71.8" cy="27.8" r=".7" fill="#fff8e8"/></g>' +
-      P("M87 34l3 1 -2 3 -2 -1Z", "#ad8274", G_LINE, .6) +
-      P("M86 39q-3 2 -6 1M82 39q7 -3 14 -2M82 41q8 0 13 3M79 43q6 3 11 7", "", "#f1e7d4", .45) +
+      P("M73 33Q79 30 84 34L86 35Q87 38 82 41Q78 44 73 41Z", G_CREAM) +
+      '<g class="cat-eyes"><path d="M66.5 29Q70.5 23.5 76.2 28.5Q75.5 33.5 70.5 33.2Q67.5 33 66.5 29Z" fill="#8a9e8b" stroke="#474539" stroke-width=".9"/><ellipse cx="72.5" cy="29" rx="1.5" ry="3.1" fill="#24302a"/><circle cx="71.3" cy="27.8" r=".7" fill="#fff8e8"/></g>' +
+      P("M84 33Q85.5 32.5 87 34L85 36.5L83.5 35Z", "#ad8274", G_LINE, .6) +
+      P("M84 38q-2 2 -5 1M80 38q7 -3 14 -2M80 40q8 0 13 3M77 43q6 3 11 7", "", "#f1e7d4", .45) +
       furPatch(58, 35, 7, 11, 82, -1.3, G_TIP, 36) + furPatch(65, 22, 9, 3, 37, .4, "#7e7566", 22) +
       P("M52 21l-2 -2M51 26l-2 -1M51 41l-3 1M57 47l-3 2", "", G_TIP, .35) +
       '</g>';
@@ -474,6 +475,12 @@
 
   function cat(uid) {
     uid = uid || "c";
+    function walkingLeg(x, y, length, name, far) {
+      return '<g class="cat-gait-leg ' + (name.indexOf('fore') === 0 ? 'cat-fore-leg ' : '') + (far ? 'cat-far-leg' : 'cat-near-leg') + '" data-cat-leg="' + name + '" data-leg-length="' + length + '" transform="translate(' + x + ' ' + y + ')"><g class="cat-limb-pose">' +
+        '<path class="cat-leg-fur" d="M-3 0Q-3.5 8 -2.5 ' + length + 'H2.5Q3.5 8 3 0Z" fill="' + (far ? '#c2ae91' : G_CREAM) + '" stroke="' + G_LINE + '" stroke-width=".65"/>' +
+        '<path class="cat-leg-fibres" d="M-1 3l.5 4M1 5l-.3 5" fill="none" stroke="' + G_TIP + '" stroke-width=".35" opacity=".55"/>' +
+        '<g class="cat-gait-paw" transform="translate(0 ' + length + ')">' + catPaw(0, 0, 7.2, 4.5, far ? '#d6c7ae' : G_CREAM, G_LINE, G_TIP) + '</g></g></g>';
+    }
     return '<svg class="hj-cat-svg" viewBox="0 0 90 72" aria-hidden="true" focusable="false">' +
       "<defs>" +
         '<linearGradient id="kG' + uid + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b1a28b"/><stop offset=".6" stop-color="#d5c4a6"/><stop offset="1" stop-color="#e9ddc6"/></linearGradient>' +
@@ -494,19 +501,21 @@
         furPatch(46, 42, 13, 10, 72, .4, "#bbac94", 60) +
         '<g transform="translate(14.1 5.4) scale(.7)">' + kittyHead(47, 18, uid) + '</g>' +
       "</g>" +
-      // walking (trotting) pose
+      // Four separate limbs, with their roots tucked under the long coat.
       '<g class="cat-walk">' +
         '<g class="cat-tail-walk"><path d="M27 49Q8 47 7 31L5 28L8 27Q7 18 14 16L17 15L17 18Q22 20 19 27Q13 35 27 39Z" fill="url(#kB' + uid + ')" stroke="' + G_LINE + '" stroke-width="1.1"/>' +
           '<path d="M12 23q-4 9 3 17M15 21q-3 6 -2 10M12 36l5 5M18 43l5 1" fill="none" stroke="' + G_TIP + '" stroke-width=".7"/></g>' +
-        '<g class="cat-legs-b"><path d="M29 58V66M37 59V66" stroke="#d4bc98" stroke-width="5.4" stroke-linecap="round"/>' + catPaw(29, 67, 6.6, 4.5, G_CREAM, G_LINE, G_TIP) + catPaw(37, 67, 6.6, 4.5, G_CREAM, G_LINE, G_TIP) + '</g>' +
-        '<g class="cat-legs-f"><path d="M51 59V66M58 58V66" stroke="#dcc6a4" stroke-width="5.4" stroke-linecap="round"/>' + catPaw(51, 67, 6.6, 4.5, G_CREAM, G_LINE, G_TIP) + catPaw(58, 67, 6.6, 4.5, G_CREAM, G_LINE, G_TIP) + '</g>' +
+        walkingLeg(31, 52, 15, 'hind-far', true) + walkingLeg(56, 50, 17, 'fore-far', true) +
+        walkingLeg(25, 52, 15, 'hind-near', false) + walkingLeg(62, 50, 17, 'fore-near', false) +
+        '<g class="cat-torso">' +
         '<path d="M21 52Q17 44 31 39L35 37L37 39Q48 36 58 41Q66 44 64 53L67 55L63 57Q59 63 52 62L48 65L46 62L38 64L36 62Q23 62 21 52Z" fill="url(#kB' + uid + ')" stroke="' + G_LINE + '" stroke-width="1.2"/>' +
         '<path d="M25 44q-1 6 3 11M30 43q0 7 4 12M38 41q0 6 4 10M46 41q1 5 5 8M29 56l5 4M39 57l5 4" fill="none" stroke="' + G_TIP + '" stroke-width=".7" opacity=".65"/>' +
         '<path d="M30 58C38 61.5 50 61.5 58 57.5C55 60.5 37 61.8 30 58Z" fill="' + G_CREAM + '"/>' +
         furPatch(40, 50, 17, 8, 116, 1.7, G_TIP, 60) +
+        '</g>' +
         '<g transform="translate(16.25 9.5) scale(.75)">' + kittyProfile(uid) + '</g>' +
-        '<path class="cat-ruff" d="M47 40Q50 45 54 44L52 50L57 48Q56 53 61 54L65 58L69 53Q75 55 77 49L82 50L79 44L84 42Q77 48 69 49Q56 50 47 40Z" fill="' + G_CREAM + '" stroke="' + G_LINE + '" stroke-width=".65"/>' +
-        '<path d="M55 44l5 7M63 49l2 6M73 47l-4 5" fill="none" stroke="' + G_TIP + '" stroke-width=".5" opacity=".65"/>' +
+        '<path class="cat-ruff" d="M50 41Q56 47 63 47Q73 50 78 44L77 49L79 51L74 52L75 55L70 55L68 59L64 56L60 57L61 53L56 54L57 50L53 50Z" fill="' + G_CREAM + '" stroke="' + G_LINE + '" stroke-width=".65"/>' +
+        furPatch(66, 51, 9, 4, 134, .8, "#bfb29b", 30) +
       "</g>" +
       "</g></svg>";
   }

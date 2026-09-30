@@ -132,7 +132,7 @@ python3 -m http.server 8000
 
 The chat folds into a small "Ask me" button (the ⌄ button in its header), and the site remembers that choice. While it's folded, Mini-Hanjing says short answers in a speech bubble.
 
-The conversation starts folded for new visitors. JinBingBing keeps her original following and meowing behavior; click the butterfly beside her to watch her pounce, or keep clicking her to discover a tail-chasing reaction. Click XiaoHei on the Life cushion to wake him for a short grooming session. Clicking a lotus pond makes ripples and reveals a koi. These details work with both mouse and touch; reduced-motion visitors get quieter reactions.
+The conversation starts folded for new visitors. JinBingBing follows with four separate paw movements, smooth starts and stops, and a rounder walking profile. After a quiet moment in daylight, a butterfly occasionally flies in, invites a little pounce, then leaves for a longer interval. Visitors can also tap it while it is present; it stays absent at night, during movement and for reduced-motion visitors. Keep clicking JinBingBing to discover her tail-chasing reaction. Click XiaoHei on the Life cushion to wake him for a short grooming session. Clicking a lotus pond makes ripples and reveals a koi. These details work with both mouse and touch.
 
 The artwork uses local WebP textures inside SVG patterns, keeping the architecture, actors and scenery as independently animated elements. Foreground materials follow the day/night palette; distant windows remain warm at night. The character, JinBingBing and XiaoHei are drawn from the photos already in `images/portraits/` and `images/cats/`.
 

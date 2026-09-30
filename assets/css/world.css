@@ -180,7 +180,8 @@ a { color: var(--accent); text-underline-offset: 2px; }
 /* ---------- world ---------- */
 .world {
   position: fixed; top: var(--bar-h); left: 0; right: 0; bottom: 0;
-  overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none;
+  /* The camera moves the scenery; focusing a prop must not scroll the stage. */
+  overflow: hidden; overflow: clip; touch-action: none; user-select: none; -webkit-user-select: none;
   cursor: default;
 }
 .sky { position: absolute; inset: 0; background: linear-gradient(var(--w-sky-1), var(--w-sky-2) 78%); }
@@ -833,31 +834,37 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .face-left .cat-flip { transform: scaleX(-1); transform-origin: 45px 0; }
 .cat-tail-sit { animation: tail 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 100% 100%; }
 .cat-tail-walk { animation: tail 1s ease-in-out infinite; transform-box: fill-box; transform-origin: 100% 100%; }
-.cat.is-walking .cat-legs-f { animation: legF .36s linear infinite; transform-origin: 54px 58px; }
-.cat.is-walking .cat-legs-b { animation: legB .36s linear infinite; transform-origin: 33px 58px; }
+.cat-torso { transform: translateY(var(--cat-body-lift, 0px)); }
+.cat-far-leg { opacity: .83; }
+.cat .cat-sit { animation: catSit .24s ease-out; transform-origin: 45px 68px; }
+@keyframes catSit { from { opacity: .75; transform: translateY(-1px); } to { opacity: 1; transform: none; } }
 .cat-eyes { animation: blink 6s infinite; transform-box: fill-box; transform-origin: center; }
 .heart { position: absolute; bottom: 70%; color: #e0654f; font-size: calc(var(--s, 1) * 18px); pointer-events: none; animation: heart 1.3s ease-out forwards; }
 @keyframes heart { from { transform: translateY(0) scale(.6); opacity: 0; } 20% { opacity: 1; } to { transform: translateY(-60px) scale(1.1); opacity: 0; } }
 .screen-cat { fill: var(--w-line); stroke: var(--w-line); opacity: .45; }
 .screen-cat path:nth-child(2) { fill: none; }
 .screen-label { fill: var(--w-line); font-size: 11px !important; letter-spacing: .25em; opacity: .7; }
-.cat.is-happy svg { animation: hop .6s ease; }
-.cat-butterfly { position: absolute; left: 88%; bottom: 96%; width: 44px; height: 44px; padding: 9px; border: 0; background: none; cursor: pointer; pointer-events: auto; animation: butterflyDrift 5s ease-in-out infinite; opacity: .85; }
+.cat.is-happy > .hj-cat-svg { animation: hop .6s ease; }
+.cat-butterfly { position: absolute; bottom: calc(var(--s) * 276px - 22px); width: 44px; height: 44px; padding: 9px; border: 0; background: none; cursor: pointer; pointer-events: auto; z-index: 3; animation: butterflyArrive 1.8s ease-out both; }
 .cat-butterfly svg { width: 100%; height: 100%; }
+.bf-flight { transform-origin: 12px 12px; animation: butterflyDrift 1.6s ease-in-out infinite alternate; }
 .cat-butterfly .bf-wing { fill: #c29c67; stroke: #7b6348; stroke-width: .7; transform-origin: 12px 12px; animation: butterflyWing .45s ease-in-out infinite alternate; }
 .cat-butterfly .bf-body { fill: none; stroke: #5c503e; stroke-width: .8; }
-.cat.is-walking .cat-butterfly, [data-theme="dark"] .cat-butterfly { opacity: 0; visibility: hidden; pointer-events: none; }
+[data-theme="dark"] .cat-butterfly { display: none; }
 .cat.is-pouncing > .hj-cat-svg { animation: catPounce 1.65s ease-in-out; }
 .cat.is-pouncing .cat-sit { display: none; }
 .cat.is-pouncing .cat-walk { display: inline; }
-.cat.is-pouncing .cat-butterfly { animation: butterflyEscape 1.65s ease-out; }
+.cat.is-pouncing .cat-fore-leg .cat-limb-pose { transform-origin: 0 0; animation: catReach 1.65s ease-in-out; }
+.cat-butterfly.is-escaping { animation: butterflyEscape 2.8s ease-in both; }
 .cat.is-tail-playing .cat-sit { transform-box: fill-box; transform-origin: 50% 100%; animation: catTailPlay 2.1s ease-in-out; }
 .cat.is-tail-playing .cat-tail-sit { animation: tailCatch .35s ease-in-out 6 alternate; }
 .cat.is-tail-playing .cat-head { transform-box: fill-box; transform-origin: 50% 80%; animation: catLookBack 2.1s ease-in-out; }
-@keyframes butterflyDrift { 0%, 100% { transform: translate(0, 0) rotate(-10deg); } 50% { transform: translate(-12px, -10px) rotate(14deg); } }
+@keyframes butterflyDrift { from { transform: translate(0, 0) rotate(-10deg); } to { transform: translate(-3px, -4px) rotate(14deg); } }
+@keyframes butterflyArrive { from { opacity: 0; transform: translate(calc(var(--butterfly-facing) * 95px), -38px); } 45% { opacity: .9; } to { opacity: .9; transform: none; } }
 @keyframes butterflyWing { to { transform: scaleX(.35); } }
-@keyframes butterflyEscape { 40% { transform: translate(48px, -34px); } 75% { transform: translate(4px, -52px); } }
-@keyframes catPounce { 14% { transform: translateY(3px) scaleY(.93); } 35% { transform: translate(18px, -13px) rotate(-8deg); } 52% { transform: translate(22px, 0); } 70% { transform: translate(8px, -8px); } 100% { transform: none; } }
+@keyframes butterflyEscape { 0% { opacity: .9; transform: none; } 35% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * 28px), -26px); } 65% { opacity: .8; transform: translate(calc(var(--butterfly-facing) * 10px), -42px); } 100% { opacity: 0; transform: translate(calc(var(--butterfly-facing) * 110px), -76px); } }
+@keyframes catPounce { 14% { transform: translateY(2px) scaleY(.96); } 38% { transform: translate(calc(var(--cat-facing) * 17px), -12px) rotate(calc(var(--cat-facing) * -5deg)); } 60% { transform: translate(calc(var(--cat-facing) * 20px), 0); } 80% { transform: translate(calc(var(--cat-facing) * 9px), -5px); } 100% { transform: none; } }
+@keyframes catReach { 14% { transform: rotate(9deg); } 38% { transform: rotate(-34deg); } 60% { transform: none; } 80% { transform: rotate(14deg); } 100% { transform: none; } }
 @keyframes catTailPlay { 20%, 65% { transform: skewX(-8deg) scaleX(.9); } 42%, 82% { transform: skewX(7deg); } }
 @keyframes catLookBack { 20%, 65% { transform: rotate(-20deg) translateX(-5px); } 42%, 82% { transform: rotate(12deg); } }
 @keyframes tailCatch { to { transform: rotate(30deg) translate(2px, -4px); } }
