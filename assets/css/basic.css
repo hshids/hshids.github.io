@@ -139,6 +139,11 @@ h3 { font-size: 16px; margin: 26px 0 10px; }
 .timeline { list-style: none; padding: 0; margin: 0; }
 .timeline li { padding: 6px 0 6px 18px; border-left: 3px solid #333; margin-left: 4px; }
 .timeline .deg { font-weight: bold; }
+.edu-honor { margin-top: 4px; font-size: 14px; }
+.edu-along { margin-top: 10px; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.timeline .edu-exp { margin: 4px 0 2px; padding-left: 18px; font-size: 14px; line-height: 1.55; }
+.timeline .edu-exp li { border-left: 0; padding: 3px 0; margin-left: 0; }
+.edu-when { color: var(--muted); font-size: 13px; white-space: nowrap; }
 
 .cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
 .cards li { border: 1px solid var(--line); background: rgba(255, 255, 255, .6); padding: 10px 14px; }

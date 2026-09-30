@@ -650,6 +650,13 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .p-timeline li::before { content: ""; position: absolute; left: -25px; top: 6px; width: 12px; height: 12px; border-radius: 50%; background: var(--card); border: 2px solid var(--accent); }
 .p-timeline h3 { margin: 0 0 2px; font-size: 16px; }
 .p-timeline p { margin: 0; }
+.p-timeline .p-honor { margin-top: 6px; font-size: 14px; }
+.p-timeline .p-along { margin-top: 10px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.p-exp { margin: 4px 0 0; padding-left: 16px; font-size: 14px; line-height: 1.5; color: var(--ink-2); }
+.p-timeline .p-exp li { padding: 3px 0; }
+.p-timeline .p-exp li::before { content: none; }
+.p-exp b { color: var(--ink); }
+.p-when { color: var(--muted); font-size: 12.5px; white-space: nowrap; }
 .p-tags { list-style: none; display: flex; flex-wrap: wrap; gap: 6px; padding: 0; margin: 0; }
 .p-tags li { font-size: 13px; padding: 4px 10px; border-radius: 999px; background: var(--card-2); }
 .p-cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }

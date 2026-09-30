@@ -145,6 +145,8 @@
   D.education.forEach(function (e) {
     docs.push({ kind: "education", id: e.id, ref: e,
       text: [rep(e.degree, 2), rep(e.school, 2), e.years, e.note || "", e.zh,
+        (e.alongside || []).map(function (x) { return [x.role, x.org, x.en, x.zh].join(" "); }).join(" "),
+        (e.honors || []).map(function (h) { return h.en + " " + h.zh; }).join(" "),
         "education degree school university study studied graduate"].join(" ") });
   });
   D.tutorials.forEach(function (t) {
@@ -210,6 +212,7 @@
     { id: "advisor", w: 1.6, re: /(advisor|adviser|supervisor|mentor|\bpi\b|professor|lab\b|导师|老板|实验室|课题组)/i },
     { id: "coauthors", w: 1.5, re: /(co-?authors?|collaborators?|work with|worked with|合作者|合作的人|和谁)/i },
     { id: "eduStrong", w: 1.5, re: /(background|degree|undergrad|bachelor|master'?s?\b|\bms\b|\bbs\b|ph\.?d|doctora|alma mater|graduat|where did (you|she)|which (school|university)|学历|本科|硕士|博士|教育背景|毕业|哪个学校|哪所|读书|读研|读博|求学)/i },
+    { id: "experience", w: 1.7, re: /(united nations|\bun\b|unodc|unov|peacekeeping|peacebuilding|consultant|dean'?s list|honou?rs?\b|teaching assistant|\bta\b|massive data|\bmdi\b|edunomics|georgetown labs?|labs? at georgetown|mentor(ing)? (at|for) georgetown|(were|was) you a mentor|did you mentor|alumni mentor|lead mentor|(your|past|work|previous|prior|other) experiences?|experiences? (at|with|before)|intern(ed)? (at|with)|did you intern|联合国|维和|院长|助教|工作经历|过往经历|实习经历|经历)/i },
     { id: "education", w: 1, re: /(education|school|universit|college|davis|georgetown|lehigh|学校|大学|教育)/i },
     { id: "tutorials", w: 1.4, re: /(tutorial|cheat ?sheet|learn (r|python|stat)|teach me|教程|学习资料|入门)/i },
     { id: "writing", w: 1.3, re: /(blog|writing|posts?\b|article|gpts?\b|rednote|xiaohongshu|博客|文章|写作|随笔|小红书)/i },
@@ -459,12 +462,55 @@
   function education(lang) {
     var html = '<ol class="g-timeline">' + D.education.map(function (e) {
       return "<li><b>" + esc(e.degree) + "</b><br>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") +
-        (e.note ? '<br><span class="g-muted">' + esc(e.note) + "</span>" : "") + "</li>";
+        (e.note ? '<br><span class="g-muted">' + esc(e.note) + "</span>" : "") +
+        (e.honors || []).map(function (h) { return '<br><span class="g-muted">🏅 ' + esc(pick(lang, h)) + "</span>"; }).join("") +
+        (e.alongside || []).map(function (x) { return '<br><span class="g-muted">· ' + esc(x.role) + ", " + esc(x.org) + " (" + esc(x.when) + ")</span>"; }).join("") +
+        "</li>";
     }).join("") + "</ol>";
     return A(lang, lang === "zh"
-      ? "我的求学路线是这样的。UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。"
-      : "Here's my path so far. A B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Dr. Dominic DiFranzo.",
-      html, lang === "zh" ? ["你研究什么？", "你的导师是谁？"] : ["What do you research?", "Who is your advisor?"], "education");
+      ? "我的求学路线是这样的。UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。一路上，我在 Davis 上过院长荣誉榜，在 Georgetown 的两个实验室做过研究、当过助教，还为联合国做过数据科学工作。"
+      : "Here's my path so far. A B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Dr. Dominic DiFranzo. Along the way I made the Dean's List at Davis, did research in two Georgetown labs, worked as a TA, and did data science work for the United Nations.",
+      html, lang === "zh" ? ["过往经历？", "你的导师是谁？"] : ["Past experience?", "Who is your advisor?"], "education");
+  }
+
+  // Research labs, teaching, mentoring and UN work that happened alongside each degree.
+  var EXP_FOCUS = [
+    { re: /(united nations|\bun\b|unodc|unov|peacekeeping|peacebuilding|consultant|联合国|维和)/i,
+      keep: function (x) { return /United Nations|UNODC/.test(x.org); },
+      en: "Yes, three times! 🇺🇳 I started as a Data Scientist Intern with UN Peacekeeping in 2023, consulted for the UNODC / UNOV Staff Council in 2024, and came back to UN Peacekeeping as a Data Science Researcher in 2025.",
+      zh: "有的，一共三次！🇺🇳 2023 年在联合国维和行动做数据科学实习生，2024 年为 UNODC / UNOV 员工理事会做数据科学顾问，2025 年又回到联合国维和行动担任数据科学研究员。" },
+    { re: /(teaching assistant|\bta\b|助教)/i, keep: function (x) { return /Teaching Assistant/.test(x.role); },
+      en: "Yep! I was a graduate TA at Georgetown from July 2022 to May 2023, for MBA and data science courses.",
+      zh: "当过！2022 年 7 月到 2023 年 5 月，我在 Georgetown 给 MBA 和数据科学课程做研究生助教。" },
+    { re: /(massive data|\bmdi\b|edunomics|\blabs?\b|research assistant|research scholar|实验室)/i, keep: function (x) { return /Research (Scholar|Assistant)/.test(x.role); },
+      en: "At Georgetown I did research in two labs, the Massive Data Institute and the Edunomics Lab. Social media data at one, school finance data at the other!",
+      zh: "在 Georgetown 我在两个实验室做过研究，Massive Data Institute 和 Edunomics Lab。一个做社交媒体数据，一个做学校财政数据！" },
+    { re: /(mentor)/i, keep: function (x) { return /Mentor/.test(x.role); },
+      en: "I've been mentoring at Georgetown since 2022, first as a Lead Mentor and now as a DSAN Alumni Mentor.",
+      zh: "从 2022 年起我就在 Georgetown 做 mentor，先是 Lead Mentor，现在是 DSAN 校友导师。" },
+    { re: /(dean'?s list|honou?rs?\b|院长|荣誉)/i, keep: function () { return false; }, honors: true,
+      en: "I made the Dean's List at UC Davis in 2018 and 2020! 🏅",
+      zh: "我在 UC Davis 上过两次院长荣誉榜（Dean's List），分别是 2018 和 2020 年！🏅" }
+  ];
+
+  function experience(q, lang) {
+    var f = null;
+    for (var i = 0; i < EXP_FOCUS.length; i++) if (EXP_FOCUS[i].re.test(q)) { f = EXP_FOCUS[i]; break; }
+    var html = D.education.map(function (e) {
+      var items = (e.alongside || []).filter(function (x) { return !f || f.keep(x); });
+      var honors = !f || f.honors ? e.honors || [] : [];
+      if (!items.length && !honors.length) return "";
+      return '<div class="g-label">' + esc(e.school) + "</div>" + '<ul class="g-list">' +
+        honors.map(function (h) { return "<li>🏅 " + esc(pick(lang, h)) + "</li>"; }).join("") +
+        items.map(function (x) {
+          return "<li><b>" + esc(x.role) + "</b> · " + esc(x.org) + ' <span class="g-muted">' + esc(x.when) + "</span><br>" +
+            '<span class="g-muted">' + esc(pick(lang, x)) + "</span></li>";
+        }).join("") + "</ul>";
+    }).join("");
+    var text = f ? pick(lang, f) : (lang === "zh"
+      ? "除了主线研究，这些是我一路上的经历！🧳 在 Georgetown 的两个实验室做研究、当助教、做 mentor，还为联合国做过数据科学工作，从 2023 年的实习一直到 2025 年的研究员。"
+      : "Besides my main research line, here's what I did along the way! 🧳 Research in two Georgetown labs, a TA job, mentoring, and data science work for the United Nations, from an internship in 2023 to a researcher role in 2025.");
+    return A(lang, text, html, lang === "zh" ? ["教育背景", "你研究什么？"] : ["Education", "What do you research?"], "education");
   }
 
   function advisor(lang) {
@@ -668,11 +714,17 @@
     var aboutTopic = /((work|research|papers?|publications?|projects?|stud(y|ies)|anything|something)\s+(on|about|in|related to|regarding)\b|关于|有关|相关)/i.test(q);
     var saysAI = /(\bai\b|artificial intelligence|人工智能|[㐀-鿿]\s*ai|ai\s*[㐀-鿿])/i.test(q);
 
+    // A name or term only one paper uses ("Zhang Xuefeng") beats generic words like "education" or "advisor".
+    if (top && top.doc.kind === "paper" && top.score >= 9 && (!hits[1] || top.score >= hits[1].score * 1.8) && !it.opinion)
+      return paperDetail(top.doc.ref, lang);
+
     var venue = venueOf(q);
     if (it.photos && (it.video || venue || /(conference|会议|参会|现场|talk|present)/i.test(q))) return photos(lang);
     if (venue && !it.opinion) { var va = papersAtVenue(lang, venue); if (va) return va; }
     if (it.upcoming) return upcoming(lang);
     if (it.video) return videos(lang);
+    if (it.experience) return experience(q, lang);
+    if (top && top.doc.kind === "education" && top.score >= 6 && !it.education && !it.eduStrong) return experience(q, lang);
     if (it.cv) return cv(lang);
     if (it.contact) return contact(lang);
     if (it.count) return papersList(lang);

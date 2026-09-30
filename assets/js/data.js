@@ -71,7 +71,16 @@ window.HJ_DATA = {
       years: "Since 2023",
       note: "Advised by Dr. Dominic DiFranzo",
       emblem: "mountain",
-      zh: "Lehigh University 计算机科学与工程 博士（2023 年至今），导师 Dominic DiFranzo 博士"
+      zh: "Lehigh University 计算机科学与工程 博士（2023 年至今），导师 Dominic DiFranzo 博士",
+      // Things I did along the way. Not my main research line, but part of the story.
+      alongside: [
+        { role: "Data Science Researcher", org: "United Nations Peacekeeping (DPPA-DPO-IMU)", when: "2025",
+          en: "As the sole developer, rebuilt the UN Peacebuilding Power BI dashboard, bringing together World Bank, Freedom House, INFORM, SDG Index and IDMC indicators with a new geospatial Country Overview.",
+          zh: "作为唯一的开发者，重建了联合国建设和平（Peacebuilding）的 Power BI 仪表盘，整合世界银行、Freedom House、INFORM、SDG Index 和 IDMC 等多源指标，并新增带地理可视化的国家概览。" },
+        { role: "Data Science Consultant", org: "UNODC / UNOV Staff Council", when: "2024",
+          en: "Used NLP and sentiment analysis on a staff survey, turning open-ended feedback into clear evidence for internal policy discussions.",
+          zh: "用 NLP 和情感分析处理员工调研数据，把开放式反馈整理成可供内部政策讨论的证据。" }
+      ]
     },
     {
       id: "ms",
@@ -79,7 +88,24 @@ window.HJ_DATA = {
       school: "Georgetown University",
       years: "",
       emblem: "tower",
-      zh: "Georgetown University 数据科学与分析 硕士"
+      zh: "Georgetown University 数据科学与分析 硕士",
+      alongside: [
+        { role: "Research Scholar", org: "Massive Data Institute (MDI)", when: "2022 to 2023",
+          en: "Analyzed large-scale Twitter discussions of gun control, vaccines, the economy and homeschooling with NLP, and built demographic inference models.",
+          zh: "用 NLP 分析 Twitter 上关于枪支管控、疫苗、经济和在家教育的大规模讨论，并搭建人口属性推断模型。" },
+        { role: "Research Assistant", org: "Edunomics Lab", when: "Jan to May 2022",
+          en: "Cleaned ESSA and NCES data and built a database of year-over-year U.S. school spending in R for the National Education Resource Database.",
+          zh: "整理 ESSA 和 NCES 数据，用 R 为 National Education Resource Database 搭建美国学校逐年支出数据库。" },
+        { role: "Graduate Teaching Assistant", org: "McDonough School of Business and McCourt School of Public Policy", when: "Jul 2022 to May 2023",
+          en: "Supported MBA and data science courses with grading, exams, office hours and tracking student progress.",
+          zh: "为 MBA 和数据科学课程做助教，负责批改作业、考试、答疑和跟进学生进度。" },
+        { role: "Lead Mentor, then DSAN Alumni Mentor", org: "Georgetown University", when: "Since Aug 2022",
+          en: "Lead Mentor from August 2022 to 2023, and a DSAN Alumni Mentor since 2023.",
+          zh: "2022 年 8 月到 2023 年担任 Lead Mentor，2023 年起担任 DSAN 校友导师。" },
+        { role: "Data Scientist Intern", org: "United Nations Peacekeeping (DPPA-DPO-IMU)", when: "2023",
+          en: "Automated data extraction for Secretary-General reports with Python, and ran ACLED-based conflict analysis for African regions.",
+          zh: "用 Python 自动化秘书长报告的数据提取，并基于 ACLED 数据做非洲地区的冲突分析。" }
+      ]
     },
     {
       id: "bs",
@@ -87,7 +113,8 @@ window.HJ_DATA = {
       school: "University of California, Davis",
       years: "",
       emblem: "bike",
-      zh: "UC Davis 计算机科学与统计学 本科"
+      zh: "UC Davis 计算机科学与统计学 本科",
+      honors: [{ en: "Dean's List, 2018 and 2020", zh: "院长荣誉榜（Dean's List），2018 和 2020 年" }]
     }
   ],
 

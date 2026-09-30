@@ -115,7 +115,11 @@
 
     html += section("education", "Education", '<ul class="timeline">' + D.education.map(function (e) {
       return '<li><div class="deg">' + esc(e.degree) + "</div><div>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</div>" +
-        (e.note ? '<div class="pub-note">' + advisorNote(e.note) + "</div>" : "") + "</li>";
+        (e.note ? '<div class="pub-note">' + advisorNote(e.note) + "</div>" : "") +
+        (e.honors || []).map(function (h) { return '<div class="edu-honor">🏅 ' + esc(h.en) + "</div>"; }).join("") +
+        (e.alongside && e.alongside.length ? '<div class="edu-along">Along the way</div><ul class="edu-exp">' + e.alongside.map(function (x) {
+          return "<li><b>" + esc(x.role) + "</b>, " + esc(x.org) + ' <span class="edu-when">' + esc(x.when) + "</span><br>" + esc(x.en) + "</li>";
+        }).join("") + "</ul>" : "") + "</li>";
     }).join("") + "</ul>");
 
     html += section("tutorials", "Tutorials", "<p>Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>" +

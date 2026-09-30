@@ -322,7 +322,7 @@
   var STATION_CHIPS = {
     home: { en: ["What's new?", "Who are you?", "What do you research?"], zh: ["最近有什么新动态？", "你是谁？", "你研究什么？"] },
     research: { en: D.themes.slice(0, 3).map(function (t) { return t.title; }).concat(["Only peer-reviewed ones"]), zh: D.themes.slice(0, 3).map(function (t) { return t.zhTitle; }).concat(["只看正式发表的"]) },
-    education: { en: ["Who is your advisor?", "What do you research?"], zh: ["你的导师是谁？", "你研究什么？"] },
+    education: { en: ["Past experience?", "Who is your advisor?"], zh: ["过往经历？", "你的导师是谁？"] },
     talks: { en: ["Do you have video talks?", "Show me your posters", "What's new?"], zh: ["有报告视频吗？", "看看你的海报", "最近有什么新动态？"] },
     tutorials: { en: ["I want to learn R", "Python tutorials", "Statistics"], zh: ["有 R 语言教程吗", "Python 教程", "统计学"] },
     writing: { en: ["Bayesian statistics", "Time series", "Your custom GPTs"], zh: ["贝叶斯统计", "时间序列", "你做的 GPTs"] },
@@ -521,7 +521,11 @@
       return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "求学之路" : "Education") + "</h2>" +
         '<ol class="p-timeline">' + D.education.map(function (e) {
           return "<li><h3>" + esc(e.degree) + "</h3><p>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</p>" +
-            (e.note ? '<p class="p-muted">' + advisorNote(e.note) + "</p>" : "") + "</li>";
+            (e.note ? '<p class="p-muted">' + advisorNote(e.note) + "</p>" : "") +
+            (e.honors || []).map(function (h) { return '<p class="p-honor">🏅 ' + esc(pick(state.lang, h)) + "</p>"; }).join("") +
+            (e.alongside && e.alongside.length ? '<p class="p-along">' + (state.lang === "zh" ? "期间经历" : "Along the way") + '</p><ul class="p-exp">' + e.alongside.map(function (x) {
+              return "<li><b>" + esc(x.role) + "</b> · " + esc(x.org) + ' <span class="p-when">' + esc(x.when) + "</span><br>" + esc(pick(state.lang, x)) + "</li>";
+            }).join("") + "</ul>" : "") + "</li>";
         }).join("") + "</ol>" +
         '<h3>' + (state.lang === "zh" ? "研究兴趣" : "Research interests") + '</h3><ul class="p-tags">' +
         D.person.interests.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul>";
