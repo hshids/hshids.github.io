@@ -1,6 +1,6 @@
 /*
  * Hand-built SVG art for the interactive world: the avatar, the cats,
- * the eight stations, and the layered ink-wash scenery.
+ * the seven stations, and the layered ink-wash scenery.
  *
  * World units: the scene is 800 units tall and the path (ground line) is at
  * y = 560. Colors come from CSS variables (see world.css) so the same art
@@ -911,6 +911,13 @@
       '<linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-wood-2)"/><stop offset="1" style="stop-color:var(--w-wood)"/></linearGradient>' +
       '<linearGradient id="gRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--w-accent)"/><stop offset="1" style="stop-color:var(--w-accent-deep)"/></linearGradient>' +
       '<linearGradient id="gMachine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-machine-2)"/><stop offset="1" style="stop-color:var(--w-machine)"/></linearGradient>' +
+      '<linearGradient id="gCampusGranite" x1="0" y1="0" x2="1" y2=".65"><stop stop-color="var(--campus-granite-light)"/><stop offset=".65" stop-color="var(--campus-granite)"/><stop offset="1" stop-color="var(--campus-granite-shade)"/></linearGradient>' +
+      '<linearGradient id="gCampusSandstone" x1="0" y1="0" x2="1" y2=".7"><stop stop-color="var(--campus-sand-light)"/><stop offset=".6" stop-color="var(--campus-sand)"/><stop offset="1" stop-color="var(--campus-sand-shade)"/></linearGradient>' +
+      '<linearGradient id="gCampusRoundStone" x1="0" y1="0" x2="1" y2=".1"><stop stop-color="var(--campus-sand)"/><stop offset=".24" stop-color="var(--campus-sand-light)"/><stop offset=".5" stop-color="var(--campus-sand)"/><stop offset="1" stop-color="var(--campus-sand-shade)"/></linearGradient>' +
+      '<linearGradient id="gCampusRoof" x1="0" y1="0" x2="1" y2=".35"><stop stop-color="var(--campus-slate-light)"/><stop offset="1" stop-color="var(--campus-slate-shade)"/></linearGradient>' +
+      '<linearGradient id="gCampusGlass" x1="0" y1="0" x2=".4" y2="1"><stop stop-color="var(--campus-glass-shade)"/><stop offset=".5" stop-color="var(--campus-glass-light)"/><stop offset="1" stop-color="var(--campus-glass-shade)"/></linearGradient>' +
+      '<linearGradient id="gCampusPaint" x1="0" y1="0" x2="1" y2=".05"><stop stop-color="var(--campus-paint)"/><stop offset=".24" stop-color="var(--campus-paint-light)"/><stop offset=".5" stop-color="var(--campus-paint)"/><stop offset="1" stop-color="var(--campus-paint-shade)"/></linearGradient>' +
+      '<clipPath id="gSilkPaintingClip"><rect x="-28" y="-34" width="56" height="68"/></clipPath>' +
       '</defs>';
   }
 
@@ -1010,14 +1017,14 @@
     var deco = "", zones = stations.map(function (s) { return [s.x - s.half, s.x + s.half]; });
     function free(x, pad) { for (var z = 0; z < zones.length; z++) if (x > zones[z][0] - pad && x < zones[z][1] + pad) return false; return true; }
     for (var gx = 80; gx < width - 40; gx += 70 + r() * 160) {
-      if (!free(gx, 30) || Math.abs(gx - 6370) < 80) continue;
+      if (!free(gx, 30) || Math.abs(gx - 5470) < 80) continue;
       var roll = r();
       if (roll < 0.42) deco += rock(gx, GY + 3, 30 + r() * 40, 14 + r() * 16);
       else if (roll < 0.56 && free(gx, 120)) deco += stoneLantern(gx);
       else deco += grass(gx, GY + 1, 0.8 + r() * 0.6) + grass(gx + 14, GY + 1, 0.6 + r() * 0.5);
     }
     // Only five clear specimens along the whole walk; all other groves are distant washes.
-    [160, 2260, 4560, 6370, 8190].forEach(function (treeX, i) {
+    [160, 2260, 4560, 5470, 7290].forEach(function (treeX, i) {
       if (free(treeX, 70)) {
         deco += i === 3 ? willow(treeX, GY + 2, .92, "ground-willow") : pine(treeX, GY + 2, 1.2 + i % 2 * .12, "ground-pine");
         if (i === 3) deco += rock(treeX + 33, GY + 3, 34, 12) + grass(treeX - 18, GY + 2, .45);
@@ -1067,7 +1074,7 @@
       var ly = 712 + li * 3.25, ll = 5 + li * 1.25 + lrng() * 17, lx = (lrng() - .5) * (10 + li * 2.6);
       lightLines += '<path d="M' + f1(lx - ll / 2) + " " + f1(ly) + "q" + f1(ll / 2) + " -1 " + f1(ll) + ' 0" style="opacity:' + f1(.2 + lrng() * .5) + '"/>';
     }
-    // Lotus pads sit ON the plane; submerged stems and broken reflections sit below it.
+    // Water-lily pads sit ON the plane; submerged stems and broken reflections sit below it.
     for (var px = 420; px < width; px += 830 + r() * 570) {
       var py = 752 + r() * 17, prx = 150 + r() * 65;
       for (var k = 0; k < 7; k++) {
@@ -1079,19 +1086,27 @@
           veins += "M" + f1(lx) + " " + f1(ly2) + "q" + f1(Math.cos(va) * rad * .4) + " " + f1(Math.sin(va) * rad * .12 - .8) + " " + f1(Math.cos(va) * rad * .8) + " " + f1(Math.sin(va) * rad * .34);
         }
         leaves += '<g class="lotus-leaf"><ellipse class="leaf-shadow" cx="' + f1(lx + 2) + '" cy="' + f1(ly2 + 3) + '" rx="' + f1(rad + 2) + '" ry="' + f1(rad * .42) + '"/><path class="leaf-pad" d="' + pad + '"/><path class="leaf-vein" d="' + veins + '"/>' +
-          '<path class="leaf-rim" d="M' + f1(lx - rad * .86) + " " + f1(ly2 + rad * .12) + "q" + f1(rad * .9) + " " + f1(rad * .62) + " " + f1(rad * 1.75) + ' 0"/><ellipse class="leaf-dew" cx="' + f1(lx - rad * .35) + '" cy="' + f1(ly2 - 1.5) + '" rx="1.1" ry=".5"/></g>';
+          '<path class="leaf-rim" d="M' + f1(lx - rad * .86) + " " + f1(ly2 + rad * .12) + "q" + f1(rad * .9) + " " + f1(rad * .62) + " " + f1(rad * 1.75) + ' 0"/><path class="leaf-wax" d="M' + f1(lx - rad * .8) + ' ' + f1(ly2 - rad * .12) + 'q' + f1(rad * .5) + ' ' + f1(-rad * .32) + ' ' + f1(rad * 1.12) + ' ' + f1(-rad * .05) + '"/><circle class="leaf-patina" cx="' + f1(lx - rad * .4) + '" cy="' + f1(ly2 + rad * .16) + '" r=".9"/><ellipse class="leaf-dew" cx="' + f1(lx - rad * .35) + '" cy="' + f1(ly2 - 1.5) + '" rx="1.1" ry=".5"/></g>';
       }
       for (var f = 0; f < 2; f++) {
-        var fx = px + (f ? 1 : -1) * (32 + r() * 49), fy = py - 46 - r() * 22;
-        bed += "M" + f1(fx) + " " + f1(py + 2) + "q-3 10 2 21";
-        stems += '<path class="lotus-stem" d="M' + f1(fx) + " " + f1(py) + "Q" + f1(fx + 6) + " " + f1((py + fy) / 2) + " " + f1(fx) + " " + f1(fy) + '"/><path class="stem-light" d="M' + f1(fx - .6) + " " + f1(py - 2) + "Q" + f1(fx + 4.5) + " " + f1((py + fy) / 2) + " " + f1(fx - .6) + " " + f1(fy + 2) + '"/>';
-        flowers += '<g class="lotus-flower" transform="translate(' + f1(fx) + ' ' + f1(fy) + ')">';
-        [-3, 3, -2, 2, -1, 1, 0].forEach(function (p) {
-          flowers += '<g transform="rotate(' + p * 19 + ')"><path class="lotus-petal" d="M0 3C-8 -2 -8 -11 0 -20C8 -11 8 -2 0 3Z"/><path class="petal-vein" d="M0 1Q-2 -8 0 -17M-1 0Q-4 -5 -4 -9"/></g>';
+        var fx = px + (f ? 1 : -1) * (32 + r() * 49), raised = f === 1;
+        var fy = raised ? py - 44 - r() * 16 : py - 3 - r() * 4, bloomScale = .86 + r() * .18;
+        var waterY = (py - fy + 4) / bloomScale;
+        bed += 'M' + f1(fx) + ' ' + f1(py + 3) + 'q-4 12 1 26';
+        stems += '<path class="lotus-stem" d="M' + f1(fx) + ' ' + f1(py + 2) + 'Q' + f1(fx + (raised ? 7 : 2)) + ' ' + f1((fy + py) / 2) + ' ' + f1(fx) + ' ' + f1(fy + 1) + '"/>';
+        if (raised) stems += '<path class="stem-light" d="M' + f1(fx - .5) + ' ' + f1(py) + 'Q' + f1(fx + 5.5) + ' ' + f1((py + fy) / 2) + ' ' + f1(fx - .5) + ' ' + f1(fy + 2) + '"/>';
+        flowers += '<g class="lotus-flower ' + (raised ? 'stem-lotus' : 'water-lily') + '" transform="translate(' + f1(fx) + ' ' + f1(fy) + ') scale(' + f1(bloomScale) + ')"><title>' + (raised ? 'Pink lotus — softly folds at night' : 'Pink water lily — opens by day, closes at night') + '</title><ellipse class="lily-water-shadow" cx="1" cy="' + f1(waterY) + '" rx="' + (raised ? 21 : 28) + '" ry="4"/>';
+        [[-83,-62,-42,-22,22,42,62,83],[-66,-44,-22,0,22,44,66],[-28,-14,0,14,28]].forEach(function (angles, tier) {
+          angles.forEach(function (angle, pi) {
+            var len = [1,.96,.7][tier], close = (pi / Math.max(1,angles.length-1) - .5) * (tier === 2 ? 10 : 26);
+            flowers += '<g class="lily-petal-fan lily-tier-' + tier + '" style="--bloom-angle:' + angle + 'deg;--bud-angle:' + f1(close) + 'deg;--petal-length:' + len + '"><path class="lotus-petal" d="M0 3C-6 -2 -7 -13 0 -27C7 -13 6 -2 0 3Z"/><path class="petal-vein" d="M0 1Q-2 -12 0 -24M-1 0Q-4 -5 -4 -12M1 -7q3 -5 2 -9"/><path class="petal-light-edge" d="M-3 -17Q-2 -21 0 -25"/></g>';
+          });
         });
-        flowers += '<path class="lotus-calyx" d="M-7 3Q0 8 7 3L4 7H-4Z"/><path class="lotus-stamen" d="M-3 2v-3M0 3v-5M3 2v-3"/></g>';
-        reflections += '<path class="flower-reflection" d="M' + f1(fx) + " " + f1(py + 2) + "q-3 6 0 11m-6 3h12m-15 4h17m-13 4h9m-10 4h11" + '"/>';
+        flowers += '<g class="lily-heart"><ellipse class="lily-pollen" cx="0" cy="-3" rx="4.5" ry="3"/><path class="lotus-stamen" d="M-5 1l-2 -6M-3 0l-1 -7M0 0v-8M3 0l1 -7M5 1l2 -6"/><path class="lily-pollen-tips" d="M-7 -5h1M-4 -7h1M0 -8h1M4 -7h1M7 -5h1"/></g>' +
+          '<g class="lily-sepals"><path class="lotus-calyx" d="M0 4C-9 -1 -8 -15 -4 -21C-4 -9 -2 -3 0 4ZM0 4C9 -1 8 -15 4 -21C4 -9 2 -3 0 4Z"/><path class="sepal-vein" d="M-3 -13q0 9 3 15M3 -13q0 9 -3 15"/></g><ellipse class="lily-water-contact" cx="0" cy="' + f1(waterY + 1) + '" rx="12" ry="1.5"/></g>';
+        reflections += '<path class="flower-reflection" d="M' + f1(fx) + ' ' + f1(py + 8) + 'm-11 0h19m-15 3h13m-19 3h26m-21 4h15m-16 4h17m-11 3h8"/>';
       }
+
     }
     // Foreground rushes have tapered blades, a lighter rib, and brown seed heads.
     for (var x = 60; x < width; x += 220 + r() * 390) {
@@ -1285,88 +1300,168 @@
     "</g>";
   };
 
-  // 4. Education: three stone steles along a rising path — Davis, Georgetown, Lehigh.
+  // Campus keepsakes on three stone terraces: a record of learning, open to the landscape.
   S.education = function () {
-    var y = GY;
-    function stele(x, base, deg, school, emblem) {
-      return '<g class="stele" transform="translate(' + x + " " + base + ')">' + emblem +
-        '<path class="stone" d="M-40 0V-78Q-40 -100 0 -102Q40 -100 40 -78V0Z"/>' +
-        surface("M-39 -1V-78Q-39 -99 0 -101Q39 -99 39 -78V-1Z", "stone") +
-        '<path class="object-shade" d="M28 -94Q40 -90 40 -78V0H30V-76Q30 -88 28 -94Z"/>' +
-        '<path class="stone-joint" d="M-30 -94l2 7 -3 5 3 6M34 -18l-5 3 -3 8M-34 -7l10 -1"/>' +
-        '<path class="object-edge" d="M-37 -78Q-37 -96 -3 -99"/>' +
-        '<text class="stele-deg" x="0" y="-62" text-anchor="middle">' + deg + '</text>' +
-        '<text class="stele-school" x="0" y="-40" text-anchor="middle">' + school + '</text>' +
-        '<path class="stele-base" d="M-48 0V-8H48V0Z"/></g>';
+    // Staggered, weathered blocks follow the wall silhouette, including the curved apse.
+    function ashlar(d, left, top, width, height, seed, rounded) {
+      var r = rng(seed), out = '', y = top, row = 0, clip = 'campusStone' + seed;
+      function lift(x) { return rounded ? -4 * (1 - Math.pow((x - left - width / 2) / (width / 2), 2)) : 0; }
+      function edge(x1, x2, yy) { return 'M' + f1(x1) + ' ' + f1(yy + lift(x1)) + 'Q' + f1((x1 + x2) / 2) + ' ' + f1(yy + lift((x1 + x2) / 2)) + ' ' + f1(x2) + ' ' + f1(yy + lift(x2)); }
+      while (y < top + height) {
+        var h = 5.3 + r() * 2.4, x = left - (row++ % 2 ? 9 : 2);
+        while (x < left + width) {
+          var w = 10 + r() * 14, end = Math.min(left + width + 1, x + w), next = y + h;
+          var tile = edge(x + .4, end - .4, y + .4) + 'L' + f1(end - .4) + ' ' + f1(next - .4 + lift(end - .4)) + 'Q' + f1((x + end) / 2) + ' ' + f1(next - .4 + lift((x + end) / 2)) + ' ' + f1(x + .4) + ' ' + f1(next - .4 + lift(x + .4)) + 'Z';
+          out += '<path class="campus-block-' + (r() > .48 ? 'light' : 'dark') + '" opacity="' + f1(.1 + r() * .15) + '" d="' + tile + '"/>' +
+            '<path class="campus-mortar" d="' + edge(x, end, next) + 'M' + f1(end) + ' ' + f1(y + lift(end)) + 'v' + f1(h) + '"/>' +
+            '<path class="campus-stone-edge" d="' + edge(x + 1, end - 1, next - .7) + '"/>';
+          if (r() > .65) out += '<ellipse class="campus-pitting" cx="' + f1(x + w * .45) + '" cy="' + f1(y + h * .5 + lift(x + w * .45)) + '" rx="' + f1(.4 + r() * .6) + '" ry=".3"/>';
+          x = end;
+        }
+        y += h;
+      }
+      return '<defs><clipPath id="' + clip + '"><path d="' + d + '"/></clipPath></defs><g class="campus-ashlar" clip-path="url(#' + clip + ')">' + out + '</g>';
     }
-    var bike = '<g class="emblem" transform="translate(-84 -4)"><circle cx="-14" cy="-14" r="12"/><circle cx="18" cy="-14" r="12"/><path d="M-14 -14L-2 -34H14L18 -14M-2 -34L4 -14H-14M14 -34L10 -42H4M-4 -38H4"/></g>';
-    var tower = '<g class="emblem" transform="translate(-78 0)"><path d="M-12 0V-60H12V0ZM-16 -60H16L0 -96Z"/><circle cx="0" cy="-44" r="6"/><path d="M0 -44V-48M0 -44H3"/></g>';
-    var mountain = '<g class="emblem" transform="translate(-84 0)"><path d="M-44 0L-8 -70L10 -44L22 -58L50 0Z"/><path d="M-8 -70V-96L10 -90L-8 -84"/></g>';
-    var stones = "";
-    [[-170, 3], [-120, 1], [-50, -4], [20, -9], [110, -16], [160, -20]].forEach(function (s) { stones += '<ellipse cx="' + s[0] + '" cy="' + (y + s[1] + 2) + '" rx="18" ry="5"/>'; });
-    return '<g class="st st-education" data-station="education">' +
-      '<rect class="hit" x="-330" y="380" width="660" height="182"/>' +
-      gshadow(-200, 52) +
-      '<path class="hill" d="M-330 ' + y + 'C-200 ' + y + ' -120 552 0 546C120 540 200 528 330 526V' + (y + 30) + 'H-330Z"/>' +
-      '<g class="stepping">' + stones + "</g>" +
-      stele(-200, y, "B.S.", "UC Davis", bike) +
-      stele(40, 546, "M.S.", "Georgetown", tower) +
-      stele(270, 527, "Ph.D.", "Lehigh", mountain) +
-      '<path class="sign-post" d="M-360 392V' + y + 'M-360 392H-190"/>' +
-      sign(-270, 420, "EDUCATION", 150) +
-    '</g>';
+    function terrace(x, top) {
+      var bottom = GY + 3;
+      return '<g class="campus-terrace" transform="translate(' + x + ' 0)">' +
+        '<ellipse class="campus-contact" cx="5" cy="' + bottom + '" rx="107" ry="5"/>' +
+        '<path class="campus-riser" d="M-100 ' + top + 'H94V' + bottom + 'H-100Z"/>' +
+        surface(box(-99, top + 1, 192, bottom - top - 1), "stone") +
+        '<path class="campus-side" d="M94 ' + top + 'l9 -7V' + (bottom - 5) + 'L94 ' + bottom + 'Z"/>' +
+        '<path class="campus-top" d="M-100 ' + top + 'l10 -7H103L94 ' + top + 'Z"/>' +
+        surface('M-98 ' + (top - .5) + 'l9 -5.5H100L93 ' + (top - .5) + 'Z', "stone") +
+        '<path class="campus-bevel" d="M-98 ' + (top + 1) + 'H92M-87 ' + (top - 5) + 'H99"/>' +
+        '<path class="campus-joints" d="M-32 ' + (top + 3) + 'V' + (bottom - 2) + 'M40 ' + (top + 3) + 'V' + (bottom - 2) + 'M-94 ' + (bottom - 2) + 'h26M58 ' + (top + 3) + 'l5 1 6 -1"/>' +
+        (bottom - top > 18 ? '<path class="campus-step" d="M-100 ' + (top + 14) + 'H94"/>' : '') + '</g>';
+    }
+    function keepsake(x, base, id, degree, school, color, motif) {
+      var flagLift = 0;
+      return terrace(x, base) + '<g class="campus-keepsake" data-school="' + id + '" transform="translate(' + x + ' ' + base + ')"><title>' + esc(school) + '</title>' + motif +
+        '<g class="campus-pennant" style="--campus-color:' + color + '"><path class="campus-pole" d="M-76 -30V' + (-120 + flagLift) + '"/><g class="campus-flag-top" transform="translate(0 ' + flagLift + ')"><path class="campus-flag" d="M-75 -117Q-57 -124 -36 -115L-44 -105Q-58 -110 -75 -104Z"/>' +
+        surface('M-74 -116Q-57 -122 -37 -114L-44 -106Q-58 -109 -74 -105Z', "cloth") +
+        '<path class="campus-flag-fold" d="M-72 -115q11 -4 22 0M-52 -115l-2 7"/><circle class="campus-finial" cx="-76" cy="-122" r="2"/>' + (id === 'bs' ? '<path class="davis-flag-gold" d="M-69 -112q12 -3 23 1"/><text class="davis-flag-monogram" x="-63" y="-107">UC</text>' : '') + '</g></g>' +
+        '<path class="campus-plaque-side" d="M-84 -28H84V-4H-84Z"/>' +
+        '<path class="campus-plaque" d="M-82 -30H82V-7H-82Z"/>' + surface('M-81 -29H81V-8H-81Z', "wood") +
+        '<path class="campus-plaque-edge" d="M-80 -28H80M-80 -9H80"/>' +
+        '<text class="campus-degree" x="-70" y="-14">' + degree + '</text><text class="campus-school" x="-25" y="-14">' + esc(school) + '</text>' +
+        '<circle class="campus-pin" cx="-77" cy="-25" r="1.2"/><circle class="campus-pin" cx="77" cy="-25" r="1.2"/>' +
+        (id === 'phd' ? '<text class="campus-progress" x="5" y="-34" text-anchor="middle">in progress</text>' : '') + '</g>';
+    }
+    var davis = '<g class="campus-davis"><path class="water-support" d="M27 -119L17 -31M66 -119L76 -31M25 -98H68M22 -68H72M25 -99L72 -69M68 -99L22 -69M22 -68L76 -32M72 -68L18 -32"/>' +
+      '<path class="water-tank" d="M22 -147Q46 -154 71 -147V-121Q46 -114 22 -121Z"/>' + surface('M23 -146Q46 -152 70 -146V-122Q46 -116 23 -122Z', 'paint') +
+      '<ellipse class="water-tank-top" cx="46.5" cy="-147" rx="24.5" ry="5"/><path class="water-tank-seam" d="M24 -123q22 6 45 0M26 -145v20M65 -145v20"/><text class="water-tank-label" x="46" y="-132" text-anchor="middle">UC DAVIS</text>' +
+      '<path class="water-tank-shade" d="M59 -149Q68 -148 71 -147V-121Q66 -118 57 -118Q61 -132 59 -149Z"/><path class="water-tank-highlight" d="M28 -141v14M31 -147q11 -3 18 -2"/>' +
+      '<path class="water-support" d="M14 -30h10M69 -30h10M28 -119v-2M30 -119h34"/><path class="water-support-glint" d="M26 -115L18 -34M65 -115l9 78M26 -97h40M23 -67h45"/>' +
+      [30,40,51,62].map(function(x){return '<circle class="water-tank-rivet" cx="'+x+'" cy="'+f1(-122+Math.sin((x-22)/49*Math.PI)*3)+'" r=".7"/>';}).join('') +
+      '<path class="water-paint-wear" d="M24 -145l2 -.5M25 -123l4 1M67 -128v3M34 -145l2 -.3"/>' +
+      '<g class="campus-bike"><circle class="bike-tire" cx="-43" cy="-46" r="17"/><circle class="bike-tire" cx="7" cy="-46" r="17"/><circle class="bike-rim" cx="-43" cy="-46" r="14"/><circle class="bike-rim" cx="7" cy="-46" r="14"/>' +
+      '<path class="bike-spokes" d="M-57 -46h28M-43 -60v28M-53 -56l20 20M-53 -36l20 -20M-7 -46h28M7 -60v28M-3 -56l20 20M-3 -36l20 -20"/><path class="bike-frame" d="M-43 -46L-28 -72L-17 -46H-43M-28 -72H-3L-17 -46M-3 -72L7 -46M-3 -72L-6 -80L2 -83"/><path class="bike-seat" d="M-33 -77H-22M-28 -76v5"/><circle class="bike-hub" cx="-17" cy="-46" r="3"/><path class="bike-chain" d="M-17 -43h-26M-17 -46l5 5h4M-17 -46l-5 -6h-5"/><path class="bike-cable" d="M-6 -80q12 2 7 24M-3 -74l-7 26"/><path class="bike-basket" d="M-4 -78H14L12 -65H0Z"/><path class="bike-basket-weave" d="M0 -75h11M1 -71h10M3 -77v11M7 -77v11M11 -77v11"/><path class="bike-fender" d="M-57 -53q11 -17 26 -2M-7 -52q9 -13 22 -1"/></g></g>';
+    var georgetown = '<g class="campus-georgetown"><path class="campus-masonry" d="M-63 -99L-52 -113H-12V-31H-63ZM-12 -133L-7 -139H22L28 -133V-31H-12ZM28 -100L39 -110H64L73 -99V-31H28Z"/>' +
+      surface('M-62 -98L-51 -112H-13V-32H-62ZM-11 -132L-6 -138H21L27 -132V-32H-11ZM29 -99L40 -109H63L72 -98V-32H29Z', 'stone') +
+      ashlar('M-63 -99L-52 -113H-12V-31H-63ZM-12 -133L-7 -139H22L28 -133V-31H-12ZM28 -100L39 -110H64L73 -99V-31H28Z',-63,-139,136,108,271,false) +
+      '<path class="campus-roof" d="M-66 -99L-52 -117H-12L-12 -108H-49L-61 -96ZM-15 -135L8 -170L31 -135ZM27 -100L39 -115H65L76 -100Z"/><path class="campus-roof-line" d="M8 -170v-10M-1 -146h17M-64 -97H-15M31 -97H73"/>' +
+      '<path class="campus-eaves-shadow" d="M-62 -98H-12v4H-61ZM-12 -135H28v5H-12ZM29 -100H73v4H29Z"/><path class="campus-cornice" d="M-61 -93H-14M-10 -130H26M31 -95H71M-60 -40H-14M30 -40H71"/>' +
+      '<path class="campus-masonry-shade" d="M17 -137H27V-31H17ZM64 -109L73 -99V-31H64Z"/>' +
+      '<circle class="campus-clock-rim" cx="7" cy="-118" r="10"/><circle class="campus-clock" cx="7" cy="-118" r="7.5"/><path class="campus-clock-hands" d="M7 -123v5l4 2M7 -125v1M7 -112v1M0 -118h1M13 -118h1"/>' +
+      [-49,-29,43,60].map(function(x){return '<path class="campus-window" d="M'+x+' -51v-17q0 -7 5 -7q5 0 5 7v17Z"/><path class="campus-window-light" d="M'+(x+4)+' -71v17"/>';}).join('') +
+      '<path class="campus-slate" d="M-15 -135L8 -170L31 -135ZM-66 -99L-52 -117H-12V-108H-49L-61 -96ZM27 -100L39 -115H65L76 -100Z"/><path class="campus-roof-line" d="M8 -166L-5 -136M10 -164L23 -136"/>' +
+      '<path class="campus-turret" d="M-51 -101V-117H-36V-101ZM45 -101V-117H60V-101Z"/><path class="campus-roof" d="M-54 -117L-44 -138L-33 -117ZM42 -117L52 -138L63 -117Z"/><path class="campus-belfry" d="M-3 -134v-6q3 -5 6 0v6ZM12 -134v-6q3 -5 6 0v6Z"/><path class="campus-course" d="M-47 -107h7M49 -107h7M-60 -91h14m5 0h25M32 -91h16m5 0h16M-60 -83h8m5 0h12m5 0h15M32 -83h10m5 0h12m5 0h7M-55 -88v7M-30 -86v5M38 -88v7M59 -87v5"/>' +
+      '<path class="campus-roof-shade" d="M8 -170L31 -135H8ZM-44 -138L-33 -117H-43ZM52 -138L63 -117H53Z"/><path class="campus-roof-glint" d="M7 -167L-13 -136M-44 -135L-52 -118M52 -135L44 -118M-62 -98H-51M34 -101H49"/>' +
+      [-49,-29,43,60].map(function(x){return '<path class="campus-arch-trim" d="M'+(x-2)+' -50v-18q0 -10 7 -10q7 0 7 10v18M'+(x-1)+' -71l2 1M'+(x+11)+' -71l-2 1"/>';}).join('') +
+      [-49,-29,43,60].map(function(x){return '<path class="campus-window-reveal" d="M'+x+' -52v-16q0 -7 5 -7"/><path class="campus-glass-sheen" d="M'+(x+2)+' -68q0 -4 3 -4v7l-3 6Z"/><path class="campus-window-light" d="M'+(x+1)+' -63h8"/><path class="campus-window-sill" d="M'+(x-3)+' -51h16v2h-16Z"/>';}).join('') +
+      '<path class="campus-door" d="M-2 -31V-63Q7 -78 16 -63V-31Z"/><path class="campus-door-line" d="M7 -64v31M-2 -46h18"/><path class="campus-course" d="M-60 -87H-14M-60 -80H-14M30 -87H70M30 -80H70M-10 -102H26M-10 -96H26M-10 -89H26M-60 -38H-15M31 -38H70"/></g>';
+    var lehigh = '<g class="campus-lehigh"><path class="campus-masonry campus-sandstone" d="M-65 -108L-57 -119H-47L-29 -140L-9 -119H11V-31H-65Z"/>' +
+      surface('M-64 -107L-56 -118H-47L-29 -139L-9 -118H10V-32H-64Z', 'stone') +
+      ashlar('M-65 -108L-57 -119H-47L-29 -140L-9 -119H11V-31H-65Z',-65,-140,76,109,329,false) +
+      '<path class="campus-roof" d="M-70 -108L-58 -123H-49L-29 -146L-6 -123H14V-116H-10L-29 -138L-46 -116H-54L-65 -104Z"/><path class="campus-slate" d="M-70 -108L-58 -123H-49L-29 -146L-6 -123H14V-116H-10L-29 -138L-46 -116H-54L-65 -104Z"/>' +
+      '<path class="campus-eaves-shadow" d="M-64 -105L-53 -115H-46L-29 -137L-10 -115H10v4H-9L-29 -132L-43 -111H-52L-63 -101Z"/><path class="campus-cornice" d="M-62 -101L-51 -110H-43M-27 -132L-9 -111H8"/>' +
+      '<path class="campus-apse campus-sandstone" d="M9 -108Q39 -122 68 -108V-35Q40 -25 9 -35Z"/>' + surface('M10 -107Q39 -120 67 -107V-36Q40 -27 10 -36Z','stone') +
+      ashlar('M9 -108Q39 -122 68 -108V-35Q40 -25 9 -35Z',9,-116,59,86,410,true) +
+      '<path class="campus-apse-shade" d="M55 -113Q65 -112 68 -108V-35L55 -32Z"/>' +
+      '<path class="campus-roof" d="M4 -108L40 -154L75 -108Q41 -97 4 -108Z"/><path class="campus-slate" d="M4 -108L40 -154L75 -108Q41 -97 4 -108Z"/><path class="campus-roof-line" d="M40 -154V-164M40 -150L23 -108M42 -149L59 -108M10 -107Q41 -99 69 -107"/>' +
+      '<path class="campus-roof-shade" d="M40 -154L75 -108Q58 -102 41 -102Z"/><path class="campus-roof-glint" d="M39 -150L8 -109M8 -108Q38 -100 59 -105"/><path class="campus-eaves-shadow" d="M9 -107Q39 -97 68 -106v4Q39 -92 9 -103Z"/>' +
+      '<path class="campus-arch-trim" d="M-45 -32V-76Q-45 -92 -29 -92Q-13 -92 -13 -76V-32M-48 -79Q-45 -100 -29 -100Q-13 -100 -10 -79"/><path class="campus-door" d="M-42 -32V-75Q-42 -89 -29 -89Q-16 -89 -16 -75V-32Z"/><path class="campus-door-line" d="M-29 -86v53M-42 -61h26M-39 -74h20M-39 -48h20"/>' +
+      '<circle class="campus-rose-frame" cx="-29" cy="-118" r="9"/><circle class="campus-rose-window" cx="-29" cy="-118" r="6.5"/><path class="campus-rose-lines" d="M-29 -124v12M-35 -118h12M-33 -122l8 8M-33 -114l8 -8"/>' +
+      [17,35,53].map(function(x,i){return '<path class="campus-arch-trim" d="M'+(x-2)+' -42v-40q0 -13 7 -15q7 2 7 15v40"/><path class="campus-window" d="M'+x+' -43v-39q0 -11 5 -12q5 1 5 12v39Z"/><path class="campus-window-light" d="M'+(x+5)+' -88v42M'+(x+1)+' -72h8M'+(x+1)+' -59h8"/>';}).join('') +
+      [17,35,53].map(function(x){return '<path class="campus-window-reveal" d="M'+x+' -45v-37q0 -10 5 -12"/><path class="campus-glass-sheen" d="M'+(x+2)+' -82q0 -7 3 -8v17l-3 7Z"/><path class="campus-window-sill" d="M'+(x-2)+' -42h14v2h-14Z"/>';}).join('') +
+      '<path class="campus-apse-courses" d="M11 -102Q40 -110 66 -102M11 -96Q40 -104 66 -96M11 -40Q40 -32 66 -40M11 -35Q40 -28 66 -35"/><path class="campus-course" d="M-62 -106h12M-10 -106h17M-62 -101h13M-9 -101h17M-63 -39h16M-12 -39H8M-58 -104v5M-3 -104v5M11 -96v6M29 -102v7M49 -103v7M65 -98v7M-63 -54h14M-9 -54H8"/>' +
+      '<path class="campus-library-steps" d="M-49 -31v-4H-9v4M-44 -35v-3H-14v3"/><path class="campus-door-handle" d="M-33 -50v6M-25 -50v6"/></g>';
+    return '<g class="st st-education" data-station="education"><rect class="hit" x="-330" y="345" width="710" height="219"/>' +
+      keepsake(-200,551,'bs','B.S.','UC Davis','#344858',davis) +
+      keepsake(40,540,'ms','M.S.','Georgetown','#3b4657',georgetown) +
+      keepsake(270,529,'phd','Ph.D.','Lehigh','#79533a',lehigh) +
+      '<path class="sign-post" d="M-360 322V560M-360 322H-190"/><path class="bark-line" d="M-361 548V335M-359 484l1 -20M-359 406l1 -22M-353 321h54"/>' + sign(-270,352,'EDUCATION',150) + '</g>';
   };
 
-  // 5. Tutorials: the typewriter from the old tutorials page, with paper slips.
-  S.tutorials = function (tutorials) {
-    var y = GY, keys = "";
-    var keyLabels = ["QWERTYUIO", "ASDFGHJK", "ZXCVBNM"];
-    for (var row = 0; row < 3; row++) for (var k = 0; k < 9 - row; k++) {
-      var kx = -80 + row * 10 + k * 20, ky = [486, 500, 513][row];
-      keys += '<g class="tw-key"><circle class="key-rim" cx="' + kx + '" cy="' + (ky + 1.5) + '" r="6.7"/><circle class="key-face" cx="' + kx + '" cy="' + ky + '" r="5.7"/><path class="key-glint" d="M' + (kx - 3.5) + ' ' + (ky - 2) + 'q3 -3 6 0"/><text class="key-letter" x="' + kx + '" y="' + (ky + 1.8) + '" text-anchor="middle">' + keyLabels[row][k] + '</text></g>';
+  var SCREEN_PLANTS = ['plum', 'orchid', 'bamboo', 'chrysanthemum'];
+  function silkPainting(x, i) {
+    var ink = '';
+    function flower(cx,cy,r,kind) {
+      var petals = '', n = kind === 'chrysanthemum' ? 18 : kind === 'plum' ? 5 : 5;
+      for (var k = 0; k < n; k++) petals += '<path class="screen-petal ' + kind + '-petal" transform="rotate(' + (k * 360/n + (kind === 'plum' ? 12 : 0)) + ')" d="' + (kind === 'chrysanthemum' ? 'M-.6 -1Q-3 -5 -1 -10Q2 -11 2 -7L1 -1Z' : kind === 'orchid' ? 'M0 0Q-3 -5 0 -9Q3 -4 0 0Z' : 'M0 0C-5 -2 -4 -7 0 -6C4 -7 5 -2 0 0Z') + '"/>';
+      return '<g transform="translate(' + cx + ' ' + cy + ') scale(' + r + ')">' + petals + '<circle class="screen-flower-heart" r="1.2"/><path class="screen-stamens" d="M-1 0l-1 -2M0 -.7V-3M1 0l1 -2"/></g>';
     }
-    var slips = "", pos = [[-150, 300, -12], [-60, 262, -4], [50, 268, 6], [150, 306, 13]];
+    if (i === 0) {
+      ink = '<path class="screen-plum-branch" d="M-18 32C-13 21 -12 11 -7 -2Q-2 -16 16 -28M-10 10Q-20 2 -23 -18M-5 -6Q8 -5 18 -15M-10 16l14 6"/><path class="screen-bark-edge" d="M-17 30q5 -12 7 -18M-8 0Q-2 -13 13 -25M-21 -10l2 6M1 -12l4 -4"/>' +
+        [[-21,-16,.63],[-13,-4,.8],[-7,-1,.68],[4,-14,.75],[15,-26,.7],[16,-13,.64],[-5,18,.65]].map(function(p){return flower(p[0],p[1],p[2],'plum');}).join('') +
+        '<path class="screen-bud-stalk" d="M-19 -12l-6 -7M8 -20l5 1M9 20l4 -4"/><circle class="plum-bud" cx="-25" cy="-20" r="1.8"/><circle class="plum-bud" cx="14" cy="-19" r="1.5"/><circle class="plum-bud" cx="13" cy="16" r="1.6"/>';
+    } else if (i === 1) {
+      ink = '<path class="screen-orchid-leaf" d="M0 31C-11 15 -18 -9 -22 -25C-18 -7 -8 12 3 29ZM0 31C-4 11 0 -12 10 -29C4 -9 -1 11 3 30ZM1 31C7 7 19 -6 25 -5C15 0 9 15 4 31ZM0 30C-15 15 -24 11 -27 17C-18 14 -9 22 0 33ZM4 31C14 15 20 9 25 16C19 13 14 23 6 32Z"/>' +
+        '<path class="screen-leaf-vein" d="M-1 28Q-12 8 -20 -20M2 28Q-2 -1 8 -24M4 29Q11 9 22 -3M-22 16l15 9"/><path class="screen-fine-stem" d="M1 29Q-14 11 -11 -8M3 28Q17 10 14 -16"/>' + flower(-11,-9,.65,'orchid') + flower(14,-17,.72,'orchid') +
+        '<path class="screen-orchid-lip" d="M-12 -8q-4 5 1 6q4 -2 1 -6M13 -16q-4 5 1 6q4 -2 1 -6"/>';
+    } else if (i === 2) {
+      ink = '<path class="screen-bamboo-culm" d="M-15 32L-12 -30H-9L-12 32ZM-2 32L2 -25H4L0 32ZM12 32L14 -17H16L15 32Z"/><path class="screen-bamboo-nodes" d="M-15 21h4M-14 7h4M-13 -8h4M-12 -23h4M-1 19h4M0 4h4M1 -11h4M13 21h4M13 7h4M14 -8h4"/><path class="screen-bamboo-light" d="M-13 29l.5 -7M-12 19l.5 -10M-11 5l.5 -10M-10 -11l.5 -10M1 18l.5 -12M2 2l.5 -11"/>';
+      [[-11,-19,-18],[-12,4,15],[3,-10,-8],[14,7,22]].forEach(function(p){
+        ink += '<g transform="translate(' + p[0] + ' ' + p[1] + ') rotate(' + p[2] + ')"><path class="screen-fine-stem" d="M0 0Q7 -4 15 -3M0 0Q-6 -5 -13 -4"/><path class="screen-bamboo-leaf" d="M2 -1Q4 -10 8 -12Q8 -6 2 -1ZM5 -2Q14 -9 20 -7Q15 -4 5 -2ZM8 -3Q15 0 16 7Q11 4 8 -3ZM-1 -1Q-7 -11 -11 -11Q-9 -4 -1 -1ZM-5 -3Q-15 -8 -19 -5Q-12 -3 -5 -3Z"/></g>';
+      });
+    } else {
+      ink = '<path class="screen-fine-stem" d="M-7 31Q-3 10 6 -11M-3 18Q-11 14 -14 3"/><path class="screen-chrys-leaf" d="M-3 18l-8 -3 -1 -4 -5 1 -4 -5 -2 6 -4 2 5 3 1 5 6 -2 5 3ZM1 9l7 -3 2 -4 4 1 4 -4 1 5 4 2 -5 3 -2 5 -5 -3 -7 2Z"/><path class="screen-leaf-vein" d="M-4 19l-19 -9M2 10l17 -8M-13 15l-3 4M9 7l4 4"/>' + flower(6,-15,1.12,'chrysanthemum') + flower(-14,1,.63,'chrysanthemum') +
+        '<path class="screen-bud-stalk" d="M-3 12Q-1 0 -3 -4"/><ellipse class="chrys-bud" cx="-3" cy="-5" rx="2.4" ry="3.6"/><path class="screen-stamens" d="M-5 -4l2 -3 2 3"/>';
+    }
+    return '<g class="screen-painting" data-screen-plant="' + SCREEN_PLANTS[i] + '" transform="translate(' + (x + 37) + ' 444)"><title>' + ['Plum blossoms','Orchids','Bamboo','Chrysanthemums'][i] + ' on silk</title><g class="screen-pigment" clip-path="url(#gSilkPaintingClip)">' + ink + '</g><path class="screen-ground-wash" d="M-25 32Q-9 29 9 33Q20 30 26 34H-25Z"/></g>';
+  }
+
+  // Writing: folded paper keepsakes and clickable tutorial scrolls share the writing desk.
+  var PAPER_SPOTS = [[-90,308],[-34,290],[24,315],[82,294],[142,317],[200,284]];
+  S.writing = function (tutorials) {
+    var y = GY, cranes = "", scrolls = "";
+    PAPER_SPOTS.forEach(function (p, i) {
+      if (i % 2) {
+        var star = 'M0 -22Q4 -17 6 -8Q14 -8 21 -6Q16 2 11 5Q14 12 13 20Q5 17 0 13Q-6 17 -13 20Q-14 12 -11 5Q-17 0 -21 -6Q-14 -8 -6 -8Q-4 -17 0 -22Z';
+        cranes += '<g class="paper-ornament paper-star" data-ornament="' + i + '" transform="translate(' + p[0] + ' ' + p[1] + ')" style="--star-tint:' + ['var(--w-gold)','var(--w-accent-soft)','var(--w-jade)'][(i - 1) / 2] + '"><title>Folded paper star — touch for a little turn</title>' +
+          '<path class="crane-thread" d="M0 ' + (242 - p[1]) + 'V-22"/><circle class="crane-knot" cx="0" cy="-22" r="1.2"/>' +
+          '<g class="star-bob" style="animation-delay:' + (i * -.9) + 's"><path class="paper-star-body" d="' + star + '"/><path class="crane-grain" d="' + star + '"/><path class="star-tint" d="' + star + '"/>' +
+          '<path class="star-fold-shade" d="M0 -22L-1 -1L6 -8ZM21 -6L-1 -1L11 5ZM13 20L-1 -1L0 13Z"/><path class="star-fold-light" d="M-21 -6L-1 -1L-6 -8ZM-13 20L-1 -1L-11 5Z"/>' +
+          '<path class="star-fold-lines" d="M0 -19L-1 -1L19 -6M-1 -1L12 18M-1 -1L-12 18M-1 -1L-19 -6"/><path class="star-soft-edge" d="M-2 -17L-6 -8L-18 -6M-11 6L-12 16"/>' +
+          '<path class="star-glimmer" d="M-27 -18v6M-30 -15h6M25 13v6M22 16h6"/></g></g>';
+        return;
+      }
+      var body = 'M-17 3L-4 -6L10 -3L19 -17L22 -14L15 0L5 10L-9 8Z';
+      cranes += '<g class="paper-ornament crane" data-ornament="' + i + '" transform="translate(' + p[0] + ' ' + p[1] + ')" style="--crane-tint:' + ['var(--w-jade)','var(--w-accent-soft)','var(--w-gold)'][i % 3] + '"><title>Paper crane — touch to stir its wings</title>' +
+        '<path class="crane-thread" d="M0 ' + (242 - p[1]) + 'V-10"/><circle class="crane-knot" cx="0" cy="-10" r="1.3"/>' +
+        '<g class="crane-bob" style="animation-delay:' + (i * -.7) + 's"><path class="crane-tail" d="M-9 3L-31 -4L-16 10Z"/><path class="crane-far-wing" d="M-8 1L-23 -19L9 -4Z"/>' +
+        '<path class="crane-body" d="' + body + '"/><path class="crane-grain" d="' + body + '"/><path class="crane-belly" d="M-9 8L5 10L15 0L6 -1L-1 5Z"/>' +
+        '<g class="crane-near-wing"><path class="crane-wing" d="M-5 5L-7 -27L11 -3Z"/><path class="crane-wing-shade" d="M-7 -27L11 -3L-1 1Z"/><path class="crane-crease" d="M-6 -23L-3 1L9 -3"/><path class="crane-edge" d="M-6 -25L-4 0"/></g>' +
+        '<path class="crane-neck" d="M10 -3L19 -17L22 -14L28 -13L23 -10L19 -11L15 0Z"/><path class="crane-fold" d="M-16 3L-6 5L5 10M-4 -6L6 -1L15 0M13 -3L20 -13M-29 -4L-17 5"/><path class="crane-edge" d="M-15 2L-4 -5M20 -16l2 3 5 1"/></g></g>';
+    });
     tutorials.forEach(function (t, i) {
-      var p = pos[i % pos.length];
-      slips += '<g class="slip" data-tutorial="' + t.id + '" transform="translate(' + p[0] + " " + p[1] + ") rotate(" + p[2] + ')"><g class="slip-float" style="animation-delay:' + (i * -0.9) + 's">' +
-        '<rect x="-38" y="-18" width="76" height="36" rx="2"/><text x="0" y="6" text-anchor="middle">' + esc(t.label) + '</text></g><title>' + esc(t.title) + '</title></g>';
+      var cy = 446 + i * 26;
+      scrolls += '<g class="tutorial-scroll" data-tutorial="' + t.id + '" transform="translate(240 ' + cy + ') rotate(' + [1.3,-1.1,.7,-.9][i % 4] + ')"><title>' + esc(t.title) + '</title>' +
+        '<ellipse class="scroll-rest-shadow" cx="3" cy="11" rx="60" ry="3"/><path class="scroll-open-tail" d="M-42 5H42V23Q15 27 -40 23Z"/>' +
+        '<path class="scroll-brocade" d="M-53 -8Q-1 -12 53 -8V8Q-1 13 -53 8Z"/>' + surface('M-52 -7Q-1 -11 52 -7V7Q-1 12 -52 7Z','cloth') +
+        '<path class="tutorial-paper" d="M-39 -7Q1 -10 42 -7V7Q0 10 -39 7Z"/><path class="scroll-grain" d="M-38 -6Q1 -9 41 -6V6Q0 9 -38 6Z"/>' +
+        '<path class="scroll-wrap-shadow" d="M-52 5Q0 10 52 5V8Q0 13 -52 8Z"/><path class="scroll-paper-edge" d="M-38 -5Q1 -8 40 -5M-51 7Q0 12 51 7M-50 9Q0 14 50 9"/>' +
+        '<path class="scroll-brocade-motif" d="M-44 -3l-3 3 3 3 3 -3ZM46 -3l-3 3 3 3 3 -3Z"/><path class="scroll-roller" d="M-58 -10H-50V10H-58ZM50 -10H58V10H50Z"/><ellipse class="scroll-end" cx="-57" cy="0" rx="4" ry="10"/><ellipse class="scroll-end" cx="57" cy="0" rx="4" ry="10"/>' +
+        '<ellipse class="scroll-end-grain" cx="-57.5" cy="0" rx="2.3" ry="6.5"/><ellipse class="scroll-end-grain" cx="57" cy="0" rx="2.3" ry="6.5"/><path class="scroll-end-ring" d="M-58 -8q-4 8 0 16M56 -8q-4 8 0 16"/>' +
+        '<path class="scroll-tie-shadow" d="M-28 -9v19"/><path class="scroll-tie" d="M-30 -9v19M-30 -1q-10 -7 -8 -1q2 5 8 2q0 -10 6 -7q4 3 -5 7l5 6M-30 1l-6 7"/>' +
+        '<path class="scroll-ink-note" d="M-20 -1h4m-4 3h6"/><rect class="scroll-seal" x="32" y="1" width="3" height="4"/><text class="tutorial-scroll-label" x="8" y="4" text-anchor="middle">' + esc(t.label) + '</text></g>';
     });
-    var deskTools = '<g class="tutorial-tools"><path class="ink-bottle" d="M-160 520V511Q-160 508 -157 508H-151Q-148 508 -148 511V520Z"/><path class="ink-bottle-glint" d="M-158 513v5"/><path class="ink-cap" d="M-158 505h8v4h-8Z"/><path class="ribbon-tin" d="M143 513h19v6q-9 4 -19 0Z"/><ellipse class="ribbon-rim" cx="152.5" cy="513" rx="9.5" ry="3"/><path class="ribbon-label" d="M148 513h9"/></g>';
-
-    return '<g class="st st-tutorials" data-station="tutorials">' +
-      '<rect class="hit" x="-230" y="230" width="460" height="332"/>' +
-      gshadow(0, 182) +
-      // The same walnut joinery as the writing desk, with the landscape left open.
-      '<g class="tutorial-bench"><path class="desk-top" d="M-180 522L-170 516H170L180 522Z"/>' + surface("M-179 521L-170 517H170L179 521Z", "wood") +
-        '<path class="desk" d="M-180 522H180V534H-180ZM-164 534V560H-150V539H150V560H164V534Z"/>' + surface("M-179 523H179V533H-179ZM-163 535V559H-151V538H151V559H163V535Z", "wood") +
-        '<path class="object-edge" d="M-177 523H177"/><path class="object-shade" d="M-151 534H151v5H-151Z"/><path class="desk-joints" d="M-163 535h12v4h-12M151 535h12v4h-12"/><path class="bench-drawer" d="M-58 524H58V532H-58Z"/><circle class="bench-handle" cx="0" cy="528" r="1.6"/></g>' +
-      '<g class="sheet"><path d="M-62 440V344Q-62 340 -58 340H58Q62 340 62 344V440Z"/><text x="0" y="372" text-anchor="middle">Tutorials</text><path class="sheet-lines" pathLength="1" d="M-44 390H40M-44 402H30M-44 414H36"/></g>' +
-      '<path class="paper-fold" d="M50 341h10v10Z"/>' +
-      '<path class="tw-body" d="M-128 522V470Q-128 452 -110 448L-80 440H80L110 448Q128 452 128 470V522Z"/>' +
-      '<path class="tw-enamel" d="M-124 481h248v37h-248Z"/><path class="tw-side-shade" d="M104 452q20 5 20 20v47h-14v-49q0 -10 -6 -18Z"/>' +
-      '<path class="metal-highlight" d="M-120 468q1 -9 13 -12l25 -7M-117 513H110M92 452l17 5"/><path class="metal-wear" d="M-112 473l4 -2M105 495l7 -1M-96 518h6M114 464l-2 3"/>' +
-      '<path class="tw-arc" d="M-60 458Q0 420 60 458"/>' +
-      '<path class="tw-typebars" d="M-48 454l11 -6M-35 447l7 -5M-20 442l3 -5M0 440v-7M20 442l-3 -5M35 447l-7 -5M48 454l-11 -6"/>' +
-      '<g class="tw-keys">' + keys + "</g>" +
-      '<path class="tw-carriage" d="M-120 430H120V444H-120Z"/>' +
-      '<path class="tw-roller" d="M-116 435H116V440H-116Z"/><path class="tw-rail" d="M-119 431H118M-108 443H108"/><path class="tw-paper-guide" d="M-50 430v-8h5v8M45 430v-8h5v8"/>' +
-      '<circle class="tw-knob" cx="-128" cy="437" r="10"/><circle class="tw-knob" cx="128" cy="437" r="10"/>' +
-      '<path class="tw-knob-rings" d="M-132 430q-7 7 0 14M-128 429q-7 8 0 16M124 430q-7 7 0 14M128 429q-7 8 0 16"/><path class="tw-space" d="M-51 520H51"/><g class="tw-screws"><circle cx="-116" cy="476" r="1.8"/><circle cx="116" cy="476" r="1.8"/><path d="M-117 476h2M115 476h2"/></g>' +
-      '<path class="tw-lever" d="M-138 432L-170 410"/>' +
-      deskTools + slips +
-    '</g>';
-  };
-
-  // 6. Writing: a low desk with scroll, ink stone and brushes; paper cranes are the GPTs.
-  S.writing = function (gpts) {
-    var y = GY, cranes = "";
-    gpts.forEach(function (g, i) {
-      var x = -150 + i * 60, cy = 300 + (i % 2) * 26;
-      cranes += '<g class="crane" data-gpt="' + i + '" transform="translate(' + x + " " + cy + ')"><path class="crane-thread" d="M0 ' + (-(cy - 250)) + 'V-8"/>' +
-        '<g class="crane-bob" style="animation-delay:' + (i * -0.7) + 's"><path class="crane-body" d="M-16 4L0 -8L16 4L4 2L0 10L-4 2Z"/><path class="crane-wing" d="M-2 -4L-14 -16L2 -2ZM2 -4L12 -18L4 -1Z"/></g><title>' + esc(g.name) + "</title></g>";
-    });
+    var rack = '<g class="scroll-rack"><path class="desk" d="M173 428H307V438H173ZM178 438H187V560H176ZM293 438H302L304 560H293Z"/>' + surface('M174 429H306V437H174ZM179 439H186V559H177ZM294 439H301L303 559H294Z','wood') +
+      [458,484,510,536].map(function(cy){return '<path class="scroll-shelf" d="M183 '+cy+'H297v5H183Z"/><path class="object-edge" d="M184 '+(cy+1)+'H296"/>';}).join('') +
+      '<path class="desk-joints" d="M178 438h9v5h-9M293 438h9v5h-9M187 542h106"/><text class="scroll-rack-label" x="240" y="422" text-anchor="middle">TUTORIALS</text>' + scrolls + '</g>';
     return '<g class="st st-writing" data-station="writing">' +
-      '<rect class="hit" x="-230" y="240" width="460" height="322"/>' +
+      '<rect class="hit" x="-245" y="240" width="565" height="322"/>' +
       gshadow(0, 170) +
       '<path class="sign-support" d="M-239 560L-235 248L-228 242L-223 248L-227 560Z"/>' + surface("M-238 559L-234 249L-230 246L-231 559Z", "wood") +
       '<path class="bark-line" d="M-234 550L-231 277M-233 482l2 -12M-232 350l2 -13"/>' +
@@ -1389,10 +1484,7 @@
           '<rect class="pf-panel" x="' + (x + 8) + '" y="409" width="58" height="70"/>' +
           surface(box(x + 9, 410, 56, 68), "cloth") + carving +
           '<path class="screen-hinge" d="M' + (x + 72) + ' 411v8m0 47v8"/>' +
-          '<path class="pf-land" d="M' + (x + 9) + ' 476Q' + (x + 20) + ' ' + (444 - i * 4) + ' ' + (x + 32) + ' 466Q' + (x + 45) + ' ' + (442 + i * 5) + ' ' + (x + 65) + ' 473V478H' + (x + 9) + 'Z"/>' +
-          '<path class="pf-ink" d="M' + (x + 12) + ' 476Q' + (x + 21) + ' ' + (450 - i * 4) + ' ' + (x + 32) + ' 468Q' + (x + 45) + ' ' + (446 + i * 5) + ' ' + (x + 63) + ' 473"/>' +
-          (i === 1 ? '<circle class="pf-sun" cx="' + (x + 52) + '" cy="425" r="5"/>' : "") +
-          (i === 2 ? '<path class="pf-ink" d="M' + (x + 12) + ' 425q6 -4 12 0M' + (x + 20) + ' 430q5 -3 9 0"/>' : "") +
+          silkPainting(x, i) +
           '<rect class="pf-seal" x="' + (x + 13) + '" y="416" width="3" height="5"/></g>';
       }).join("") + "</g>" +
       '<path class="desk-top" d="M-160 500L-151 494H151L160 500Z"/>' +
@@ -1410,11 +1502,11 @@
       '<g class="lamp" transform="translate(138 500)"><circle class="lamp-glow" cx="0" cy="-26" r="36"/><path d="M-10 0h20l-4 -8h-12z"/><path class="flame" d="M0 -26C-5 -18 -4 -12 0 -10C4 -12 5 -18 0 -26Z"/><path d="M-5 -8V-12H5V-8Z"/></g>' +
       '<ellipse class="cushion" cx="-60" cy="' + (y - 4) + '" rx="46" ry="9"/>' +
       '<ellipse class="material material-cloth" cx="-60" cy="' + (y - 4) + '" rx="45" ry="8"/>' +
-      '<path class="fabric-seam" d="M-101 557q43 11 81 0"/>' +
+      '<path class="fabric-seam" d="M-101 557q43 11 81 0"/>' + rack +
     '</g>';
   };
 
-  // 7. Life: suitcase (travel), stove and pot (cooking), a sleeping cat, and a film screen (movies).
+  // 6. Life: suitcase (travel), stove and pot (cooking), a sleeping cat, and a film screen (movies).
   S.life = function (catThumbs) {
     var y = GY;
     var slides = (catThumbs || []).map(function (src, i, all) {
@@ -1464,7 +1556,7 @@
     '</g>';
   };
 
-  // 8. Contact: a post box and a signpost; the path fades into mist.
+  // 7. Contact: a post box and a signpost; the path fades into mist.
   S.contact = function () {
     var y = GY;
     return '<g class="st st-contact" data-station="contact">' +
@@ -1542,7 +1634,7 @@
     GY: GY, VH: VH, rng: rng, defs: gradients,
     character: character, portrait: portrait, cat: cat, audienceFigure: audienceFigure,
     sky: skyLayer, far: farLayer, mid: midLayer, near: nearLayer,
-    ground: ground, foreground: foreground, stations: S,
+    ground: ground, foreground: foreground, stations: S, paperSpots: PAPER_SPOTS, screenPlants: SCREEN_PLANTS,
     usMap: usMap, foodWheel: foodWheel, mysteryCat: mysteryCat
   };
 })();

@@ -4,8 +4,10 @@ Personal site of Hanjing Shi, served by GitHub Pages. It has two versions, and v
 
 | Page | What it is |
 | --- | --- |
-| `index.html` | **Interactive version, "Welcome to my world."** A scrolling ink-wash world. Mini-Hanjing walks between places (Welcome, Research, Talks, Education, Tutorials, Writing, Life, Contact) with JinBingBing the cat and answers questions in a chat box. |
+| `index.html` | **Interactive version, "Welcome to my world."** A scrolling ink-wash world. Mini-Hanjing walks between places (Welcome, Research, Talks, Education, Writing, Life, Contact) with JinBingBing the cat and answers questions in a chat box. |
 | `basic.html` | **Basic version.** One plain text page in the original style (ink-wash background, paper overlay, Roboto Mono). It has no hobbies or personal section. |
+
+Tutorials and Blogs share the Writing section in both versions. The interactive desk keeps its writing animation, tutorial scrolls and hanging paper cranes and folded stars. Old `#tutorials` links still reach the tutorials.
 
 A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version. The old `about.html`, `tutorials.html` and `blog.html` redirect to the matching section of `basic.html`.
 
@@ -99,12 +101,17 @@ Each place has a red circle on the ground (at Writing it's the red cushion). Thi
 | Research | takes a book off the shelf and reads it |
 | Talks | points at the slides |
 | Education | tosses her graduation cap into the sky |
-| Tutorials | types on the typewriter |
-| Writing | turns around, sits on the cushion and writes |
+| Writing | turns around, sits on the cushion and writes; the scroll rack opens tutorials and paper cranes flutter and folded stars turn when touched |
 | Life | crouches down and pets XiaoHei |
 | Contact | posts a letter (the mailbox flag goes up) |
 
 The poses are CSS classes on `#char` (`act-*`, see `world.css`), driven by `ACTIONS` in `world.js`; the props (book, cap, letter, back view) are drawn in `character()` in `art.js`.
+
+Water lilies float close to the water and fold into fuller buds at night; a few stemmed lotus flowers keep a higher silhouette and close partway. The Writing screen has separate plum, orchid, bamboo and chrysanthemum paintings; touching a painting gives a small bilingual aside without changing the existing introductions.
+
+Education uses campus keepsakes on supported stone terraces: UC Davis's painted steel water tower and bicycle, Georgetown's gray masonry and clock tower, and Lehigh's warm stone library and rounded apse. Stone courses, recessed windows, slate roofs and night lighting use distinct materials; the flags remain clear of the raised Education sign.
+
+Screenshots of all seven scenes, both themes, Writing panels and the Basic Writing section are in [the visual review](reviews/material-v3/index.html).
 
 ## Preview locally
 

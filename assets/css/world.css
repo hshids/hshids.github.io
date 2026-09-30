@@ -40,6 +40,11 @@
   --w-stone: #d8cfbf; --w-stone-dark: #4a4540; --w-rock: #cdc3b1;
   --w-wood: #4a3a2e; --w-wood-2: #6b5443;
   --w-roof: #515348; --w-column: #9a4938;
+  --campus-granite-light: #cfcec3; --campus-granite: #aaa99c; --campus-granite-shade: #777e78;
+  --campus-sand-light: #c8a57c; --campus-sand: #a17b56; --campus-sand-shade: #705541;
+  --campus-slate-light: #777e7b; --campus-slate-shade: #3c4646;
+  --campus-glass-light: #8a9c96; --campus-glass-shade: #283c3b;
+  --campus-paint-light: #f2f0e5; --campus-paint: #d5d9cc; --campus-paint-shade: #87998f;
   --w-plaque: #2b2825; --w-plaque-text: #f3e9d6;
   --w-machine: #242221; --w-machine-2: #4a4541; --w-key: #efe8da;
   --w-dougong: #8e4a34; --w-accent: #b8322a; --w-accent-deep: #8a241d; --w-accent-soft: #e2b8ad; --w-jade: #5f8a78; --w-gold: #c9a24a; --w-pot: #7b6a5a;
@@ -82,6 +87,11 @@
   --w-stone: #2a323d; --w-stone-dark: #151a21; --w-rock: #1f2630;
   --w-wood: #2e2520; --w-wood-2: #3d3129;
   --w-roof: #0a0d11; --w-column: #8a3426;
+  --campus-granite-light: #697775; --campus-granite: #434f51; --campus-granite-shade: #222c34;
+  --campus-sand-light: #8a735b; --campus-sand: #5c4b3d; --campus-sand-shade: #302a28;
+  --campus-slate-light: #4d6064; --campus-slate-shade: #16232d;
+  --campus-glass-light: #ffdb9b; --campus-glass-shade: #9c692f;
+  --campus-paint-light: #a1b6b4; --campus-paint: #687f80; --campus-paint-shade: #354b56;
   --w-plaque: #0e1116; --w-plaque-text: #e8dcc2;
   --w-machine: #0b0e12; --w-machine-2: #39414c; --w-key: #2c333d;
   --w-dougong: #5c3326; --w-accent: #d4574a; --w-accent-deep: #9c392f; --w-accent-soft: #6b3c38; --w-jade: #4d7466; --w-gold: #b89040; --w-pot: #4a4036;
@@ -417,6 +427,28 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .petal-vein { fill: none; stroke: var(--w-petal-dark); stroke-width: .3; opacity: .55; }
 .lotus-calyx { fill: var(--w-jade); }
 .lotus-stamen { fill: none; stroke: var(--w-gold); stroke-width: .7; }
+.leaf-wax { fill: none; stroke: var(--w-water-line); stroke-width: .7; opacity: .28; }
+.leaf-patina { fill: var(--w-leaf-dark); opacity: .2; }
+.lily-petal-fan { transform: rotate(var(--bloom-angle)) scaleY(var(--petal-length)); transform-origin: 0 0; transition: transform 1.6s cubic-bezier(.4,0,.2,1); }
+[data-theme="dark"] .lily-petal-fan { transform: rotate(var(--bud-angle)) scaleY(.88) scaleX(.95); }
+.lily-tier-0 .lotus-petal { fill: var(--w-petal-dark); }
+.lily-tier-2 .lotus-petal { fill: var(--w-petal-light); }
+.petal-light-edge { fill: none; stroke: var(--w-petal-light); stroke-width: .5; opacity: .6; }
+.lily-water-shadow { fill: var(--w-leaf-dark); opacity: .2; transform-box: fill-box; transform-origin: center; transition: transform 1.6s; }
+[data-theme="dark"] .lily-water-shadow { transform: scaleX(.4); }
+.lily-heart { opacity: 1; transition: opacity .8s; }
+[data-theme="dark"] .lily-heart { opacity: 0; }
+.lily-pollen { fill: var(--w-gold); stroke: var(--w-petal-dark); stroke-width: .4; }
+.lily-pollen-tips { fill: none; stroke: var(--w-gold); stroke-width: 1; }
+.lily-sepals { transform: scaleY(.24); transform-origin: 0 3px; transition: transform 1.6s; }
+[data-theme="dark"] .lily-sepals { transform: scaleY(1); }
+[data-theme="dark"] .stem-lotus .lily-petal-fan { transform: rotate(calc(var(--bud-angle) * 1.6)) scaleY(.98) scaleX(.98); }
+[data-theme="dark"] .stem-lotus .lily-sepals { transform: scaleY(.6); }
+[data-theme="dark"] .stem-lotus .lily-heart { opacity: .2; }
+.sepal-vein { fill: none; stroke: var(--w-leaf-light); stroke-width: .4; }
+.lily-water-contact { fill: none; stroke: var(--w-water-line); stroke-width: .55; opacity: .45; }
+.flower-reflection { transform-box: fill-box; transform-origin: center; transition: transform 1.6s, opacity 1s; }
+[data-theme="dark"] .flower-reflection { transform: scaleX(.35); opacity: .18; }
 .ink-dots { fill: var(--w-edge); opacity: .4; }
 
 /* ---------- stations ---------- */
@@ -483,13 +515,82 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .wall-upper { fill: url(#gWall); stroke: var(--w-line); stroke-width: 1.6; }
 .ridge { fill: none; stroke: var(--w-line); stroke-width: 3; stroke-linecap: round; }
 
-.hill { fill: var(--w-hill); }
-.stepping ellipse { fill: var(--w-stone); stroke: var(--w-line); stroke-width: 1.2; }
-.stone { fill: url(#gStone); stroke: var(--w-line); stroke-width: 2; }
-.stele-deg { fill: var(--w-line); font-size: 19px; font-weight: 600; }
-.stele-school { fill: var(--w-line-soft); font-size: 11.5px; letter-spacing: .04em; font-family: var(--font-body) !important; }
-.stele-base { fill: var(--w-line); opacity: .55; }
-.emblem { fill: none; stroke: var(--w-line); stroke-width: 2.2; stroke-linejoin: round; stroke-linecap: round; opacity: .85; }
+.campus-keepsake { cursor: pointer; }
+.campus-contact { fill: var(--w-ink-fill); opacity: .18; }
+.campus-riser, .campus-top { fill: url(#gStone); stroke: var(--w-line-soft); stroke-width: .75; }
+.campus-side { fill: var(--w-rock); stroke: var(--w-line-soft); stroke-width: .65; }
+.campus-bevel { fill: none; stroke: var(--w-note); stroke-width: .85; opacity: .65; }
+.campus-joints, .campus-step { fill: none; stroke: var(--w-line-soft); stroke-width: .65; opacity: .6; }
+.campus-masonry { fill: url(#gCampusGranite); stroke: var(--w-line); stroke-width: .7; }
+.campus-sandstone { fill: url(#gCampusSandstone); }
+.campus-georgetown { --campus-stone-light: var(--campus-granite-light); --campus-stone-shade: var(--campus-granite-shade); }
+.campus-lehigh { --campus-stone-light: var(--campus-sand-light); --campus-stone-shade: var(--campus-sand-shade); }
+.campus-ashlar { pointer-events: none; }
+.campus-block-light { fill: var(--campus-stone-light); }
+.campus-block-dark { fill: var(--campus-stone-shade); }
+.campus-mortar { fill: none; stroke: var(--campus-stone-shade); stroke-width: .36; opacity: .5; }
+.campus-stone-edge { fill: none; stroke: var(--campus-stone-light); stroke-width: .4; opacity: .65; }
+.campus-pitting { fill: var(--campus-stone-shade); opacity: .26; }
+.campus-masonry-shade { fill: var(--campus-granite-shade); opacity: .36; }
+.campus-eaves-shadow { fill: var(--campus-stone-shade); opacity: .55; }
+.campus-cornice { fill: none; stroke: var(--campus-stone-light); stroke-width: 1.1; }
+.campus-roof { fill: url(#gCampusRoof); stroke: var(--w-line); stroke-width: .7; }
+.campus-roof-shade { fill: var(--campus-slate-shade); opacity: .52; }
+.campus-roof-glint { fill: none; stroke: var(--campus-slate-light); stroke-width: .55; opacity: .75; }
+.campus-roof-line, .campus-course { fill: none; stroke: var(--w-line-soft); stroke-width: .65; }
+.campus-course { opacity: .3; }
+.campus-window, .campus-rose-window { fill: url(#gCampusGlass); stroke: var(--campus-stone-shade); stroke-width: 1.3; }
+.campus-door { fill: url(#gWood); stroke: var(--campus-stone-shade); stroke-width: 1.5; }
+.campus-window-sill { fill: var(--campus-stone-light); stroke: var(--campus-stone-shade); stroke-width: .4; }
+.campus-window-reveal { fill: none; stroke: var(--campus-stone-shade); stroke-width: 1; opacity: .85; }
+.campus-glass-sheen { fill: var(--campus-glass-light); opacity: .27; }
+.campus-window-light, .campus-door-line, .campus-rose-lines { fill: none; stroke: var(--w-lamp); stroke-width: .65; opacity: .5; }
+[data-theme="dark"] .campus-window, [data-theme="dark"] .campus-rose-window { fill: url(#gCampusGlass); opacity: .9; }
+[data-theme="dark"] .campus-window-light, [data-theme="dark"] .campus-rose-lines { stroke: var(--w-wood); opacity: .75; }
+.campus-clock-rim, .campus-rose-frame { fill: var(--w-rock); stroke: var(--w-line); stroke-width: .75; }
+.campus-clock { fill: var(--w-note); stroke: var(--w-line-soft); stroke-width: .5; }
+.campus-clock-hands { fill: none; stroke: var(--w-line); stroke-width: .8; }
+.campus-library-steps { fill: var(--w-rock); stroke: var(--w-line-soft); stroke-width: .7; }
+.campus-pole { fill: none; stroke: var(--w-metal); stroke-width: 1.3; }
+.campus-finial { fill: var(--w-gold); stroke: var(--w-line-soft); stroke-width: .4; }
+.campus-flag { fill: var(--campus-color); stroke: var(--w-line-soft); stroke-width: .6; }
+.campus-flag-fold { fill: none; stroke: var(--w-note); stroke-width: .55; opacity: .35; }
+.campus-plaque { fill: url(#gWood); stroke: var(--w-wood); stroke-width: .75; transition: stroke .2s; }
+.campus-plaque-side { fill: var(--w-wood); }
+.campus-plaque-edge { fill: none; stroke: var(--w-gold); stroke-width: .5; opacity: .6; }
+.campus-degree, .campus-school { fill: var(--w-plaque-text); font: 600 12px var(--font-display); }
+.campus-school { font: 11.5px var(--font-body); }
+.campus-pin { fill: var(--w-gold); }
+.campus-progress { fill: var(--w-line-soft); font: italic 8.5px var(--font-body); }
+.campus-keepsake:hover .campus-plaque { stroke: var(--w-accent); stroke-width: 1.5; }
+.water-support { fill: none; stroke: var(--w-metal); stroke-width: 1.35; }
+.water-tank { fill: url(#gCampusPaint); stroke: var(--w-metal); stroke-width: .7; }
+.water-tank-top { fill: var(--campus-paint-light); stroke: var(--w-metal); stroke-width: .6; }
+.water-tank-seam { fill: none; stroke: var(--w-metal-light); stroke-width: .5; }
+.water-tank-label { fill: var(--w-line); font: 600 7px var(--font-body); }
+.bike-tire { fill: none; stroke: var(--w-metal-dark); stroke-width: 2.2; }
+.bike-rim, .bike-spokes, .bike-chain { fill: none; stroke: var(--w-metal); stroke-width: .65; }
+.bike-spokes { opacity: .55; }
+.bike-frame { fill: none; stroke: var(--w-accent-deep); stroke-width: 2; }
+.bike-seat { fill: none; stroke: var(--w-metal-dark); stroke-width: 2.4; }
+.bike-hub { fill: var(--w-metal); stroke: var(--w-metal-light); stroke-width: .6; }
+.campus-slate { fill: url(#gSlate); opacity: .23; pointer-events: none; }
+.campus-arch-trim { fill: none; stroke: var(--campus-stone-light); stroke-width: 2.4; }
+.campus-turret { fill: url(#gCampusGranite); stroke: var(--w-line); stroke-width: .7; }
+.campus-belfry { fill: var(--w-wood); stroke: var(--w-line-soft); stroke-width: .45; }
+.campus-apse { fill: url(#gCampusRoundStone); stroke: var(--w-line); stroke-width: .7; }
+.campus-apse-shade { fill: var(--campus-sand-shade); opacity: .17; }
+.campus-apse-courses { fill: none; stroke: var(--w-line-soft); stroke-width: .5; opacity: .5; }
+.campus-door-handle { fill: none; stroke: var(--w-gold); stroke-width: .8; }
+.water-tank-shade { fill: var(--w-metal); opacity: .16; }
+.water-tank-highlight { fill: none; stroke: var(--w-note); stroke-width: 1.2; opacity: .75; }
+.water-tank-rivet { fill: var(--campus-paint-shade); stroke: var(--campus-paint-light); stroke-width: .3; }
+.water-support-glint { fill: none; stroke: var(--campus-paint-light); stroke-width: .45; opacity: .7; }
+.water-paint-wear { fill: none; stroke: var(--campus-paint-shade); stroke-width: .45; opacity: .5; }
+.bike-cable { fill: none; stroke: var(--w-metal); stroke-width: .65; }
+.bike-basket { fill: var(--w-leather-light); stroke: var(--w-wood); stroke-width: .7; }
+.bike-basket-weave { fill: none; stroke: var(--w-wood); stroke-width: .5; opacity: .55; }
+.bike-fender { fill: none; stroke: var(--w-metal-light); stroke-width: 1.1; }
 .sign-rope { stroke: var(--w-line); stroke-width: 1.5; }
 .sign-board { fill: var(--w-wood-2); stroke: var(--w-line); stroke-width: 1.5; transition: stroke-width .2s; }
 .sign-text { fill: var(--w-plaque-text); font-size: 14px; letter-spacing: .1em; }
@@ -497,49 +598,91 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .sign-support { fill: url(#gWood); stroke: var(--w-wood); stroke-width: .8; }
 .st:hover .sign-board, .st.is-near .sign-board, .st:hover .plaque rect, .st.is-near .plaque rect { stroke: var(--w-accent); stroke-width: 3; }
 
-.sheet path { fill: url(#gPaper); stroke: var(--w-line-soft); stroke-width: .8; }
-.sheet text { fill: var(--w-line); font: 600 17px var(--font-mono) !important; letter-spacing: .04em; }
-.sheet-lines { stroke: var(--w-line); stroke-width: 1.4; opacity: .3; }
-.tw-body, .tw-carriage { fill: url(#gMachine); stroke: var(--w-line); stroke-width: 1.5; }
-.tw-arc { fill: none; stroke: var(--w-machine-2); stroke-width: 7; }
-.tw-keys circle { fill: var(--w-key); stroke: var(--w-machine-2); stroke-width: 1.5; }
-.tw-enamel { fill: url(#gMineral); opacity: .18; pointer-events: none; }
-.tw-side-shade, .tw-roller { fill: var(--w-machine); }
-.tw-keys .key-rim { fill: var(--w-metal-dark); stroke: var(--w-metal-light); stroke-width: .6; }
-.tw-keys .key-face { fill: url(#gPaper); stroke: var(--w-machine-2); stroke-width: .6; }
-.key-glint { fill: none; stroke: var(--w-note); stroke-width: .55; }
-.key-letter { fill: var(--w-machine); font: 600 5px var(--font-mono) !important; }
-.tw-typebars, .tw-rail, .tw-paper-guide { fill: none; stroke: var(--w-metal-light); stroke-width: .8; }
-.tw-knob-rings { fill: none; stroke: var(--w-metal); stroke-width: .75; }
-.tw-space { fill: none; stroke: var(--w-metal-dark); stroke-width: 3; stroke-linecap: round; }
-.tw-screws circle { fill: var(--w-metal); }
-.tw-screws path { stroke: var(--w-machine); stroke-width: .6; }
-.tw-knob { fill: var(--w-machine); stroke: var(--w-line); stroke-width: 1.4; }
-.tw-lever { stroke: var(--w-machine); stroke-width: 5; stroke-linecap: round; }
-.bench-drawer { fill: none; stroke: var(--w-wood); stroke-width: .6; }
-.bench-handle { fill: var(--w-gold); stroke: var(--w-wood); stroke-width: .5; }
-.ink-bottle { fill: var(--w-ink); stroke: var(--w-metal-dark); stroke-width: .7; }
-.ink-bottle-glint { fill: none; stroke: var(--w-jade); stroke-width: .7; }
-.ink-cap { fill: var(--w-metal-dark); }
-.ribbon-tin { fill: url(#gMetal); stroke: var(--w-metal-dark); stroke-width: .6; }
-.ribbon-rim { fill: var(--w-metal); stroke: var(--w-metal-light); stroke-width: .5; }
-.ribbon-label { fill: none; stroke: var(--w-note); stroke-width: .6; opacity: .6; }
-.slip { cursor: pointer; }
-.slip-float { animation: float 3.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; transition: filter .2s; }
-.slip rect { fill: var(--w-note); stroke: var(--w-line); stroke-width: 1.3; }
-.slip text { fill: var(--w-line); font-size: 16px; font-weight: 600; }
-.slip:hover rect { stroke: var(--w-accent); stroke-width: 2.4; }
-@keyframes float { 50% { transform: translateY(-7px); } }
-
 .branch { fill: none; stroke: var(--w-wood); stroke-width: 5; stroke-linecap: round; }
 .leafs { fill: var(--w-jade); }
-.crane { cursor: pointer; }
-.crane-thread { stroke: var(--w-line); stroke-width: .9; opacity: .55; }
-.crane-bob { animation: bob 4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0; }
-.crane-body { fill: var(--w-note); stroke: var(--w-line); stroke-width: 1.2; stroke-linejoin: round; }
-.crane-wing { fill: var(--w-accent-soft); stroke: var(--w-line); stroke-width: 1; stroke-linejoin: round; }
-.crane:hover .crane-body { stroke: var(--w-accent); stroke-width: 2; }
-@keyframes bob { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+.paper-ornament { cursor: pointer; }
+.crane-thread { fill: none; stroke: var(--w-line-soft); stroke-width: .65; opacity: .6; }
+.crane-knot { fill: var(--w-gold); }
+.crane-bob { animation: bob 5.4s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0; }
+.crane-body, .crane-tail, .crane-neck { fill: url(#gPaper); stroke: var(--w-line-soft); stroke-width: .65; stroke-linejoin: round; }
+.crane-far-wing { fill: var(--crane-tint); stroke: var(--w-line-soft); stroke-width: .65; opacity: .75; }
+.crane-wing { fill: url(#gPaper); stroke: var(--w-line-soft); stroke-width: .75; }
+.crane-grain, .scroll-grain { fill: url(#gLinen); opacity: .18; pointer-events: none; }
+.crane-wing-shade { fill: var(--crane-tint); opacity: .25; }
+.crane-belly { fill: var(--w-wood); opacity: .17; }
+.crane-crease, .crane-fold { fill: none; stroke: var(--w-line-soft); stroke-width: .5; opacity: .65; }
+.crane-edge { fill: none; stroke: var(--w-note); stroke-width: .6; opacity: .8; }
+.crane:hover .crane-wing { stroke: var(--w-accent); }
+.crane-near-wing { transform-box: fill-box; transform-origin: 48% 94%; }
+.crane.is-fluttering .crane-near-wing { animation: paperWing .6s ease-in-out 4; }
+.crane.is-fluttering .crane-bob { animation: paperSwing 2.4s ease-in-out; }
+@keyframes bob { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
+@keyframes paperWing { 35% { transform: scaleX(.7) rotate(-7deg); } 70% { transform: scaleX(1.04) rotate(3deg); } }
+@keyframes paperSwing { 20% { transform: rotate(-10deg); } 45% { transform: rotate(8deg); } 70% { transform: rotate(-4deg); } }
+.paper-star-body { fill: url(#gPaper); stroke: var(--w-line-soft); stroke-width: .65; }
+.star-tint { fill: var(--star-tint); opacity: .38; }
+.star-fold-shade { fill: var(--w-wood); opacity: .13; }
+.star-fold-light { fill: var(--w-note); opacity: .4; }
+.star-fold-lines { fill: none; stroke: var(--w-line-soft); stroke-width: .4; opacity: .4; }
+.star-soft-edge { fill: none; stroke: var(--w-note); stroke-width: .8; opacity: .65; }
+.star-bob { animation: starDrift 6.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 0; }
+.star-glimmer { fill: none; stroke: var(--w-gold); stroke-width: .85; opacity: 0; }
+.paper-star.is-fluttering .star-bob { animation: starTurn 2.4s ease-in-out; }
+.paper-star.is-fluttering .star-glimmer { animation: starGlint 2.4s ease-in-out; }
+.paper-star:hover .paper-star-body { stroke: var(--w-accent); }
+@keyframes starDrift { 0%, 100% { transform: rotate(4deg); } 50% { transform: rotate(-4deg); } }
+@keyframes starTurn { 20% { transform: rotate(-14deg) scaleX(.82); } 50% { transform: rotate(12deg) scaleX(1); } 75% { transform: rotate(-5deg) scaleX(.94); } }
+@keyframes starGlint { 25%, 55% { opacity: .85; } }
+.tutorial-scroll { cursor: pointer; }
+.scroll-rest-shadow { fill: var(--w-ink-fill); opacity: .2; }
+.tutorial-paper { fill: url(#gPaper); stroke: var(--w-line-soft); stroke-width: .6; }
+.scroll-paper-edge { fill: none; stroke: var(--w-note); stroke-width: .75; opacity: .7; }
+.scroll-roller, .scroll-end { fill: url(#gWood); stroke: var(--w-wood); stroke-width: .6; }
+.scroll-end-ring { fill: none; stroke: var(--w-gold); stroke-width: .55; opacity: .6; }
+.scroll-tie { fill: none; stroke: var(--w-accent-deep); stroke-width: .9; }
+.tutorial-scroll-label { fill: var(--w-line); font: 600 10.5px var(--font-display); }
+.scroll-shelf { fill: url(#gWood); stroke: var(--w-wood); stroke-width: .6; }
+.scroll-rack-label { fill: var(--w-line-soft); font: 9px var(--font-body); letter-spacing: .1em; }
+.tutorial-scroll:hover .tutorial-paper { stroke: var(--w-accent); stroke-width: 1.2; }
+.scroll-brocade { fill: var(--w-leather-light); stroke: var(--w-line-soft); stroke-width: .65; }
+.scroll-brocade-motif { fill: none; stroke: var(--w-gold); stroke-width: .5; opacity: .65; }
+.scroll-hem-shadow, .scroll-wrap-shadow { fill: var(--w-wood); opacity: .15; }
+.scroll-end-grain { fill: var(--w-wood-2); stroke: var(--w-gold); stroke-width: .5; }
+.scroll-tie-shadow { fill: none; stroke: var(--w-wood); stroke-width: 1.4; opacity: .15; }
+.scroll-ink-note { fill: none; stroke: var(--w-line-soft); stroke-width: .4; opacity: .55; }
+.scroll-seal { fill: var(--w-accent-deep); opacity: .7; }
+.scroll-open-tail { fill: url(#gPaper); stroke: var(--w-line-soft); stroke-width: .45; transform: scaleY(0); transform-box: fill-box; transform-origin: 50% 0; }
+.tutorial-scroll.is-unrolling .scroll-open-tail { animation: scrollPeek 1.5s ease-in-out; }
+@keyframes scrollPeek { 30%, 65% { transform: scaleY(1); } }
+.davis-flag-gold { fill: none; stroke: var(--w-gold); stroke-width: .85; }
+.davis-flag-monogram { fill: var(--w-gold); font: 600 6px var(--font-body); }
+.screen-painting { cursor: pointer; }
+.screen-pigment { transition: filter .6s; }
+.screen-painting.is-stirred .screen-pigment { filter: brightness(1.28); }
+.screen-plum-branch { fill: none; stroke: var(--w-wood); stroke-width: 1.65; opacity: .84; }
+[data-theme="dark"] .screen-plum-branch { stroke: var(--w-line-soft); opacity: .8; }
+.screen-bark-edge { fill: none; stroke: var(--w-stone); stroke-width: .5; opacity: .65; }
+.screen-petal { stroke: var(--w-petal-dark); stroke-width: .35; }
+.plum-petal { fill: var(--w-petal-light); }
+.plum-bud { fill: var(--w-petal); stroke: var(--w-petal-dark); stroke-width: .4; }
+.screen-flower-heart { fill: var(--w-gold); }
+.screen-stamens { fill: none; stroke: var(--w-wood-2); stroke-width: .35; }
+.screen-bud-stalk { fill: none; stroke: var(--w-jade); stroke-width: .55; }
+.screen-orchid-leaf, .screen-chrys-leaf { fill: var(--w-jade); stroke: var(--w-leaf-dark); stroke-width: .25; opacity: .74; }
+.screen-leaf-vein { fill: none; stroke: var(--w-leaf-light); stroke-width: .4; opacity: .75; }
+.orchid-petal { fill: var(--w-petal-light); stroke: var(--w-gold); }
+.screen-orchid-lip { fill: var(--w-accent-soft); stroke: var(--w-petal-dark); stroke-width: .4; }
+.screen-fine-stem { fill: none; stroke: var(--w-leaf-dark); stroke-width: .6; opacity: .8; }
+.screen-bamboo-culm { fill: var(--w-jade); stroke: var(--w-leaf-dark); stroke-width: .3; opacity: .82; }
+.screen-bamboo-nodes { fill: none; stroke: var(--w-leaf-dark); stroke-width: .8; }
+.screen-bamboo-light { fill: none; stroke: var(--w-leaf-light); stroke-width: .45; }
+.screen-bamboo-leaf { fill: var(--w-leaf-dark); opacity: .72; }
+.chrysanthemum-petal { fill: var(--w-note); stroke: var(--w-gold); stroke-width: .35; }
+.chrys-bud { fill: var(--w-petal-light); stroke: var(--w-gold); stroke-width: .5; }
+.screen-ground-wash { fill: var(--w-jade); opacity: .06; }
+.paper-control { position: absolute; padding: 0; border: 0; background: transparent; pointer-events: auto; cursor: pointer; z-index: 1; }
+.writing-index { display: flex; gap: 12px; align-items: center; margin: 16px 0 0; color: var(--muted); }
+.writing-index .link-btn { padding: 3px 0; border: 0; border-radius: 0; background: transparent; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
 .desk { fill: url(#gWood); stroke: var(--w-line); stroke-width: 1.4; }
 .desk-top { fill: var(--w-wood-2); stroke: var(--w-wood); stroke-width: .7; }
 .desk-carving { fill: none; stroke: var(--w-stone); stroke-width: .7; opacity: .55; }
@@ -1203,6 +1346,8 @@ a { color: var(--accent); text-underline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .bird { display: none; }
+  .cat-slide { animation: none !important; }
+  .cat-slide:first-of-type { opacity: 1; }
 }
 
 /* ---------- Talks & Posters: the lecture stage ---------- */

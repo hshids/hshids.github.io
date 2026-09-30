@@ -9,7 +9,7 @@
   var D = window.HJ_DATA, G = window.HJGuide, ART = window.HJArt;
   var GY = ART.GY, VH = ART.VH;
   var SITE_LANG = "en";             // Page content stays English independently of the conversation.
-  var W = 8400;                     // world width in units
+  var W = 7500;                     // world width in units
   var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
@@ -19,13 +19,13 @@
     { id: "research", x: 1750, stand: 1630, half: 290, label: "Research", zh: "研究" },
     { id: "talks", x: 2850, stand: 2880, half: 350, label: "Talks", zh: "报告" },
     { id: "education", x: 4000, stand: 3880, half: 340, label: "Education", zh: "求学" },
-    { id: "tutorials", x: 5050, stand: 4940, half: 240, label: "Tutorials", zh: "教程" },
-    { id: "writing", x: 5950, stand: 5890, half: 240, label: "Writing", zh: "写作" },
-    { id: "life", x: 6900, stand: 6843, half: 330, label: "Life", zh: "生活" },
-    { id: "contact", x: 7800, stand: 7688, half: 260, label: "Contact", zh: "联系" }
+    { id: "writing", x: 5050, stand: 4990, half: 330, label: "Writing", zh: "写作" },
+    { id: "life", x: 6000, stand: 5943, half: 330, label: "Life", zh: "生活" },
+    { id: "contact", x: 6900, stand: 6788, half: 260, label: "Contact", zh: "联系" }
   ];
   var byId = {};
   STATIONS.forEach(function (s) { byId[s.id] = s; });
+  byId.tutorials = byId.writing;     // Keep old links and guide routes working.
 
   var LAYERS = [
     { id: "sky", f: 0.06, build: ART.sky },
@@ -70,8 +70,7 @@
     var fn = ART.stations[st.id];
     var inner = st.id === "research" ? fn(D.publications, D.themes)
       : st.id === "talks" ? fn(D.videos, D.posters)
-      : st.id === "tutorials" ? fn(D.tutorials)
-      : st.id === "writing" ? fn(D.gpts)
+      : st.id === "writing" ? fn(D.tutorials)
       : st.id === "life" ? fn(D.cats.filter(function (c) { return c.photos && c.photos.length; }).map(function (c) { return thumbOf(c.photos[0]); }))
       : fn();
     if (st.id !== "writing") {
@@ -93,6 +92,15 @@
           '<div class="actor cat" id="cat">' + ART.cat() + '<button type="button" class="cat-butterfly" aria-label="Let JinBingBing chase the butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></svg></button><div class="bubble" id="cat-bubble"></div></div>' +
           '<div class="actor char" id="char">' + ART.character("w") + '<div class="bubble" id="char-bubble"></div></div>';
         el.insertAdjacentHTML("beforeend", '<button type="button" id="xiaohei-control" class="sleeper-control" aria-label="Wake XiaoHei, our oldest brother, for a little grooming" style="left:calc(var(--s) * ' + (byId.life.x - 33) + 'px)"></button>');
+        ART.screenPlants.forEach(function (plant, i) {
+          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-screen-plant="' + plant + '" aria-label="Look closely at the ' + plant + ' painting on silk" style="left:calc(var(--s) * ' + (byId.writing.x - 140 + i * 74) + 'px);bottom:calc(var(--s) * 321px);width:calc(var(--s) * 58px);height:calc(var(--s) * 70px)"></button>');
+        });
+        ART.paperSpots.forEach(function (p, i) {
+          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-ornament="' + i + '" aria-label="Gently stir paper ' + (i % 2 ? "star " : "crane ") + (i + 1) + '" style="left:calc(var(--s) * ' + (byId.writing.x + p[0] - 26) + 'px);bottom:calc(var(--s) * ' + (VH - p[1] - 22) + 'px);width:calc(var(--s) * 54px);height:calc(var(--s) * 50px)"></button>');
+        });
+        D.tutorials.forEach(function (t, i) {
+          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-tutorial="' + t.id + '" aria-label="Read ' + esc(t.title) + '" style="left:calc(var(--s) * ' + (byId.writing.x + 176) + 'px);bottom:calc(var(--s) * ' + (VH - (446 + i * 26) - 14) + 'px);width:calc(var(--s) * 128px);height:calc(var(--s) * 28px)"></button>');
+        });
         groundEl = el;
       } else {
         el.innerHTML = svgWrap(L.width, L.build(L.width), "scene");
@@ -118,7 +126,8 @@
     var r = worldEl.getBoundingClientRect();
     state.cw = r.width; state.ch = r.height;
     state.mobile = r.width < 700;
-    var minUnits = state.mobile ? 480 : 720;
+    var writingFrame = state.panel === "writing" || state.focusX === byId.writing.x;
+    var minUnits = state.mobile ? (writingFrame ? 620 : 480) : 720;
     var s = Math.min(r.height / VH, r.width / minUnits);
     state.s = s;
     state.viewW = r.width / s;
@@ -164,6 +173,7 @@
     var fr = freeRange();
     // With the dialogue box open beside a panel, keep the avatar (who is talking) in view.
     var fx = state.focusX != null && !(fr[0] > 0 && state.panel) ? state.focusX : state.x;
+    if (state.mobile && state.focusX === byId.writing.x) fx += 35;  // Fit the desk and the scroll rack together.
     return clamp(fx - (fr[0] + (fr[1] - fr[0]) / 2) / state.s, 0, Math.max(0, W - state.viewW));
   }
 
@@ -253,16 +263,18 @@
     var st = byId[id];
     if (!st) return;
     opts = opts || {};
+    if (id === "tutorials") { id = "writing"; if (!opts.focus) opts.focus = { section: "writing-tutorials" }; }
     var already = Math.abs(state.x - st.stand) < 2;
     if (opts.panel !== false) openPanel(id, opts.focus, opts.fromChat);
     walkTo(st.stand, { trip: { id: id, quiet: opts.quiet, focus: opts.focus }, focus: null });
-    if (already) { state.focusX = st.x; start(); }
+    if (already) { state.focusX = st.x; if (state.mobile) layout(); start(); }
   }
 
   function arrive(trip) {
     var st = byId[trip.id];
     state.dir = st.x >= state.x ? 1 : -1;
     state.focusX = st.x;
+    if (state.mobile) layout();
     render(); start();
     if (!trip.quiet) stationGreeting(trip.id);
   }
@@ -328,8 +340,7 @@
     research: { en: "My library! Every book on these shelves is one of my papers. Let me grab one for you!", zh: "我的藏书阁！书架上每一本都是我的论文，我给你拿一本！" },
     talks: { en: "Welcome to my lecture hall! Grab a seat, pick a talk, and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下，选一场报告，我讲给你听。" },
     education: { en: "UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
-    tutorials: { en: "My old typewriter! I typed up these tutorials on R, Python, statistics and web basics.", zh: "我的老打字机！这些 R、Python、统计和前端基础教程都是我敲出来的。" },
-    writing: { en: "Let me sit down and write for a bit… My posts are on the desk, and those paper cranes are GPTs I built.", zh: "让我坐下来写一会儿……书桌上是我的博客，那些纸鹤是我做的 GPTs。" },
+    writing: { en: "Let me sit down and write for a bit… My posts are on the desk, and my tutorials are tucked into the scroll rack.", zh: "让我坐下来写一会儿……书桌上是我的博客，旁边的卷轴里收着我写的教程。" },
     life: { en: "Off the clock! Hold on, XiaoHei is napping and I have to pet him first. 🐾 Then come road trips, food and my cat gallery.", zh: "下班时间！等一下，小黑在睡觉，我先摸摸他 🐾 然后看看我的自驾、美食和猫咪画廊。" },
     contact: { en: "Let me mail you a letter! ✉️ Want to talk research or collaborate? Here's where to find me.", zh: "给你寄封信！✉️ 想聊研究或合作？在这里可以找到我。" }
   };
@@ -338,8 +349,7 @@
     research: { en: D.themes.slice(0, 3).map(function (t) { return t.title; }).concat(["Only peer-reviewed ones"]), zh: D.themes.slice(0, 3).map(function (t) { return t.zhTitle; }).concat(["只看正式发表的"]) },
     education: { en: ["Past experience?", "Who is your advisor?"], zh: ["过往经历？", "你的导师是谁？"] },
     talks: { en: ["Do you have video talks?", "Show me your posters", "What's new?"], zh: ["有报告视频吗？", "看看你的海报", "最近有什么新动态？"] },
-    tutorials: { en: ["I want to learn R", "Python tutorials", "Statistics"], zh: ["有 R 语言教程吗", "Python 教程", "统计学"] },
-    writing: { en: ["Bayesian statistics", "Time series", "Your custom GPTs"], zh: ["贝叶斯统计", "时间序列", "你做的 GPTs"] },
+    writing: { en: ["Bayesian statistics", "Time series", "Python tutorials", "I want to learn R"], zh: ["贝叶斯统计", "时间序列", "Python 教程", "有 R 语言教程吗"] },
     life: { en: ["Tell me about your cats", "How many states have you visited?", "What do you like to eat?"], zh: ["说说你的猫", "你去过几个州？", "你喜欢吃什么？"] },
     contact: { en: ["Can I see your CV?", "Do you have video talks?"], zh: ["可以看简历吗？", "有论文讲解视频吗？"] }
   };
@@ -550,7 +560,7 @@
     education: function () {
       return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "求学之路" : "Education") + "</h2>" +
         '<ol class="p-timeline">' + D.education.map(function (e) {
-          return "<li><h3>" + esc(e.degree) + "</h3><p>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</p>" +
+          return '<li id="education-' + e.id + '"><h3>' + esc(e.degree) + "</h3><p>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</p>" +
             (e.note ? '<p class="p-muted">' + advisorNote(e.note) + "</p>" : "") +
             (e.honors || []).map(function (h) { return '<p class="p-honor">🏅 ' + esc(pick(SITE_LANG, h)) + "</p>"; }).join("") +
             (e.alongside && e.alongside.length ? '<p class="p-along">' + (SITE_LANG === "zh" ? "期间经历" : "Along the way") + '</p><ul class="p-exp">' + e.alongside.map(function (x) {
@@ -561,25 +571,20 @@
         D.person.interests.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul>";
     },
 
-    tutorials: function () {
-      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "教程" : "Tutorials") + "</h2>" +
-        '<p class="p-lede">' + (SITE_LANG === "zh" ? "我写的入门教程与速查表（中文）。" : "Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.") + "</p>" +
-        '<ul class="p-cards">' + D.tutorials.map(function (t) {
-          return '<li class="p-card" id="tut-' + t.id + '"><span class="p-card-tag">' + esc(t.label) + "</span><h3>" + extLink(t.href, t.title) + "</h3><p>" + esc(pick(SITE_LANG, t.desc)) + "</p>" +
-            (t.pdf ? '<p class="p-links">' + extLink(t.pdf, "PDF version") + "</p>" : "") + "</li>";
-        }).join("") + "</ul>";
-    },
-
     writing: function () {
       var rn = D.person.links.rednote;
-      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "写作" : "Writing") + "</h2>" +
-        (rn ? '<p class="p-lede">' + (SITE_LANG === "zh" ? "我的主要博客在" : "My main blog lives on ") + extLink(rn, SITE_LANG === "zh" ? "小红书" : "RedNote") + (SITE_LANG === "zh" ? "上。" : ".") + "</p>" : "") +
-        '<h3>' + (SITE_LANG === "zh" ? "统计学博客" : "Statistics posts") + '</h3><ul class="p-cards">' + D.writing.map(function (w) {
-          return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(pick(SITE_LANG, w.desc)) + "</p></li>";
-        }).join("") + "</ul>" +
-        '<h3 id="gpts">' + (SITE_LANG === "zh" ? "我做的 GPTs（纸鹤）" : "Custom GPTs (the paper cranes)") + '</h3><ul class="p-list">' + D.gpts.map(function (g, i) {
-          return '<li id="gpt-' + i + '">' + extLink(g.href, g.name) + "<br>" + esc(g.desc) + "</li>";
-        }).join("") + "</ul>";
+      return '<h2 id="panel-title" tabindex="-1">Writing</h2>' +
+        '<nav class="writing-index" aria-label="Writing sections"><button type="button" class="link-btn" data-writing-section="writing-tutorials">Tutorials</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-blogs">Blogs</button></nav>' +
+        '<section id="writing-tutorials"><h3>Tutorials</h3><p class="p-muted">Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>' +
+        '<ul class="p-cards">' + D.tutorials.map(function (t) {
+          return '<li class="p-card" id="tut-' + t.id + '"><span class="p-card-tag">' + esc(t.label) + "</span><h3>" + extLink(t.href, t.title) + "</h3><p>" + esc(t.desc.en) + "</p>" +
+            (t.pdf ? '<p class="p-links">' + extLink(t.pdf, "PDF version") + "</p>" : "") + "</li>";
+        }).join("") + "</ul></section>" +
+        '<section id="writing-blogs"><h3>Blogs</h3>' +
+        (rn ? '<p class="p-muted">On ' + extLink(rn, "RedNote") + ', I share everyday experiences and reflections.</p>' : "") +
+        '<ul class="p-cards">' + D.writing.map(function (w) {
+          return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(w.desc.en) + "</p></li>";
+        }).join("") + "</ul></section>";
     },
 
     life: function () {
@@ -653,6 +658,7 @@
     // Opening a place from the world tucks the chat away so the scene stays visible;
     // opening it from a chat answer keeps the conversation open.
     if (state.mobile || !fromChat) expandGuide(false);
+    if (state.mobile) layout();
     showHud();
     if (focus) setTimeout(function () { focusPanel(focus); }, fresh ? 60 : 0);
     else if (fresh) { var h = $("#panel-title"); if (h) h.focus({ preventScroll: true }); }
@@ -667,6 +673,7 @@
     setTimeout(function () { if (!state.panel) panel.hidden = true; }, 260);
     // Keep the place she's standing at in frame (phones can't show a whole place around her).
     state.focusX = state.near && !state.trip ? state.near.x : null;
+    if (state.mobile) layout();
     if (!state.mobile && !state.guideMin) expandGuide(true);
     showHud(); start();
     if (lastFocus && lastFocus.focus && document.contains(lastFocus)) lastFocus.focus({ preventScroll: true });
@@ -681,7 +688,9 @@
     } else if (f.theme) target = document.getElementById("theme-" + f.theme);
     else if (f.filter) { applyFilter(f.filter); target = $(".p-filters"); }
     else if (f.tutorial) target = document.getElementById("tut-" + f.tutorial);
-    else if (f.gpt != null) target = document.getElementById("gpt-" + f.gpt);
+    else if (f.post) target = document.getElementById("post-" + f.post);
+    else if (f.education) target = document.getElementById("education-" + f.education);
+    else if (f.section) target = document.getElementById(f.section);
     else if (f.life) target = document.getElementById("life-" + f.life);
     else if (f.news) target = document.getElementById("news");
     else if (f.posters) target = document.getElementById("posters");
@@ -808,10 +817,6 @@
       later(function () { flash(charEl, "is-jumping", 800); }, 420);
       later(function () { sparkles(charEl); sayIfQuiet({ en: "Caps off! 🎓", zh: "毕业快乐！🎓" }); }, 1250);
       later(function () { charEl.classList.remove("act-toss", "has-cap"); }, 3300);
-    } },
-    tutorials: { face: 1, hands: true, busy: { en: "Almost done typing!", zh: "马上打完！" }, run: function () {
-      charEl.classList.add("act-type");
-      later(function () { sayIfQuiet({ en: "clack clack clack… ding!", zh: "咔哒咔哒……叮！" }); }, 900);
     } },
     writing: { busy: { en: "Shh, writing…", zh: "嘘，在写字……" }, run: function () {
       charEl.classList.add("act-write");
@@ -1126,10 +1131,27 @@
       goTo("writing", { quiet: true }); doAction("ink");
       bubble(charEl, window.HJRituals.answer(state.lang === "zh" ? "磨墨" : "Grind some ink", state.lang).text, 3400); return;
     }
+    if ((el = t.closest("[data-screen-plant]"))) {
+      var plant = el.dataset.screenPlant, painting = $('.screen-painting[data-screen-plant="' + plant + '"]');
+      flash(painting, "is-stirred", 1500);
+      bubble(charEl, pick(state.lang, window.HJRituals.screenNotes[plant]), 3000); return;
+    }
     if (t.closest(".sleep-cat, #xiaohei-control")) { groomXiaoHei(); return; }
+    if ((el = t.closest("[data-school]"))) { goTo("education", { focus: { education: el.dataset.school } }); return; }
     if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, state.lang === "zh" ? "讲讲这本《" + G.pubById[id].title + "》" : "Tell me about " + G.pubById[id].title, true); return; }
-    if ((el = t.closest(".slip"))) { goTo("tutorials", { focus: { tutorial: el.dataset.tutorial } }); return; }
-    if ((el = t.closest(".crane"))) { goTo("writing", { focus: { gpt: +el.dataset.gpt } }); return; }
+    if ((el = t.closest("[data-tutorial]"))) {
+      var scroll = $('.tutorial-scroll[data-tutorial="' + el.dataset.tutorial + '"]');
+      flash(scroll, "is-unrolling", 1500);
+      goTo("writing", { focus: { tutorial: el.dataset.tutorial } }); return;
+    }
+    if ((el = t.closest("[data-ornament]"))) {
+      var ornament = $('.paper-ornament[data-ornament="' + el.dataset.ornament + '"]');
+      clearTimeout(ornament._flutterTimer); ornament.classList.remove("is-fluttering"); void ornament.getBoundingClientRect();
+      ornament.classList.add("is-fluttering");
+      ornament._flutterTimer = setTimeout(function () { ornament.classList.remove("is-fluttering"); }, reduced ? 150 : 2400);
+      var isStar = ornament.classList.contains("paper-star");
+      bubble(charEl, state.lang === "zh" ? (isStar ? "星星也来陪我写字啦～" : "纸鹤也伸个懒腰～想法慢慢写，别着急。") : (isStar ? "Tiny paper stars, keeping the ideas company." : "A little stretch for the paper crane. One thought at a time."), 3200); return;
+    }
     if ((el = t.closest(".life-item"))) {
       var lid = el.dataset.life;
       goTo("life", { focus: { life: lid }, quiet: true });
@@ -1272,8 +1294,9 @@
 
     // Delegated buttons inside the guide and the panel.
     document.addEventListener("click", function (e) {
-      var b = e.target.closest("[data-ask],[data-paper],[data-video],[data-askpaper],[data-askproject],[data-openpaper],[data-filter],[data-view],[data-cat],[data-galnav],[data-pet],[data-goto],[data-talkopen],[data-posterimg],[data-photo],[data-booth],#rt-play,#spin");
+      var b = e.target.closest("[data-ask],[data-paper],[data-video],[data-askpaper],[data-askproject],[data-openpaper],[data-filter],[data-view],[data-cat],[data-galnav],[data-pet],[data-goto],[data-talkopen],[data-posterimg],[data-photo],[data-booth],[data-writing-section],#rt-play,#spin");
       if (!b || b.closest("#world")) return;
+      if (b.dataset.writingSection) { focusPanel({ section: b.dataset.writingSection }); return; }
       if (b.id === "rt-play") { playRoadTrip(); return; }
       if (b.id === "spin") { spinWheel(); return; }
       if (b.dataset.cat) { openCat(+b.dataset.cat); return; }

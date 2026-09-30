@@ -125,17 +125,16 @@
         }).join("") + "</ul>" : "") + "</li>";
     }).join("") + "</ul>");
 
-    html += section("tutorials", "Tutorials", "<p>Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>" +
+    html += section("writing", "Writing",
+      '<h3 id="tutorials">Tutorials</h3><p>Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>' +
       '<ul class="cards">' + D.tutorials.map(function (t) {
-        return '<li><div class="t">' + a(t.href, t.title) + "</div><div>" + esc(t.desc.en) + "</div>" +
+        return '<li id="tut-' + t.id + '"><div class="t">' + a(t.href, t.title) + "</div><div>" + esc(t.desc.en) + "</div>" +
           (t.pdf ? '<div class="pub-links">' + a(t.pdf, "PDF version") + "</div>" : "") + "</li>";
-      }).join("") + "</ul>");
-
-    html += section("writing", "Blog", (L.rednote ? "<p>My main blog lives on " + a(L.rednote, "RedNote") + ". Below are two posts on statistics, written in Chinese.</p>" : "<p>Posts on statistics, written in Chinese.</p>") + '<ul class="cards">' + D.writing.map(function (w) {
-      return '<li><div class="t">' + a(w.href, w.title) + "</div><div>" + esc(w.desc.en) + "</div></li>";
-    }).join("") + "</ul>" +
-      "<h3>My custom GPTs</h3><ul class=\"plain\">" + D.gpts.map(function (g) {
-        return "<li>" + a(g.href, g.name) + " · " + esc(g.desc) + "</li>";
+      }).join("") + "</ul>" +
+      '<h3 id="blogs">Blogs</h3>' +
+      (L.rednote ? '<p class="pub-note">On ' + a(L.rednote, "RedNote") + ', I share everyday experiences and reflections.</p>' : "") +
+      '<ul class="cards">' + D.writing.map(function (w) {
+        return '<li id="post-' + w.id + '"><div class="t">' + a(w.href, w.title) + "</div><div>" + esc(w.desc.en) + "</div></li>";
       }).join("") + "</ul>");
 
     html += section("contact", "Contact", "<p>Happy to talk research and collaboration.</p><p class=\"links\">" + contactLinks().join("") + "</p>" +

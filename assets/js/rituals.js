@@ -7,8 +7,8 @@
   };
   var rituals = [
     { match: /^(磨墨|研墨|先磨一会儿墨|grind some ink)$/i, go: "writing", action: "ink",
-      en: "Let's grind the ink slowly. The ideas can take their time, too. Those paper cranes are my custom GPTs.",
-      zh: "先把墨磨匀，想法也慢慢来。旁边的纸鹤是我做的 GPTs，点一只看看～" },
+      en: "Let's grind the ink slowly. The ideas can take their time, too. Give a paper crane a gentle tap while we wait.",
+      zh: "先把墨磨匀，想法也慢慢来。旁边的纸鹤也想伸个懒腰，轻轻点一只看看～" },
     { match: /^(放一卷猫片|开映啦|roll the cat film)$/i, go: "life", focus: { life: "cats" }, action: "projector",
       en: "Rolling! Six cats, and every one gets a turn in the spotlight. Let's meet the cast.",
       zh: "开映啦～六只猫，每一只都要有镜头。来认认我们家的主演们。" },
@@ -35,6 +35,12 @@
         if (r.match.test(q)) return { lang: lang, text: r[lang], html: "", chips: hints[lang].slice(), go: r.go, focus: r.focus, action: r.action };
       }
       return null;
+    },
+    screenNotes: {
+      plum: { en: "A few plum blossoms. Even a quiet winter has something to say.", zh: "几朵梅花。安安静静的冬天，也有想说的话～" },
+      orchid: { en: "The orchids can keep us company while we think.", zh: "想事情的时候，让兰花陪我们一会儿。" },
+      bamboo: { en: "A little breathing room between the leaves, and between ideas.", zh: "竹叶之间留一点空，想法之间也留一点空。" },
+      chrysanthemum: { en: "No rush. The chrysanthemums and this page can wait.", zh: "不着急，菊花和这一页都可以慢慢看。" }
     },
     pokes: {
       en: ["A paper first, or a cat first? I'll come along either way.", "Some questions need time. We can sit with the cats for a moment.", "Try tapping the pond. The koi has a different entrance every time.", "Every cat gets a turn on that little film screen.", "The inkstone is waiting. Let's write a little, even if it's just Hello World."],

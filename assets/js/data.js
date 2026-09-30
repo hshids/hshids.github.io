@@ -903,21 +903,6 @@ window.HJ_DATA = {
     }
   ],
 
-  gpts: [
-    { name: "Academic Mentor", zh: "研博申请", href: "https://chat.openai.com/g/g-nnEjq1bY7-academic-mentor",
-      desc: "Grad-school application coach for Master's and Ph.D. hopefuls." },
-    { name: "DataScience-GPT", zh: "数据科学", href: "https://chat.openai.com/g/g-Q3jdUYlBh-datascience-gpt",
-      desc: "Your data analysis expert." },
-    { name: "Academic Ace", zh: "STEM 学术写作", href: "https://chat.openai.com/g/g-PbOe4SHqm-academic-ace",
-      desc: "Academic writing coach for STEM and CS grad students." },
-    { name: "ML Mastermind", zh: "机器学习 / NLP", href: "https://chat.openai.com/g/g-O7uAQ9PJd-ml-mastermind",
-      desc: "Tutor in ML, NLP and CV, blending theory with Python practice." },
-    { name: "Genome Analyst", zh: "生物信息", href: "https://chat.openai.com/g/g-WAXy42h5O-genome-analyst",
-      desc: "Bilingual (English/Chinese) bioinformatics helper focused on genetics." },
-    { name: "Sorting Hat", zh: "霍格沃茨分院帽 · 个人任务管家", href: "https://chat.openai.com/g/g-RUFv6ZEyU-sorting-hat",
-      desc: "A Hogwarts-style daily planner that maps magical class names to real coursework." }
-  ],
-
   // Life outside research — shown only in the interactive version
   // (the basic version stays strictly academic).
   // Social link for restaurant posts: set `foodSocial` to show it.

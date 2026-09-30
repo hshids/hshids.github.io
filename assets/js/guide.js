@@ -161,10 +161,6 @@
     docs.push({ kind: "writing", id: w.id, ref: w,
       text: [rep(w.title, 3), rep(w.keywords, 2), w.desc.en, w.desc.zh, "blog post writing article"].join(" ") });
   });
-  D.gpts.forEach(function (g, i) {
-    docs.push({ kind: "gpt", id: "gpt" + i, ref: g,
-      text: [rep(g.name, 2), g.zh, g.desc, "gpt gpts custom chatgpt bot assistant"].join(" ") });
-  });
   D.life.forEach(function (l) {
     docs.push({ kind: "life", id: l.id, ref: l,
       text: [rep(l.title, 2), rep(l.keywords, 3), l.en, l.zh, "hobby hobbies fun free time life personal"].join(" ") });
@@ -222,7 +218,7 @@
     { id: "experience", w: 1.7, re: /(united nations|\bun\b|unodc|unov|peacekeeping|peacebuilding|consultant|dean'?s list|honou?rs?\b|awards?\b|fellowships?|travel grant|ieee|p7018|white ?paper|rossin|\brrs\b|teaching assistant|\bta\b|massive data|\bmdi\b|edunomics|georgetown labs?|labs? at georgetown|mentor(ing)? (at|for) georgetown|(were|was) you a mentor|did you mentor|alumni mentor|lead mentor|(your|past|work|previous|prior|other) experiences?|experiences? (at|with|before)|intern(ed)? (at|with)|did you intern|联合国|维和|院长|助教|奖|白皮书|工作经历|过往经历|实习经历|经历)/i },
     { id: "education", w: 1, re: /(education|school|universit|college|davis|georgetown|lehigh|学校|大学|教育)/i },
     { id: "tutorials", w: 1.4, re: /(tutorial|cheat ?sheet|learn (r|python|stat)|teach me|教程|学习资料|入门)/i },
-    { id: "writing", w: 1.3, re: /(blog|writing|posts?\b|article|gpts?\b|rednote|xiaohongshu|博客|文章|写作|随笔|小红书)/i },
+    { id: "writing", w: 1.3, re: /(blog|writing|posts?\b|article|rednote|xiaohongshu|博客|文章|写作|随笔|小红书)/i },
     { id: "life", w: 1.2, re: /(hobby|hobbies|free time|spare time|for fun|outside (of )?(work|research)|personal|life\b|cats?\b|kitt(y|ies|en)|cook|travel|road ?trips?|states?\b|driv(e|ing)|drove|coast|movie|film|weekend|eat\b|eating|food|foodie|restaurants?|cuisine|爱好|兴趣|业余|生活|猫|金渐层|做饭|烹饪|旅行|旅游|自驾|州|海岸|吃|美食|探店|电影|周末|平时)/i },
     { id: "methods", w: 1.2, re: /(method|methodology|how do you (do|study|conduct)|approach|experiment design|qualitative|quantitative|研究方法|方法论|怎么做研究)/i },
     { id: "news", w: 1.3, re: /(latest|newest|recent|what'?s new|news|lately|update|最新|最近|新动态|近况|新闻)/i },
@@ -246,7 +242,7 @@
     INTENTS.forEach(function (it) { if (has(q, it.re)) scores[it.id] = it.w; });
     // "RedNote" on its own means my blog there; next to research words it means the RedNote study.
     if (scores.writing && (scores.research || scores.papers || scores.opinion) &&
-        !has(q, /(blog|writing|posts?\b|article|gpts?\b|博客|文章|写作|随笔)/i)) delete scores.writing;
+        !has(q, /(blog|writing|posts?\b|article|博客|文章|写作|随笔)/i)) delete scores.writing;
     return scores;
   }
 
@@ -585,9 +581,10 @@
     var list = focusId ? D.tutorials.filter(function (t) { return t.id === focusId; }) : D.tutorials;
     var html = linkList(list.map(function (t) { return { label: t.title, href: t.href, note: pick(lang, t.desc) }; }));
     return A(lang, lang === "zh"
-      ? "这些是我写的教程（内容是中文的），都在打字机那里。"
-      : "These are tutorials I wrote (the content is in Chinese), and you'll find them at the typewriter.",
-      html, lang === "zh" ? ["博客", "工作之外喜欢做什么？"] : ["Your blog?", "What do you do for fun?"], "tutorials");
+      ? "这些是我写的教程（内容是中文的），都收在书桌旁的卷轴里。"
+      : "These are tutorials I wrote (the content is in Chinese), and you'll find them in the scroll rack by my writing desk.",
+      html, lang === "zh" ? ["博客", "工作之外喜欢做什么？"] : ["Your blog?", "What do you do for fun?"], "tutorials",
+      focusId ? { focus: { tutorial: focusId } } : null);
   }
 
   function writing(lang, focusId) {
@@ -595,17 +592,16 @@
     if (focusId) posts.sort(function (a, b) { return (b.id === focusId) - (a.id === focusId); });
     var rn = D.person.links.rednote;
     var html = (rn ? linkList([{ label: lang === "zh" ? "我的小红书" : "My RedNote (小红书)", href: rn, note: lang === "zh" ? "我的主要博客" : "my main blog" }]) : "") +
-      linkList(posts.map(function (w) { return { label: w.title, href: w.href, note: pick(lang, w.desc) }; })) +
-      '<div class="g-label">' + (lang === "zh" ? "我做的 GPTs" : "Custom GPTs I built") + "</div>" +
-      linkList(D.gpts.map(function (g) { return { label: lang === "zh" ? g.name + " · " + g.zh : g.name, href: g.href, note: g.desc }; }));
+      linkList(posts.map(function (w) { return { label: w.title, href: w.href, note: pick(lang, w.desc) }; }));
     var text = lang === "zh"
-      ? (rn ? "我的主要博客在小红书上！" : "") + "书桌上还有两篇统计学博客，和我做的一些 GPTs。"
-      : (rn ? "My main blog lives on RedNote (Xiaohongshu)! " : "") + "On my writing desk you'll also find two statistics posts, plus the custom GPTs I've built.";
+      ? (rn ? "我的主要博客在小红书上！" : "") + "书桌上还有两篇统计学博客，旁边是我写的教程。"
+      : (rn ? "My main blog lives on RedNote (Xiaohongshu)! " : "") + "On my writing desk you'll also find two statistics posts, with my tutorials alongside.";
     if (focusId) {
       var f = posts[0];
       text = (lang === "zh" ? "我写过一篇《" + f.title + "》。" : "I wrote a post on this called “" + f.title + ".” ") + pick(lang, f.desc);
     }
-    return A(lang, text, html, lang === "zh" ? ["教程", "工作之外喜欢做什么？"] : ["Tutorials", "What do you do for fun?"], "writing");
+    return A(lang, text, html, lang === "zh" ? ["教程", "工作之外喜欢做什么？"] : ["Tutorials", "What do you do for fun?"], "writing",
+      { focus: focusId ? { post: focusId } : { section: "writing-blogs" } });
   }
 
   function life(lang, focusId) {
@@ -710,7 +706,6 @@
     if (d.kind === "project") return projectDetail(d.ref, lang);
     if (d.kind === "tutorial") return tutorials(lang, d.id);
     if (d.kind === "writing") return writing(lang, d.id);
-    if (d.kind === "gpt") return writing(lang);
     if (d.kind === "life") return life(lang, lifeFocus(hits));
     if (d.kind === "education") return education(lang);
     return fallback(lang);
