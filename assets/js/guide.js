@@ -142,6 +142,10 @@
     docs.push({ kind: "theme", id: t.id, ref: t,
       text: [rep(t.title, 3), rep(t.zhTitle, 2), rep(t.keywords, 3), t.blurb.en, t.blurb.zh].join(" ") });
   });
+  (D.projects || []).forEach(function (p) {
+    docs.push({ kind: "project", id: p.id, ref: p,
+      text: [rep(p.title, 3), rep(p.keywords, 2), p.en, p.zh, "project current ongoing working on"].join(" ") });
+  });
   D.education.forEach(function (e) {
     docs.push({ kind: "education", id: e.id, ref: e,
       text: [rep(e.degree, 2), rep(e.school, 2), e.years, e.note || "", e.zh,
@@ -201,6 +205,8 @@
 
   // ---------- intents ----------
   function has(q, re) { return re.test(q); }
+  // "What are you working on now?" Also stripped from a question to see what else it asks about.
+  var CURRENT_RE = /(what are you (working on|doing|up to) (now|currently|these days|lately|right now)|(working on|doing) (right now|currently|these days)|currently working|current (projects?|work|research)|ongoing|in progress|side projects?|projects?\b|正在做|在做什么|最近在忙|手头|进行中|在研|项目)/i;
   var INTENTS = [
     { id: "greet", w: 1, re: /^(hi|hello|hey|yo|hiya|good (morning|afternoon|evening)|你好|您好|嗨|哈喽|哈啰|hello there)[\s!！.。~～]*$/i },
     { id: "identity", w: 2, re: /(^\s*what are you\s*[?？!.]*$|are you (the |a )?(real|actual|human|person|bot|robot|ai|chatgpt|llm|hanjing)|real hanjing|real person|是真人|你是ai|你是 ai|机器人|你是真的|是ai吗|是不是ai|是不是真人|how do you work|how does (this|the) (work|guide)|\bllm\b|chatgpt)/i },
@@ -212,7 +218,8 @@
     { id: "advisor", w: 1.6, re: /(advisor|adviser|supervisor|mentor|\bpi\b|professor|lab\b|导师|老板|实验室|课题组)/i },
     { id: "coauthors", w: 1.5, re: /(co-?authors?|collaborators?|work with|worked with|合作者|合作的人|和谁)/i },
     { id: "eduStrong", w: 1.5, re: /(background|degree|undergrad|bachelor|master'?s?\b|\bms\b|\bbs\b|ph\.?d|doctora|alma mater|graduat|where did (you|she)|which (school|university)|学历|本科|硕士|博士|教育背景|毕业|哪个学校|哪所|读书|读研|读博|求学)/i },
-    { id: "experience", w: 1.7, re: /(united nations|\bun\b|unodc|unov|peacekeeping|peacebuilding|consultant|dean'?s list|honou?rs?\b|teaching assistant|\bta\b|massive data|\bmdi\b|edunomics|georgetown labs?|labs? at georgetown|mentor(ing)? (at|for) georgetown|(were|was) you a mentor|did you mentor|alumni mentor|lead mentor|(your|past|work|previous|prior|other) experiences?|experiences? (at|with|before)|intern(ed)? (at|with)|did you intern|联合国|维和|院长|助教|工作经历|过往经历|实习经历|经历)/i },
+    { id: "current", w: 1.6, re: CURRENT_RE },
+    { id: "experience", w: 1.7, re: /(united nations|\bun\b|unodc|unov|peacekeeping|peacebuilding|consultant|dean'?s list|honou?rs?\b|awards?\b|fellowships?|travel grant|ieee|p7018|white ?paper|rossin|\brrs\b|teaching assistant|\bta\b|massive data|\bmdi\b|edunomics|georgetown labs?|labs? at georgetown|mentor(ing)? (at|for) georgetown|(were|was) you a mentor|did you mentor|alumni mentor|lead mentor|(your|past|work|previous|prior|other) experiences?|experiences? (at|with|before)|intern(ed)? (at|with)|did you intern|联合国|维和|院长|助教|奖|白皮书|工作经历|过往经历|实习经历|经历)/i },
     { id: "education", w: 1, re: /(education|school|universit|college|davis|georgetown|lehigh|学校|大学|教育)/i },
     { id: "tutorials", w: 1.4, re: /(tutorial|cheat ?sheet|learn (r|python|stat)|teach me|教程|学习资料|入门)/i },
     { id: "writing", w: 1.3, re: /(blog|writing|posts?\b|article|gpts?\b|rednote|xiaohongshu|博客|文章|写作|随笔|小红书)/i },
@@ -343,7 +350,7 @@
     return A(lang, lang === "zh"
       ? "我研究当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至真实的人的“分身”出现时，人如何保持实质的掌控，包括 AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。我的工作可以分成五条线。"
       : "I study what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor, or even a persona of a real person, and what keeps people meaningfully in charge. That means how AI help is disclosed, how claims get verified, and who stays accountable. My work falls into five threads.",
-      html, themeChips(lang).slice(0, 3).concat(lang === "zh" ? ["研究方法"] : ["Your methods?"]), "research");
+      html, themeChips(lang).slice(0, 3).concat(lang === "zh" ? ["正在做的项目", "研究方法"] : ["Current projects", "Your methods?"]), "research");
   }
 
   function themeAnswer(t, lang) {
@@ -353,6 +360,35 @@
     return A(lang, pick(lang, t.blurb), html,
       themeChips(lang).filter(function (c) { return c !== (lang === "zh" ? t.zhTitle : t.title); }).slice(0, 3),
       "research", { focus: { theme: t.id } });
+  }
+
+  var STATUS = { review: { en: "Under review", zh: "审稿中" }, progress: { en: "In progress", zh: "进行中" } };
+  var projById = {};
+  (D.projects || []).forEach(function (p) { projById[p.id] = p; });
+
+  function projectCard(p, lang) {
+    var th = themeById[p.theme] || D.themes[0];
+    return '<article class="g-card" style="--tc:' + th.color + '">' +
+      '<div class="g-kicker"><span class="g-dot"></span>' + esc(pick(lang, STATUS[p.status] || STATUS.progress)) + "</div>" +
+      '<div class="g-title">' + esc(p.title) + "</div>" +
+      '<p class="g-text">' + esc(pick(lang, p)) + "</p></article>";
+  }
+
+  function projects(lang) {
+    var list = D.projects || [];
+    return A(lang, lang === "zh"
+      ? "这些是我正在做的！🍳 一个在审稿中，两个在进行中。都还没有公开，想了解细节就去找真人版的我吧。"
+      : "Here's what's cooking right now! 🍳 One is under review and two are in progress. None are public yet, so for details, ask the human one.",
+      list.map(function (p) { return projectCard(p, lang); }).join(""),
+      lang === "zh" ? ["你研究什么？", "最近有什么新动态？"] : ["What do you research?", "What's new?"], "research", { focus: { projects: true } });
+  }
+
+  function projectDetail(p, lang) {
+    var mail = D.person.links.email;
+    var html = projectCard(p, lang) +
+      (mail ? '<div class="g-actions"><a class="g-btn" href="mailto:' + esc(mail) + '">✉️ ' + (lang === "zh" ? "给 Hanjing 发邮件" : "Email Hanjing") + "</a></div>" : "");
+    return A(lang, pick(lang, p.intro || p) + "\n\n" + pick(lang, HUMAN_ONE), html,
+      lang === "zh" ? ["正在做的项目", "你研究什么？"] : ["Current projects", "What do you research?"], "research", { focus: { project: p.id } });
   }
 
   // Every paper answer ends by handing the visitor over to the real Hanjing.
@@ -485,12 +521,15 @@
     { re: /(massive data|\bmdi\b|edunomics|\blabs?\b|research assistant|research scholar|实验室)/i, keep: function (x) { return /Research (Scholar|Assistant)/.test(x.role); },
       en: "At Georgetown I did research in two labs, the Massive Data Institute and the Edunomics Lab. Social media data at one, school finance data at the other!",
       zh: "在 Georgetown 我在两个实验室做过研究，Massive Data Institute 和 Edunomics Lab。一个做社交媒体数据，一个做学校财政数据！" },
-    { re: /(mentor)/i, keep: function (x) { return /Mentor/.test(x.role); },
-      en: "I've been mentoring at Georgetown since 2022, first as a Lead Mentor and now as a DSAN Alumni Mentor.",
-      zh: "从 2022 年起我就在 Georgetown 做 mentor，先是 Lead Mentor，现在是 DSAN 校友导师。" },
-    { re: /(dean'?s list|honou?rs?\b|院长|荣誉)/i, keep: function () { return false; }, honors: true,
-      en: "I made the Dean's List at UC Davis in 2018 and 2020! 🏅",
-      zh: "我在 UC Davis 上过两次院长荣誉榜（Dean's List），分别是 2018 和 2020 年！🏅" }
+    { re: /(ieee|p7018|standards?|white ?paper|白皮书|标准)/i, keep: function (x) { return /IEEE/.test(x.org); },
+      en: "Since 2024 I've been on Task Force II for IEEE P7018, a standard on the security and trustworthiness of pretrained generative AI models. I'm co-authoring a section of its technical white paper! 📄",
+      zh: "从 2024 年起，我参与 IEEE P7018 标准（预训练生成式 AI 模型的安全与可信）的 Task Force II，正在合写技术白皮书里的一个章节！📄" },
+    { re: /(mentor|rossin|\brrs\b)/i, keep: function (x) { return /Mentor/.test(x.role); },
+      en: "I mentor at both schools! At Lehigh I'm a Rossin Research Scholars Ph.D. mentor for an undergraduate researcher, and at Georgetown I've mentored since 2022, first as a Lead Mentor and now as a DSAN Alumni Mentor.",
+      zh: "两所学校我都在做 mentor！在 Lehigh 我是 Rossin Research Scholars 的博士导师，带一名本科生做研究；在 Georgetown，我从 2022 年起先当 Lead Mentor，现在是 DSAN 校友导师。" },
+    { re: /(dean'?s list|honou?rs?\b|awards?\b|fellowships?|travel grant|院长|荣誉|奖)/i, keep: function () { return false; }, honors: true,
+      en: "A few! 🏅 A travel award from the AIES 2026 Student Program, a Lehigh doctoral fellowship for my first semester, and the Dean's List at UC Davis in 2018 and 2020.",
+      zh: "有几个！🏅 AIES 2026 Student Program 的旅费资助，Lehigh 博士第一学期的奖学金，还有 UC Davis 2018 和 2020 年的院长荣誉榜。" }
   ];
 
   function experience(q, lang) {
@@ -508,8 +547,8 @@
         }).join("") + "</ul>";
     }).join("");
     var text = f ? pick(lang, f) : (lang === "zh"
-      ? "除了主线研究，这些是我一路上的经历！🧳 在 Georgetown 的两个实验室做研究、当助教、做 mentor，还为联合国做过数据科学工作，从 2023 年的实习一直到 2025 年的研究员。"
-      : "Besides my main research line, here's what I did along the way! 🧳 Research in two Georgetown labs, a TA job, mentoring, and data science work for the United Nations, from an internship in 2023 to a researcher role in 2025.");
+      ? "除了主线研究，这些是我一路上的经历！🧳 在 Georgetown 的两个实验室做研究、当助教，在两所学校做 mentor，参与 IEEE 标准白皮书，还为联合国做过数据科学工作，从 2023 年的实习一直到 2025 年的研究员。"
+      : "Besides my main research line, here's what I did along the way! 🧳 Research in two Georgetown labs, a TA job, mentoring at Georgetown and Lehigh, an IEEE standards white paper, and data science work for the United Nations, from an internship in 2023 to a researcher role in 2025.");
     return A(lang, text, html, lang === "zh" ? ["教育背景", "你研究什么？"] : ["Education", "What do you research?"], "education");
   }
 
@@ -668,6 +707,7 @@
         papers.map(function (h) { return paperCard(h.doc.ref, lang); }).join(""),
         themeChips(lang).slice(0, 3), "research", { focus: { paper: papers[0].doc.ref.id } });
     }
+    if (d.kind === "project") return projectDetail(d.ref, lang);
     if (d.kind === "tutorial") return tutorials(lang, d.id);
     if (d.kind === "writing") return writing(lang, d.id);
     if (d.kind === "gpt") return writing(lang);
@@ -686,6 +726,8 @@
     // Direct routes from buttons: "paper:<id>", "theme:<id>".
     var m = /^paper:([\w-]+)$/.exec(q);
     if (m && pubById[m[1]]) return paperDetail(pubById[m[1]], preferLang || "en");
+    m = /^project:([\w-]+)$/.exec(q);
+    if (m && projById[m[1]]) return projectDetail(projById[m[1]], preferLang || "en");
     m = /^theme:([\w-]+)$/.exec(q);
     if (m && themeById[m[1]]) return themeAnswer(themeById[m[1]], preferLang || "en");
 
@@ -715,8 +757,8 @@
     var saysAI = /(\bai\b|artificial intelligence|人工智能|[㐀-鿿]\s*ai|ai\s*[㐀-鿿])/i.test(q);
 
     // A name or term only one paper uses ("Zhang Xuefeng") beats generic words like "education" or "advisor".
-    if (top && top.doc.kind === "paper" && top.score >= 9 && (!hits[1] || top.score >= hits[1].score * 1.8) && !it.opinion)
-      return paperDetail(top.doc.ref, lang);
+    if (top && (top.doc.kind === "paper" || top.doc.kind === "project") && top.score >= 9 && (!hits[1] || top.score >= hits[1].score * 1.8) && !it.opinion && !it.current)
+      return top.doc.kind === "paper" ? paperDetail(top.doc.ref, lang) : projectDetail(top.doc.ref, lang);
 
     var venue = venueOf(q);
     if (it.photos && (it.video || venue || /(conference|会议|参会|现场|talk|present)/i.test(q))) return photos(lang);
@@ -724,6 +766,12 @@
     if (it.upcoming) return upcoming(lang);
     if (it.video) return videos(lang);
     if (it.experience) return experience(q, lang);
+    if (it.current) {
+      // Judge the rest of the question: "the ClassPulse project" is a paper, "current projects" is the list.
+      var rest = search(q.replace(CURRENT_RE, " ")).hits[0];
+      if (rest && rest.doc.kind === "project" && rest.score > 3) return projectDetail(rest.doc.ref, lang);
+      if (!(rest && rest.doc.kind === "paper" && rest.score > 3)) return projects(lang);
+    }
     if (top && top.doc.kind === "education" && top.score >= 6 && !it.education && !it.eduStrong) return experience(q, lang);
     if (it.cv) return cv(lang);
     if (it.contact) return contact(lang);

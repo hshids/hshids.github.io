@@ -407,7 +407,7 @@
     if (!text) return;
     addMsg("user", label || text);
     if (/[㐀-鿿]/.test(label || text)) setLang("zh", true);
-    else if (!/^(paper|theme):/.test(text)) setLang("en", true);
+    else if (!/^(paper|theme|project):/.test(text)) setLang("en", true);
     // A click in the world ("soft") doesn't reopen a chat the visitor folded away.
     if (!(soft && state.guideMin)) expandGuide(true);
     reply(G.answer(text, state.lang));
@@ -450,6 +450,18 @@
   function advisorNote(note) {
     var adv = D.person.advisor || {}, t = esc(note);
     return adv.url && adv.name ? t.replace(esc(adv.name), '<a href="' + esc(adv.url) + '" target="_blank" rel="noopener">' + esc(adv.name) + "</a>") : t;
+  }
+
+  // Projects that aren't published yet, shown at the top of the Research panel.
+  function nowWorking() {
+    var list = D.projects || [];
+    if (!list.length) return "";
+    var zh = state.lang === "zh";
+    return '<section class="p-now" id="now"><h3>' + (zh ? "正在进行" : "Now working on") + '</h3><ul class="p-cards">' + list.map(function (p) {
+      var st = p.status === "review" ? (zh ? "审稿中" : "under review") : (zh ? "进行中" : "in progress");
+      return '<li class="p-card" id="project-' + esc(p.id) + '"><span class="p-card-tag">' + st + "</span><h3>" + esc(p.title) + "</h3><p>" + esc(pick(state.lang, p)) + "</p>" +
+        '<button type="button" class="link-btn" data-askproject="' + esc(p.id) + '">' + (zh ? "问问迷你 Hanjing" : "Ask Mini-Hanjing") + "</button></li>";
+    }).join("") + "</ul></section>";
   }
 
   // ---------- station panels ----------
@@ -508,7 +520,7 @@
         '<p class="p-lede">' + (state.lang === "zh"
           ? "五条研究线索。每本书都是一篇论文，点开看摘要，或者让迷你 Hanjing 讲给你听。"
           : "Five threads of work. Every book in the library is a paper. Open one for a summary, or ask Mini-Hanjing about it.") + "</p>" +
-        '<div class="p-filters" role="group" aria-label="Filter by type">' + filters + "</div>" + talks +
+        '<div class="p-filters" role="group" aria-label="Filter by type">' + filters + "</div>" + talks + nowWorking() +
         D.themes.map(function (t) {
           var list = G.pubs.filter(function (p) { return p.theme === t.id; });
           return '<section class="p-theme" id="theme-' + t.id + '" style="--tc:' + t.color + '"><h3><span class="dot"></span>' + esc(state.lang === "zh" ? t.zhTitle : t.title) + "</h3>" +
@@ -656,6 +668,8 @@
     else if (f.news) target = document.getElementById("news");
     else if (f.posters) target = document.getElementById("posters");
     else if (f.photos) target = document.getElementById("photos");
+    else if (f.project) target = document.getElementById("project-" + f.project);
+    else if (f.projects) target = document.getElementById("now");
     if (target) {
       target.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
       flash(target, "flash", 1600);
@@ -1195,7 +1209,7 @@
 
     // Delegated buttons inside the guide and the panel.
     document.addEventListener("click", function (e) {
-      var b = e.target.closest("[data-ask],[data-paper],[data-video],[data-askpaper],[data-openpaper],[data-filter],[data-view],[data-cat],[data-galnav],[data-pet],[data-goto],[data-talkopen],[data-posterimg],[data-photo],[data-booth],#rt-play,#spin");
+      var b = e.target.closest("[data-ask],[data-paper],[data-video],[data-askpaper],[data-askproject],[data-openpaper],[data-filter],[data-view],[data-cat],[data-galnav],[data-pet],[data-goto],[data-talkopen],[data-posterimg],[data-photo],[data-booth],#rt-play,#spin");
       if (!b || b.closest("#world")) return;
       if (b.id === "rt-play") { playRoadTrip(); return; }
       if (b.id === "spin") { spinWheel(); return; }
@@ -1219,6 +1233,11 @@
       if (b.dataset.openpaper) { goTo("research", { focus: { paper: b.dataset.openpaper } }); return; }
       var pid = b.dataset.paper || b.dataset.askpaper;
       if (pid) { ask("paper:" + pid, state.lang === "zh" ? "讲讲这篇《" + G.pubById[pid].title + "》" : "Tell me more about " + G.pubById[pid].title); return; }
+      if (b.dataset.askproject) {
+        var pr = (D.projects || []).filter(function (x) { return x.id === b.dataset.askproject; })[0];
+        if (pr) ask("project:" + pr.id, state.lang === "zh" ? "讲讲《" + pr.title + "》" : "Tell me about " + pr.title);
+        return;
+      }
       if (b.dataset.ask) ask(b.dataset.ask);
     });
 

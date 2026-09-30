@@ -665,6 +665,8 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .p-card h3 a { color: var(--ink); }
 .p-card p { margin: 0; font-size: 14px; color: var(--ink-2); }
 .p-card-tag { float: right; font: 600 12px var(--font-mono); color: var(--accent); }
+.p-now { margin: 14px 0 6px; }
+.p-now .p-card .link-btn { margin-top: 6px; }
 .p-list { padding-left: 18px; margin: 0; }
 .p-list li { margin: 6px 0; font-size: 14px; }
 .p-contact { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 8px; }

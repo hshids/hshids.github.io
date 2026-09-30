@@ -41,6 +41,10 @@ Add an object to `publications` in `data.js`. Copy a neighbour and edit:
 
 Add `upcoming: true` for a paper you're about to present. The guide answers "what are you presenting next?" with it.
 
+### Education extras and current projects
+- Each `education` entry can have `honors` (`{ en, zh }`) and `alongside`, the roles held during that degree (`{ role, org, when, en, zh }`). They show under the degree in the basic version, the Education panel and the guide ("Did you work at the UN?", "Any awards?").
+- `projects` lists unpublished work (`status: "review"` or `"progress"`, plus `intro` for Mini-Hanjing). They appear under "Now working on" in the Research panel and the basic version. Once a project becomes a paper, move it into `publications`.
+
 ### Add a news item
 Add `{ date: "Oct 2026", en: "…", zh: "…", paper: "<paper id>" }` at the top of `news`. The `paper` field is optional.
 

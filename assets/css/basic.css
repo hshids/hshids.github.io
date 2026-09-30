@@ -148,6 +148,7 @@ h3 { font-size: 16px; margin: 26px 0 10px; }
 .cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
 .cards li { border: 1px solid var(--line); background: rgba(255, 255, 255, .6); padding: 10px 14px; }
 .cards .t { font-weight: bold; }
+.cards .status { font-weight: normal; font-size: 12px; color: var(--muted); border: 1px solid var(--line); padding: 0 6px; margin-left: 4px; white-space: nowrap; }
 
 .plain { padding-left: 20px; }
 .plain li { margin: 6px 0; }

@@ -92,7 +92,10 @@
       '<ul class="themes">' + D.themes.map(function (t) {
         var n = pubs.filter(function (p) { return p.theme === t.id; }).length;
         return "<li><b>" + esc(t.title) + "</b> (" + n + ")<br>" + esc(t.blurb.en) + "</li>";
-      }).join("") + "</ul>");
+      }).join("") + "</ul>" +
+      (D.projects && D.projects.length ? '<h3 id="now">Now working on</h3><ul class="cards">' + D.projects.map(function (p) {
+        return '<li><div class="t">' + esc(p.title) + ' <span class="status">' + (p.status === "review" ? "under review" : "in progress") + "</span></div><div>" + esc(p.en) + "</div></li>";
+      }).join("") + "</ul>" : ""));
 
     var pubHtml = "";
     groups.forEach(function (g) {

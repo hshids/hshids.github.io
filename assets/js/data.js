@@ -72,11 +72,21 @@ window.HJ_DATA = {
       note: "Advised by Dr. Dominic DiFranzo",
       emblem: "mountain",
       zh: "Lehigh University 计算机科学与工程 博士（2023 年至今），导师 Dominic DiFranzo 博士",
+      honors: [
+        { en: "AIES 2026 Student Program, travel award and complimentary registration", zh: "AIES 2026 Student Program 旅费资助和免注册费" },
+        { en: "Lehigh University Fellowship, doctoral fellowship for my first semester (Fall 2023)", zh: "Lehigh University Fellowship，博士第一学期奖学金（2023 年秋季）" }
+      ],
       // Things I did along the way. Not my main research line, but part of the story.
       alongside: [
+        { role: "Ph.D. Mentor", org: "Rossin Research Scholars (RRS) Program", when: "2025 to 2026",
+          en: "Selected as a Ph.D. mentor with research support, guiding an undergraduate researcher through spring, a full-time summer and fall.",
+          zh: "入选 Rossin Research Scholars 博士导师并获得研究经费支持，带一名本科生完成春季、全职暑期和秋季三个阶段的研究。" },
         { role: "Data Science Researcher", org: "United Nations Peacekeeping (DPPA-DPO-IMU)", when: "2025",
           en: "As the sole developer, rebuilt the UN Peacebuilding Power BI dashboard, bringing together World Bank, Freedom House, INFORM, SDG Index and IDMC indicators with a new geospatial Country Overview.",
           zh: "作为唯一的开发者，重建了联合国建设和平（Peacebuilding）的 Power BI 仪表盘，整合世界银行、Freedom House、INFORM、SDG Index 和 IDMC 等多源指标，并新增带地理可视化的国家概览。" },
+        { role: "Research Collaborator", org: "IEEE Standards Association (IEEE P7018)", when: "Since 2024",
+          en: "On Task Force II for IEEE P7018, a standard on the security and trustworthiness of pretrained generative AI models, co-authoring the “Opportunities of PGAIM” section of its technical white paper.",
+          zh: "参与 IEEE P7018 标准（预训练生成式 AI 模型的安全与可信）的 Task Force II，合写技术白皮书中的 “Opportunities of PGAIM” 章节。" },
         { role: "Data Science Consultant", org: "UNODC / UNOV Staff Council", when: "2024",
           en: "Used NLP and sentiment analysis on a staff survey, turning open-ended feedback into clear evidence for internal policy discussions.",
           zh: "用 NLP 和情感分析处理员工调研数据，把开放式反馈整理成可供内部政策讨论的证据。" }
@@ -706,6 +716,49 @@ window.HJ_DATA = {
       },
       keywords: "human-autonomy teaming hat critique qualitative quantitative teams team cognition perception 团队 人机协作 评论",
       abstract: "The critique paper provides an in-depth analysis of two influential studies in the field of Human-Autonomous Teams (HATs). Musick et al. explored qualitative dimensions of HAT dynamics, examining the influence of team composition on emotions, cognitive processes, and the development of team cognition. Their research revealed that teams with a majority of human members, known as Multi-Human HATs, generally surpass Multi-Agent HATs in performance, highlighting the critical influence of human perception on team dynamics. Employing qualitative interview analysis anchored in theoretical frameworks, Musick et al. captured the detailed subtleties of participants' experiences. In contrast, Schelble et al. utilized a quantitative methodology to provide data-driven insights into how the perception of AI teammates affects team performance. Despite the rich insights from Musick et al.'s qualitative research, their findings face limitations in terms of broader applicability. Both Musick et al. and Schelble et al. agree in their conclusions that Multi-Human HATs typically outperform their Multi-Agent counterparts, again emphasizing the crucial role of human perception in team dynamics. The critique paper suggests that future research should focus on understanding perceptions of teams heavily reliant on AI. Such investigations could illuminate how trust and skepticism are shaped in teams where AI plays a dominant role."
+    }
+  ],
+
+  // Work in progress. Nothing public to link to yet, so these are described without links.
+  projects: [
+    {
+      id: "afterglow-petopia",
+      title: "Afterglow Petopia",
+      status: "review",
+      theme: "persona",
+      en: "Designing AI-mediated memorial systems for pet bereavement, and studying how generative agents and multimodal memorial artifacts can help people remember their pets and make sense of a bond that continues.",
+      zh: "为失去宠物的人设计 AI 纪念系统，研究生成式智能体和多模态纪念物怎样帮助人们记住自己的宠物，理解这段关系在离别之后如何延续。",
+      intro: {
+        en: "This one is under review right now, so fingers crossed! 🤞🐾 Afterglow Petopia is about losing a pet. I'm designing AI memorial systems and studying how generative agents and multimodal keepsakes can help people remember their pets and make sense of a bond that keeps going.",
+        zh: "这个项目正在审稿中，一起祈祷吧！🤞🐾 Afterglow Petopia 关于失去宠物这件事。我在设计 AI 纪念系统，研究生成式智能体和多模态纪念物怎样帮人们记住自己的宠物，理解这份仍在延续的牵绊。"
+      },
+      keywords: "afterglow petopia pet pets memorial bereavement grief loss griefbot generative agents multimodal remember 宠物 纪念 离别 哀伤 悼念"
+    },
+    {
+      id: "cyber-safety-chatbot",
+      title: "Cyber Safety Chatbot Co-Design",
+      status: "progress",
+      theme: "platforms",
+      en: "Interviews and surveys with teenagers about phishing, scams, privacy risks and cyberbullying, feeding into safety chatbot prototypes that guide through stories and can step in to protect in real time.",
+      zh: "通过访谈和问卷了解青少年眼中的网络钓鱼、诈骗、隐私风险和网络霸凌，并据此开发安全聊天机器人原型，既能用故事引导，也能实时介入保护。",
+      intro: {
+        en: "This one is about keeping teens safe online. 🛡️ Through interviews and surveys, we asked teenagers about phishing, scams, privacy risks and cyberbullying. Now we're building safety chatbot prototypes that guide through stories and can step in to protect in real time.",
+        zh: "这个项目关于青少年的网络安全。🛡️ 我们通过访谈和问卷，了解青少年对网络钓鱼、诈骗、隐私风险和网络霸凌的看法。现在正在开发安全聊天机器人原型，既能用故事来引导，也能在风险出现时实时介入保护。"
+      },
+      keywords: "cyber safety chatbot co-design teens teenagers youth phishing scams privacy cyberbullying interviews surveys 网络安全 聊天机器人 青少年 诈骗 钓鱼 隐私 网络霸凌"
+    },
+    {
+      id: "misogyny-nudge",
+      title: "Truman / UCL Online Misogyny Nudge Study",
+      status: "progress",
+      theme: "platforms",
+      en: "Advising on NLP moderation and model validation for a simulated social media experiment that tests whether text nudges reduce online misogyny before people post.",
+      zh: "为一项模拟社交媒体实验提供 NLP 内容审核与模型验证方面的设计建议，这项实验检验文字提示能否在发帖之前减少网络厌女言论。",
+      intro: {
+        en: "Can a gentle nudge stop a mean post before it goes out? 💬 This Truman / UCL study runs a simulated social media experiment to test whether text nudges reduce online misogyny before people post. My part is advising on the NLP moderation and model validation design.",
+        zh: "一句温和的提醒，能不能在恶意帖子发出去之前拦住它？💬 这项 Truman / UCL 研究用模拟社交媒体做实验，检验文字提示能否在发帖之前减少网络厌女言论。我负责在 NLP 内容审核和模型验证的设计上提供建议。"
+      },
+      keywords: "truman ucl misogyny nudge nudges moderation nlp model validation simulated social media experiment harassment sexism 厌女 提示 内容审核 模拟社交媒体"
     }
   ],
 
