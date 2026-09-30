@@ -1,49 +1,180 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hanjing - Home</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&family=Orbitron:wght@500&display=swap"
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Hanjing Shi · Welcome to my world</title>
+    <meta name="description"
+        content="Hanjing Shi, HCI &amp; AI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona. Walk through an interactive world with her mini-avatar, or read the basic version.">
+    <meta property="og:title" content="Hanjing Shi · Welcome to my world">
+    <meta property="og:description"
+        content="HCI &amp; AI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.">
+    <meta property="og:image" content="https://hshids.github.io/images/profile.jpg">
+    <meta property="og:url" content="https://hshids.github.io/">
+    <meta name="theme-color" content="#f3efe6">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="alternate" href="basic.html" title="Basic version">
+    <script>
+        // Returning visitors who chose the basic version go straight there;
+        // the theme is applied before first paint to avoid a flash.
+        (function () {
+            try {
+                if (localStorage.getItem("hj-view") === "basic" && !/[?&]world\b/.test(location.search)) {
+                    location.replace("basic.html" + location.hash);
+                }
+                var t = localStorage.getItem("hj-theme");
+                if (!t && window.matchMedia && matchMedia("(prefers-color-scheme: dark)").matches) t = "dark";
+                if (t) document.documentElement.setAttribute("data-theme", t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap"
         rel="stylesheet">
-
-
+    <link rel="stylesheet" href="assets/css/world.css">
 </head>
 
 <body>
-    <div class="background-image"></div>
-    <div id="ink-container"></div>
+    <a class="skip-link" href="basic.html" data-view="basic">Skip to the basic (text-only) version</a>
 
-    <header>
-        <nav>
-            <ul>
-                <li><a href="index.html">Home</a></li>
-                <li><a href="about.html">About Me</a></li>
-                <li><a href="tutorials.html">Tutorials</a></li>
-                <li><a href="projects.html">Projects</a></li>
-                <li><a href="publications.html">Publications</a></li>
-                <li><a href="blog.html">Blog</a></li>
-            </ul>
-        </nav>
+    <header class="topbar">
+        <button type="button" class="brand" data-go="home" aria-label="Hanjing Shi, back to the welcome gate">
+            <span class="seal" aria-hidden="true">HS</span>
+            <span class="brand-text"><span class="brand-name">Hanjing Shi</span><span class="brand-sub">HCI &amp; AI Researcher</span></span>
+        </button>
+        <div class="places" id="places">
+            <button type="button" class="icon-btn places-btn" id="places-btn" aria-expanded="false" aria-controls="nav">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <span>Places</span>
+            </button>
+            <nav class="nav" id="nav" aria-label="Places in the world">
+                <button type="button" class="nav-btn" data-go="home"><span class="nav-num">1</span>Welcome</button>
+                <button type="button" class="nav-btn" data-go="research"><span class="nav-num">2</span>Research</button>
+                <button type="button" class="nav-btn" data-go="talks"><span class="nav-num">3</span>Talks</button>
+                <button type="button" class="nav-btn" data-go="education"><span class="nav-num">4</span>Education</button>
+                <button type="button" class="nav-btn" data-go="tutorials"><span class="nav-num">5</span>Tutorials</button>
+                <button type="button" class="nav-btn" data-go="writing"><span class="nav-num">6</span>Writing</button>
+                <button type="button" class="nav-btn" data-go="life"><span class="nav-num">7</span>Life</button>
+                <button type="button" class="nav-btn" data-go="contact"><span class="nav-num">8</span>Contact</button>
+            </nav>
+        </div>
+        <div class="top-actions">
+            <button type="button" class="icon-btn" id="theme-btn" aria-pressed="false" aria-label="Switch to night">
+                <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" /></svg>
+                <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" /></svg>
+            </button>
+            <a class="view-switch" href="basic.html" data-view="basic">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6zM9 10h6M9 14h6M9 18h4" /></svg>
+                <span>Basic version</span>
+            </a>
+        </div>
     </header>
 
-    <main>
-        <section id="intro">
-            <h1> Welcome to Hanjing's Homepage</h1>
-            <h1> A Ph.D. Student in Computer Science and Engineering</h1>
-            <p>
-                This is where I'll share my thoughts, projects, and tutorials.
-            </p>
-        </section>
+    <main class="world" id="world" aria-label="Hanjing's world. Use the Places menu or the conversation to explore.">
+        <div class="sky" aria-hidden="true">
+            <svg class="stars" viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid slice">
+                <g>
+                    <circle cx="60" cy="40" r="1.4" /><circle cx="140" cy="120" r="1" /><circle cx="210" cy="60" r="1.6" /><circle cx="300" cy="150" r="1.1" />
+                    <circle cx="380" cy="30" r="1.3" /><circle cx="450" cy="100" r="1" /><circle cx="520" cy="50" r="1.7" /><circle cx="600" cy="130" r="1.2" />
+                    <circle cx="680" cy="70" r="1" /><circle cx="760" cy="25" r="1.5" /><circle cx="840" cy="110" r="1.1" /><circle cx="920" cy="55" r="1.4" />
+                    <circle cx="100" cy="200" r="1" /><circle cx="250" cy="230" r="1.2" /><circle cx="480" cy="210" r="1" /><circle cx="700" cy="190" r="1.3" />
+                    <circle cx="880" cy="220" r="1" /><circle cx="970" cy="160" r="1.2" /><circle cx="30" cy="140" r="1.1" /><circle cx="560" cy="260" r="1" />
+                </g>
+                <g class="twinkle"><circle cx="330" cy="80" r="1.9" /><circle cx="640" cy="40" r="2" /><circle cx="800" cy="160" r="1.8" /></g>
+            </svg>
+            <button type="button" class="sun" id="sun" tabindex="-1" aria-hidden="true">
+                <svg viewBox="-100 -100 200 200">
+                    <circle class="sun-ring" r="92" /><circle class="sun-ring" r="80" stroke-dasharray="3 7" /><circle class="sun-ring" r="68" />
+                    <circle class="sun-disc" r="56" />
+                    <g class="moon-craters"><circle cx="-18" cy="-12" r="9" /><circle cx="16" cy="14" r="6" /><circle cx="8" cy="-24" r="4" /></g>
+                </svg>
+            </button>
+            <div class="birds"><span class="bird"></span><span class="bird b2"></span><span class="bird b3"></span></div>
+        </div>
+        <div class="layers" id="layers"></div>
+        <div class="under" aria-hidden="true"></div>
+        <div class="grain" aria-hidden="true"></div>
+        <div class="vignette" aria-hidden="true"></div>
+        <div class="hud" id="hud" aria-live="polite"></div>
+        <p class="hint" aria-hidden="true">← → walk · click places · <kbd>/</kbd> to chat</p>
     </main>
-    <footer>
-        <p>&copy; 2023 Hanjing Shi. All rights reserved.</p>
-    </footer>
 
-    <script src="scripts.js"></script>
+    <aside class="panel" id="panel" hidden aria-label="Place details">
+        <button type="button" class="icon-btn panel-close" id="panel-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+        <div class="panel-body" id="panel-body"></div>
+    </aside>
 
+    <section class="guide" id="guide" aria-label="Chat with Mini-Hanjing">
+        <header class="guide-head">
+            <div class="guide-portrait" id="guide-portrait" aria-hidden="true"></div>
+            <div class="guide-who">
+                <p class="guide-name">Mini-Hanjing</p>
+                <p class="guide-note">Scripted guide · answers cite my papers · nothing you type leaves your browser</p>
+            </div>
+            <button type="button" class="icon-btn guide-toggle" id="guide-toggle"
+                aria-label="Fold the conversation away" title="Fold away">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+        </header>
+        <div class="guide-log" id="guide-log" role="log" aria-live="polite"></div>
+        <div class="guide-chips" id="guide-chips"></div>
+        <form class="guide-form" id="guide-form" autocomplete="off">
+            <label class="sr-only" for="guide-input">Ask Mini-Hanjing a question</label>
+            <input id="guide-input" type="text" maxlength="200" enterkeyhint="send"
+                placeholder="Ask me about research, papers, education…">
+            <button type="submit" class="send" aria-label="Ask">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+        </form>
+    </section>
+    <button type="button" class="guide-fab" id="guide-fab" aria-controls="guide" aria-expanded="false" hidden>
+        <span class="guide-fab-face" id="guide-fab-face" aria-hidden="true"></span>
+        <span class="guide-fab-label">Ask me</span>
+        <span class="guide-fab-dot" aria-hidden="true"></span>
+        <span class="sr-only">, open the conversation with Mini-Hanjing</span>
+    </button>
+
+    <div class="title" id="title" hidden role="dialog" aria-modal="true" aria-labelledby="title-h">
+        <div class="title-card">
+            <span class="seal seal-lg" aria-hidden="true">HS</span>
+            <p class="title-kicker">Hanjing Shi · HCI &amp; AI Researcher</p>
+            <h1 id="title-h">Welcome to my world</h1>
+            <p class="title-sub">I study how people stay meaningfully in charge when AI becomes a teammate, an agent, or a
+                persona. Come walk around, and my mini-me will show you.</p>
+            <div class="title-actions">
+                <button type="button" class="btn btn-primary" id="enter-btn">Enter the world <span aria-hidden="true">→</span></button>
+                <a class="btn btn-ghost" href="basic.html" data-view="basic">Basic version</a>
+            </div>
+            <p class="title-hint">Walk with ← → or click places · ask Mini-Hanjing anything · switch versions anytime
+                from the top bar</p>
+        </div>
+    </div>
+
+    <div class="modal" id="video-modal" hidden role="dialog" aria-modal="true" aria-labelledby="video-title">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h2 id="video-title">Video</h2>
+                <button type="button" class="icon-btn" id="video-close" aria-label="Close video">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+            </div>
+            <div class="modal-body" id="video-body"></div>
+        </div>
+    </div>
+
+    <noscript>
+        <div class="noscript">This interactive page needs JavaScript. <a href="basic.html">Open the basic version →</a></div>
+    </noscript>
+
+    <script src="assets/js/data.js"></script>
+    <script src="assets/js/guide.js"></script>
+    <script src="assets/js/art.js"></script>
+    <script src="assets/js/world.js"></script>
 </body>
 
 </html>
