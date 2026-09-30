@@ -34,7 +34,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/world.css">
+    <link rel="stylesheet" href="assets/css/world.css?v=material-v2">
 </head>
 
 <body>
@@ -46,7 +46,7 @@
             <span class="brand-text"><span class="brand-name">Hanjing Shi</span><span class="brand-sub">HCI &amp; AI Researcher</span></span>
         </button>
         <div class="places" id="places">
-            <button type="button" class="icon-btn places-btn" id="places-btn" aria-expanded="false" aria-controls="nav">
+            <button type="button" class="icon-btn places-btn" id="places-btn" aria-label="Explore places" aria-expanded="false" aria-controls="nav">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
                 <span>Places</span>
             </button>
@@ -87,9 +87,23 @@
             </svg>
             <button type="button" class="sun" id="sun" tabindex="-1" aria-hidden="true">
                 <svg viewBox="-100 -100 200 200">
-                    <circle class="sun-ring" r="92" /><circle class="sun-ring" r="80" stroke-dasharray="3 7" /><circle class="sun-ring" r="68" />
-                    <circle class="sun-disc" r="56" />
-                    <g class="moon-craters"><circle cx="-18" cy="-12" r="9" /><circle cx="16" cy="14" r="6" /><circle cx="8" cy="-24" r="4" /></g>
+                    <defs>
+                        <radialGradient id="celestial-wash" cx=".32" cy=".28" r=".85"><stop offset="0" stop-color="var(--w-disc)"/><stop offset=".6" stop-color="var(--w-disc)"/><stop offset="1" stop-color="var(--w-disc-shade)"/></radialGradient>
+                        <radialGradient id="solar-wash" cx=".34" cy=".28" r=".82"><stop stop-color="#f6e6bd"/><stop offset=".55" stop-color="#ead3a5"/><stop offset="1" stop-color="#c4a275"/></radialGradient>
+                        <radialGradient id="celestial-halo"><stop offset=".45" stop-color="var(--w-disc)" stop-opacity=".24"/><stop offset="1" stop-color="var(--w-disc)" stop-opacity="0"/></radialGradient>
+                        <filter id="solar-grain" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".65" numOctaves="3" seed="12"/><feColorMatrix type="matrix" values="0 0 0 0 .46 0 0 0 0 .37 0 0 0 0 .24 .42 0 0 0 -.05"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+                        <filter id="lunar-grain" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".085" numOctaves="4" seed="39"/><feColorMatrix type="matrix" values="0 0 0 0 .32 0 0 0 0 .35 0 0 0 0 .34 .5 0 0 0 -.12"/><feComposite in2="SourceGraphic" operator="in"/></filter>
+                        <clipPath id="disc-clip"><circle r="55"/></clipPath>
+                    </defs>
+                    <circle class="celestial-halo" r="89"/>
+                    <path class="celestial-trace" d="M-70 -8C-71 -34 -52 -61 -29 -67M42 -57q22 15 26 42M62 33Q45 66 9 70M-26 67q-15 -4 -25 -15"/>
+                    <path class="sun-disc" d="M0 -55.8C15 -56.5 29 -49.8 39.4 -39.9C49.7 -29.4 56.2 -14.6 55.6 0C56.7 15.4 49.1 29.9 39.9 39.6C29.5 50.4 15.1 55.9 0 55.7C-15.6 56.3 -29.4 50.1 -39.8 39.7C-50 29.4 -56.2 15 -55.8 0C-56.4 -15.1 -49.9 -29.7 -39.5 -39.7C-29.2 -50.3 -14.9 -55.3 0 -55.8Z"/>
+                    <circle class="disc-texture" r="55"/>
+                    <circle class="solar-grain" r="55"/>
+                    <g class="solar-scumble" clip-path="url(#disc-clip)"><path d="M-43 -27Q-18 -49 10 -46M-44 -21q7 -8 14 -11M31 -40q16 17 17 36M46 12q-7 27 -27 37M-32 39q12 10 24 12"/><path class="sun-wash-patch" d="M-47 -14Q-20 -34 3 -20Q15 -14 28 -25Q46 -9 30 12Q9 19 -8 3Q-33 12 -47 -14Z"/></g>
+                    <g class="lunar-terrain" clip-path="url(#disc-clip)"><circle class="moon-grain" r="55"/><path class="lunar-sea" d="M-38 -26Q-26 -47 -5 -37Q7 -28 1 -12Q-6 -4 -16 -10Q-22 1 -36 -6Q-48 -15 -38 -26ZM9 -13Q24 -23 39 -7Q46 6 35 19Q21 29 9 17Q0 6 9 -13ZM-24 19Q-13 9 -1 20Q8 32 -8 44Q-28 48 -32 34Q-36 24 -24 19Z"/><path class="lunar-shadow" d="M25 -52C63 -36 68 28 25 51Q47 21 42 -10Q40 -36 25 -52Z"/></g>
+                    <g class="moon-craters"><path d="M-32 -21q-8 5 -4 13q6 8 15 4q8 -6 4 -13q-6 -9 -15 -4ZM7 8q-5 7 0 13q8 5 14 -1q5 -7 -1 -11q-6 -6 -13 -1ZM-3 -40q-4 4 -1 8q4 2 8 -1q3 -4 -1 -7q-3 -2 -6 0Z"/><circle cx="-9" cy="24" r="3.1"/><circle cx="29" cy="-16" r="2.5"/><path class="lunar-rim" d="M-31 -18q-7 5 -2 10M7 11q-3 5 1 8M-2 -37q-2 2 0 3"/></g>
+                    <g class="celestial-clouds"><path d="M-88 24Q-62 17 -46 24Q-26 19 -8 27Q10 25 29 32Q-13 34 -34 30Q-60 32 -88 28ZM6 -28Q27 -36 43 -31Q67 -36 87 -28Q62 -25 39 -27Q21 -25 6 -28Z"/></g>
                 </svg>
             </button>
             <div class="birds"><span class="bird"></span><span class="bird b2"></span><span class="bird b3"></span></div>
@@ -144,8 +158,8 @@
             <span class="seal seal-lg" aria-hidden="true">HS</span>
             <p class="title-kicker">Hanjing Shi · HCI &amp; AI Researcher</p>
             <h1 id="title-h">Welcome to my world</h1>
-            <p class="title-sub">I study how people stay meaningfully in charge when AI becomes a teammate, an agent, or a
-                persona. Come walk around, and my mini-me will show you.</p>
+            <p class="title-sub">Research, road trips, six cats, and things I make. A little world to wander through,
+                with my pocket-sized self as your guide.</p>
             <div class="title-actions">
                 <button type="button" class="btn btn-primary" id="enter-btn">Enter the world <span aria-hidden="true">→</span></button>
                 <a class="btn btn-ghost" href="basic.html" data-view="basic">Basic version</a>
@@ -171,10 +185,11 @@
         <div class="noscript">This interactive page needs JavaScript. <a href="basic.html">Open the basic version →</a></div>
     </noscript>
 
-    <script src="assets/js/data.js"></script>
-    <script src="assets/js/guide.js"></script>
-    <script src="assets/js/art.js"></script>
-    <script src="assets/js/world.js"></script>
+    <script src="assets/js/data.js?v=material-v2"></script>
+    <script src="assets/js/rituals.js?v=material-v2"></script>
+    <script src="assets/js/guide.js?v=material-v2"></script>
+    <script src="assets/js/art.js?v=material-v2"></script>
+    <script src="assets/js/world.js?v=material-v2"></script>
 </body>
 
 </html>

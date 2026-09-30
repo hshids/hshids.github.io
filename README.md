@@ -22,6 +22,7 @@ assets/js/art.js      ← SVG drawings: the avatar (and her pose drawings), JinB
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
 assets/js/basic.js    ← renders basic.html from data.js
 assets/css/world.css, assets/css/basic.css
+assets/art/           ← painted parallax mountains and WebP material swatches used inside the SVGs
 images/…              ← photos (each gallery folder has a thumbs/ subfolder)
 files/…               ← PDFs (posters, slides)
 tutorials/, blog/     ← the original tutorial and blog pages (unchanged)
@@ -109,7 +110,7 @@ The poses are CSS classes on `#char` (`act-*`, see `world.css`), driven by `ACTI
 
 ```bash
 python3 -m http.server 8000
-# open http://localhost:8000/ (interactive) or http://localhost:8000/basic.html
+# open http://localhost:8000/index.html?world (interactive) or http://localhost:8000/basic.html
 ```
 
 ## Controls (interactive version)
@@ -124,4 +125,16 @@ python3 -m http.server 8000
 
 The chat folds into a small "Ask me" button (the ⌄ button in its header), and the site remembers that choice. While it's folded, Mini-Hanjing says short answers in a speech bubble.
 
+The conversation starts folded for new visitors. JinBingBing keeps her original following and meowing behavior; click the butterfly beside her to watch her pounce, or keep clicking her to discover a tail-chasing reaction. Click XiaoHei on the Life cushion to wake him for a short grooming session. Clicking a lotus pond makes ripples and reveals a koi. These details work with both mouse and touch; reduced-motion visitors get quieter reactions.
+
+The artwork uses local WebP textures inside SVG patterns, keeping the architecture, actors and scenery as independently animated elements. Foreground materials follow the day/night palette; distant windows remain warm at night. The character, JinBingBing and XiaoHei are drawn from the photos already in `images/portraits/` and `images/cats/`.
+
 Clicking the sun or moon switches between day and night; the avatar changes outfit too. Motion is reduced when the system asks for it.
+
+The explicit `?world` URL opens the interactive version even when a visitor previously chose the basic version. The live interactive entry is https://hshids.github.io/index.html?world.
+
+Page navigation, panels and controls remain in English. Mini-Hanjing answers Chinese questions in Chinese without changing the language of the surrounding site.
+
+Optional scene scripts are additive in `assets/js/rituals.js`; the original introductions and question responses stay in `guide.js`. Ask “带我找彩蛋” / “Show me the little rituals”, or try “磨墨”, “放一卷猫片”, “开饭啦”, “看看锦鲤”, “小黑洗脸”, and “看一会儿月亮”. The English equivalents are “Grind some ink”, “Roll the cat film”, “Let the pot simmer”, “Watch the koi”, “Let XiaoHei groom”, and “Watch the moon”. Directly clicking the inkstone, cooking pot, or projector also gives its new material a small animated response while retaining the existing panel navigation.
+
+The pond is one continuous water plane with a curved bank, a submerged shelf, textured plants, and a screen-aligned sun/moon reflection. Ripples and koi appear at the tapped position. Pine and willow artwork uses transparent local assets and retains the existing parallax layers; distant architecture now has foliage around its foundation and fades into the landscape.

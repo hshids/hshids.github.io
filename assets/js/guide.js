@@ -731,6 +731,10 @@
     m = /^theme:([\w-]+)$/.exec(q);
     if (m && themeById[m[1]]) return themeAnswer(themeById[m[1]], preferLang || "en");
 
+    // Explicit optional commands add small scene rituals without rewriting existing answers.
+    var ritual = window.HJRituals && window.HJRituals.answer(q, lang);
+    if (ritual) return ritual;
+
     // Exact theme title (e.g. from a chip).
     for (var i = 0; i < D.themes.length; i++) {
       var t = D.themes[i];

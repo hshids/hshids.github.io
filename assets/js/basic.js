@@ -37,7 +37,7 @@
     if (L.email) out.push('<a href="mailto:' + esc(L.email) + '">' + esc(L.email) + "</a>");
     out.push(a(L.scholar, "Google Scholar"));
     if (L.linkedin) out.push(a(L.linkedin, "LinkedIn"));
-    if (L.rednote) out.push(a(L.rednote, "RedNote (小红书)"));
+    if (L.rednote) out.push(a(L.rednote, "RedNote"));
     if (L.github) out.push(a(L.github, "GitHub"));
     if (L.cv) out.push(a(L.cv, "CV"));
     return out;
@@ -131,7 +131,7 @@
           (t.pdf ? '<div class="pub-links">' + a(t.pdf, "PDF version") + "</div>" : "") + "</li>";
       }).join("") + "</ul>");
 
-    html += section("writing", "Blog", (L.rednote ? "<p>My main blog lives on " + a(L.rednote, "RedNote (小红书)") + ". Below are two posts on statistics, written in Chinese.</p>" : "<p>Posts on statistics, written in Chinese.</p>") + '<ul class="cards">' + D.writing.map(function (w) {
+    html += section("writing", "Blog", (L.rednote ? "<p>My main blog lives on " + a(L.rednote, "RedNote") + ". Below are two posts on statistics, written in Chinese.</p>" : "<p>Posts on statistics, written in Chinese.</p>") + '<ul class="cards">' + D.writing.map(function (w) {
       return '<li><div class="t">' + a(w.href, w.title) + "</div><div>" + esc(w.desc.en) + "</div></li>";
     }).join("") + "</ul>" +
       "<h3>My custom GPTs</h3><ul class=\"plain\">" + D.gpts.map(function (g) {

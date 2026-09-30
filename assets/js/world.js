@@ -8,8 +8,9 @@
 
   var D = window.HJ_DATA, G = window.HJGuide, ART = window.HJArt;
   var GY = ART.GY, VH = ART.VH;
+  var SITE_LANG = "en";             // Page content stays English independently of the conversation.
   var W = 8400;                     // world width in units
-  var CHAR_W = 102, CHAR_H = 170;   // avatar box in world units (120x200 art at 0.85)
+  var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
   // "stand" is each place's red circle: stop on it and she does something there (see ACTIONS).
@@ -59,7 +60,7 @@
   var worldEl = $("#world"), layersEl = $("#layers"), hud = $("#hud");
   var panel = $("#panel"), panelBody = $("#panel-body");
   var guide = $("#guide"), fab = $("#guide-fab"), log = $("#guide-log"), chips = $("#guide-chips"), form = $("#guide-form"), input = $("#guide-input");
-  var charEl, catEl, groundEl, layerEls = [];
+  var charEl, catEl, groundEl, waterLightEl, layerEls = [];
 
   function svgWrap(width, inner, cls) {
     return '<svg class="' + cls + '" viewBox="0 0 ' + width + " " + VH + '" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">' + inner + "</svg>";
@@ -89,8 +90,9 @@
       L.width = L.id === "ground" ? W : Math.ceil(W * L.f + 2600);
       if (L.id === "ground") {
         el.innerHTML = svgWrap(W, ART.ground(W, STATIONS) + STATIONS.map(stationArt).join(""), "scene") +
-          '<div class="actor cat" id="cat">' + ART.cat() + '<div class="bubble" id="cat-bubble"></div></div>' +
+          '<div class="actor cat" id="cat">' + ART.cat() + '<button type="button" class="cat-butterfly" aria-label="Let JinBingBing chase the butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></svg></button><div class="bubble" id="cat-bubble"></div></div>' +
           '<div class="actor char" id="char">' + ART.character("w") + '<div class="bubble" id="char-bubble"></div></div>';
+        el.insertAdjacentHTML("beforeend", '<button type="button" id="xiaohei-control" class="sleeper-control" aria-label="Wake XiaoHei, our oldest brother, for a little grooming" style="left:calc(var(--s) * ' + (byId.life.x - 33) + 'px)"></button>');
         groundEl = el;
       } else {
         el.innerHTML = svgWrap(L.width, L.build(L.width), "scene");
@@ -101,6 +103,7 @@
     });
     charEl = $("#char");
     catEl = $("#cat");
+    waterLightEl = $("#water-light");
     $("#guide-portrait").innerHTML = ART.portrait("p");
     $("#guide-fab-face").innerHTML = ART.portrait("f");
   }
@@ -115,12 +118,15 @@
     var r = worldEl.getBoundingClientRect();
     state.cw = r.width; state.ch = r.height;
     state.mobile = r.width < 700;
-    var minUnits = state.mobile ? 560 : 720;
+    var minUnits = state.mobile ? 480 : 720;
     var s = Math.min(r.height / VH, r.width / minUnits);
     state.s = s;
     state.viewW = r.width / s;
+    var sunBounds = $("#sun").getBoundingClientRect();
+    state.waterLightX = (sunBounds.left + sunBounds.width / 2 - r.left) / s;
     var extra = r.height - VH * s;
-    state.sceneBottom = state.mobile ? Math.max(0, Math.min(guideReserve(), extra)) : 0;
+    // Raise the walkable stage on tall phones rather than leaving all the spare height in the sky.
+    state.sceneBottom = state.mobile ? Math.max(extra * 0.62, Math.min(guideReserve(), extra)) : 0;
     worldEl.style.setProperty("--s", s);
     worldEl.style.setProperty("--scene-bottom", state.sceneBottom + "px");
     layerEls.forEach(function (L) {
@@ -150,6 +156,8 @@
     catEl.style.transform = "translate3d(" + ((state.catX - CAT_W / 2) * s).toFixed(1) + "px,0,0)";
     charEl.classList.toggle("face-left", state.dir < 0);
     catEl.classList.toggle("face-left", state.catDir < 0);
+    // Sun and moon stay in the sky while their broken reflection stays beneath them.
+    waterLightEl.setAttribute("transform", "translate(" + (state.cam * 1.18 + state.waterLightX).toFixed(1) + " 0)");
   }
 
   function camGoal() {
@@ -199,6 +207,7 @@
       else state.catDir = state.dir;
     }
     catEl.classList.toggle("is-walking", Math.abs(cdx) > 14);
+    if (Math.abs(cdx) > 14) catEl.classList.remove("is-pouncing", "is-tail-playing");
 
     // camera
     if (state.title && !reduced) {
@@ -273,8 +282,8 @@
   function showHud() {
     var near = state.near;
     if (!near || state.panel === near.id || state.title) { hud.classList.remove("show"); return; }
-    hud.innerHTML = "<b>" + esc(state.lang === "zh" ? near.zh : near.label) + "</b> · " +
-      (state.mobile ? (state.lang === "zh" ? "点击进入" : "tap to explore") : (state.lang === "zh" ? "按 Enter 进入" : "press Enter to explore"));
+    hud.innerHTML = "<b>" + esc(near.label) + "</b> · " +
+      (state.mobile ? "tap to explore" : "press Enter to explore");
     hud.classList.add("show");
   }
 
@@ -294,6 +303,11 @@
     else if (a === "wave") flash(charEl, "is-waving", 1500);
     else if (a === "night") setTheme("dark");
     else if (a === "day") setTheme("light");
+    else if (a === "ink") flash($(".inkstone"), "is-grinding", 4200);
+    else if (a === "projector") flash($(".cinema"), "is-projecting", 9000);
+    else if (a === "simmer") flash($(".stove"), "is-simmering", 6000);
+    else if (a === "groom") groomXiaoHei();
+    else if (a === "pond") stirPond(state.cw * .62, worldEl.getBoundingClientRect().bottom - state.sceneBottom - state.s * 39);
   }
 
   // ---------- theme ----------
@@ -333,6 +347,10 @@
     en: ["Hi! I'm Hanjing, the pocket-sized edition.", "Pick a place and I'll walk you there!", "Psst, every book in my library is one of my papers.", "JinBingBing follows me everywhere.", "Stand on a red circle and see what I do there!", "Fun fact, I remember her papers better than she does. 😏"],
     zh: ["嗨！我是迷你版的 Hanjing。", "点一个地方，我带你走过去！", "悄悄告诉你，藏书阁里每本书都是我的论文。", "金饼饼走到哪跟到哪。", "站到红圈上，看看我会做什么！", "冷知识，她的论文我比她本人记得还清楚 😏"]
   };
+  if (window.HJRituals) {
+    POKES.en = POKES.en.concat(window.HJRituals.pokes.en);
+    POKES.zh = POKES.zh.concat(window.HJRituals.pokes.zh);
+  }
 
   function addMsg(who, text) {
     var m = document.createElement("div");
@@ -366,7 +384,7 @@
     function done() {
       clearInterval(timer);
       textEl.textContent = full;
-      if (a.html) extra.innerHTML = a.html;
+      if (a.html) extra.innerHTML = a.lang === "en" ? a.html.replace(/RedNote \(小红书\)/g, "RedNote") : a.html;
       setChips(a.chips && a.chips.length ? a.chips : null);
       charEl.classList.remove("is-talking");
       log.scrollTop = log.scrollHeight;
@@ -429,7 +447,7 @@
   function setLang(l, quiet) {
     state.lang = l;
     $$(".lang-btn").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.lang === l ? "true" : "false"); });
-    input.placeholder = l === "zh" ? "问我任何问题，比如研究、论文、教育背景……" : "Ask me about research, papers, education…";
+    input.placeholder = "Ask me about research, papers, education…";
     if (!quiet) setChips(null);
   }
 
@@ -456,10 +474,10 @@
   function nowWorking() {
     var list = D.projects || [];
     if (!list.length) return "";
-    var zh = state.lang === "zh";
+    var zh = SITE_LANG === "zh";
     return '<section class="p-now" id="now"><h3>' + (zh ? "正在进行" : "Now working on") + '</h3><ul class="p-cards">' + list.map(function (p) {
       var st = p.status === "review" ? (zh ? "审稿中" : "under review") : (zh ? "进行中" : "in progress");
-      return '<li class="p-card" id="project-' + esc(p.id) + '"><span class="p-card-tag">' + st + "</span><h3>" + esc(p.title) + "</h3><p>" + esc(pick(state.lang, p)) + "</p>" +
+      return '<li class="p-card" id="project-' + esc(p.id) + '"><span class="p-card-tag">' + st + "</span><h3>" + esc(p.title) + "</h3><p>" + esc(pick(SITE_LANG, p)) + "</p>" +
         '<button type="button" class="link-btn" data-askproject="' + esc(p.id) + '">' + (zh ? "问问迷你 Hanjing" : "Ask Mini-Hanjing") + "</button></li>";
     }).join("") + "</ul></section>";
   }
@@ -479,13 +497,13 @@
     if (l.poster) links.push(extLink(l.poster, "Poster"));
     if (l.slides) links.push(extLink(l.slides, "Slides"));
     if (G.videoFor(p.id)) links.push('<button type="button" class="link-btn" data-video="' + p.id + '">▶ Video</button>');
-    links.push('<button type="button" class="link-btn" data-askpaper="' + p.id + '">' + (state.lang === "zh" ? "问问迷你 Hanjing" : "Ask Mini-Hanjing") + "</button>");
+    links.push('<button type="button" class="link-btn" data-askpaper="' + p.id + '">' + (SITE_LANG === "zh" ? "问问迷你 Hanjing" : "Ask Mini-Hanjing") + "</button>");
     return '<li class="p-paper" id="paper-' + p.id + '" data-type="' + p.type + '">' +
       '<a class="p-paper-title" href="' + esc(l.paper || l.doi || l.arxiv || l.pdf) + '" target="_blank" rel="noopener">' + esc(p.title) + "</a>" +
       '<div class="p-authors">' + authors(p.authors) + "</div>" +
       '<div class="p-venue"><span class="badge badge-' + p.type + '">' + esc(G.typeLabel[p.type].en) + "</span> " + esc(p.venueShort) + "</div>" +
-      "<details><summary>" + (state.lang === "zh" ? "摘要与观点" : "Summary & key point") + "</summary>" +
-      "<p>" + esc(pick(state.lang, p.summary)) + "</p><p><b>" + (state.lang === "zh" ? "核心观点" : "Key point") + "</b><br>" + esc(pick(state.lang, p.takeaway)) + "</p>" +
+      "<details><summary>" + (SITE_LANG === "zh" ? "摘要与观点" : "Summary & key point") + "</summary>" +
+      "<p>" + esc(pick(SITE_LANG, p.summary)) + "</p><p><b>" + (SITE_LANG === "zh" ? "核心观点" : "Key point") + "</b><br>" + esc(pick(SITE_LANG, p.takeaway)) + "</p>" +
       '<p class="p-venue-full">' + esc(p.venue) + "</p></details>" +
       '<div class="p-links">' + links.join("") + "</div></li>";
   }
@@ -493,17 +511,17 @@
   var RENDER = {
     home: function () {
       var P = D.person, L = P.links;
-      var links = G.contactItems("en").map(function (c) { return extLink(c.href, c.label); }).join("");
+      var links = G.contactItems("en").map(function (c) { return extLink(c.href, c.label.replace("RedNote (小红书)", "RedNote")); }).join("");
       return '<div class="p-hero"><button type="button" class="booth" data-booth="0" aria-label="Photo booth. Show another portrait of Hanjing">' +
         '<img src="' + esc((P.portraits || [P.photo])[0]) + '" alt="Hanjing Shi" width="120" height="150"><span class="booth-hint">click me</span></button>' +
         '<div><h2 id="panel-title" tabindex="-1">' + esc(P.name) + '</h2><p class="p-role">' + esc(P.role) + "</p></div></div>" +
-        '<p class="p-lede">' + esc(pick(state.lang, P.tagline)) + "</p>" +
-        P.bio[state.lang === "zh" ? "zh" : "en"].map(function (b) { return "<p>" + esc(b) + "</p>"; }).join("") +
+        '<p class="p-lede">' + esc(pick(SITE_LANG, P.tagline)) + "</p>" +
+        P.bio[SITE_LANG === "zh" ? "zh" : "en"].map(function (b) { return "<p>" + esc(b) + "</p>"; }).join("") +
         '<div class="p-links p-links-row">' + links + "</div>" +
-        '<h3 id="news">' + (state.lang === "zh" ? "最近动态" : "News") + '</h3><ul class="p-news">' +
+        '<h3 id="news">' + (SITE_LANG === "zh" ? "最近动态" : "News") + '</h3><ul class="p-news">' +
         D.news.map(function (n) {
-          return '<li><span class="p-date">' + esc(n.date) + "</span><span>" + esc(pick(state.lang, n)) +
-            (n.paper ? ' <button type="button" class="link-btn" data-openpaper="' + n.paper + '">' + (state.lang === "zh" ? "查看" : "view") + "</button>" : "") + "</span></li>";
+          return '<li><span class="p-date">' + esc(n.date) + "</span><span>" + esc(pick(SITE_LANG, n)) +
+            (n.paper ? ' <button type="button" class="link-btn" data-openpaper="' + n.paper + '">' + (SITE_LANG === "zh" ? "查看" : "view") + "</button>" : "") + "</span></li>";
         }).join("") + "</ul>";
     },
 
@@ -516,50 +534,50 @@
         var p = G.pubById[v.paper];
         return '<li><button type="button" class="link-btn" data-video="' + esc(v.paper) + '">▶ ' + esc(v.title || (p && p.title) || "Video") + "</button></li>";
       }).join("") + "</ul></section>" : "";
-      return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "研究" : "Research") + "</h2>" +
-        '<p class="p-lede">' + (state.lang === "zh"
+      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "研究" : "Research") + "</h2>" +
+        '<p class="p-lede">' + (SITE_LANG === "zh"
           ? "五条研究线索。每本书都是一篇论文，点开看摘要，或者让迷你 Hanjing 讲给你听。"
           : "Five threads of work. Every book in the library is a paper. Open one for a summary, or ask Mini-Hanjing about it.") + "</p>" +
         '<div class="p-filters" role="group" aria-label="Filter by type">' + filters + "</div>" + talks + nowWorking() +
         D.themes.map(function (t) {
           var list = G.pubs.filter(function (p) { return p.theme === t.id; });
-          return '<section class="p-theme" id="theme-' + t.id + '" style="--tc:' + t.color + '"><h3><span class="dot"></span>' + esc(state.lang === "zh" ? t.zhTitle : t.title) + "</h3>" +
-            '<p class="p-muted">' + esc(pick(state.lang, t.blurb)) + '</p><ul class="p-papers">' + list.map(paperItem).join("") + "</ul></section>";
+          return '<section class="p-theme" id="theme-' + t.id + '" style="--tc:' + t.color + '"><h3><span class="dot"></span>' + esc(SITE_LANG === "zh" ? t.zhTitle : t.title) + "</h3>" +
+            '<p class="p-muted">' + esc(pick(SITE_LANG, t.blurb)) + '</p><ul class="p-papers">' + list.map(paperItem).join("") + "</ul></section>";
         }).join("") +
         '<p class="p-muted p-foot">Full list also on ' + extLink(D.person.links.scholar, "Google Scholar") + ".</p>";
     },
 
     education: function () {
-      return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "求学之路" : "Education") + "</h2>" +
+      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "求学之路" : "Education") + "</h2>" +
         '<ol class="p-timeline">' + D.education.map(function (e) {
           return "<li><h3>" + esc(e.degree) + "</h3><p>" + esc(e.school) + (e.years ? " · " + esc(e.years) : "") + "</p>" +
             (e.note ? '<p class="p-muted">' + advisorNote(e.note) + "</p>" : "") +
-            (e.honors || []).map(function (h) { return '<p class="p-honor">🏅 ' + esc(pick(state.lang, h)) + "</p>"; }).join("") +
-            (e.alongside && e.alongside.length ? '<p class="p-along">' + (state.lang === "zh" ? "期间经历" : "Along the way") + '</p><ul class="p-exp">' + e.alongside.map(function (x) {
-              return "<li><b>" + esc(x.role) + "</b> · " + esc(x.org) + ' <span class="p-when">' + esc(x.when) + "</span><br>" + esc(pick(state.lang, x)) + "</li>";
+            (e.honors || []).map(function (h) { return '<p class="p-honor">🏅 ' + esc(pick(SITE_LANG, h)) + "</p>"; }).join("") +
+            (e.alongside && e.alongside.length ? '<p class="p-along">' + (SITE_LANG === "zh" ? "期间经历" : "Along the way") + '</p><ul class="p-exp">' + e.alongside.map(function (x) {
+              return "<li><b>" + esc(x.role) + "</b> · " + esc(x.org) + ' <span class="p-when">' + esc(x.when) + "</span><br>" + esc(pick(SITE_LANG, x)) + "</li>";
             }).join("") + "</ul>" : "") + "</li>";
         }).join("") + "</ol>" +
-        '<h3>' + (state.lang === "zh" ? "研究兴趣" : "Research interests") + '</h3><ul class="p-tags">' +
+        '<h3>' + (SITE_LANG === "zh" ? "研究兴趣" : "Research interests") + '</h3><ul class="p-tags">' +
         D.person.interests.map(function (i) { return "<li>" + esc(i) + "</li>"; }).join("") + "</ul>";
     },
 
     tutorials: function () {
-      return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "教程" : "Tutorials") + "</h2>" +
-        '<p class="p-lede">' + (state.lang === "zh" ? "我写的入门教程与速查表（中文）。" : "Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.") + "</p>" +
+      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "教程" : "Tutorials") + "</h2>" +
+        '<p class="p-lede">' + (SITE_LANG === "zh" ? "我写的入门教程与速查表（中文）。" : "Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.") + "</p>" +
         '<ul class="p-cards">' + D.tutorials.map(function (t) {
-          return '<li class="p-card" id="tut-' + t.id + '"><span class="p-card-tag">' + esc(t.label) + "</span><h3>" + extLink(t.href, t.title) + "</h3><p>" + esc(pick(state.lang, t.desc)) + "</p>" +
+          return '<li class="p-card" id="tut-' + t.id + '"><span class="p-card-tag">' + esc(t.label) + "</span><h3>" + extLink(t.href, t.title) + "</h3><p>" + esc(pick(SITE_LANG, t.desc)) + "</p>" +
             (t.pdf ? '<p class="p-links">' + extLink(t.pdf, "PDF version") + "</p>" : "") + "</li>";
         }).join("") + "</ul>";
     },
 
     writing: function () {
       var rn = D.person.links.rednote;
-      return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "写作" : "Writing") + "</h2>" +
-        (rn ? '<p class="p-lede">' + (state.lang === "zh" ? "我的主要博客在" : "My main blog lives on ") + extLink(rn, state.lang === "zh" ? "小红书" : "RedNote (小红书)") + (state.lang === "zh" ? "上。" : ".") + "</p>" : "") +
-        '<h3>' + (state.lang === "zh" ? "统计学博客" : "Statistics posts") + '</h3><ul class="p-cards">' + D.writing.map(function (w) {
-          return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(pick(state.lang, w.desc)) + "</p></li>";
+      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "写作" : "Writing") + "</h2>" +
+        (rn ? '<p class="p-lede">' + (SITE_LANG === "zh" ? "我的主要博客在" : "My main blog lives on ") + extLink(rn, SITE_LANG === "zh" ? "小红书" : "RedNote") + (SITE_LANG === "zh" ? "上。" : ".") + "</p>" : "") +
+        '<h3>' + (SITE_LANG === "zh" ? "统计学博客" : "Statistics posts") + '</h3><ul class="p-cards">' + D.writing.map(function (w) {
+          return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(pick(SITE_LANG, w.desc)) + "</p></li>";
         }).join("") + "</ul>" +
-        '<h3 id="gpts">' + (state.lang === "zh" ? "我做的 GPTs（纸鹤）" : "Custom GPTs (the paper cranes)") + '</h3><ul class="p-list">' + D.gpts.map(function (g, i) {
+        '<h3 id="gpts">' + (SITE_LANG === "zh" ? "我做的 GPTs（纸鹤）" : "Custom GPTs (the paper cranes)") + '</h3><ul class="p-list">' + D.gpts.map(function (g, i) {
           return '<li id="gpt-' + i + '">' + extLink(g.href, g.name) + "<br>" + esc(g.desc) + "</li>";
         }).join("") + "</ul>";
     },
@@ -577,18 +595,18 @@
       var t = L.travel;
       return '<h2 id="panel-title" tabindex="-1">Life</h2>' +
         '<p class="p-lede">Off the clock! Click around.</p>' +
-        '<section class="life-sec" id="life-cats"><h3>My six cats</h3><p>' + esc(pick(state.lang, L.cats)) + "</p>" +
+        '<section class="life-sec" id="life-cats"><h3>My six cats</h3><p>' + esc(pick(SITE_LANG, L.cats)) + "</p>" +
           '<ul class="cat-line">' + cards + "</ul></section>" +
-        '<section class="life-sec" id="life-travel"><h3>Road trips</h3><p>' + esc(pick(state.lang, t)) + "</p>" +
+        '<section class="life-sec" id="life-travel"><h3>Road trips</h3><p>' + esc(pick(SITE_LANG, t)) + "</p>" +
           '<div class="roadtrip">' + ART.usMap() +
           '<div class="rt-stats"><div><b id="rt-states">0</b><span>states visited</span></div><div><b id="rt-trips">0</b><span>drives around the U.S.</span></div><div><b>2</b><span>coasts called home</span></div></div>' +
           '<button type="button" class="link-btn" id="rt-play">▶ Play the road trips</button></div></section>' +
-        '<section class="life-sec" id="life-food"><h3>Food</h3><p>' + esc(pick(state.lang, L.food)) + "</p>" +
+        '<section class="life-sec" id="life-food"><h3>Food</h3><p>' + esc(pick(SITE_LANG, L.food)) + "</p>" +
           '<div class="food">' + ART.foodWheel(D.dishes) +
           '<div class="food-side"><button type="button" class="btn btn-primary btn-spin" id="spin">What should we try? Spin!</button>' +
           '<p class="food-result" id="food-result" aria-live="polite"></p>' +
           (D.foodSocial ? '<p class="p-links">' + extLink(D.foodSocial, "My restaurant finds →") + "</p>" : "") + "</div></div></section>" +
-        '<section class="life-sec" id="life-blogging"><h3>Writing</h3><p>' + esc(pick(state.lang, L.blogging)) +
+        '<section class="life-sec" id="life-blogging"><h3>Writing</h3><p>' + esc(pick(SITE_LANG, L.blogging)) +
           ' <button type="button" class="link-btn" data-goto="writing">Visit my writing desk →</button></p></section>';
     },
 
@@ -611,11 +629,11 @@
 
     contact: function () {
       var L = D.person.links;
-      return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "联系" : "Contact") + "</h2>" +
-        '<p class="p-lede">' + (state.lang === "zh" ? "欢迎来聊研究或合作。" : "Happy to talk research and collaboration.") + "</p>" +
-        '<ul class="p-contact">' + G.contactItems(state.lang).map(function (c) { return "<li>" + extLink(c.href, c.label) + "</li>"; }).join("") + "</ul>" +
-        (L.email ? "" : '<p class="p-muted">' + (state.lang === "zh" ? "邮箱即将补充。" : "Email coming soon.") + "</p>") +
-        '<p class="p-muted">' + (state.lang === "zh" ? "想看不带动画的版本？" : "Prefer a plain page?") + ' <a href="basic.html" data-view="basic">' + (state.lang === "zh" ? "基本版" : "Basic version") + "</a></p>";
+      return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "联系" : "Contact") + "</h2>" +
+        '<p class="p-lede">' + (SITE_LANG === "zh" ? "欢迎来聊研究或合作。" : "Happy to talk research and collaboration.") + "</p>" +
+        '<ul class="p-contact">' + G.contactItems(SITE_LANG).map(function (c) { return "<li>" + extLink(c.href, c.label.replace("RedNote (小红书)", "RedNote")) + "</li>"; }).join("") + "</ul>" +
+        (L.email ? "" : '<p class="p-muted">' + (SITE_LANG === "zh" ? "邮箱即将补充。" : "Email coming soon.") + "</p>") +
+        '<p class="p-muted">' + (SITE_LANG === "zh" ? "想看不带动画的版本？" : "Prefer a plain page?") + ' <a href="basic.html" data-view="basic">' + (SITE_LANG === "zh" ? "基本版" : "Basic version") + "</a></p>";
     }
   };
 
@@ -853,11 +871,31 @@
   }
 
   var pokes = 0;
+  var kittyPlayTimer = 0;
+  function groomXiaoHei() {
+    var sleeper = $(".sleep-cat", groundEl);
+    clearTimeout(sleeper._groomTimer);
+    sleeper.classList.remove("is-grooming"); void sleeper.getBoundingClientRect();
+    sleeper.classList.add("is-grooming");
+    sleeper._groomTimer = setTimeout(function () { sleeper.classList.remove("is-grooming"); }, reduced ? 1400 : 3700);
+    bubble(charEl, state.lang === "zh" ? "小黑是家里的大哥哥，也是大黄的双胞胎兄弟。" : "XiaoHei, our oldest brother — DaHuang's twin!", 3600);
+  }
+  function kittyPlay(kind) {
+    clearTimeout(kittyPlayTimer);
+    catEl.classList.remove("is-pouncing", "is-tail-playing");
+    if (reduced || catEl.classList.contains("is-walking")) { kittyPoke(); return; }
+    void catEl.offsetWidth;
+    var cls = kind === "butterfly" ? "is-pouncing" : "is-tail-playing";
+    catEl.classList.add(cls);
+    kittyPlayTimer = setTimeout(function () { catEl.classList.remove(cls); }, kind === "butterfly" ? 1700 : 2200);
+    bubble(catEl, kind === "butterfly" ? "Mrrp… almost! 🦋" : "Caught my own tail!", 2000);
+  }
   function kittyPoke() {
     var lines = ["Mrrp! ♥", "I'm JinBingBing, the youngest of six!", "Purrrr…", "Follow us!"];
     bubble(catEl, lines[pokes++ % lines.length], 1800);
     flash(catEl, "is-happy", 1200);
     hearts(catEl);
+    if (pokes % 3 === 0 && !reduced && !catEl.classList.contains("is-walking")) kittyPlay("tail");
   }
 
   function thumbOf(src) { return String(src).replace(/\/([^\/]+)$/, "/thumbs/$1"); }
@@ -913,7 +951,7 @@
     var heads = "", r = ART.rng(77);
     for (var x = 10; x < 1000; x += 58 + r() * 26) {
       var s = 0.8 + r() * 0.45, hy = 70 + r() * 14;
-      heads += '<g transform="translate(' + x.toFixed(0) + " " + hy.toFixed(0) + ") scale(" + s.toFixed(2) + ')"><circle cx="0" cy="0" r="21"/><path d="M-40 70Q-38 26 0 24Q38 26 40 70Z"/></g>';
+      heads += '<g transform="translate(' + x.toFixed(0) + " " + hy.toFixed(0) + ") scale(" + s.toFixed(2) + ')">' + ART.audienceFigure(Math.round(x), true) + '</g>';
     }
     theater = document.createElement("div");
     theater.className = "theater";
@@ -1040,7 +1078,7 @@
     setTimeout(function () {
       flash(charEl, "is-waving", 1500);
       reply(G.greet(state.lang), { noMove: true });
-      if (!state.mobile) input.focus({ preventScroll: true });   // no surprise keyboard on phones
+      if (!state.mobile && !state.guideMin) input.focus({ preventScroll: true });
     }, reduced ? 0 : 900);
   }
 
@@ -1056,6 +1094,20 @@
     return dx * dx + dy * dy < rad * rad;
   }
 
+  function stirPond(clientX, clientY) {
+    var el = $(".lotus-pond"), pondSvg = el.ownerSVGElement, point = pondSvg.createSVGPoint();
+    point.x = clientX; point.y = clientY;
+    point = point.matrixTransform(pondSvg.getScreenCTM().inverse());
+    var ring = $(".pond-ring", el), koi = $(".pond-koi", el);
+    var waterY = clamp(point.y, 714, 790);
+    ring.setAttribute("cx", point.x); ring.setAttribute("cy", waterY);
+    koi.setAttribute("transform", "translate(" + (point.x - 18) + " " + (waterY + 3) + ")");
+    clearTimeout(el._stirTimer);
+    el.classList.remove("is-stirred"); void el.getBoundingClientRect();
+    el.classList.add("is-stirred");
+    el._stirTimer = setTimeout(function () { el.classList.remove("is-stirred"); }, 2600);
+  }
+
   function onWorldClick(e) {
     if (state.dragged) { state.dragged = false; return; }
     if (state.title) return;
@@ -1065,7 +1117,16 @@
     // A station's invisible hit area can reach up over the sun; let the sun win there.
     if (t.classList && t.classList.contains("hit") && overSun(e)) { toggleTheme(); return; }
     if (t.closest("#char")) { if (pokeAction()) return; flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
+    if (t.closest(".cat-butterfly")) { kittyPlay("butterfly"); return; }
     if (t.closest("#cat")) { doAction("meow"); return; }
+    if ((el = t.closest(".lotus-pond"))) {
+      stirPond(e.clientX, e.clientY); return;
+    }
+    if (t.closest(".inkstone")) {
+      goTo("writing", { quiet: true }); doAction("ink");
+      bubble(charEl, window.HJRituals.answer(state.lang === "zh" ? "磨墨" : "Grind some ink", state.lang).text, 3400); return;
+    }
+    if (t.closest(".sleep-cat, #xiaohei-control")) { groomXiaoHei(); return; }
     if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, state.lang === "zh" ? "讲讲这本《" + G.pubById[id].title + "》" : "Tell me about " + G.pubById[id].title, true); return; }
     if ((el = t.closest(".slip"))) { goTo("tutorials", { focus: { tutorial: el.dataset.tutorial } }); return; }
     if ((el = t.closest(".crane"))) { goTo("writing", { focus: { gpt: +el.dataset.gpt } }); return; }
@@ -1074,6 +1135,8 @@
       goTo("life", { focus: { life: lid }, quiet: true });
       var item = D.life.filter(function (l) { return l.id === lid; })[0];
       reply({ text: pick(state.lang, item), html: "", chips: STATION_CHIPS.life[state.lang] }, { noMove: true });
+      if (el.classList.contains("stove")) doAction("simmer");
+      if (el.classList.contains("cinema")) doAction("projector");
       if (lid === "cats") doAction("meow");
       return;
     }
@@ -1265,7 +1328,7 @@
       setTimeout(function () { reply(G.greet(state.lang), { noMove: true }); }, 400);
       if (byId[hash]) setTimeout(function () { goTo(hash); }, 600);
     }
-    state.guideMin = store("hj-guide") === "min";
+    state.guideMin = store("hj-guide") !== "open";
     expandGuide(!state.mobile && !state.guideMin);
     document.body.classList.add("ready");
   }
