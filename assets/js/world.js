@@ -392,7 +392,7 @@
     education: { en: ["Past experience?", "Who is your advisor?"], zh: ["过往经历？", "你的导师是谁？"] },
     talks: { en: ["Do you have video talks?", "Show me your posters", "What's new?"], zh: ["有报告视频吗？", "看看你的海报", "最近有什么新动态？"] },
     writing: { en: ["Bayesian statistics", "Time series", "Python tutorials", "I want to learn R"], zh: ["贝叶斯统计", "时间序列", "Python 教程", "有 R 语言教程吗"] },
-    life: { en: ["Tell me about your cats", "How many states have you visited?", "What do you like to eat?"], zh: ["说说你的猫", "你去过几个州？", "你喜欢吃什么？"] },
+    life: { en: ["Tell me about your cats", "How many states have you visited?", "What do you like to eat?", "Where have you lived?"], zh: ["说说你的猫", "你去过几个州？", "你喜欢吃什么？", "你在哪些地方生活过？"] },
     contact: { en: ["Can I see your CV?", "Do you have video talks?"], zh: ["可以看简历吗？", "有论文讲解视频吗？"] }
   };
   var POKES = {
@@ -643,15 +643,19 @@
         var src = c.photos && c.photos[0];
         var art = src ? '<img src="' + esc(thumbOf(src)) + '" alt="' + esc(c.name) + '" loading="lazy">' : ART.mysteryCat();
         return '<li class="cat-card" style="--r:' + tilts[i % tilts.length] + 'deg"><button type="button" class="cat-open" data-cat="' + i + '">' +
-          '<span class="cat-photo' + (src ? "" : " is-art") + '">' + art + (i === 0 ? '<span class="cat-badge" aria-hidden="true">' + ART.cat("b" + i) + "</span>" : "") + "</span>" +
-          '<span class="cat-name">' + esc(c.name) + '</span><span class="cat-about">' + esc(c.about || "") + "</span></button></li>";
+          '<span class="cat-photo' + (src ? "" : " is-art") + '">' + art + (c.id === "jinbingbing" ? '<span class="cat-badge" aria-hidden="true">' + ART.cat("b" + i) + "</span>" : "") + "</span>" +
+          '<span class="cat-name">' + esc(c.name) + '</span><span class="cat-about">' + esc(c.arrival || "") + "</span></button></li>";
       }).join("");
-      var t = L.travel;
+      var t = L.travel, catStory = pick(SITE_LANG, L.cats).split("\n\n");
+      var journey = '<ol class="life-journey" id="life-journey">' + t.journey.map(function (stop, i) {
+        return '<li' + (i === t.journey.length - 1 ? ' class="journey-now"' : '') + '><p class="journey-chapter">' + esc(stop.chapter) + '</p><h4>' + esc(stop.place) + '</h4><p>' + esc(pick(SITE_LANG, stop)) + '</p></li>';
+      }).join("") + '</ol>';
       return '<h2 id="panel-title" tabindex="-1">Life</h2>' +
         '<p class="p-lede">Off the clock! Click around.</p>' +
-        '<section class="life-sec" id="life-cats"><h3>My six cats</h3><p>' + esc(pick(SITE_LANG, L.cats)) + "</p>" +
-          '<ul class="cat-line">' + cards + "</ul></section>" +
-        '<section class="life-sec" id="life-travel"><h3>Road trips</h3><p>' + esc(pick(SITE_LANG, t)) + "</p>" +
+        '<section class="life-sec" id="life-cats"><h3>My six cats</h3><p>' + esc(catStory[0]) + "</p>" +
+          '<ol class="cat-line" aria-label="Cats in the order they joined the family">' + cards + '</ol>' +
+          catStory.slice(1).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("") + '</section>' +
+        '<section class="life-sec" id="life-travel"><h3>A few places I’ve called home</h3>' + journey + '<h3>Two cross-country drives</h3><p>' + esc(pick(SITE_LANG, t)) + "</p>" +
           '<div class="roadtrip"><p class="rt-heading">A coast-to-coast journal</p>' + ART.usMap() +
           '<ol class="rt-legend"><li><span class="rt-year rt-north">2021</span><span><b>San Francisco → Washington, DC</b><small>Northern route · via Chicago</small></span></li><li><span class="rt-year rt-south">2025</span><span><b>Washington, DC → San Francisco</b><small>Southern route · through Texas</small></span></li></ol>' +
           '<p class="rt-note">Two crossings, four years apart. Routes shown schematically.</p>' +
@@ -1029,7 +1033,7 @@
     var out = [];
     D.cats.forEach(function (c, ci) {
       (c.photos || []).forEach(function (src) {
-        out.push({ cat: ci, src: src, alt: c.name, title: c.name, caption: "<b>" + esc(c.about || "") + "</b>" + (c.note ? " · " + esc(c.note) : "") });
+        out.push({ cat: ci, src: src, alt: c.name, title: c.name, caption: esc(c.note || "") + '<span class="gal-meta">' + esc(c.about || "") + '</span>' });
       });
     });
     return out;

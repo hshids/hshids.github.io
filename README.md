@@ -149,3 +149,7 @@ The pond is one continuous water plane with a curved bank, a submerged shelf, te
 The Road trips map shows two schematic crossings: 2021 from San Francisco to Washington, DC via Chicago in the north, and 2025 from DC to San Francisco through Texas in the south. The replay follows each direction in order; 46 states is the overall visited total, separate from these two drives.
 
 The latest [Life and landscape screenshot review](reviews/life-v5/index.html) includes the soft cushion, both travel routes, mobile map, and every scene by day and night.
+
+The cat gallery follows arrival order: DaHuang, XiaoHei, XiaoHeiHei, TuanZi, GuoZi, then JinBingBing. The companion badge follows JinBingBing’s stable `id`; the projector and photo viewer use the same family order. Gallery cards use short family-story labels. Photo captions lead with each cat’s story, with coat/breed labels kept secondary.
+
+`life.travel.journey` holds the personal chapters from high school near Albany, through Davis, DC and Pennsylvania, to San Francisco today. The Life panel and Mini-Hanjing’s “Where have you lived?” answer share these entries.

@@ -18,7 +18,7 @@ window.HJ_DATA = {
   person: {
     name: "Hanjing Shi",
     role: "HCI & AI Researcher",   // the headline under her name; the bio says where she is now
-    location: "Bethlehem, PA",
+    location: "San Francisco, CA",
     advisor: { name: "Dominic DiFranzo", url: "https://difranzo.com/" },
     tagline: {
       en: "I study how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.",
@@ -911,14 +911,15 @@ window.HJ_DATA = {
   // Cat gallery (interactive version only). To add a photo, put it in
   // images/cats/ (plus a small copy in images/cats/thumbs/) and list it under
   // the cat; to add a cat, add an entry.
+  // Ordered by arrival in the family. Identity must not depend on array position.
   cats: [
-    { name: "JinBingBing", zh: "金饼饼", about: "British Longhair · golden shaded · girl", note: "The youngest sister, and she walks with me around this world.",
-      photos: ["images/cats/img-6573.jpg", "images/cats/img-7121.jpg"] },
-    { name: "DaHuang", zh: "大黄", about: "Orange · boy", note: "XiaoHei's twin brother.", photos: ["images/cats/img-3783.jpg"] },
-    { name: "XiaoHei", zh: "小黑", about: "Gray tuxedo · boy", note: "Our oldest brother, and DaHuang's twin. A sleepy gentleman who loves a good grooming session.", photos: ["images/cats/img-0668.jpg"] },
-    { name: "XiaoHeiHei", zh: "小黑黑", about: "Black · girl", photos: ["images/cats/img-0499.jpg"] },
-    { name: "TuanZi", zh: "团子", about: "Ragdoll · boy", photos: ["images/cats/img-1804.jpg"] },
-    { name: "GuoZi", zh: "果子", about: "British Shorthair · silver shaded", photos: ["images/cats/img-1185.jpg", "images/cats/img-1187.jpg", "images/cats/dsc00311.jpg"] }
+    { id: "dahuang", arrival: "Since 2017", name: "DaHuang", zh: "大黄", about: "Orange tabby · boy", note: "XiaoHei's twin. He joined me in 2017, during my undergrad days at Davis. Still acting like a baby.", photos: ["images/cats/img-3783.jpg"] },
+    { id: "xiaohei", arrival: "Since 2017", name: "XiaoHei", zh: "小黑", about: "Gray tuxedo · boy", note: "Our oldest brother, and DaHuang's twin. He's been with me since 2017, when I was an undergrad. A sleepy gentleman who still acts like a baby and loves a good grooming session.", photos: ["images/cats/img-0668.jpg"] },
+    { id: "xiaoheihei", arrival: "Third to join us", name: "XiaoHeiHei", zh: "小黑黑", about: "Black · girl", note: "The third to join our family.", photos: ["images/cats/img-0499.jpg"] },
+    { id: "tuanzi", arrival: "Born in California", name: "TuanZi", zh: "团子", about: "Ragdoll · boy", note: "Born in California, and the fourth to join the family.", photos: ["images/cats/img-1804.jpg"] },
+    { id: "guozi", arrival: "Picked up in Sacramento", name: "GuoZi", zh: "果子", about: "British Shorthair · silver shaded", note: "She joined the family when I moved to DC for grad school. But we flew all the way back to California to pick her up in Sacramento!", photos: ["images/cats/img-1185.jpg", "images/cats/img-1187.jpg", "images/cats/dsc00311.jpg"] },
+    { id: "jinbingbing", arrival: "Our youngest sister", name: "JinBingBing", zh: "金饼饼", about: "British Longhair · golden shaded · girl", note: "The youngest sister, and the only one born near Seattle. Of course she runs the place. She's the one walking with me around this world.",
+      photos: ["images/cats/img-6573.jpg", "images/cats/img-7121.jpg"] }
   ],
 
   // The "try something new" food wheel.
@@ -927,6 +928,23 @@ window.HJ_DATA = {
     { id: "travel", icon: "suitcase", title: "Road trips",
       en: "I love to travel. I've driven across the U.S. twice: from San Francisco to Washington, DC via Chicago on a northern route in 2021, then from DC back to San Francisco through Texas on a southern route in 2025. Together, the two crossings trace a loop. I've visited 46 of the 50 states and lived for years on both coasts.",
       zh: "我很爱旅行，横穿过美国两次：2021 年从旧金山出发，走经过芝加哥的北线到华盛顿 DC；2025 年从 DC 出发，走经过 Texas 的南线回旧金山。两次不同的横穿路线，合起来刚好绕了一个圈。我去过美国 50 个州里的 46 个，在东西海岸都生活过很多年。",
+      journey: [
+        { place: "Upstate New York", chapter: "High school · near Albany",
+          en: "I went to high school in upstate New York, close to Albany.",
+          zh: "我在纽约州北部、靠近 Albany 的地方读高中。" },
+        { place: "California", chapter: "Undergrad · UC Davis",
+          en: "For undergrad, I moved to California and went to UC Davis. Fun fact: before I got there, I thought Davis was by the ocean. It wasn't. :)",
+          zh: "本科我来到了加州，在 UC Davis 读书。有个小趣事：来之前我还以为 Davis 也靠海。到了才发现，并不是。:)" },
+        { place: "Washington, DC", chapter: "Master's · Georgetown",
+          en: "Then I moved to DC for my master's at Georgetown and explored the DMV area: DC, Maryland, and Virginia. My friends and I had such a good time there, trying restaurants from different countries and going to all kinds of shows.",
+          zh: "后来我去 DC，在 Georgetown 读硕士，也到处探索 DMV，也就是 DC、Maryland 和 Virginia。和朋友们在这里度过了特别开心的时光：吃不同国家的餐厅，看各种 show。" },
+        { place: "Pennsylvania", chapter: "Ph.D. · Lehigh",
+          en: "Lehigh brought me to Pennsylvania for my Ph.D.",
+          zh: "再后来，Lehigh 把我带到了宾夕法尼亚，开始读博士。" },
+        { place: "San Francisco", chapter: "Now",
+          en: "Now I'm based in San Francisco. Back on the West Coast. :)",
+          zh: "现在我在旧金山，又回到西海岸啦。:)" }
+      ],
       stats: { trips: 2, states: 46 },
       keywords: "travel traveling trip trips road trip roadtrip drive driving drove states state usa america united east coast west coast lived live places explore 旅行 旅游 自驾 州 美国 东海岸 西海岸" },
     { id: "food", icon: "pot", title: "Food",
@@ -934,8 +952,8 @@ window.HJ_DATA = {
       zh: "美食当前，我从不说不。我喜欢尝试各个国家的特色菜，食物是我了解一种文化最喜欢的方式。业余时间我会在社交媒体上发探店记录；我也喜欢做饭，从零开始做出一顿饭，有一种很深的满足感。",
       keywords: "food foodie eat eating restaurant restaurants cuisine dish dishes try new things social media reviews cooking cook meal 美食 吃货 探店 餐厅 做饭 烹饪" },
     { id: "cats", icon: "cat", title: "Cats",
-      en: "Six. Yes, six. 🐾 JinBingBing, DaHuang, XiaoHei, XiaoHeiHei, TuanZi and GuoZi. Technically I live in their house. JinBingBing is the youngest, so of course she runs the place. That's why she follows me all around this world. XiaoHei is our oldest brother, and he and DaHuang are twins. JinBingBing is a golden shaded British Longhair; GuoZi is a British Shorthair.",
-      zh: "六只！没错，六只 🐾 金饼饼、大黄、小黑、小黑黑、团子和果子。严格来说，是我住在它们家。金饼饼是最小的妹妹，所以家里当然她说了算，这就是为什么她一路跟着我逛这个世界。小黑是家里的大哥哥，他和大黄是双胞胎。金饼饼是金渐层英国长毛猫，果子是英国短毛猫。",
+      en: "Six. Yes, six. 🐾 Meet them in the order they joined the family: DaHuang, XiaoHei, XiaoHeiHei, TuanZi, GuoZi, and JinBingBing. Technically I live in their house.\n\nDaHuang and XiaoHei have been with me since my undergrad days in 2017. They're twins, XiaoHei is our oldest brother, and they're still acting like babies.\n\nGuoZi joined the family when I moved to DC for grad school, but we flew all the way back to California to pick her up in Sacramento. TuanZi was born in California too. JinBingBing is the only one born near Seattle. So technically, everyone was born on the West Coast. :)\n\nJinBingBing is the youngest, so of course she runs the place. That's why she follows me all around this world.",
+      zh: "六只！没错，六只 🐾 按到家的顺序认识一下：大黄、小黑、小黑黑、团子、果子，最后是金饼饼。严格来说，是我住在它们家。\n\n大黄和小黑从 2017 年、我还在读本科的时候就陪着我了。他们是双胞胎，小黑是家里的大哥哥，但到现在两只还是小宝宝的样子。\n\n果子是在我去 DC 读研究生的时候加入的，但我们还是一路飞回加州，到 Sacramento 接她。团子也是在加州出生的。只有金饼饼出生在 Seattle 附近，所以严格来说，大家都是西海岸出生的。:)\n\n金饼饼是最小的妹妹，所以家里当然她说了算，这就是为什么她一路跟着我逛这个世界。",
       keywords: "cat cats kitten kitty kitties pet pets golden shaded youngest sister six gallery meow jinbingbing dahuang xiaohei xiaoheihei tuanzi guozi ragdoll orange silver 猫 猫咪 小猫 宠物 金渐层 妹妹 六只 金饼饼 大黄 小黑 小黑黑 团子 果子 布偶 银渐层" },
     { id: "blogging", icon: "brush", title: "Writing",
       en: "I'm an avid blogger on RedNote (Xiaohongshu), and I like sharing my experiences and thoughts with a wider audience.",

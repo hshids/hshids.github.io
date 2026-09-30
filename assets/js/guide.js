@@ -613,6 +613,13 @@
       focusId ? { focus: { life: focusId }, action: focusId === "cats" ? "meow" : undefined } : null);
   }
 
+  function lifeJourney(lang) {
+    var travel = D.life.filter(function (l) { return l.id === "travel"; })[0];
+    return A(lang, travel.journey.map(function (stop) { return pick(lang, stop); }).join("\n\n"), "",
+      lang === "zh" ? ["说说你的猫", "你去过几个州？"] : ["Tell me about your cats", "How many states have you visited?"],
+      "life", { focus: { section: "life-journey" } });
+  }
+
   function contact(lang) {
     var L = D.person.links;
     var text = lang === "zh"
@@ -747,6 +754,10 @@
     if (it.private) return privateQ(lang);
     if (it.identity) return identity(lang);
     if (it.about) return about(lang);
+
+    // Personal memories supplied by Hanjing, separate from the academic degree summary.
+    if (/\b(jin\s?bing\s?bing|bing\s?bing|da\s?huang|xiao\s?hei(?:\s?hei)?|tuan\s?zi|guo\s?zi)\b|金饼饼|大黄|小黑|团子|果子/i.test(q)) return life(lang, "cats");
+    if (/(where (do you live|are you (based|living|located))|where have you lived|places (you have|you've) (lived|called home)|high school|upstate new york|\balbany\b|\bdmv\b|davis.{0,30}(ocean|beach|coast)|life (journey|story)|你现在(在哪|住)|现在住在哪|生活过|住过哪些|高中|奥尔巴尼|戴维斯.{0,8}(海|沙滩))/i.test(q) && !/(research|papers?|研究|论文)/i.test(q)) return lifeJourney(lang);
 
     var hits = search(q).hits;
     var top = hits[0];
