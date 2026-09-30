@@ -925,8 +925,8 @@ window.HJ_DATA = {
   dishes: ["Hot pot", "Ramen", "Tacos", "Dim sum", "Pho", "Korean BBQ", "Pizza", "Biryani", "Sushi", "Brisket", "Dumplings", "Paella"],
   life: [
     { id: "travel", icon: "suitcase", title: "Road trips",
-      en: "I love to travel. I've driven all the way around the U.S. twice, visited 46 of the 50 states, and lived for years on both the East and West Coasts.",
-      zh: "我很爱旅行，自驾环绕美国两圈，去过美国 50 个州里的 46 个，在东西海岸都生活过很多年。",
+      en: "I love to travel. I've driven across the U.S. twice: from San Francisco to Washington, DC via Chicago on a northern route in 2021, then from DC back to San Francisco through Texas on a southern route in 2025. Together, the two crossings trace a loop. I've visited 46 of the 50 states and lived for years on both coasts.",
+      zh: "我很爱旅行，横穿过美国两次：2021 年从旧金山出发，走经过芝加哥的北线到华盛顿 DC；2025 年从 DC 出发，走经过 Texas 的南线回旧金山。两次不同的横穿路线，合起来刚好绕了一个圈。我去过美国 50 个州里的 46 个，在东西海岸都生活过很多年。",
       stats: { trips: 2, states: 46 },
       keywords: "travel traveling trip trips road trip roadtrip drive driving drove states state usa america united east coast west coast lived live places explore 旅行 旅游 自驾 州 美国 东海岸 西海岸" },
     { id: "food", icon: "pot", title: "Food",

@@ -607,7 +607,7 @@
   function life(lang, focusId) {
     var list = focusId ? D.life.filter(function (l) { return l.id === focusId; }) : D.life;
     var html = '<ul class="g-list">' + list.map(function (l) { return "<li><b>" + esc(l.title) + "</b> · " + esc(pick(lang, l)) + "</li>"; }).join("") + "</ul>";
-    var text = focusId ? pick(lang, list[0]) : (lang === "zh" ? "下班之后的我有六只猫、环美自驾、美食，还有写博客。" : "Off the clock, it's my six cats, road trips around the U.S., food, and blogging.");
+    var text = focusId ? pick(lang, list[0]) : (lang === "zh" ? "下班之后的我有六只猫、横穿美国的自驾、美食，还有写博客。" : "Off the clock, it's my six cats, road trips across the U.S., food, and blogging.");
     return A(lang, text, focusId ? "" : html,
       lang === "zh" ? ["你研究什么？", "怎么联系你？"] : ["What do you research?", "How can I contact you?"], "life",
       focusId ? { focus: { life: focusId }, action: focusId === "cats" ? "meow" : undefined } : null);

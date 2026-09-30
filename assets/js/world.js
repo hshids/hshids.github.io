@@ -73,7 +73,7 @@
       : st.id === "writing" ? fn(D.tutorials)
       : st.id === "life" ? fn(D.cats.filter(function (c) { return c.photos && c.photos.length; }).map(function (c) { return thumbOf(c.photos[0]); }))
       : fn();
-    if (st.id !== "writing") {
+    if (st.id !== "writing" && st.id !== "life") {
       var spot = '<ellipse class="spot" cx="' + (st.stand - st.x) + '" cy="' + (GY + 3) + '" rx="27" ry="6.5"/>';
       inner = inner.replace(/(<g class="st [^>]*>(?:<rect class="hit"[^>]*>)?)/, "$1" + spot);
     }
@@ -420,11 +420,15 @@
     return m;
   }
 
-  var typing = null;
+  // Remember automatic introductions for this visit, independently of the last message.
+  // Explicit questions still get an answer, even if the visitor asks again.
+  var heardReplies = new Set(), typing = null;
   function finishTyping() { if (typing) { var t = typing; typing = null; t.done(); } }
 
   function reply(a, opts) {
     opts = opts || {};
+    if (opts.once && heardReplies.has(a.text)) { setChips(a.chips); return; }
+    heardReplies.add(a.text);
     finishTyping();
     var m = addMsg("guide", "");
     var textEl = m.querySelector(".msg-text"), extra = m.querySelector(".msg-extra");
@@ -473,22 +477,25 @@
     fab.classList.add("has-news");
   }
 
+  var lastAsk = { text: "", lang: "", at: 0 };
   function ask(text, label, soft) {
     if (!text) return;
-    addMsg("user", label || text);
     if (/[㐀-鿿]/.test(label || text)) setLang("zh", true);
     else if (!/^(paper|theme|project):/.test(text)) setLang("en", true);
+    var answer = G.answer(text, state.lang);
+    if (soft && heardReplies.has(answer.text)) { setChips(answer.chips); return; }
+    var now = performance.now();
+    if (lastAsk.text === text && lastAsk.lang === state.lang && now - lastAsk.at < 650) return;
+    lastAsk = { text: text, lang: state.lang, at: now };
+    addMsg("user", label || text);
     // A click in the world ("soft") doesn't reopen a chat the visitor folded away.
     if (!(soft && state.guideMin)) expandGuide(true);
-    reply(G.answer(text, state.lang));
+    reply(answer);
   }
 
   function stationGreeting(id) {
     var text = pick(state.lang, ARRIVE[id]), chipList = STATION_CHIPS[id][state.lang];
-    // Coming back to the same place (e.g. clicking Welcome twice) doesn't repeat the line.
-    var msgs = $$(".msg-guide .msg-text", log), last = msgs[msgs.length - 1];
-    if (last && last.textContent === text) { setChips(chipList); return; }
-    reply({ text: text, html: "", chips: chipList }, { noMove: true });
+    reply({ text: text, html: "", chips: chipList }, { noMove: true, once: true });
   }
 
   function setChips(list) {
@@ -645,9 +652,11 @@
         '<section class="life-sec" id="life-cats"><h3>My six cats</h3><p>' + esc(pick(SITE_LANG, L.cats)) + "</p>" +
           '<ul class="cat-line">' + cards + "</ul></section>" +
         '<section class="life-sec" id="life-travel"><h3>Road trips</h3><p>' + esc(pick(SITE_LANG, t)) + "</p>" +
-          '<div class="roadtrip">' + ART.usMap() +
-          '<div class="rt-stats"><div><b id="rt-states">0</b><span>states visited</span></div><div><b id="rt-trips">0</b><span>drives around the U.S.</span></div><div><b>2</b><span>coasts called home</span></div></div>' +
-          '<button type="button" class="link-btn" id="rt-play">▶ Play the road trips</button></div></section>' +
+          '<div class="roadtrip"><p class="rt-heading">A coast-to-coast journal</p>' + ART.usMap() +
+          '<ol class="rt-legend"><li><span class="rt-year rt-north">2021</span><span><b>San Francisco → Washington, DC</b><small>Northern route · via Chicago</small></span></li><li><span class="rt-year rt-south">2025</span><span><b>Washington, DC → San Francisco</b><small>Southern route · through Texas</small></span></li></ol>' +
+          '<p class="rt-note">Two crossings, four years apart. Routes shown schematically.</p>' +
+          '<div class="rt-stats"><div><b>' + t.stats.states + '</b><span>states visited overall</span></div><div><b>' + t.stats.trips + '</b><span>cross-country drives</span></div><div><b>2</b><span>coasts called home</span></div></div>' +
+          '<div class="rt-controls"><button type="button" class="link-btn" id="rt-play">▶ Play the road trips</button><span class="rt-status" id="rt-status" role="status"></span></div></div></section>' +
         '<section class="life-sec" id="life-food"><h3>Food</h3><p>' + esc(pick(SITE_LANG, L.food)) + "</p>" +
           '<div class="food">' + ART.foodWheel(D.dishes) +
           '<div class="food-side"><button type="button" class="btn btn-primary btn-spin" id="spin">What should we try? Spin!</button>' +
@@ -689,6 +698,7 @@
     if (!butterflyEl.hidden) dismissButterfly(true);
     var fresh = state.panel !== id;
     if (fresh) {
+      stopRoadTrip();
       panelBody.innerHTML = RENDER[id]();
       panel.setAttribute("aria-label", byId[id].label);
       panelBody.scrollTop = 0;
@@ -710,6 +720,7 @@
 
   function closePanel() {
     if (!state.panel) return;
+    stopRoadTrip();
     state.panel = null;
     panel.classList.remove("open");
     document.body.classList.remove("panel-open");
@@ -744,7 +755,7 @@
       target.scrollIntoView({ block: "start", behavior: reduced ? "auto" : "smooth" });
       flash(target, "flash", 1600);
     }
-    if (f.life === "travel") setTimeout(playRoadTrip, reduced ? 0 : 500);
+    if (f.life === "travel") playRoadTrip();
   }
 
   // ---------- Life widgets ----------
@@ -755,26 +766,35 @@
   }
 
   var roadRaf = 0;
-  function playRoadTrip() {
+  function stopRoadTrip() {
+    cancelAnimationFrame(roadRaf); roadRaf = 0;
     var svg = $(".roadmap", panelBody);
     if (!svg) return;
-    var loops = $$(".us-loop", svg), car = $(".us-car", svg);
-    var statesEl = $("#rt-states"), tripsEl = $("#rt-trips");
-    var total = lifeById().travel.stats.states, dur = reduced ? 0 : 5600, t0 = 0;
-    cancelAnimationFrame(roadRaf);
+    $$(".us-route", svg).forEach(function (path) { path.style.strokeDashoffset = 0; });
+    $(".us-car", svg).setAttribute("visibility", "hidden");
+    $("#rt-play").disabled = false;
+    $("#rt-status").textContent = "";
+  }
+  function playRoadTrip() {
+    var svg = $(".roadmap", panelBody);
+    if (!svg || state.panel !== "life" || roadRaf) return;
+    var routes = $$(".us-route", svg), car = $(".us-car", svg), status = $("#rt-status"), play = $("#rt-play");
+    var dur = reduced ? 0 : 8000, t0 = null, current = -1;
+    play.disabled = true;
+    car.setAttribute("visibility", reduced ? "hidden" : "visible");
     function frame(now) {
-      if (!t0) t0 = now;
+      if (state.panel !== "life" || !svg.isConnected) { roadRaf = 0; return; }
+      if (t0 === null) t0 = now;
       var p = dur ? Math.min(1, (now - t0) / dur) : 1;
       var li = p >= 1 ? 1 : Math.floor(p * 2), lp = p >= 1 ? 1 : p * 2 - li;
-      loops[0].style.strokeDashoffset = 1000 * (1 - (li > 0 ? 1 : lp));
-      loops[1].style.strokeDashoffset = 1000 * (1 - (li > 0 ? lp : 0));
-      var path = loops[li], len = path.getTotalLength();
+      routes[0].style.strokeDashoffset = 1000 * (1 - (li > 0 ? 1 : lp));
+      routes[1].style.strokeDashoffset = 1000 * (1 - (li > 0 ? lp : 0));
+      if (li !== current) { status.textContent = li ? "2025 · DC → SF, through Texas" : "2021 · SF → DC, via Chicago"; current = li; }
+      var path = routes[li], len = path.getTotalLength();
       var a = path.getPointAtLength(len * lp), b = path.getPointAtLength(Math.min(len, len * lp + 2));
       car.setAttribute("transform", "translate(" + a.x.toFixed(1) + " " + a.y.toFixed(1) + ")" + (b.x < a.x ? " scale(-1 1)" : ""));
-      statesEl.textContent = Math.round(total * p);
-      tripsEl.textContent = p >= 1 ? 2 : li;
       if (p < 1) roadRaf = requestAnimationFrame(frame);
-      else bubble(charEl, "Two laps, 46 states!", 2200);
+      else { roadRaf = 0; play.disabled = false; car.setAttribute("visibility", "hidden"); status.textContent = "2021 → 2025 · Two crossings, one loop."; }
     }
     roadRaf = requestAnimationFrame(frame);
   }
@@ -975,6 +995,7 @@
 
   function groomXiaoHei() {
     var sleeper = $(".sleep-cat", groundEl);
+    flash(sleeper.closest(".nap"), "is-touched", 1700);
     clearTimeout(sleeper._groomTimer);
     sleeper.classList.remove("is-grooming"); void sleeper.getBoundingClientRect();
     sleeper.classList.add("is-grooming");
@@ -1254,7 +1275,7 @@
       var lid = el.dataset.life;
       goTo("life", { focus: { life: lid }, quiet: true });
       var item = D.life.filter(function (l) { return l.id === lid; })[0];
-      reply({ text: pick(state.lang, item), html: "", chips: STATION_CHIPS.life[state.lang] }, { noMove: true });
+      reply({ text: pick(state.lang, item), html: "", chips: STATION_CHIPS.life[state.lang] }, { noMove: true, once: true });
       if (el.classList.contains("stove")) doAction("simmer");
       if (el.classList.contains("cinema")) doAction("projector");
       if (lid === "cats") doAction("meow");

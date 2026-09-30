@@ -581,7 +581,16 @@
 
   function pine(x, y, s, cls) {
     s = s || 1;
-    return '<g class="pine ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + s + ')"><ellipse class="tree-root-shadow" cx="0" cy="0" rx="18" ry="2.2"/><image class="vegetation-image" href="assets/art/pine.webp" x="-60" y="-110" width="120" height="110"/></g>';
+    var distant = !/ground-pine/.test(cls || "");
+    return '<g class="pine ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/pine.webp" x="-57" y="-108.4" width="120" height="110"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
+  }
+
+  function treeFooting(distant) {
+    return distant ? '' : '<path class="tree-soil" d="M-33 0Q-24 -3 -15 -1Q-6 -4 5 -2Q20 -3 33 1Q22 4 3 4Q-21 5 -33 0Z"/><ellipse class="tree-root-shadow" cx="0" cy="1" rx="27" ry="2.8"/><ellipse class="tree-contact" cx="0" cy=".5" rx="15" ry="1.3"/>';
+  }
+
+  function treeRootCover() {
+    return '<path class="tree-root-cover" d="M-24 1q5 -2 11 0l3 1q-12 3 -18 0ZM7 1q9 -2 18 1l4 1q-15 2 -22 -2Z"/><path class="tree-soil-grain" d="M-25 2l5 1M-16 3l7 -.3M12 2l6 1M24 1l3 1M-8 3l3 -.5"/>';
   }
 
   function rock(x, y, w, h) {
@@ -749,9 +758,21 @@
   function box(x, y, w, h) { return "M" + f1(x) + " " + f1(y) + "h" + f1(w) + "v" + f1(h) + "h" + f1(-w) + "Z"; }
   function bgWrap(cls, sil, det, lights, x, base, scale, span, roofs, eaves) {
     var uid = "feet" + f1(x) + "b" + f1(base), r = rng(Math.round(x)), foliage = "", lines = "";
+    // Match the painted bank's quadratic curves, so trees at its edges cannot float above it.
+    function slope(tx) {
+      var nx = (tx - x) / span;
+      var seg = nx < -.55 ? [-1.35, 43, -.9, -6, -.55, 2] : nx < .6 ? [-.55, 2, 0, -11, .6, 8] : [.6, 8, 1, 8, 1.3, 52];
+      var lo = 0, hi = 1, t = .5;
+      for (var k = 0; k < 14; k++) {
+        t = (lo + hi) / 2;
+        var px = (1 - t) * (1 - t) * seg[0] + 2 * (1 - t) * t * seg[2] + t * t * seg[4];
+        if (px < nx) lo = t; else hi = t;
+      }
+      return base + (1 - t) * (1 - t) * seg[1] + 2 * (1 - t) * t * seg[3] + t * t * seg[5];
+    }
     var land = "M" + f1(x - span * 1.35) + " " + f1(base + 43) + "Q" + f1(x - span * .9) + " " + f1(base - 6) + " " + f1(x - span * .55) + " " + f1(base + 2) + "Q" + f1(x) + " " + f1(base - 11) + " " + f1(x + span * .6) + " " + f1(base + 8) + "Q" + f1(x + span) + " " + f1(base + 8) + " " + f1(x + span * 1.3) + " " + f1(base + 52) + "Z";
-    for (var i = 0; i < 6; i++) {
-      var tx = x + (i / 5 - .5) * span * 2.2, ty = base + 10 + r() * 13;
+    for (var i = 0; i < 4; i++) {
+      var tx = x + (i / 3 - .5) * span * 2, ty = slope(tx) + 3;
       foliage += pine(tx, ty, scale * (.18 + r() * .23), "bg-ground-tree");
       lines += "M" + f1(tx - 8) + " " + f1(ty + 4) + "q9 -5 19 -2";
     }
@@ -858,7 +879,8 @@
     "</g>";
   }
   function willow(x, base, s, cls) {
-    return '<g class="willow ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(base) + ') scale(' + s + ')"><ellipse class="tree-root-shadow" cx="0" cy="0" rx="19" ry="2.5"/><image class="vegetation-image" href="assets/art/willow.webp" x="-69" y="-148" width="138" height="148"/></g>';
+    var distant = !/ground-willow/.test(cls || "");
+    return '<g class="willow ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(base) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/willow.webp" x="-74" y="-147" width="138" height="148"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
   }
 
   // Wooden hanging sign used as each station's label.
@@ -890,6 +912,7 @@
       return '<pattern id="g' + name + '" width="' + w + '" height="' + h + '" patternUnits="userSpaceOnUse"><image class="material-image" href="assets/art/material-' + i + '.webp" width="' + w + '" height="' + h + '" preserveAspectRatio="none"/></pattern>';
     }).join("");
     return '<defs>' + materials + '<filter id="gOcclusion" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>' +
+      '<linearGradient id="gTreeRoots" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="-20" y2="2"><stop stop-color="white"/><stop offset=".45" stop-color="#aaa"/><stop offset="1" stop-color="black"/></linearGradient><mask id="mTreeRoots" maskUnits="userSpaceOnUse" x="-100" y="-180" width="200" height="190"><rect x="-100" y="-180" width="200" height="190" fill="url(#gTreeRoots)"/></mask>' +
       '<pattern id="gMineral" width="160" height="128" patternUnits="userSpaceOnUse"><g class="mineral-flecks">' + marks + '</g><path class="mineral-wash" d="M12 28l18 -7 14 9 -7 11 -20 -3ZM84 84l26 -8 16 9 -8 12 -27 -2Z"/></pattern>' +
       '<pattern id="gClay" width="90" height="68" patternUnits="userSpaceOnUse"><path class="clay-grain" d="M8 12l14 -3M31 16l17 2M52 8l23 3M18 48l12 -4M45 56l23 -2M73 40l8 1M9 29l6 1M61 27l9 -2"/></pattern>' +
       '<pattern id="gLandscape" width="3600" height="800" patternUnits="userSpaceOnUse"><image href="assets/art/mountain-wash.webp" y="12" width="1800" height="600"/><image href="assets/art/mountain-wash.webp" y="12" width="1800" height="600" transform="translate(3600 0) scale(-1 1)"/></pattern>' +
@@ -898,6 +921,7 @@
       '<linearGradient id="gNear" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-near);stop-opacity:.95"/><stop offset=".7" style="stop-color:var(--w-near);stop-opacity:.45"/><stop offset="1" style="stop-color:var(--w-near);stop-opacity:.05"/></linearGradient>' +
       '<linearGradient id="gMist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mist);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--w-mist);stop-opacity:.85"/><stop offset="1" style="stop-color:var(--w-mist);stop-opacity:0"/></linearGradient>' +
       '<linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-ground-1)"/><stop offset="1" style="stop-color:var(--w-ground-2)"/></linearGradient>' +
+      '<radialGradient id="gPouf" cx=".4" cy=".25" r=".8"><stop stop-color="var(--w-note)"/><stop offset=".7" stop-color="var(--w-fill)"/><stop offset="1" stop-color="var(--w-stone)"/></radialGradient>' +
       '<radialGradient id="gGlow"><stop offset="0" style="stop-color:var(--w-glow)"/><stop offset="1" style="stop-color:var(--w-glow);stop-opacity:0"/></radialGradient>' +
       '<linearGradient id="gPond" gradientUnits="userSpaceOnUse" x1="0" y1="680" x2="0" y2="800"><stop offset="0" stop-color="var(--w-water-bank)"/><stop offset=".18" stop-color="var(--w-water-sky)"/><stop offset=".55" stop-color="var(--w-water)"/><stop offset="1" stop-color="var(--w-water-deep)"/></linearGradient>' +
       '<linearGradient id="gShallows" gradientUnits="userSpaceOnUse" x1="0" y1="683" x2="0" y2="735"><stop stop-color="var(--w-water-bank)" stop-opacity=".6"/><stop offset="1" stop-color="var(--w-water-bank)" stop-opacity="0"/></linearGradient>' +
@@ -997,8 +1021,15 @@
   // ------------------------------------------------------------------
   function ground(width, stations) {
     var r = rng(53);
-    var top = "M0 " + GY;
-    for (var x = 0; x <= width; x += 60) top += "L" + x + " " + f1(GY + (r() - 0.5) * 4);
+    var top = "M0 " + GY, groundHeights = [];
+    for (var x = 0; x <= width; x += 60) {
+      var groundY = f1(GY + (r() - 0.5) * 4);
+      groundHeights.push(groundY); top += "L" + x + " " + groundY;
+    }
+    function groundAt(x) {
+      var n = Math.floor(x / 60), p = x / 60 - n;
+      return groundHeights[n] * (1 - p) + groundHeights[n + 1] * p;
+    }
     var band = top + "L" + width + " " + VH + "L0 " + VH + "Z";
 
     var strokes = "";
@@ -1035,7 +1066,8 @@
     // Only five clear specimens along the whole walk; all other groves are distant washes.
     [160, 2260, 4560, 5470, 7290].forEach(function (treeX, i) {
       if (free(treeX, 70)) {
-        deco += i === 3 ? willow(treeX, GY + 2, .92, "ground-willow") : pine(treeX, GY + 2, 1.2 + i % 2 * .12, "ground-pine");
+        var rootY = groundAt(treeX) + .5;
+        deco += i === 3 ? willow(treeX, rootY, .92, "ground-willow") : pine(treeX, rootY, 1.2 + i % 2 * .12, "ground-pine");
         if (i === 3) deco += rock(treeX + 33, GY + 3, 34, 12) + grass(treeX - 18, GY + 2, .45);
       }
     });
@@ -1515,6 +1547,20 @@
     '</g>';
   };
 
+  function catCushion(y) {
+    var weave = "";
+    for (var i = 0; i < 5; i++) weave += '<ellipse class="pouf-weave" cx="0" cy="-10" rx="' + (53 - i * 7) + '" ry="' + (12 - i * 1.6) + '"/>';
+    return '<g class="cat-cushion" transform="translate(0 ' + y + ')"><ellipse class="pouf-shadow" cx="1" cy="3" rx="62" ry="4.2"/>' +
+      '<path class="pouf-side" d="M-61 -11Q-66 0 -51 3Q0 13 51 3Q66 0 61 -11Z"/>' +
+      '<path class="material material-cloth" d="M-60 -10Q-65 0 -50 3Q0 11 50 3Q65 0 60 -10Z"/>' +
+      '<path class="pouf-pleats" d="M-53 -7l2 8M-43 -4l1 7M-29 -1l1 6M-12 1v5M9 1v5M28 -1l-1 6M44 -4l-2 7M55 -7l-3 8"/>' +
+      '<path class="pouf-top" d="M-61 -11C-61 -20 -31 -25 -10 -22Q6 -19 23 -21C47 -20 62 -17 62 -11C62 -2 28 2 0 2S-61 -3 -61 -11Z"/>' +
+      '<path class="material material-cloth" d="M-60 -11C-60 -20 -30 -24 -10 -21Q6 -18 23 -20C46 -19 61 -17 61 -11C61 -3 28 1 0 1S-60 -4 -60 -11Z"/>' + weave +
+      '<ellipse class="pouf-indent" cx="3" cy="-11" rx="34" ry="7"/>' +
+      '<path class="pouf-piping" d="M-60 -10C-60 -2 -27 3 0 3S60 -2 61 -10"/>' +
+      '<path class="pouf-stitches" d="M-56 -6Q-35 2 0 2Q38 2 56 -6"/></g>';
+  }
+
   // 6. Life: suitcase (travel), stove and pot (cooking), a sleeping cat, and a film screen (movies).
   S.life = function (catThumbs) {
     var y = GY;
@@ -1542,7 +1588,7 @@
         '<path class="pot" d="M-29 -61Q0 -67 29 -61V-42Q27 -34 0 -34Q-27 -34 -29 -42Z"/><path class="pot-rim" d="M-29 -61Q0 -54 29 -61M-28 -40Q0 -33 28 -40"/><path class="pot-brushing" d="M-23 -54q22 4 43 0M-22 -51q20 4 43 0M-21 -46q20 4 43 0"/><path class="object-shade" d="M18 -62Q30 -60 30 -44V-36H21Q25 -45 18 -62Z"/><path class="metal-highlight" d="M-25 -43q0 -13 16 -17M-26 -37H23"/><path class="pot-handle" d="M-29 -50q-11 -4 -11 4q0 7 11 4M29 -50q11 -4 11 4q0 7 -11 4"/><g class="pot-lid-group"><path class="pot-lid" d="M-31 -63Q0 -83 31 -63Q0 -57 -31 -63Z"/><path class="pot-rim" d="M-27 -64Q0 -78 25 -64"/><path class="lid-knob" d="M-5 -74v-4q5 -4 10 0v4Z"/></g><path class="stove-details" d="M-25 -4h50M-22 -33h44M-23 -28h4M19 -28h4"/><circle class="stove-knob" cx="20" cy="-12" r="3"/></g>' +
       // cushion + sleeping cat
       '<g class="life-item nap" data-life="cats" transform="translate(10 0)"><title>Cats</title>' +
-        '<ellipse class="cushion" cx="0" cy="' + (y - 6) + '" rx="62" ry="16"/><ellipse class="material material-cloth" cx="0" cy="' + (y - 6) + '" rx="60" ry="14"/><path class="cushion-piping" d="M-58 ' + (y - 6) + 'q58 22 116 0"/>' + sleepingCat(0, y - 16) + '</g>' +
+        catCushion(y) + sleepingCat(0, y - 16) + '</g>' +
       // projector + screen
       '<g class="life-item cinema" data-life="cats" transform="translate(170 0)"><title>Cat gallery</title>' +
         '<path class="beam-light" d="M-40 ' + (y - 58) + 'L70 ' + (y - 150) + 'V' + (y - 60) + 'Z"/>' +
@@ -1571,6 +1617,7 @@
     return '<g class="st st-contact" data-station="contact">' +
       '<rect class="hit" x="-200" y="330" width="460" height="232"/>' +
       gshadow(-60, 22) + gshadow(110, 20) +
+      '<g transform="translate(-277 560)">' + treeFooting(false) + '</g>' +
       '<g class="contact-tree"><path class="tree-body" d="M-288 560Q-278 488 -279 423Q-282 356 -260 304L-249 277L-241 278Q-254 309 -252 321Q-218 316 -168 317Q-93 313 15 317L34 320Q-98 323 -170 325Q-218 327 -255 335Q-263 377 -258 430Q-260 506 -268 560Z"/>' +
         surface("M-286 558Q-277 477 -277 421Q-280 354 -260 306L-252 283Q-260 318 -257 335Q-264 381 -260 434Q-262 508 -270 558Z", "wood") +
         '<path class="bark-line" d="M-279 550Q-269 476 -269 430Q-276 365 -259 317M-273 494l3 -17M-270 418l-2 -21M-250 324Q-172 317 -113 319M-92 318Q-37 318 9 320"/>' +
@@ -1596,23 +1643,35 @@
   // ------------------------------------------------------------------
 
   // Stylised outline of the contiguous U.S. (equirectangular, 600 x 340),
-  // with two abstract loops for the two road trips around the country.
+  // with two schematic crossings, following the confirmed northern and southern corridors.
   var US_OUTLINE = "M3 28L17 20L303 20L305 14L312 20L330 42L360 33L414 52L420 62L434 97L428 106L447 106L470 99L497 83L513 72L545 72L569 41L583 45L591 73" +
     "L560 88L556 103L562 114L548 118L542 122L521 128L512 150L509 162L500 175L505 198L478 215L459 229L446 239L443 261L451 286L455 319L447 328L439 315" +
     "L430 292L417 265L403 269L384 260L377 261L362 278L355 270L341 272L317 269L307 274L281 293L283 318L259 297L224 278L188 242L171 242L141 248L105 233" +
     "L80 233L67 216L46 207L32 180L25 164L6 131L9 100L10 56Z";
-  var US_LOOPS = [
-    "M60 70C150 40 300 45 420 70C500 85 540 110 520 160C505 200 470 230 440 250C400 265 330 280 280 280C220 280 150 250 100 225C60 205 45 170 45 130C45 100 50 80 60 70Z",
-    "M110 95C200 75 330 80 430 105C480 118 490 150 470 185C450 215 400 238 340 248C270 258 200 245 150 220C110 200 90 170 90 140C90 118 96 100 110 95Z"
+  var US_ROUTES = [
+    "M34 155C64 149 80 117 125 108S236 115 296 113S355 113 382 112S452 130 497 140",
+    "M497 140C474 166 435 195 393 216S317 244 278 254S203 240 155 221S67 200 34 155"
   ];
 
   function usMap() {
-    return '<svg class="roadmap" viewBox="-10 -10 620 360" role="img" aria-label="Map of the United States with two road-trip loops around the country, and pins on the East and West Coasts">' +
-      '<path class="us-land" d="' + US_OUTLINE + '"/>' +
-      US_LOOPS.map(function (d, i) { return '<path class="us-loop us-loop-' + i + '" d="' + d + '" pathLength="1000"/>'; }).join("") +
-      '<g class="us-pin" transform="translate(34 155)"><circle r="6"/><text x="12" y="-8">West Coast</text></g>' +
-      '<g class="us-pin" transform="translate(497 140)"><circle r="6"/><text x="-12" y="-10" text-anchor="end">East Coast</text></g>' +
-      '<g class="us-car" transform="translate(60 70)"><rect x="-10" y="-6" width="20" height="10" rx="4"/><rect x="-5" y="-11" width="11" height="7" rx="2.5"/><circle cx="-5" cy="5" r="3"/><circle cx="6" cy="5" r="3"/></g>' +
+    return '<svg class="roadmap" viewBox="-18 -12 636 366" role="img" aria-labelledby="roadmap-title roadmap-desc">' +
+      '<title id="roadmap-title">Two crossings, one shared story</title><desc id="roadmap-desc">2021: San Francisco to Washington, DC via Chicago on the northern route, traveling east. 2025: Washington, DC to San Francisco through Texas on the southern route, traveling west. Routes are schematic.</desc>' +
+      '<defs><clipPath id="us-map-clip"><path d="' + US_OUTLINE + '"/></clipPath></defs>' +
+      '<path class="us-land-shadow" d="' + US_OUTLINE + '" transform="translate(0 3)"/><path class="us-land" d="' + US_OUTLINE + '"/>' +
+      '<g clip-path="url(#us-map-clip)"><path class="us-paper" d="' + US_OUTLINE + '"/>' +
+        '<path class="us-fold" d="M198 0v345M398 0v345M0 182h600"/>' +
+        '<path class="us-relief" d="M66 69l10 -16 13 24m6 -17 13 -19 17 29m-25 25 12 -15 15 20m-39 18 9 -17 14 22m13 -17 13 -18 16 28m-32 17 12 -18 11 16m-17 35 12 -19 18 30m-9 7 12 -20 18 27m-8 16 11 -14 13 24"/>' +
+        '<path class="us-lake" d="M351 51q17 -15 36 0l-12 8 -19 1ZM389 64q9 4 8 15l-4 23 -8 2 3 -19ZM413 73q13 2 13 18l-8 7 -8 -11ZM436 104l27 -9 6 4 -22 10Z"/>' +
+      '</g>' +
+      US_ROUTES.map(function (d, i) { return '<path class="us-route-base us-route-' + i + '" d="' + d + '"/><path class="us-route us-route-' + i + '" d="' + d + '" pathLength="1000"/>'; }).join("") +
+      '<g class="us-route-notes"><path class="us-direction us-route-0" d="M242 110l7 3 -7 3M432 120l6 5 -8 1"/><path class="us-direction us-route-1" d="M360 231l-8 0 5 -6M174 232l-6 -6 8 0"/>' +
+        '<text class="us-year us-route-0" x="221" y="93">2021 →</text><text class="us-year us-route-1" x="322" y="277">← 2025</text>' +
+        '<g class="us-stop" transform="translate(382 112)"><circle r="3.6"/><text x="-8" y="-14" text-anchor="end">Chicago</text></g>' +
+        '<g class="us-stop" transform="translate(278 254)"><circle r="3.6"/><text x="0" y="-15" text-anchor="middle">Texas</text></g>' +
+      '</g>' +
+      '<g class="us-pin" transform="translate(34 155)"><circle r="5"/><path class="us-label-leader" d="M0 8v21l10 8"/><text x="9" y="56">San Francisco</text></g>' +
+      '<g class="us-pin" transform="translate(497 140)"><circle r="5"/><path class="us-label-leader" d="M8 0h15l9 12"/><text x="76" y="34" text-anchor="end">Washington, DC</text></g>' +
+      '<g class="us-car" visibility="hidden" aria-hidden="true"><path class="us-car-body" d="M-12 -4h4l3 -7h10l5 7h4v9h-26Z"/><path class="us-car-window" d="M-3 -9h7l3 5H-5Z"/><path class="us-car-trim" d="M-10 0h5M9 0h3"/><circle cx="-6" cy="5" r="3"/><circle cx="8" cy="5" r="3"/></g>' +
       "</svg>";
   }
 

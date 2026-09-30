@@ -93,7 +93,7 @@ To teach the guide a new question, add words to the matching intent in `INTENTS`
 
 ## Red circles (what she does at each place)
 
-Each place has a red circle on the ground (at Writing it's the red cushion). This is the place's `stand` point in `STATIONS` in `world.js`. When the avatar comes to rest on it, she does that place's action; walking away stops it, and clicking her replays the one-off actions.
+Each place has a `stand` point in `STATIONS` in `world.js`. When the avatar comes to rest there, she does that place's action; walking away stops it, and clicking her replays the one-off actions. Most places mark it with a red circle (at Writing it's the red cushion). Life has no separate circle: XiaoHei's soft, woven cushion highlights only along its front seam when hovered, tapped, or focused by keyboard.
 
 | Place | Action |
 | --- | --- |
@@ -132,7 +132,7 @@ python3 -m http.server 8000
 
 The chat folds into a small "Ask me" button (the ⌄ button in its header), and the site remembers that choice. While it's folded, Mini-Hanjing says short answers in a speech bubble.
 
-The conversation starts folded for new visitors. JinBingBing follows with four separate paw movements, smooth starts and stops, and a rounder walking profile. After a quiet moment in daylight, a butterfly occasionally flies in, invites a little pounce, then leaves for a longer interval. Visitors can also tap it while it is present; it stays absent at night, during movement and for reduced-motion visitors. Keep clicking JinBingBing to discover her tail-chasing reaction. Click XiaoHei on the Life cushion to wake him for a short grooming session. Clicking a lotus pond makes ripples and reveals a koi. These details work with both mouse and touch.
+The conversation starts folded for new visitors. JinBingBing follows with four separate paw movements, smooth starts and stops, and a rounder walking profile. After a quiet moment in daylight, a butterfly occasionally flies in, invites a little pounce, then leaves for a longer interval. Visitors can also tap it while it is present; it stays absent at night, during movement and for reduced-motion visitors. Keep clicking JinBingBing to discover her tail-chasing reaction. Click XiaoHei on the Life cushion to wake him for a short grooming session. Automatic scene and prop introductions appear only once per visit; revisiting still opens the panel and plays its action. Explicit chat questions continue to receive replies, and rapid repeat submissions are ignored. Clicking a lotus pond makes ripples and reveals a koi. These details work with both mouse and touch.
 
 The artwork uses local WebP textures inside SVG patterns, keeping the architecture, actors and scenery as independently animated elements. Foreground materials follow the day/night palette; distant windows remain warm at night. The character, JinBingBing and XiaoHei are drawn from the photos already in `images/portraits/` and `images/cats/`.
 
@@ -144,4 +144,8 @@ Page navigation, panels and controls remain in English. Mini-Hanjing answers Chi
 
 Optional scene scripts are additive in `assets/js/rituals.js`; the original introductions and question responses stay in `guide.js`. Ask “带我找彩蛋” / “Show me the little rituals”, or try “磨墨”, “放一卷猫片”, “开饭啦”, “看看锦鲤”, “小黑洗脸”, and “看一会儿月亮”. The English equivalents are “Grind some ink”, “Roll the cat film”, “Let the pot simmer”, “Watch the koi”, “Let XiaoHei groom”, and “Watch the moon”. Directly clicking the inkstone, cooking pot, or projector also gives its new material a small animated response while retaining the existing panel navigation.
 
-The pond is one continuous water plane with a curved bank, a submerged shelf, textured plants, and a screen-aligned sun/moon reflection. Ripples and koi appear at the tapped position. Pine and willow artwork uses transparent local assets and retains the existing parallax layers; distant architecture now has foliage around its foundation and fades into the landscape.
+The pond is one continuous water plane with a curved bank, a submerged shelf, textured plants, and a screen-aligned sun/moon reflection. Ripples and koi appear at the tapped position. Pine and willow artwork uses transparent local assets and retains the existing parallax layers; distant architecture has foliage rooted on the same slope as its foundation and fades into the landscape. Foreground trees follow the actual paving edge, with soil, contact shadows and partially covered roots; distant roots fade into their slopes and retain the ridge occlusion masks.
+
+The Road trips map shows two schematic crossings: 2021 from San Francisco to Washington, DC via Chicago in the north, and 2025 from DC to San Francisco through Texas in the south. The replay follows each direction in order; 46 states is the overall visited total, separate from these two drives.
+
+The latest [Life and landscape screenshot review](reviews/life-v5/index.html) includes the soft cushion, both travel routes, mobile map, and every scene by day and night.
