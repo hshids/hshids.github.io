@@ -17,7 +17,7 @@ window.HJ_DATA = {
 
   person: {
     name: "Hanjing Shi",
-    role: "Ph.D. Student in Computer Science and Engineering",
+    role: "Ph.D. Candidate in Computer Science and Engineering",
     affiliation: "Lehigh University",
     location: "Bethlehem, PA",
     advisor: { name: "Dominic DiFranzo", url: "https://difranzo.com/" },
@@ -34,12 +34,14 @@ window.HJ_DATA = {
     ],
     bio: {
       en: [
-        "I'm a Ph.D. student in Computer Science and Engineering at Lehigh University, advised by Prof. Dominic DiFranzo. I work in human–computer interaction, studying what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor — or a persona of a real person. I'm especially interested in the structures that keep people meaningfully in charge: how AI help is disclosed, how claims get verified, and who remains accountable when systems act on our behalf.",
-        "My work combines online experiments, computational social science on platforms such as Reddit and RedNote, structured audits of AI systems and research literature, and building research prototypes. Before Lehigh, I studied Data Science and Analytics at Georgetown University (M.S.) and Computer Science and Statistics at UC Davis (B.S.)."
+        "I'm a Ph.D. candidate in Computer Science and Engineering at Lehigh University, advised by Dr. Dominic DiFranzo. As an HCI researcher, building things is my window into how the world works — and this site is where I share my ideas and my stories.",
+        "My research asks what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor — or a persona of a real person. I focus on the structures that keep people meaningfully in charge: how AI help is disclosed, how claims get verified, and who remains accountable when systems act on our behalf.",
+        "To answer these questions, I run online experiments, study online communities such as Reddit and RedNote, audit AI systems and the research literature, and build research prototypes. Before Lehigh, I earned an M.S. in Data Science and Analytics at Georgetown University and a B.S. in Computer Science and Statistics at UC Davis."
       ],
       zh: [
-        "我是 Lehigh University 计算机科学与工程系的博士生，导师是 Dominic DiFranzo 教授。我的方向是人机交互（HCI）：当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至某个真实的人的“分身”出现时，会发生什么变化？我尤其关心那些让人保有实质掌控的机制——AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。",
-        "我的研究方法包括在线实验、基于 Reddit 和小红书等平台的计算社会科学分析、对 AI 系统与研究文献的结构化审计，以及研究原型的设计与开发。来 Lehigh 之前，我在 Georgetown University 读了数据科学与分析硕士，在 UC Davis 读了计算机科学与统计学本科。"
+        "我是 Lehigh University 计算机科学与工程系的博士候选人，导师是 Dominic DiFranzo 博士。作为一名 HCI 研究者，动手做东西是我认识这个世界的窗口——在这里，你可以看到我的想法和我的故事。",
+        "我的研究关心：当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至某个真实的人的“分身”出现时，会发生什么变化？我尤其关注那些让人保有实质掌控的机制——AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。",
+        "为了回答这些问题，我做在线实验、研究 Reddit 和小红书等线上社区、对 AI 系统和研究文献做结构化审计，也设计和开发研究原型。来 Lehigh 之前，我在 Georgetown University 获得数据科学与分析硕士学位，在 UC Davis 获得计算机科学与统计学学士学位。"
       ]
     },
     photo: "images/profile-qipao.jpg",   // the basic version's profile picture
@@ -67,9 +69,9 @@ window.HJ_DATA = {
       degree: "Ph.D., Computer Science and Engineering",
       school: "Lehigh University",
       years: "2023 – present",
-      note: "Advised by Prof. Dominic DiFranzo",
+      note: "Advised by Dr. Dominic DiFranzo",
       emblem: "mountain",
-      zh: "Lehigh University 计算机科学与工程 博士（2023 年至今），导师 Dominic DiFranzo 教授"
+      zh: "Lehigh University 计算机科学与工程 博士（2023 年至今），导师 Dominic DiFranzo 博士"
     },
     {
       id: "ms",
@@ -787,8 +789,8 @@ window.HJ_DATA = {
       stats: { trips: 2, states: 46 },
       keywords: "travel traveling trip trips road trip roadtrip drive driving drove states state usa america united east coast west coast lived live places explore 旅行 旅游 自驾 州 美国 东海岸 西海岸" },
     { id: "food", icon: "pot", title: "Food",
-      en: "I'm a foodie — I'll eat just about anything, and I love trying new things. In my spare time I post my restaurant finds on social media. I also love cooking: there's something deeply satisfying about making a meal from scratch.",
-      zh: "我是个吃货——几乎什么都爱吃，也喜欢尝试新东西。业余时间我会在社交媒体上发探店记录。我也喜欢做饭：从零开始做出一顿饭，有一种很深的满足感。",
+      en: "I never say no to good food. I love trying signature dishes from different countries — food is one of my favorite ways to learn about a culture. In my spare time I post my restaurant finds on social media, and I love cooking too: there's something deeply satisfying about making a meal from scratch.",
+      zh: "美食当前，我从不说不。我喜欢尝试各个国家的特色菜——食物是我了解一种文化最喜欢的方式。业余时间我会在社交媒体上发探店记录；我也喜欢做饭，从零开始做出一顿饭，有一种很深的满足感。",
       keywords: "food foodie eat eating restaurant restaurants cuisine dish dishes try new things social media reviews cooking cook meal 美食 吃货 探店 餐厅 做饭 烹饪" },
     { id: "cats", icon: "cat", title: "Cats",
       en: "Six. Yes, six. 🐾 JinBingBing, DaHuang, XiaoHei, XiaoHeiHei, TuanZi and GuoZi. Technically I live in their house. JinBingBing is the youngest, so of course she runs the place — that's why she follows me all around this world.",

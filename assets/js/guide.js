@@ -312,8 +312,8 @@
 
   function greet(lang) {
     return A(lang, lang === "zh"
-      ? "嗨，我是 Hanjing！👋 准确地说，是迷你版的我。我在 Lehigh 读计算机博士，研究人和 AI 怎么一起工作。想听我的研究、看我的报告，还是见见我的猫？随便问，或者点一个地方，我带你走过去～"
-      : "Hey, I'm Hanjing! 👋 Well — the pocket-sized me. I'm a Ph.D. student at Lehigh, and I study how people and AI work together. Want to hear about my research, watch a talk, or meet my cats? Ask me anything, or pick a place and I'll walk you there.",
+      ? "嗨，我是 Hanjing！👋 准确地说，是迷你版的我。我是 Lehigh 计算机系的博士候选人，研究人和 AI 怎么一起工作。想听我的研究、看我的报告，还是见见我的猫？随便问，或者点一个地方，我带你走过去～"
+      : "Hey, I'm Hanjing! 👋 Well — the pocket-sized me. I'm a Ph.D. candidate at Lehigh, and I study how people and AI work together. Want to hear about my research, watch a talk, or meet my cats? Ask me anything, or pick a place and I'll walk you there.",
       "", START_CHIPS[lang]);
   }
 
@@ -450,16 +450,16 @@
         (e.note ? '<br><span class="g-muted">' + esc(e.note) + "</span>" : "") + "</li>";
     }).join("") + "</ol>";
     return A(lang, lang === "zh"
-      ? "我的求学路线：UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 教授。"
-      : "My path so far: a B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Prof. Dominic DiFranzo.",
+      ? "我的求学路线：UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。"
+      : "My path so far: a B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Dr. Dominic DiFranzo.",
       html, lang === "zh" ? ["你研究什么？", "你的导师是谁？"] : ["What do you research?", "Who is your advisor?"], "education");
   }
 
   function advisor(lang) {
     var adv = D.person.advisor || {};
     return A(lang, lang === "zh"
-      ? "我的导师是 Lehigh 的 Dominic DiFranzo 教授，他是 Social Design Lab 的负责人。他把社会科学理论变成真正能用的设计：让人敢于站出来对抗网络霸凌、质疑虚假信息、在网上更友善。他还做了开源的 Truman Platform 和 Social Media TestDrive，已经有一百多万名中学生用过。我的大部分论文都是和他一起写的。说真的，他是个天才——一定要去看看他的网站，那简直是一个迷你操作系统 🖥️"
-      : "My advisor is Prof. Dominic DiFranzo at Lehigh — he directs the Social Design Lab and turns social-science theory into designs that help people stand up to cyberbullies, question misinformation and be kinder online. He also built the Truman Platform and Social Media TestDrive, used by more than a million middle schoolers. He's a co-author on most of my papers. Honestly? He's a genius — you should definitely look at his website. It's literally a tiny operating system. 🖥️",
+      ? "我的导师是 Lehigh 的 Dominic DiFranzo 博士，他是 Social Design Lab 的负责人。他把社会科学理论变成真正能用的设计：让人敢于站出来对抗网络霸凌、质疑虚假信息、在网上更友善。他还做了开源的 Truman Platform 和 Social Media TestDrive，已经有一百多万名中学生用过。我的大部分论文都是和他一起写的。说真的，他是个天才——一定要去看看他的网站，那简直是一个迷你操作系统 🖥️"
+      : "My advisor is Dr. Dominic DiFranzo at Lehigh — he directs the Social Design Lab and turns social-science theory into designs that help people stand up to cyberbullies, question misinformation and be kinder online. He also built the Truman Platform and Social Media TestDrive, used by more than a million middle schoolers. He's a co-author on most of my papers. Honestly? He's a genius — you should definitely look at his website. It's literally a tiny operating system. 🖥️",
       adv.url ? linkList([{ label: lang === "zh" ? "Dominic DiFranzo 的网站" : "Dominic DiFranzo's website", href: adv.url }]) : "",
       lang === "zh" ? ["你和谁合作？", "教育背景"] : ["Who do you work with?", "Education"], "education");
   }

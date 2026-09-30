@@ -391,7 +391,7 @@
   // A short version of a reply, spoken by the avatar while the chat is folded away.
   function sayShort(text) {
     var t = String(text).replace(/\s+/g, " ").trim();
-    // Cut after the first full sentence (not after "Ph.D." or "Prof.").
+    // Cut after the first full sentence (not after "Ph.D." or "Dr.").
     var re = /[.!?。！？](?=\s|$)/g, m;
     while ((m = re.exec(t))) {
       if (m.index < 24 || /(Ph\.D|Prof|Dr|e\.g|i\.e|vs|U\.S)$/.test(t.slice(0, m.index))) continue;
@@ -700,7 +700,7 @@
     out.textContent = "";
     setTimeout(function () {
       var dish = D.dishes[idx];
-      out.textContent = "Tonight: " + dish + "! I'll eat just about anything — let's try it.";
+      out.textContent = "Tonight: " + dish + "! I never say no to good food — let's try it.";
       bubble(charEl, "Let's go get " + dish.toLowerCase() + "!", 2400);
     }, reduced ? 0 : 3300);
   }
