@@ -755,7 +755,7 @@
     for (var x = 120; x < width; x += 260 + r() * 380) trees += pine(x, 440 + r() * 30, 0.55 + r() * 0.3, "pine mid-pine");
     var arch = bgTower(900, 488, 1.12, "mid") + bgPavilion(2060, 478, 1.05, "mid") + bgTower(3300, 490, 1.02, "mid") + bgPavilion(4420, 476, 1, "mid");
     var willows = "";
-    for (var wx = 380; wx < width; wx += 900 + r() * 600) willows += willow(wx, 500, 0.7 + r() * 0.3, "mid-willow");
+    for (var wx = 1250; wx < width; wx += 900 + r() * 600) willows += willow(wx, 500, 0.7 + r() * 0.3, "mid-willow");   // none behind the Welcome gate
     return mountains(width, { seed: 23, base: 525, gap: 270, w: [340, 580], h: [130, 230], grad: "gMid", cun: 2 }) +
       arch + trees + willows + mist(width, 450, 130);
   }
@@ -763,7 +763,7 @@
   function nearLayer(width) {
     var r = rng(41), trees = "", willows = "";
     for (var x = 200; x < width; x += 340 + r() * 520) trees += pine(x, 505 + r() * 20, 0.8 + r() * 0.4, "pine near-pine");
-    for (var wx = 620; wx < width; wx += 900 + r() * 700) willows += willow(wx, 560, 1 + r() * 0.3, "near-willow");
+    for (var wx = 1650; wx < width; wx += 900 + r() * 700) willows += willow(wx, 560, 1 + r() * 0.3, "near-willow");   // none behind the Welcome gate
     return mountains(width, { seed: 37, base: 580, gap: 360, w: [420, 720], h: [70, 150], grad: "gNear", cun: 3 }) +
       trees + willows + mist(width, 520, 90);
   }
