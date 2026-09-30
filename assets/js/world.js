@@ -310,13 +310,13 @@
 
   // ---------- guide (dialogue box) ----------
   var ARRIVE = {
-    home: { en: "Welcome to my little world! Come on in — the notice board has what I've been up to lately.", zh: "欢迎来到我的小世界！进来吧～公告栏上是我最近在忙的事。" },
-    research: { en: "My library! Every book on these shelves is one of my papers — let me grab one for you.", zh: "我的藏书阁！书架上每一本都是我的论文——我给你拿一本。" },
-    talks: { en: "Welcome to my lecture hall! Grab a seat — pick a talk and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下——选一场报告，我讲给你听。" },
+    home: { en: "Welcome to my little world! Come on in! The notice board has what I've been up to lately.", zh: "欢迎来到我的小世界！进来吧～公告栏上是我最近在忙的事。" },
+    research: { en: "My library! Every book on these shelves is one of my papers. Let me grab one for you!", zh: "我的藏书阁！书架上每一本都是我的论文，我给你拿一本！" },
+    talks: { en: "Welcome to my lecture hall! Grab a seat, pick a talk, and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下，选一场报告，我讲给你听。" },
     education: { en: "UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
-    tutorials: { en: "My old typewriter! I typed up these tutorials — R, Python, statistics and web basics.", zh: "我的老打字机！这些教程都是我敲出来的：R、Python、统计和前端基础。" },
+    tutorials: { en: "My old typewriter! I typed up these tutorials on R, Python, statistics and web basics.", zh: "我的老打字机！这些 R、Python、统计和前端基础教程都是我敲出来的。" },
     writing: { en: "Let me sit down and write for a bit… My posts are on the desk, and those paper cranes are GPTs I built.", zh: "让我坐下来写一会儿……书桌上是我的博客，那些纸鹤是我做的 GPTs。" },
-    life: { en: "Off the clock! Hold on — XiaoHei is napping, I have to pet him first. 🐾 Then: road trips, food and my cat gallery.", zh: "下班时间！等一下——小黑在睡觉，我先摸摸他 🐾 然后看看我的自驾、美食和猫咪画廊。" },
+    life: { en: "Off the clock! Hold on, XiaoHei is napping and I have to pet him first. 🐾 Then come road trips, food and my cat gallery.", zh: "下班时间！等一下，小黑在睡觉，我先摸摸他 🐾 然后看看我的自驾、美食和猫咪画廊。" },
     contact: { en: "Let me mail you a letter! ✉️ Want to talk research or collaborate? Here's where to find me.", zh: "给你寄封信！✉️ 想聊研究或合作？在这里可以找到我。" }
   };
   var STATION_CHIPS = {
@@ -330,8 +330,8 @@
     contact: { en: ["Can I see your CV?", "Do you have video talks?"], zh: ["可以看简历吗？", "有论文讲解视频吗？"] }
   };
   var POKES = {
-    en: ["Hi! I'm Hanjing — the pocket-sized edition.", "Pick a place and I'll walk you there!", "Psst — every book in my library is one of my papers.", "JinBingBing follows me everywhere.", "Stand on a red circle and see what I do there!", "Fun fact: I remember her papers better than she does. 😏"],
-    zh: ["嗨！我是 Hanjing——迷你版。", "点一个地方，我带你走过去！", "悄悄说：藏书阁里每本书都是我的论文。", "金饼饼走到哪跟到哪。", "站到红圈上，看看我会做什么！", "冷知识：她的论文我比她本人记得还清楚 😏"]
+    en: ["Hi! I'm Hanjing, the pocket-sized edition.", "Pick a place and I'll walk you there!", "Psst, every book in my library is one of my papers.", "JinBingBing follows me everywhere.", "Stand on a red circle and see what I do there!", "Fun fact, I remember her papers better than she does. 😏"],
+    zh: ["嗨！我是迷你版的 Hanjing。", "点一个地方，我带你走过去！", "悄悄告诉你，藏书阁里每本书都是我的论文。", "金饼饼走到哪跟到哪。", "站到红圈上，看看我会做什么！", "冷知识，她的论文我比她本人记得还清楚 😏"]
   };
 
   function addMsg(who, text) {
@@ -429,7 +429,7 @@
   function setLang(l, quiet) {
     state.lang = l;
     $$(".lang-btn").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.lang === l ? "true" : "false"); });
-    input.placeholder = l === "zh" ? "问我任何问题：研究、论文、教育背景……" : "Ask me anything — research, papers, education…";
+    input.placeholder = l === "zh" ? "问我任何问题，比如研究、论文、教育背景……" : "Ask me about research, papers, education…";
     if (!quiet) setChips(null);
   }
 
@@ -473,7 +473,7 @@
       '<div class="p-authors">' + authors(p.authors) + "</div>" +
       '<div class="p-venue"><span class="badge badge-' + p.type + '">' + esc(G.typeLabel[p.type].en) + "</span> " + esc(p.venueShort) + "</div>" +
       "<details><summary>" + (state.lang === "zh" ? "摘要与观点" : "Summary & key point") + "</summary>" +
-      "<p>" + esc(pick(state.lang, p.summary)) + "</p><p><b>" + (state.lang === "zh" ? "核心观点：" : "Key point: ") + "</b>" + esc(pick(state.lang, p.takeaway)) + "</p>" +
+      "<p>" + esc(pick(state.lang, p.summary)) + "</p><p><b>" + (state.lang === "zh" ? "核心观点" : "Key point") + "</b><br>" + esc(pick(state.lang, p.takeaway)) + "</p>" +
       '<p class="p-venue-full">' + esc(p.venue) + "</p></details>" +
       '<div class="p-links">' + links.join("") + "</div></li>";
   }
@@ -482,9 +482,9 @@
     home: function () {
       var P = D.person, L = P.links;
       var links = G.contactItems("en").map(function (c) { return extLink(c.href, c.label); }).join("");
-      return '<div class="p-hero"><button type="button" class="booth" data-booth="0" aria-label="Photo booth: show another portrait of Hanjing">' +
+      return '<div class="p-hero"><button type="button" class="booth" data-booth="0" aria-label="Photo booth. Show another portrait of Hanjing">' +
         '<img src="' + esc((P.portraits || [P.photo])[0]) + '" alt="Hanjing Shi" width="120" height="150"><span class="booth-hint">click me</span></button>' +
-        '<div><h2 id="panel-title" tabindex="-1">' + esc(P.name) + '</h2><p class="p-role">' + esc(P.role) + "<br>" + esc(P.affiliation) + "</p></div></div>" +
+        '<div><h2 id="panel-title" tabindex="-1">' + esc(P.name) + '</h2><p class="p-role">' + esc(P.role) + "</p></div></div>" +
         '<p class="p-lede">' + esc(pick(state.lang, P.tagline)) + "</p>" +
         P.bio[state.lang === "zh" ? "zh" : "en"].map(function (b) { return "<p>" + esc(b) + "</p>"; }).join("") +
         '<div class="p-links p-links-row">' + links + "</div>" +
@@ -506,8 +506,8 @@
       }).join("") + "</ul></section>" : "";
       return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "研究" : "Research") + "</h2>" +
         '<p class="p-lede">' + (state.lang === "zh"
-          ? "五条研究线索。每本书都是一篇论文——点开看摘要，或者让迷你 Hanjing 讲给你听。"
-          : "Five threads of work. Every book in the library is a paper — open one for a summary, or ask Mini-Hanjing about it.") + "</p>" +
+          ? "五条研究线索。每本书都是一篇论文，点开看摘要，或者让迷你 Hanjing 讲给你听。"
+          : "Five threads of work. Every book in the library is a paper. Open one for a summary, or ask Mini-Hanjing about it.") + "</p>" +
         '<div class="p-filters" role="group" aria-label="Filter by type">' + filters + "</div>" + talks +
         D.themes.map(function (t) {
           var list = G.pubs.filter(function (p) { return p.theme === t.id; });
@@ -537,8 +537,10 @@
     },
 
     writing: function () {
+      var rn = D.person.links.rednote;
       return '<h2 id="panel-title" tabindex="-1">' + (state.lang === "zh" ? "写作" : "Writing") + "</h2>" +
-        '<h3>' + (state.lang === "zh" ? "博客" : "Blog") + '</h3><ul class="p-cards">' + D.writing.map(function (w) {
+        (rn ? '<p class="p-lede">' + (state.lang === "zh" ? "我的主要博客在" : "My main blog lives on ") + extLink(rn, state.lang === "zh" ? "小红书" : "RedNote (小红书)") + (state.lang === "zh" ? "上。" : ".") + "</p>" : "") +
+        '<h3>' + (state.lang === "zh" ? "统计学博客" : "Statistics posts") + '</h3><ul class="p-cards">' + D.writing.map(function (w) {
           return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(pick(state.lang, w.desc)) + "</p></li>";
         }).join("") + "</ul>" +
         '<h3 id="gpts">' + (state.lang === "zh" ? "我做的 GPTs（纸鹤）" : "Custom GPTs (the paper cranes)") + '</h3><ul class="p-list">' + D.gpts.map(function (g, i) {
@@ -558,7 +560,7 @@
       }).join("");
       var t = L.travel;
       return '<h2 id="panel-title" tabindex="-1">Life</h2>' +
-        '<p class="p-lede">Off the clock — click around.</p>' +
+        '<p class="p-lede">Off the clock! Click around.</p>' +
         '<section class="life-sec" id="life-cats"><h3>My six cats</h3><p>' + esc(pick(state.lang, L.cats)) + "</p>" +
           '<ul class="cat-line">' + cards + "</ul></section>" +
         '<section class="life-sec" id="life-travel"><h3>Road trips</h3><p>' + esc(pick(state.lang, t)) + "</p>" +
@@ -567,7 +569,7 @@
           '<button type="button" class="link-btn" id="rt-play">▶ Play the road trips</button></div></section>' +
         '<section class="life-sec" id="life-food"><h3>Food</h3><p>' + esc(pick(state.lang, L.food)) + "</p>" +
           '<div class="food">' + ART.foodWheel(D.dishes) +
-          '<div class="food-side"><button type="button" class="btn btn-primary btn-spin" id="spin">Spin: what should we try?</button>' +
+          '<div class="food-side"><button type="button" class="btn btn-primary btn-spin" id="spin">What should we try? Spin!</button>' +
           '<p class="food-result" id="food-result" aria-live="polite"></p>' +
           (D.foodSocial ? '<p class="p-links">' + extLink(D.foodSocial, "My restaurant finds →") + "</p>" : "") + "</div></div></section>" +
         '<section class="life-sec" id="life-blogging"><h3>Writing</h3><p>' + esc(pick(state.lang, L.blogging)) +
@@ -577,7 +579,7 @@
     talks: function () {
       var tilts = [-2.5, 2, -1.5, 3, -2, 1.5, -3, 2.5, -1];
       return '<h2 id="panel-title" tabindex="-1">Talks &amp; Posters</h2>' +
-        '<p class="p-lede">Take a seat — pick a talk and the lights will dim.</p>' +
+        '<p class="p-lede">Take a seat and pick a talk. The lights will dim.</p>' +
         '<h3>On stage</h3><ul class="talk-list">' + D.videos.map(function (v, i) {
           return '<li><button type="button" class="talk-card" data-talkopen="' + i + '"><span class="talk-thumb"><img src="' + esc(v.thumb) + '" alt="" loading="lazy"><span class="talk-play" aria-hidden="true">▶</span></span>' +
             '<span class="talk-venue">' + esc(v.venue) + '</span><span class="talk-title">' + esc(v.title) + "</span></button></li>";
@@ -700,7 +702,7 @@
     out.textContent = "";
     setTimeout(function () {
       var dish = D.dishes[idx];
-      out.textContent = "Tonight: " + dish + "! I never say no to good food — let's try it.";
+      out.textContent = "Tonight it's " + dish + "! I never say no to good food, so let's try it.";
       bubble(charEl, "Let's go get " + dish.toLowerCase() + "!", 2400);
     }, reduced ? 0 : 3300);
   }
@@ -753,7 +755,7 @@
       later(function () { flash(charEl, "is-bowing", 900); }, 1400);
       later(function () { sayIfQuiet({ en: "Welcome in!", zh: "欢迎光临！" }); }, 300);
     } },
-    research: { face: 1, hands: true, busy: { en: "Shh — I'm reading 📖", zh: "嘘——我在看书 📖" }, run: function () {
+    research: { face: 1, hands: true, busy: { en: "Shh, I'm reading 📖", zh: "嘘，我在看书 📖" }, run: function () {
       var book = nearestBook();
       charEl.classList.add("act-reach");
       later(function () { if (book) book.classList.add("is-taken"); charEl.classList.add("has-book"); }, 550);
@@ -775,7 +777,7 @@
       charEl.classList.add("act-type");
       later(function () { sayIfQuiet({ en: "clack clack clack… ding!", zh: "咔哒咔哒……叮！" }); }, 900);
     } },
-    writing: { busy: { en: "Shh — writing…", zh: "嘘——在写字……" }, run: function () {
+    writing: { busy: { en: "Shh, writing…", zh: "嘘，在写字……" }, run: function () {
       charEl.classList.add("act-write");
     } },
     life: { face: 1, hands: true, busy: { en: "XiaoHei loves this part.", zh: "小黑最喜欢被摸了。" }, run: function () {
@@ -834,7 +836,7 @@
 
   var pokes = 0;
   function kittyPoke() {
-    var lines = ["Mrrp! ♥", "I'm JinBingBing — the youngest of six!", "Purrrr…", "Follow us!"];
+    var lines = ["Mrrp! ♥", "I'm JinBingBing, the youngest of six!", "Purrrr…", "Follow us!"];
     bubble(catEl, lines[pokes++ % lines.length], 1800);
     flash(catEl, "is-happy", 1200);
     hearts(catEl);
@@ -1046,7 +1048,7 @@
     if (t.classList && t.classList.contains("hit") && overSun(e)) { toggleTheme(); return; }
     if (t.closest("#char")) { if (pokeAction()) return; flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
     if (t.closest("#cat")) { doAction("meow"); return; }
-    if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, (state.lang === "zh" ? "讲讲这本：" : "Tell me about ") + G.pubById[id].title, true); return; }
+    if ((el = t.closest(".book"))) { var id = el.dataset.paper; goTo("research", { focus: { paper: id }, quiet: true }); ask("paper:" + id, state.lang === "zh" ? "讲讲这本《" + G.pubById[id].title + "》" : "Tell me about " + G.pubById[id].title, true); return; }
     if ((el = t.closest(".slip"))) { goTo("tutorials", { focus: { tutorial: el.dataset.tutorial } }); return; }
     if ((el = t.closest(".crane"))) { goTo("writing", { focus: { gpt: +el.dataset.gpt } }); return; }
     if ((el = t.closest(".life-item"))) {
@@ -1212,7 +1214,7 @@
       if (b.dataset.video) { openVideo(b.dataset.video); return; }
       if (b.dataset.openpaper) { goTo("research", { focus: { paper: b.dataset.openpaper } }); return; }
       var pid = b.dataset.paper || b.dataset.askpaper;
-      if (pid) { ask("paper:" + pid, (state.lang === "zh" ? "讲讲这篇：" : "Tell me more about ") + G.pubById[pid].title); return; }
+      if (pid) { ask("paper:" + pid, state.lang === "zh" ? "讲讲这篇《" + G.pubById[pid].title + "》" : "Tell me more about " + G.pubById[pid].title); return; }
       if (b.dataset.ask) ask(b.dataset.ask);
     });
 

@@ -4,7 +4,7 @@ Personal site of Hanjing Shi, served by GitHub Pages. It has two versions, and v
 
 | Page | What it is |
 | --- | --- |
-| `index.html` | **Interactive version — "Welcome to my world."** A scrolling ink-wash world. Mini-Hanjing walks between places (Welcome, Research, Talks, Education, Tutorials, Writing, Life, Contact) with JinBingBing the cat and answers questions in a chat box. |
+| `index.html` | **Interactive version, "Welcome to my world."** A scrolling ink-wash world. Mini-Hanjing walks between places (Welcome, Research, Talks, Education, Tutorials, Writing, Life, Contact) with JinBingBing the cat and answers questions in a chat box. |
 | `basic.html` | **Basic version.** One plain text page in the original style (ink-wash background, paper overlay, Roboto Mono). It has no hobbies or personal section. |
 
 A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version. The old `about.html`, `tutorials.html` and `blog.html` redirect to the matching section of `basic.html`.
@@ -36,6 +36,7 @@ Add an object to `publications` in `data.js`. Copy a neighbour and edit:
 - `type`: one of `proceedings`, `workshop`, `poster` or `preprint`.
 - `theme`: one of the `themes[].id` values. This decides which shelf the paper sits on in the library.
 - `summary` / `takeaway`: `{ en, zh }` pairs.
+- `intro`: `{ en, zh }`, what Mini-Hanjing says when someone asks about the paper. Write it in first person, casually. Every paper answer then ends with "Curious about the details? Reach out to Hanjing (the human one)!" and an email button. Without an `intro`, the guide falls back to the summary.
 - `keywords`: help the guide find the paper.
 
 Add `upcoming: true` for a paper you're about to present. The guide answers "what are you presenting next?" with it.

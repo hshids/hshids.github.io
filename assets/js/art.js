@@ -937,10 +937,8 @@
         '<g class="plant" transform="translate(130 ' + shelfY[i] + ')"><path d="M-10 0h20l-3 -14h-14z"/><path class="leaf" d="M0 -14C-4 -26 -14 -30 -20 -30C-14 -24 -8 -18 0 -14ZM0 -14C4 -28 12 -34 20 -34C14 -26 8 -18 0 -14ZM0 -14C0 -26 -2 -36 -6 -42C2 -36 4 -26 0 -14Z"/></g>';
     });
     var shelves = shelfY.map(function (sy) { return '<rect class="shelf" x="-186" y="' + sy + '" width="372" height="6" rx="1"/>'; }).join("");
-    var antenna = '<path class="circuit" d="M-40 172V146h-24v-18M0 170V112M40 172V152h22v-24"/><g class="circuit-dot"><circle cx="-64" cy="128" r="3.5"/><circle cx="0" cy="112" r="4"/><circle cx="62" cy="128" r="3.5"/></g>';
     return '<g class="st st-research" data-station="research">' +
       '<rect class="hit" x="-300" y="110" width="600" height="452"/>' +
-      antenna +
       terrace(-264, 264, 536, y, 120) +
       '<rect class="interior" x="-200" y="388" width="400" height="148"/>' +
       shelves + books +
@@ -980,9 +978,9 @@
         '<rect class="easel-ledge" x="' + (-w / 2 - 8) + '" y="' + (y - 36) + '" width="' + (w + 16) + '" height="5"/></g>';
     };
     return '<g class="st st-talks" data-station="talks">' +
-      '<rect class="hit" x="-360" y="180" width="710" height="470"/>' +
+      '<rect class="hit" x="-370" y="180" width="740" height="470"/>' +
       '<rect class="hall-wall" x="-330" y="296" width="470" height="244"/>' +
-      '<path class="stage" d="M-334 540H144V' + y + 'H-334Z"/><path class="stage-edge" d="M-334 540H144"/>' +
+      '<path class="stage" d="M-364 540H174V' + y + 'H-364Z"/><path class="stage-edge" d="M-364 540H174"/>' +
       '<g class="screen-talk"><rect class="screen-frame" x="-252" y="328" width="294" height="171" rx="3"/>' + slides +
         '<path class="screen-glare" d="M-246 334L-190 334L-246 380Z"/></g>' +
       '<path class="beam" d="M-105 505L-80 540H-130Z"/>' +
@@ -995,8 +993,8 @@
       dougong(-346, 156, 270, 63) +
       tangRoof(-95, 271, 300, 62) +
       '<g class="plaque" transform="translate(-95 298)"><rect x="-86" y="0" width="172" height="26" rx="3"/><text x="0" y="18" text-anchor="middle">TALKS &amp; POSTERS</text></g>' +
-      (posters[0] ? easel(210, posters[0], 96, 72) : "") +
-      (posters[1] ? easel(310, posters[1], 70, 80) : "") +
+      (posters[0] ? easel(228, posters[0], 96, 72) : "") +
+      (posters[1] ? easel(328, posters[1], 70, 80) : "") +
       '<g class="seats">' + seats + "</g>" +
     "</g>";
   };

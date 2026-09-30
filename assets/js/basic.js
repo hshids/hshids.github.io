@@ -37,6 +37,7 @@
     if (L.email) out.push('<a href="mailto:' + esc(L.email) + '">' + esc(L.email) + "</a>");
     out.push(a(L.scholar, "Google Scholar"));
     if (L.linkedin) out.push(a(L.linkedin, "LinkedIn"));
+    if (L.rednote) out.push(a(L.rednote, "RedNote (小红书)"));
     if (L.github) out.push(a(L.github, "GitHub"));
     if (L.cv) out.push(a(L.cv, "CV"));
     return out;
@@ -76,21 +77,21 @@
     html += '<section id="about"><div class="intro">' +
       '<img src="' + esc(P.photo) + '" alt="Hanjing Shi" class="profile-pic" width="150" height="150">' +
       "<div><h1>" + esc(P.name) + "</h1>" +
-      '<p class="role">' + esc(P.role) + "<br>" + esc(P.affiliation) + "</p>" +
+      '<p class="role">' + esc(P.role) + "</p>" +
       '<p class="links">' + contactLinks().join("") + "</p></div></div>" +
       '<p class="tagline">' + esc(P.tagline.en) + "</p>" +
       P.bio.en.map(function (b) { return "<p>" + esc(b) + "</p>"; }).join("") +
-      "<p><b>Research interests:</b> " + P.interests.map(esc).join(" · ") + "</p></section>";
+      "<p><b>Research interests</b><br>" + P.interests.map(esc).join(" · ") + "</p></section>";
 
     html += section("news", "News", '<ul class="news">' + D.news.map(function (n) {
       return '<li><span class="date">' + esc(n.date) + "</span><span>" + esc(n.en) +
         (n.paper ? ' <a href="#pub-' + esc(n.paper) + '">→</a>' : "") + "</span></li>";
     }).join("") + "</ul>");
 
-    html += section("research", "Research", "<p>My work falls into five connected threads:</p>" +
+    html += section("research", "Research", "<p>My work falls into five connected threads.</p>" +
       '<ul class="themes">' + D.themes.map(function (t) {
         var n = pubs.filter(function (p) { return p.theme === t.id; }).length;
-        return "<li><b>" + esc(t.title) + "</b> (" + n + ") — " + esc(t.blurb.en) + "</li>";
+        return "<li><b>" + esc(t.title) + "</b> (" + n + ")<br>" + esc(t.blurb.en) + "</li>";
       }).join("") + "</ul>");
 
     var pubHtml = "";
@@ -109,7 +110,7 @@
       }).join("") + "</ul>" +
       "<h3>Posters &amp; slides</h3><ul class=\"plain\">" + D.posters.map(function (p) {
         var pub = pubs.filter(function (x) { return x.id === p.paper; })[0];
-        return "<li>" + esc(p.venue) + " — " + a(p.file || p.image, pub ? pub.title : "Poster") + "</li>";
+        return "<li>" + esc(p.venue) + " · " + a(p.file || p.image, pub ? pub.title : "Poster") + "</li>";
       }).join("") + "</ul>");
 
     html += section("education", "Education", '<ul class="timeline">' + D.education.map(function (e) {
@@ -123,11 +124,11 @@
           (t.pdf ? '<div class="pub-links">' + a(t.pdf, "PDF version") + "</div>" : "") + "</li>";
       }).join("") + "</ul>");
 
-    html += section("writing", "Blog", "<p>Posts on statistics, written in Chinese.</p>" + '<ul class="cards">' + D.writing.map(function (w) {
+    html += section("writing", "Blog", (L.rednote ? "<p>My main blog lives on " + a(L.rednote, "RedNote (小红书)") + ". Below are two posts on statistics, written in Chinese.</p>" : "<p>Posts on statistics, written in Chinese.</p>") + '<ul class="cards">' + D.writing.map(function (w) {
       return '<li><div class="t">' + a(w.href, w.title) + "</div><div>" + esc(w.desc.en) + "</div></li>";
     }).join("") + "</ul>" +
       "<h3>My custom GPTs</h3><ul class=\"plain\">" + D.gpts.map(function (g) {
-        return "<li>" + a(g.href, g.name) + " — " + esc(g.desc) + "</li>";
+        return "<li>" + a(g.href, g.name) + " · " + esc(g.desc) + "</li>";
       }).join("") + "</ul>");
 
     html += section("contact", "Contact", "<p>Happy to talk research and collaboration.</p><p class=\"links\">" + contactLinks().join("") + "</p>" +

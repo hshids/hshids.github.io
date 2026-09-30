@@ -212,7 +212,7 @@
     { id: "eduStrong", w: 1.5, re: /(background|degree|undergrad|bachelor|master'?s?\b|\bms\b|\bbs\b|ph\.?d|doctora|alma mater|graduat|where did (you|she)|which (school|university)|学历|本科|硕士|博士|教育背景|毕业|哪个学校|哪所|读书|读研|读博|求学)/i },
     { id: "education", w: 1, re: /(education|school|universit|college|davis|georgetown|lehigh|学校|大学|教育)/i },
     { id: "tutorials", w: 1.4, re: /(tutorial|cheat ?sheet|learn (r|python|stat)|teach me|教程|学习资料|入门)/i },
-    { id: "writing", w: 1.3, re: /(blog|writing|posts?\b|article|gpts?\b|博客|文章|写作|随笔)/i },
+    { id: "writing", w: 1.3, re: /(blog|writing|posts?\b|article|gpts?\b|rednote|xiaohongshu|博客|文章|写作|随笔|小红书)/i },
     { id: "life", w: 1.2, re: /(hobby|hobbies|free time|spare time|for fun|outside (of )?(work|research)|personal|life\b|cats?\b|kitt(y|ies|en)|cook|travel|road ?trips?|states?\b|driv(e|ing)|drove|coast|movie|film|weekend|eat\b|eating|food|foodie|restaurants?|cuisine|爱好|兴趣|业余|生活|猫|金渐层|做饭|烹饪|旅行|旅游|自驾|州|海岸|吃|美食|探店|电影|周末|平时)/i },
     { id: "methods", w: 1.2, re: /(method|methodology|how do you (do|study|conduct)|approach|experiment design|qualitative|quantitative|研究方法|方法论|怎么做研究)/i },
     { id: "news", w: 1.3, re: /(latest|newest|recent|what'?s new|news|lately|update|最新|最近|新动态|近况|新闻)/i },
@@ -234,6 +234,9 @@
   function detect(q) {
     var scores = {};
     INTENTS.forEach(function (it) { if (has(q, it.re)) scores[it.id] = it.w; });
+    // "RedNote" on its own means my blog there; next to research words it means the RedNote study.
+    if (scores.writing && (scores.research || scores.papers || scores.opinion) &&
+        !has(q, /(blog|writing|posts?\b|article|gpts?\b|博客|文章|写作|随笔)/i)) delete scores.writing;
     return scores;
   }
 
@@ -278,6 +281,7 @@
     if (L.email) items.push({ label: L.email, href: "mailto:" + L.email });
     items.push({ label: "Google Scholar", href: L.scholar });
     if (L.linkedin) items.push({ label: "LinkedIn", href: L.linkedin });
+    if (L.rednote) items.push({ label: lang === "zh" ? "小红书" : "RedNote (小红书)", href: L.rednote });
     if (L.github) items.push({ label: "GitHub", href: L.github });
     if (L.cv) items.push({ label: lang === "zh" ? "简历 (CV)" : "CV", href: L.cv });
     return items;
@@ -290,7 +294,7 @@
   }
 
   var DISCLAIMER = {
-    en: "My mini-me only says what's in my published work — for anything beyond that, email the real me!",
+    en: "My mini-me only says what's in my published work. For anything beyond that, email the real me!",
     zh: "迷你版的我只说我公开发表过的内容；更多的，欢迎直接问真正的我！"
   };
 
@@ -313,15 +317,15 @@
   function greet(lang) {
     return A(lang, lang === "zh"
       ? "嗨，我是 Hanjing！👋 准确地说，是迷你版的我。我是 Lehigh 计算机系的博士候选人，研究人和 AI 怎么一起工作。想听我的研究、看我的报告，还是见见我的猫？随便问，或者点一个地方，我带你走过去～"
-      : "Hey, I'm Hanjing! 👋 Well — the pocket-sized me. I'm a Ph.D. candidate at Lehigh, and I study how people and AI work together. Want to hear about my research, watch a talk, or meet my cats? Ask me anything, or pick a place and I'll walk you there.",
+      : "Hey, I'm Hanjing! 👋 Well, the pocket-sized me. I'm a Ph.D. candidate at Lehigh, and I study how people and AI work together. Want to hear about my research, watch a talk, or meet my cats? Ask me anything, or pick a place and I'll walk you there.",
       "", START_CHIPS[lang]);
   }
 
   function identity(lang) {
     return A(lang, lang === "zh"
-      ? "当然不是啦！😏 我是她的迷你分身——而且悄悄告诉你，我知道的比 Hanjing 本人还多哦～她每篇论文、每个合作者、连页码我都倒背如流，她自己还得去翻。（放心，我背后没有大模型，只是用她的作品写好的脚本，你打的字也不会离开你的浏览器。）我不知道的，就去烦真正的她吧！"
-      : "Of course not! 😏 I'm her mini-me — and between us, I know more than Hanjing does. Every paper, every co-author, even the page numbers: I've got them memorized, and she has to look them up. (Relax — no AI model in here, just a script built from her work, and nothing you type leaves your browser.) Anything I don't know? Go bother the real one!",
-      '<p class="g-note">' + (lang === "zh" ? "想知道我为什么被做成这样？因为她研究的就是这个：" : "Wondering why I'm built this way? Because this is what she studies:") + "</p>" +
+      ? "当然不是啦！😏 我是她的迷你分身，而且悄悄告诉你，我知道的比 Hanjing 本人还多哦～她每篇论文、每个合作者、连页码我都倒背如流，她自己还得去翻。（放心，我背后没有大模型，只是用她的作品写好的脚本，你打的字也不会离开你的浏览器。）我不知道的，就去烦真正的她吧！"
+      : "Of course not! 😏 I'm her mini-me, and between us, I know more than Hanjing does. Every paper, every co-author, even the page numbers. I've got them all memorized, and she has to look them up! (Relax, there's no AI model in here, just a script built from her work, and nothing you type leaves your browser.) Anything I don't know? Go bother the real one!",
+      '<p class="g-note">' + (lang === "zh" ? "想知道我为什么被做成这样？因为她研究的就是这个 👇" : "Wondering why I'm built this way? Because this is what she studies 👇") + "</p>" +
       paperCard(pubById["his-name"], lang, { noMore: false }),
       lang === "zh" ? ["你研究什么？", "看看你的论文", "怎么联系你？"] : ["What do you research?", "Show me your papers", "How can I contact you?"]);
   }
@@ -334,8 +338,8 @@
         '<span class="g-theme-n">' + n + (lang === "zh" ? " 篇" : n === 1 ? " paper" : " papers") + "</span></button>";
     }).join("") + "</div>";
     return A(lang, lang === "zh"
-      ? "我研究当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至真实的人的“分身”出现时，人如何保持实质的掌控——AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。我的工作可以分成五条线："
-      : "I study what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor — or a persona of a real person — and what keeps people meaningfully in charge: how AI help is disclosed, how claims get verified, and who stays accountable. My work falls into five threads:",
+      ? "我研究当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至真实的人的“分身”出现时，人如何保持实质的掌控，包括 AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。我的工作可以分成五条线。"
+      : "I study what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor, or even a persona of a real person, and what keeps people meaningfully in charge. That means how AI help is disclosed, how claims get verified, and who stays accountable. My work falls into five threads.",
       html, themeChips(lang).slice(0, 3).concat(lang === "zh" ? ["研究方法"] : ["Your methods?"]), "research");
   }
 
@@ -348,23 +352,31 @@
       "research", { focus: { theme: t.id } });
   }
 
+  // Every paper answer ends by handing the visitor over to the real Hanjing.
+  var HUMAN_ONE = {
+    en: "Curious about the details? Reach out to Hanjing (the human one)! 🙋‍♀️",
+    zh: "想了解更多细节？去找 Hanjing 本人吧（真人版的那个）！🙋‍♀️"
+  };
+
   function paperDetail(p, lang) {
     var th = themeById[p.theme];
     var html = paperCard(p, lang, { authors: true, noMore: true }) +
       '<div class="g-block"><div class="g-label">' + (lang === "zh" ? "核心观点" : "Key point") + "</div><p>" + esc(pick(lang, p.takeaway)) + "</p></div>" +
       '<div class="g-block"><div class="g-label">' + (lang === "zh" ? "方法" : "Methods") + "</div><p>" + esc((p.methods || []).join(" · ")) + "</p></div>" +
       '<div class="g-block"><div class="g-label">' + (lang === "zh" ? "发表于" : "Venue") + "</div><p>" + esc(p.venue) + "</p></div>";
+    var mail = D.person.links.email;
+    if (mail) html += '<div class="g-actions"><a class="g-btn" href="mailto:' + esc(mail) + '">✉️ ' + (lang === "zh" ? "给 Hanjing 发邮件" : "Email Hanjing") + "</a></div>";
     var chips = [lang === "zh" ? th.zhTitle : th.title, lang === "zh" ? "最近有什么新动态？" : "What's new?"];
-    return A(lang, lang === "zh" ? "这篇是《" + p.title + "》。" + pick(lang, p.summary) : "“" + p.title + "” — " + pick(lang, p.summary),
-      html, chips, "research", { focus: { paper: p.id } });
+    var intro = p.intro ? pick(lang, p.intro) : (lang === "zh" ? "这篇是《" + p.title + "》。" : "This one is “" + p.title + ".” ") + pick(lang, p.summary);
+    return A(lang, intro + "\n\n" + pick(lang, HUMAN_ONE), html, chips, "research", { focus: { paper: p.id } });
   }
 
   function papersList(lang, matches) {
     var c = counts();
     var text = lang === "zh"
-      ? "目前一共 " + pubs.length + " 项：" + c.proceedings + " 篇正式发表（ICWSM、ACM WebSci、AIED、CHI EA、PMLR），" + c.workshop + " 篇 workshop / 会议报告，" + c.poster + " 张会议海报，" + c.preprint + " 篇预印本。最新的几项："
-      : "There are " + pubs.length + " so far: " + c.proceedings + " in proceedings (ICWSM, ACM WebSci, AIED, CHI EA, PMLR), " + c.workshop + " workshop papers / presentations, " + c.poster + " conference posters, and " + c.preprint + " preprints. The latest few:";
-    if (matches && matches.length) text = lang === "zh" ? "和你的问题最相关的论文：" : "These papers are the closest match:";
+      ? "目前一共 " + pubs.length + " 项，其中 " + c.proceedings + " 篇正式发表（ICWSM、ACM WebSci、AIED、CHI EA、PMLR），" + c.workshop + " 篇 workshop 论文或会议报告，" + c.poster + " 张会议海报，" + c.preprint + " 篇预印本。下面是最新的几项。"
+      : "There are " + pubs.length + " so far, with " + c.proceedings + " in proceedings (ICWSM, ACM WebSci, AIED, CHI EA, PMLR), " + c.workshop + " workshop papers or presentations, " + c.poster + " conference posters and " + c.preprint + " preprints. Here are the latest few.";
+    if (matches && matches.length) text = lang === "zh" ? "这几篇论文和你的问题最相关。" : "These papers are the closest match.";
     var list = matches && matches.length ? matches : pubs.slice(0, 3);
     return A(lang, text, list.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["只看正式发表的", "人格化 AI 与数字来生", "你研究什么？"] : ["Only peer-reviewed ones", "Persona AI & Digital Afterlives", "What do you research?"],
@@ -384,7 +396,7 @@
   function papersAtVenue(lang, label) {
     var list = pubs.filter(function (p) { return (p.venueShort + " " + p.venue).toLowerCase().indexOf(label.toLowerCase()) !== -1; });
     if (!list.length) return null;
-    return A(lang, lang === "zh" ? "在 " + label + " 的论文（共 " + list.length + " 篇）：" : "My work at " + label + " (" + list.length + "):",
+    return A(lang, lang === "zh" ? "在 " + label + " 发表的论文共有 " + list.length + " 篇。" : "Here's my work at " + label + " (" + list.length + ").",
       list.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["只看正式发表的", "看看你的论文"] : ["Only peer-reviewed ones", "Show me your papers"], "research",
       { focus: { paper: list[0].id } });
@@ -393,44 +405,44 @@
   function about(lang) {
     return A(lang, pick(lang, { en: D.person.bio.en[0], zh: D.person.bio.zh[0] }),
       '<p class="g-note">' + (lang === "zh"
-        ? "（这是我的迷你分身在说话——只根据我公开的内容回答。）"
-        : "(This is my mini-me talking — a scripted guide that only answers from my public work.)") + "</p>",
+        ? "（这是我的迷你分身在说话，只根据我公开的内容回答。）"
+        : "(This is my mini-me talking, a scripted guide that only answers from my public work.)") + "</p>",
       lang === "zh" ? ["你研究什么？", "教育背景", "工作之外喜欢做什么？"] : ["What do you research?", "Education", "What do you do for fun?"], "home");
   }
 
   function privateQ(lang) {
     return A(lang, lang === "zh"
       ? "哈，这个就保密啦～不过研究、报告、旅行、美食和猫，我都很乐意聊！"
-      : "Ha — that one stays private! But I'm always happy to talk research, talks, travel, food and cats.",
+      : "Ha, that one stays private! But I'm always happy to talk research, talks, travel, food and cats.",
       "", START_CHIPS[lang].slice(0, 4));
   }
 
   function favorite(lang) {
     var full = pubs.filter(function (p) { return p.id === "covid-framing" || p.id === "designing-safety"; });
     return A(lang, lang === "zh"
-      ? "让我选最喜欢的论文，就像让我选最喜欢的猫——选不出来！不过这两篇是我目前的完整长文（ICWSM 2026 和 ACM WebSci 2026）："
-      : "Picking a favorite paper is like picking a favorite cat — I can't! But these two are my full-length conference papers so far (ICWSM 2026 and ACM WebSci 2026):",
+      ? "让我选最喜欢的论文，就像让我选最喜欢的猫，根本选不出来！不过这两篇是我目前的完整长文（ICWSM 2026 和 ACM WebSci 2026）。"
+      : "Picking a favorite paper is like picking a favorite cat. I can't! But these two are my full-length conference papers so far (ICWSM 2026 and ACM WebSci 2026).",
       full.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["最近有什么新动态？", "你研究什么？"] : ["What's new?", "What do you research?"], "research");
   }
 
   function peerReviewed(lang) {
     var list = pubs.filter(function (p) { return p.type === "proceedings"; });
-    return A(lang, lang === "zh" ? "正式发表（收录于会议论文集）的有这些：" : "Here are the ones published in proceedings:",
+    return A(lang, lang === "zh" ? "正式发表（收录于会议论文集）的有这些。" : "Here are the ones published in proceedings.",
       list.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["预印本有哪些？", "你研究什么？"] : ["What about preprints?", "What do you research?"], "research", { focus: { filter: "proceedings" } });
   }
 
   function postersList(lang) {
     var list = pubs.filter(function (p) { return p.type === "poster"; });
-    return A(lang, lang === "zh" ? "会议海报（在报告厅的画架上）：" : "My conference posters — they're on the easels in the lecture hall:",
+    return A(lang, lang === "zh" ? "这些是我的会议海报，都在报告厅的画架上。" : "My conference posters are on the easels in the lecture hall.",
       list.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["有报告视频吗？", "你研究什么？"] : ["Do you have video talks?", "What do you research?"], "talks", { focus: { posters: true } });
   }
 
   function preprints(lang) {
     var list = pubs.filter(function (p) { return p.type === "preprint"; });
-    return A(lang, lang === "zh" ? "预印本（还在审稿或准备投稿中）：" : "Preprints (under review or in preparation):",
+    return A(lang, lang === "zh" ? "这些是预印本，还在审稿或准备投稿中。" : "These are preprints, under review or in preparation.",
       list.slice(0, 5).map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["只看正式发表的", "你研究什么？"] : ["Only peer-reviewed ones", "What do you research?"], "research", { focus: { filter: "preprint" } });
   }
@@ -440,7 +452,7 @@
       return '<li><span class="g-date">' + esc(n.date) + "</span> " + esc(pick(lang, n)) +
         (n.paper ? ' <button type="button" class="g-inline" data-paper="' + esc(n.paper) + '">' + (lang === "zh" ? "看看" : "view") + "</button>" : "") + "</li>";
     }).join("") + "</ul>";
-    return A(lang, lang === "zh" ? "最近的动态：" : "Here's what's new:", html,
+    return A(lang, lang === "zh" ? "最近的动态在这里！" : "Here's what's new!", html,
       lang === "zh" ? ["看看你的论文", "你研究什么？"] : ["Show me your papers", "What do you research?"], "home");
   }
 
@@ -450,16 +462,16 @@
         (e.note ? '<br><span class="g-muted">' + esc(e.note) + "</span>" : "") + "</li>";
     }).join("") + "</ol>";
     return A(lang, lang === "zh"
-      ? "我的求学路线：UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。"
-      : "My path so far: a B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Dr. Dominic DiFranzo.",
+      ? "我的求学路线是这样的。UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。"
+      : "Here's my path so far. A B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Dr. Dominic DiFranzo.",
       html, lang === "zh" ? ["你研究什么？", "你的导师是谁？"] : ["What do you research?", "Who is your advisor?"], "education");
   }
 
   function advisor(lang) {
     var adv = D.person.advisor || {};
     return A(lang, lang === "zh"
-      ? "我的导师是 Lehigh 的 Dominic DiFranzo 博士，他是 Social Design Lab 的负责人。他把社会科学理论变成真正能用的设计：让人敢于站出来对抗网络霸凌、质疑虚假信息、在网上更友善。他还做了开源的 Truman Platform 和 Social Media TestDrive，已经有一百多万名中学生用过。我的大部分论文都是和他一起写的。说真的，他是个天才——一定要去看看他的网站，那简直是一个迷你操作系统 🖥️"
-      : "My advisor is Dr. Dominic DiFranzo at Lehigh — he directs the Social Design Lab and turns social-science theory into designs that help people stand up to cyberbullies, question misinformation and be kinder online. He also built the Truman Platform and Social Media TestDrive, used by more than a million middle schoolers. He's a co-author on most of my papers. Honestly? He's a genius — you should definitely look at his website. It's literally a tiny operating system. 🖥️",
+      ? "我的导师是 Lehigh 的 Dominic DiFranzo 博士，他是 Social Design Lab 的负责人。他把社会科学理论变成真正能用的设计，让人敢于站出来对抗网络霸凌、质疑虚假信息、在网上更友善。他还做了开源的 Truman Platform 和 Social Media TestDrive，已经有一百多万名中学生用过。我的大部分论文都是和他一起写的。说真的，他是个天才！一定要去看看他的网站，那简直是一个迷你操作系统 🖥️"
+      : "My advisor is Dr. Dominic DiFranzo at Lehigh. He directs the Social Design Lab and turns social-science theory into designs that help people stand up to cyberbullies, question misinformation and be kinder online. He also built the Truman Platform and Social Media TestDrive, used by more than a million middle schoolers. He's a co-author on most of my papers. Honestly? He's a genius, and you should definitely look at his website. It's literally a tiny operating system. 🖥️",
       adv.url ? linkList([{ label: lang === "zh" ? "Dominic DiFranzo 的网站" : "Dominic DiFranzo's website", href: adv.url }]) : "",
       lang === "zh" ? ["你和谁合作？", "教育背景"] : ["Who do you work with?", "Education"], "education");
   }
@@ -471,15 +483,15 @@
     var html = linkList(names.map(function (n) {
       return { label: n, note: countBy[n] + (lang === "zh" ? " 篇" : countBy[n] === 1 ? " paper" : " papers") };
     }));
-    return A(lang, lang === "zh" ? "和我合作过的人（按合作论文数）：" : "People I've written papers with (by number of papers together):",
+    return A(lang, lang === "zh" ? "这些是和我合作过的人，按合作论文数排序。" : "Here are the people I've written papers with, sorted by how many papers we share.",
       html, lang === "zh" ? ["你的导师是谁？", "看看你的论文"] : ["Who is your advisor?", "Show me your papers"], "research");
   }
 
   function methods(lang) {
     var picks = ["designing-safety", "readability-evaluability", "visibility-verification", "reduced-supervision", "classpulse"];
     return A(lang, lang === "zh"
-      ? "我会混合使用多种方法：在线随机实验（比如 N = 309、306、270 的实验）；在 Reddit、小红书等平台上做计算社会科学分析（主题模型、生存分析、句法框架模型）；对 AI 系统和研究文献做结构化审计（63 份材料、93 个系统、86 篇全文）；定性主题分析；以及自己动手做研究系统，比如 ClassPulse 和 Outer Limits。"
-      : "I mix methods: randomized online experiments (e.g., N = 309, 306, 270); computational social science on Reddit and RedNote (topic modeling, survival analysis, syntactic framing models); structured audits of AI systems and research literature (63 artifacts, 93 systems, 86 full texts); qualitative thematic analysis; and building research systems such as ClassPulse and Outer Limits.",
+      ? "我会混合使用多种方法，包括在线随机实验（比如 N = 309、306、270 的实验）；在 Reddit、小红书等平台上做计算社会科学分析（主题模型、生存分析、句法框架模型）；对 AI 系统和研究文献做结构化审计（63 份材料、93 个系统、86 篇全文）；定性主题分析；以及自己动手做研究系统，比如 ClassPulse 和 Outer Limits。"
+      : "I mix methods, including randomized online experiments (e.g., N = 309, 306, 270); computational social science on Reddit and RedNote (topic modeling, survival analysis, syntactic framing models); structured audits of AI systems and research literature (63 artifacts, 93 systems, 86 full texts); qualitative thematic analysis; and building research systems such as ClassPulse and Outer Limits.",
       picks.slice(0, 3).map(function (id) { return paperCard(pubById[id], lang); }).join(""),
       lang === "zh" ? ["你研究什么？", "看看你的论文"] : ["What do you research?", "Show me your papers"], "research");
   }
@@ -488,29 +500,33 @@
     var list = focusId ? D.tutorials.filter(function (t) { return t.id === focusId; }) : D.tutorials;
     var html = linkList(list.map(function (t) { return { label: t.title, href: t.href, note: pick(lang, t.desc) }; }));
     return A(lang, lang === "zh"
-      ? "这些是我写的教程（内容是中文的），都在打字机那里："
-      : "These are tutorials I wrote (the content is in Chinese) — you'll find them at the typewriter:",
+      ? "这些是我写的教程（内容是中文的），都在打字机那里。"
+      : "These are tutorials I wrote (the content is in Chinese), and you'll find them at the typewriter.",
       html, lang === "zh" ? ["博客", "工作之外喜欢做什么？"] : ["Your blog?", "What do you do for fun?"], "tutorials");
   }
 
   function writing(lang, focusId) {
     var posts = D.writing.slice();
     if (focusId) posts.sort(function (a, b) { return (b.id === focusId) - (a.id === focusId); });
-    var html = linkList(posts.map(function (w) { return { label: w.title, href: w.href, note: pick(lang, w.desc) }; })) +
+    var rn = D.person.links.rednote;
+    var html = (rn ? linkList([{ label: lang === "zh" ? "我的小红书" : "My RedNote (小红书)", href: rn, note: lang === "zh" ? "我的主要博客" : "my main blog" }]) : "") +
+      linkList(posts.map(function (w) { return { label: w.title, href: w.href, note: pick(lang, w.desc) }; })) +
       '<div class="g-label">' + (lang === "zh" ? "我做的 GPTs" : "Custom GPTs I built") + "</div>" +
       linkList(D.gpts.map(function (g) { return { label: lang === "zh" ? g.name + " · " + g.zh : g.name, href: g.href, note: g.desc }; }));
-    var text = lang === "zh" ? "我的书桌：两篇统计学博客，以及我做的一些 GPTs。" : "My writing desk: two statistics blog posts, plus the custom GPTs I've built.";
+    var text = lang === "zh"
+      ? (rn ? "我的主要博客在小红书上！" : "") + "书桌上还有两篇统计学博客，和我做的一些 GPTs。"
+      : (rn ? "My main blog lives on RedNote (Xiaohongshu)! " : "") + "On my writing desk you'll also find two statistics posts, plus the custom GPTs I've built.";
     if (focusId) {
       var f = posts[0];
-      text = (lang === "zh" ? "我写过一篇《" + f.title + "》：" : "I wrote a post on this — “" + f.title + "”: ") + pick(lang, f.desc);
+      text = (lang === "zh" ? "我写过一篇《" + f.title + "》。" : "I wrote a post on this called “" + f.title + ".” ") + pick(lang, f.desc);
     }
     return A(lang, text, html, lang === "zh" ? ["教程", "工作之外喜欢做什么？"] : ["Tutorials", "What do you do for fun?"], "writing");
   }
 
   function life(lang, focusId) {
     var list = focusId ? D.life.filter(function (l) { return l.id === focusId; }) : D.life;
-    var html = '<ul class="g-list">' + list.map(function (l) { return "<li><b>" + esc(l.title) + "</b> — " + esc(pick(lang, l)) + "</li>"; }).join("") + "</ul>";
-    var text = focusId ? pick(lang, list[0]) : (lang === "zh" ? "下班之后的我：六只猫、环美自驾、美食，还有写博客。" : "Off the clock: my six cats, road trips around the U.S., food, and blogging.");
+    var html = '<ul class="g-list">' + list.map(function (l) { return "<li><b>" + esc(l.title) + "</b> · " + esc(pick(lang, l)) + "</li>"; }).join("") + "</ul>";
+    var text = focusId ? pick(lang, list[0]) : (lang === "zh" ? "下班之后的我有六只猫、环美自驾、美食，还有写博客。" : "Off the clock, it's my six cats, road trips around the U.S., food, and blogging.");
     return A(lang, text, focusId ? "" : html,
       lang === "zh" ? ["你研究什么？", "怎么联系你？"] : ["What do you research?", "How can I contact you?"], "life",
       focusId ? { focus: { life: focusId }, action: focusId === "cats" ? "meow" : undefined } : null);
@@ -520,17 +536,17 @@
     var L = D.person.links;
     var text = lang === "zh"
       ? "想聊研究或合作，欢迎联系我！" + (L.email ? "" : "（邮箱我很快会补上，现在可以先通过 LinkedIn 或 Google Scholar 找到我。）")
-      : "Happy to talk research or collaboration!" + (L.email ? "" : " (Email is coming soon — for now, LinkedIn or Google Scholar are the best way to reach me.)");
+      : "Happy to talk research or collaboration!" + (L.email ? "" : " (Email is coming soon. For now, LinkedIn or Google Scholar are the best way to reach me.)");
     return A(lang, text, linkList(contactItems(lang)),
       lang === "zh" ? ["你研究什么？", "看看你的论文"] : ["What do you research?", "Show me your papers"], "contact");
   }
 
   function cv(lang) {
     var L = D.person.links;
-    if (L.cv) return A(lang, lang === "zh" ? "这是我的简历：" : "Here's my CV:", linkList([{ label: "CV (PDF)", href: L.cv }]), [], "contact");
+    if (L.cv) return A(lang, lang === "zh" ? "这是我的简历！" : "Here's my CV!", linkList([{ label: "CV (PDF)", href: L.cv }]), [], "contact");
     return A(lang, lang === "zh"
       ? "简历还没挂上来。完整的论文列表可以看 Google Scholar，或者去藏书阁逛逛。"
-      : "My CV isn't posted here yet. For a full publication list, see Google Scholar — or browse the library.",
+      : "My CV isn't posted here yet. For a full publication list, see Google Scholar, or browse the library.",
       linkList([{ label: "Google Scholar", href: L.scholar }]),
       lang === "zh" ? ["看看你的论文", "怎么联系你？"] : ["Show me your papers", "How can I contact you?"], "contact");
   }
@@ -539,7 +555,7 @@
     if (!D.videos.length) {
       return A(lang, lang === "zh"
         ? "我会在 LinkedIn 上发论文的讲解视频，很快也会放到这里。现在可以先去 LinkedIn 看看。"
-        : "I post short video walkthroughs of my papers on LinkedIn — they'll be collected here soon. For now, you can find them on my LinkedIn.",
+        : "I post short video walkthroughs of my papers on LinkedIn, and they'll be collected here soon. For now, you can find them on my LinkedIn.",
         linkList([{ label: "LinkedIn", href: D.person.links.linkedin }]),
         lang === "zh" ? ["看看你的论文", "你研究什么？"] : ["Show me your papers", "What do you research?"], "research");
     }
@@ -547,21 +563,21 @@
       var p = pubById[v.paper];
       return p ? paperCard(p, lang) : "";
     }).join("");
-    return A(lang, lang === "zh" ? "这几场报告有录像——去报告厅坐下来看吧：" : "I've recorded these talks — come take a seat in my lecture hall:", html,
+    return A(lang, lang === "zh" ? "这几场报告有录像，去报告厅坐下来看吧！" : "I've recorded these talks, so come take a seat in my lecture hall!", html,
       lang === "zh" ? ["看看你的海报", "你研究什么？"] : ["Show me your posters", "What do you research?"], "talks");
   }
 
   function photos(lang) {
     return A(lang, lang === "zh"
-      ? "会议现场的照片（CSSSA 2025、ICWSM 2026、AIED 2026）挂在报告厅的照片墙上，点开可以看大图："
-      : "Photos from CSSSA 2025, ICWSM 2026 and AIED 2026 hang on the photo wall in my lecture hall — click any one to see it large:",
+      ? "会议现场的照片（CSSSA 2025、ICWSM 2026、AIED 2026）挂在报告厅的照片墙上，点开可以看大图。"
+      : "Photos from CSSSA 2025, ICWSM 2026 and AIED 2026 hang on the photo wall in my lecture hall. Click any one to see it large!",
       "", lang === "zh" ? ["有报告视频吗？", "看看你的海报"] : ["Do you have video talks?", "Show me your posters"], "talks", { focus: { photos: true } });
   }
 
   function upcoming(lang) {
     var list = pubs.filter(function (p) { return p.upcoming; });
     if (!list.length) return news(lang);
-    return A(lang, lang === "zh" ? "下一场：我马上要去展示这张海报——" : "Next up — I'm about to present this one:",
+    return A(lang, lang === "zh" ? "下一场，我马上要去展示这张海报！" : "Next up, I'm about to present this one!",
       list.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["看看你的海报", "最近有什么新动态？"] : ["Show me your posters", "What's new?"], "talks", { focus: { posters: true } });
   }
@@ -572,10 +588,10 @@
     if (!top.length) {
       return A(lang, lang === "zh"
         ? "嗯……这个我在论文里没写过，就不乱说啦。可以问问我的研究方向，或者直接问真正的我！"
-        : "Hmm, I haven't written about that, so I'd rather not make something up. Try one of my research topics — or ask the real me!",
+        : "Hmm, I haven't written about that, so I'd rather not make something up. Try one of my research topics, or ask the real me!",
         '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>", themeChips(lang).slice(0, 3), null);
     }
-    return A(lang, lang === "zh" ? "这是我在论文里提出过的观点：" : "Here's what I've argued in my papers:",
+    return A(lang, lang === "zh" ? "这是我在论文里提出过的观点。" : "Here's what I've argued in my papers.",
       top.map(function (h) { return paperCard(h.doc.ref, lang, { takeaway: true }); }).join("") +
       '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>",
       lang === "zh" ? ["你研究什么？", "看看你的论文"] : ["What do you research?", "Show me your papers"], "research",
@@ -584,8 +600,8 @@
 
   function fallback(lang) {
     return A(lang, lang === "zh"
-      ? "哎呀，这个把我难住了——我只懂她的论文、教程和主页（这些我可比她熟）。换个问题？"
-      : "Ooh, you stumped me — I only know her papers, tutorials and pages (those I know better than she does). Try one of these?",
+      ? "哎呀，这个把我难住了！我只懂她的论文、教程和主页（这些我可比她熟）。换个问题？"
+      : "Ooh, you stumped me! I only know her papers, tutorials and pages (those I know better than she does). Try one of these?",
       "", START_CHIPS[lang].slice(0, 5));
   }
 
@@ -602,7 +618,7 @@
     if (d.kind === "paper") {
       var papers = hits.filter(function (h) { return h.doc.kind === "paper" && h.score > top.score * 0.6; }).slice(0, 3);
       if (papers.length === 1 || papers[0].score > (papers[1] ? papers[1].score * 1.6 : 0)) return paperDetail(d.ref, lang);
-      return A(lang, lang === "zh" ? "这几篇论文和你的问题最相关：" : "These papers are the closest match:",
+      return A(lang, lang === "zh" ? "这几篇论文和你的问题最相关。" : "These papers are the closest match.",
         papers.map(function (h) { return paperCard(h.doc.ref, lang); }).join(""),
         themeChips(lang).slice(0, 3), "research", { focus: { paper: papers[0].doc.ref.id } });
     }
@@ -636,7 +652,7 @@
     var it = detect(q);
     if (it.meow) return A(lang, lang === "zh" ? "喵～（猫猫表示同意）" : "Meow! (The cat approves.)", "", [], null, { action: "meow" });
     if (it.jump) return A(lang, lang === "zh" ? "好嘞！" : "Wheee!", "", [], null, { action: "jump" });
-    if (it.night) return A(lang, lang === "zh" ? "天黑啦，点亮灯笼。" : "Lanterns on — it's night in my world.", "", [], null, { action: "night" });
+    if (it.night) return A(lang, lang === "zh" ? "天黑啦，点亮灯笼。" : "Lanterns on! It's night in my world.", "", [], null, { action: "night" });
     if (it.day) return A(lang, lang === "zh" ? "天亮啦！" : "Good morning!", "", [], null, { action: "day" });
     if (it.greet) return greet(lang);
     if (it.thanks) return A(lang, lang === "zh" ? "不客气！还想了解什么？" : "Anytime! Anything else you'd like to know?", "", START_CHIPS[lang].slice(0, 4));
