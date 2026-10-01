@@ -1018,7 +1018,7 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 .screen-cat { fill: var(--w-line); stroke: var(--w-line); opacity: .45; }
 .screen-cat path:nth-child(2) { fill: none; }
 .screen-label { fill: var(--w-line); font-size: 11px !important; letter-spacing: .25em; opacity: .7; }
-.cat.is-happy > .hj-cat-svg { animation: hop .6s ease; }
+.cat.is-happy > .hj-cat-svg { animation: none; }
 .cat-butterfly { position: absolute; bottom: calc(var(--s) * 276px - 22px); width: 44px; height: 44px; padding: 9px; border: 0; background: none; cursor: pointer; pointer-events: auto; z-index: 3; animation: butterflyArrive 1.8s ease-out both; }
 .cat-butterfly svg { width: 100%; height: 100%; }
 .bf-flight { transform-origin: 12px 12px; animation: butterflyDrift 1.6s ease-in-out infinite alternate; }
@@ -1030,8 +1030,8 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 .cat.is-pouncing .cat-walk { display: inline; }
 .cat.is-pouncing .cat-fore-leg .cat-limb-pose { transform-origin: 0 0; animation: catReach 1.65s ease-in-out; }
 .cat-butterfly.is-escaping { animation: butterflyEscape 2.8s ease-in both; }
-.cat.is-tail-playing .cat-sit { transform-box: fill-box; transform-origin: 50% 100%; animation: catTailPlay 2.1s ease-in-out; }
-.cat.is-tail-playing .cat-tail-sit { animation: tailCatch .35s ease-in-out 6 alternate; }
+.cat.is-tail-playing .cat-sit { animation: none; }
+.cat.is-tail-playing .cat-tail-sit { animation: kittyTailGreeting 1.7s ease-in-out; }
 .cat.is-tail-playing .cat-head { transform-box: fill-box; transform-origin: 50% 80%; animation: catLookBack 2.1s ease-in-out; }
 @keyframes butterflyDrift { from { transform: translate(0, 0) rotate(-10deg); } to { transform: translate(-3px, -4px) rotate(14deg); } }
 @keyframes butterflyArrive { from { opacity: 0; transform: translate(calc(var(--butterfly-facing) * 95px), -38px); } 45% { opacity: .9; } to { opacity: .9; transform: none; } }
@@ -1417,11 +1417,23 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
   .title-hint { font-size: 12px; max-width: 30ch; }
 }
 
-/* ---------- red circles: what she does at each place ---------- */
-.spot { fill: none; stroke: #8d8a78; stroke-width: .45; stroke-linecap: round; opacity: .42; }
-.spot-etch { fill: none; stroke: #c4bba0; stroke-width: .4; opacity: .5; pointer-events: none; }
-.st.is-near .spot, .st-writing.is-near .cushion { animation: spotPulse 1.8s ease-in-out infinite; }
-.st.is-acting .spot { stroke: #bba378; opacity: .7; animation: none; }
+/* ---------- shallow flower carvings in the walking stone ---------- */
+.spot-inlay { --inlay-cut: #454b41; --inlay-edge: #ded4b8; --inlay-recess: #62695a; cursor: pointer; }
+.spot, .spot-etch, .spot-toolmarks { fill: none; stroke-linejoin: round; stroke-linecap: round; }
+.spot { stroke: var(--inlay-cut); stroke-width: .85; opacity: .84; transition: opacity .25s, stroke-width .25s; }
+.spot-etch { stroke: var(--inlay-edge); stroke-width: .65; opacity: .85; pointer-events: none; }
+.spot-recess { fill: var(--inlay-recess); opacity: .16; pointer-events: none; }
+.spot-toolmarks { stroke: var(--inlay-cut); stroke-width: .5; opacity: .45; pointer-events: none; }
+.spot-warmth { fill: none; stroke: #d2ae70; stroke-width: 1.5; opacity: .08; filter: drop-shadow(0 0 .7px rgba(221, 175, 92, .28)); pointer-events: none; animation: inlayWarmth 6.6s ease-in-out var(--inlay-delay, 0s) infinite; }
+.st.is-near .spot, .st.is-acting .spot { opacity: 1; stroke-width: 1; }
+.st.is-near .spot-etch, .st.is-acting .spot-etch { opacity: 1; }
+[data-theme="dark"] .spot-inlay { --inlay-cut: #131c1c; --inlay-edge: #a2b4a5; --inlay-recess: #132120; }
+[data-theme="dark"] .spot-etch { opacity: .86; }
+[data-theme="dark"] .spot-warmth { stroke: #e2c598; animation-name: inlayMoonWarmth; }
+@keyframes inlayWarmth { 0%, 100% { opacity: .06; } 50% { opacity: .18; } }
+@keyframes inlayMoonWarmth { 0%, 100% { opacity: .14; } 50% { opacity: .38; } }
+@media (prefers-reduced-motion: reduce) { .spot-warmth { animation: none !important; opacity: .14; } }
+.st-writing.is-near .cushion { animation: spotPulse 1.8s ease-in-out infinite; }
 .st-writing.is-acting .cushion { animation: none; }
 @keyframes spotPulse { 50% { opacity: .35; } }
 

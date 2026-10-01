@@ -1,0 +1,29 @@
+/* The graduation cap stays on the same head until its release and landing. */
+.painted-character .p-cap,
+.painted-character .p-cap-mount,
+.painted-character .p-cap-in { pointer-events: none; }
+.has-cap .painted-character .p-cap .painted-sprite { opacity: 1; }
+.painted-character .p-cap-in {
+  transform-box: view-box;
+  transform-origin: 60px 9px;
+}
+.act-toss .painted-character .p-cap-in {
+  transform-box: view-box;
+  transform-origin: 60px 9px;
+  animation: researchCapFlight 2.4s both;
+}
+@keyframes researchCapFlight {
+  0%, 12% { transform: none; animation-timing-function: cubic-bezier(.2,.75,.45,1); }
+  48% { transform: translateY(-180px) rotate(540deg); animation-timing-function: cubic-bezier(.55,0,.8,.45); }
+  88% { transform: translateY(0) rotate(720deg); }
+  94% { transform: translateY(-3px) rotate(720deg); }
+  100% { transform: translateY(0) rotate(720deg); }
+}
+[data-theme="dark"] .painted-character .painted-cap { filter: brightness(.77) saturate(.8); }
+@media (prefers-reduced-motion: reduce) {
+  .act-toss .painted-character .p-cap-in { animation: none; }
+}
+
+/* A distant destination fades only the scene; the open panel stays usable. */
+#world #layers, #world .under { transition: opacity 140ms ease; }
+#world.scene-changing #layers, #world.scene-changing .under { opacity: 0; }

@@ -1,0 +1,25 @@
+/* The light changes painted RGB gently, preserving all native alpha and ink.
+   No whole-actor blur, silhouette glow, or extra lantern is added. */
+[data-theme="dark"] .actor-lighting .motion-rig-human { filter: saturate(.86); }
+.actor-lighting .c-reading > .o-day, .actor-lighting .c-back > .o-day,
+.actor-lighting .c-crouch > .o-day, .actor-lighting .c-mail > .o-day,
+.actor-lighting .painted-pet-rig, .actor-lighting .painted-writing-rig { filter: url(#actor-tonal-day); }
+[data-theme="dark"] .actor-lighting .c-reading > .o-night,
+[data-theme="dark"] .actor-lighting .c-back > .o-night,
+[data-theme="dark"] .actor-lighting .c-crouch > .o-night,
+[data-theme="dark"] .actor-lighting .c-mail > .o-night,
+[data-theme="dark"] .actor-lighting .painted-pet-rig,
+[data-theme="dark"] .actor-lighting .painted-writing-rig { filter: url(#actor-tonal-night) saturate(.86); }
+.actor-lighting .c-reading .painted-sprite, .actor-lighting .c-back .painted-sprite,
+.actor-lighting .c-crouch .painted-sprite, .actor-lighting .c-mail .painted-sprite { filter: none; }
+[data-theme="dark"] .actor-lighting .painted-face-rig .painted-sprite { filter: url(#actor-tonal-night); }
+/* Gesture donor images have an inline night filter; replace it once so their
+   skin uses the same ambient tone as the face and painted body. */
+.actor-lighting .rig-gesture-hand image { filter: url(#actor-tonal-day) !important; }
+[data-theme="dark"] .actor-lighting .rig-gesture-hand image { filter: url(#actor-tonal-night) saturate(.86) !important; }
+.actor-lighting .c-shadow { display: none; }
+.actor-ground-contact { pointer-events: none; }
+.actor-shoe-cast { fill: url(#actor-ground-shade); }
+.actor-shoe-contact { fill: #292d25; }
+[data-theme="dark"] .actor-shoe-contact { fill: #0a1419; }
+.actor-ground-contact[hidden] { display: none; }

@@ -1,0 +1,25 @@
+/* A shallow physical footing joins the masonry to the irregular dry bank. */
+.bank-foot-shadow { fill: url(#wall-bank-contact); pointer-events: none; }
+.bank-foot-stones { pointer-events: none; }
+.bank-foot-stone { fill: url(#paintFootstone); }
+.bank-foot-cut { fill: none; stroke: #434c3d; stroke-width: .7; opacity: .5; }
+.bank-foot-light { fill: none; stroke: #8e9682; stroke-width: .35; opacity: .2; }
+.bank-moss-patina { fill: none; stroke: #68714e; stroke-width: 1.4; stroke-linecap: round; opacity: .36; }
+[data-theme="dark"] .bank-foot-stones { filter: brightness(.42) saturate(.7); }
+[data-theme="dark"] .bank-foot-shadow { opacity: .8; }
+
+/* Fine ribbons ride above the original painting; its texture stays fixed in
+   world coordinates. Motion is local glint travel, not a sliding water image. */
+.water-current { fill: url(#fine-pond-current); pointer-events: none; opacity: .76; }
+.fine-ripple { fill: none; stroke: var(--w-water-line); stroke-width: .55; stroke-linecap: round; stroke-dasharray: 8 21 15 28; opacity: .16; animation: fineRipple var(--ripple-time, 16s) linear var(--ripple-delay, 0s) infinite; }
+.fine-ripple.is-soft { stroke-width: .35; stroke-dasharray: 5 34 13 19; opacity: .11; animation-direction: reverse; }
+[data-theme="dark"] .water-current { opacity: .48; }
+@keyframes fineRipple {
+  0% { stroke-dashoffset: 0; opacity: .09; }
+  36% { opacity: .22; }
+  71% { opacity: .12; }
+  100% { stroke-dashoffset: -72; opacity: .09; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fine-ripple { animation: none !important; opacity: .1; }
+}

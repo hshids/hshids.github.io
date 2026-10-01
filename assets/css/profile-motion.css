@@ -1,0 +1,51 @@
+/* Native side and rear paintings replace every frontal feature while turning. */
+.native-profile-view .c-root .c-arm,
+.native-shelf-view .c-root .c-arm,
+.native-profile-view .painted-face-rig-wrap,
+.native-shelf-view .painted-face-rig-wrap,
+.native-profile-view .gesture-hand-layer,
+.native-shelf-view .gesture-hand-layer,
+.native-profile-view .rig-gesture-hand,
+.native-shelf-view .rig-gesture-hand,
+.native-profile-view .rig-handprop,
+.native-shelf-view .rig-handprop { display: none !important; }
+.native-view-props { display: none; }
+.native-profile-view .native-view-props,
+.native-shelf-view .native-view-props { display: inline; }
+.native-profile-lantern, .native-shelf-book { display: none; }
+[data-theme="dark"] .native-profile-view:not(.hands-free) .native-profile-lantern { display: inline; }
+.native-shelf-view.has-book .native-shelf-book { display: inline; }
+.native-profile-view.has-book .native-shelf-book { display: inline; }
+.native-view-props .painted-sprite { opacity: 1 !important; }
+.native-gait-frames .native-profile-lantern .hand-lantern-paint,
+.native-gait-frames .native-profile-lantern .hand-lantern-core { display: none; }
+.has-native-human-views.native-profile-view .c-root,
+.has-native-human-views.native-shelf-view .c-root { pointer-events: none; }
+
+.native-hold-view .c-root .c-arm,
+.native-hold-view .painted-face-rig-wrap,
+.native-hold-view .gesture-hand-layer,
+.native-hold-view .rig-gesture-hand,
+.native-hold-view .rig-handprop,
+.native-hold-view .native-view-props { display: none !important; }
+.has-native-human-views.native-hold-view .c-root { pointer-events: none; }
+
+/* A complete native greeting pose retains its original shoulder and elbow. */
+.native-wave-frames .c-root .c-arm,
+.native-wave-frames .painted-face-rig-wrap,
+.native-wave-frames .gesture-hand-layer,
+.native-wave-frames .rig-gesture-hand,
+.native-wave-frames .rig-handprop { display: none !important; }
+.native-wave-frames .native-view-props { display: inline; }
+[data-theme="dark"] .native-wave-frames:not(.hands-free) .native-profile-lantern { display: inline; }
+
+.native-gesture-frames .c-root .c-arm,
+.native-gesture-frames .painted-face-rig-wrap,
+.native-gesture-frames .gesture-hand-layer,
+.native-gesture-frames .rig-gesture-hand,
+.native-gesture-frames .rig-handprop { display: none !important; }
+.native-gesture-frames .native-view-props { display: inline; }
+[data-theme="dark"] .native-point-view:not(.hands-free) .native-profile-lantern { display: inline; }
+
+/* The complete native withdrawal already includes its single held book. */
+.native-shelf-view.native-shelf-return.has-book .native-shelf-book { display: none; }

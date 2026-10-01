@@ -202,6 +202,10 @@
     function otherPose(night, writing) {
       var name = (night ? 'night' : 'day')+(writing ? 'Write' : 'Pet');
       var xy = writing ? [25,62,119,130] : [21,77,126,115];
+      // Writing keeps the complete native shoulder, upper arm and body. Its
+      // continuous forearm mesh moves below the real elbow without cutting a
+      // hole in this painting or exposing the covered kneeling legs.
+      if(writing)return '<g class="'+(night?'o-night':'o-day')+'"><g class="writing-native-base">'+sprite(name,xy[0],xy[1],xy[2],xy[3])+'</g></g>';
       var moving = writing ? 'cb-arm' : 'cr-arm', pivot = writing ? [99,114] : [112,136];
       var clip = 'poseArm'+(++serial), mask = 'poseBody'+(++serial);
       var arm = writing ? 'M99 111L149 103L149 156L114 154Z' : 'M108 129Q112 132 117 133L149 145L151 157L138 159Q123 151 112 147Q109 140 105 138Z';
@@ -214,7 +218,46 @@
       var page=night ? 'M62 65Q68 61 76 60L75 62Q67 63 62 66Z' : 'M64 63Q71 59 79 59L78 61Q69 61 64 65Z';
       return '<g class="'+(night ? 'o-night' : 'o-day')+'">'+sprite(night ? 'nightRead' : 'dayRead',night ? 35 : 21,8,night ? 50 : 78,184)+'<path d="M'+(night ? '62' : '64')+' 66h1.2m-1.2 1.5h1.2m-1.2 1.5h1.2" fill="none" stroke="#e9d7b6" stroke-width=".35"/><path class="paint-read-page" d="'+page+'" fill="url(#gPaper)" stroke="#ab9777" stroke-width=".25" style="transform-origin:'+(night ? '62px 65px' : '64px 63px')+'"/></g>';
     }
-    return '<svg class="hj-char-svg painted-character" viewBox="0 0 120 200" aria-hidden="true" focusable="false"><g class="c-flip"><ellipse class="c-shadow" cx="60" cy="193" rx="29" ry="3"/><g class="c-root">'+outfit(false)+outfit(true)+'</g><g class="c-reading">'+reading(false)+reading(true)+'</g><g class="c-back">'+otherPose(false,true)+otherPose(true,true)+'</g><g class="c-crouch">'+otherPose(false,false)+otherPose(true,false)+'</g><g class="c-mail">'+mailPose(false)+mailPose(true)+'</g>'+faceFeatures(uid)+'<g class="p-cap"><g class="p-cap-in">'+sprite('cap',37,-2,43,34)+'</g></g></g></svg>';
+    function graduationCap() {
+      if (!A.capHeadTracking) {
+        A.capHeadTracking = true;
+        requestAnimationFrame(function followCap(t) {
+          all(document,'.p-cap-mount').forEach(function(mount) {
+            var root=mount.closest('#char,.avatar-demo,.th-avatar');
+            if (!root || !root.classList.contains('has-cap')) {
+              mount._capRelease=null; mount._capTossStart=null; return;
+            }
+            var night=document.documentElement.dataset.theme==='dark';
+            // The native frontal painting supplies the hair crown. This
+            // optional anchor also lets a replacement full-body view report
+            // its own crown without moving the cap separately from the head.
+            var anchor=root._rigCapAnchor || {x:night?58.2:64.4,y:8};
+            var head=root._rigHeadMatrix || [1,0,0,1,0,0];
+            var dx=anchor.x-60,dy=anchor.y-8;
+            var matrix=[head[0],head[1],head[2],head[3],head[4]+head[0]*dx+head[2]*dy,head[5]+head[1]*dx+head[3]*dy];
+            var scale=anchor.headWidth?anchor.headWidth*1.5/43:1;
+            var tossing=root.classList.contains('act-toss');
+            if (tossing) {
+              if (mount._capTossStart===null || mount._capTossStart===undefined) mount._capTossStart=t;
+              var elapsed=(t-mount._capTossStart)/1000;
+              // Hold the launch coordinate while airborne; head breathing
+              // and the celebration jump must not drag a loose cap around.
+              if (elapsed>=.288 && elapsed<2.112) {
+                if (!mount._capRelease) mount._capRelease={matrix:matrix.slice(),scale:scale};
+                matrix=mount._capRelease.matrix; scale=mount._capRelease.scale;
+              } else mount._capRelease=null;
+            } else { mount._capTossStart=null; mount._capRelease=null; }
+            mount.setAttribute('transform','matrix('+matrix.map(function(n){return n.toFixed(5);}).join(' ')+')');
+            mount.querySelector('.p-cap-fit').setAttribute('transform','translate(60 20.6) scale('+scale.toFixed(5)+') translate(-60 -20.6)');
+          });
+          requestAnimationFrame(followCap);
+        });
+      }
+      // Keep the original hat's aspect ratio. Its crown rim overlaps the
+      // upper hairline; the board and tassel remain one physical painted cap.
+      return '<g class="p-cap"><g class="p-cap-mount"><g class="p-cap-in"><g class="p-cap-fit">'+sprite('cap',40.44,-6,43,43*273/343,'painted-cap')+'</g></g></g></g>';
+    }
+    return '<svg class="hj-char-svg painted-character" viewBox="0 0 120 200" aria-hidden="true" focusable="false"><g class="c-flip"><ellipse class="c-shadow" cx="60" cy="193" rx="29" ry="3"/><g class="c-root">'+outfit(false)+outfit(true)+'</g><g class="c-reading">'+reading(false)+reading(true)+'</g><g class="c-back">'+otherPose(false,true)+otherPose(true,true)+'</g><g class="c-crouch">'+otherPose(false,false)+otherPose(true,false)+'</g><g class="c-mail">'+mailPose(false)+mailPose(true)+'</g>'+faceFeatures(uid)+graduationCap()+'</g></svg>';
   }
   // A three-quarter pose keeps the shoulder, sleeve and hand in the same painted plane.
   // Only the short forearm gesture moves; the body and upper arm stay continuous.
@@ -405,7 +448,7 @@
   var old = {}; Object.keys(A.stations).forEach(function(k) { old[k] = A.stations[k]; });
   A.stations.home = function () {
     return station('home',forecourt(-313,155,542,560,8)+sprite('gate',-333,288.668,510,272)+label(-78,405,'WELCOME',122)+
-      '<g class="board" data-open="news">'+sprite('board',153,420.347,112,140)+'<rect class="hit" x="153" y="420.347" width="112" height="140"/><text class="paint-board-title" x="210" y="463.347" text-anchor="middle">NEWS</text></g>'+glow(51,454.668,50),[-350,280,640,283]);
+      '<g class="board" data-open="news">'+sprite('board',153,420.347,112,140)+'<rect class="hit" x="153" y="420.347" width="112" height="140"/><g class="paint-board-heading" transform="translate(209.2 460.7) skewX(-1.1)"><text class="paint-board-title" text-anchor="middle">NEWS</text></g></g>'+glow(51,454.668,50),[-350,280,640,283]);
   };
   A.stations.research = function (pubs,themes) {
     var root = parsed(old.research(pubs,themes)), body = forecourt(-280,282,549,560,7)+sprite('researchHouse',-300,177.235,600,384), rowX=[-120,-120,-120];
@@ -456,6 +499,11 @@
     body += '<g class="writing-plinth"><path class="writing-plinth-front" d="M-222 552H330V560H-222Z"/><path class="writing-plinth-top" d="M-213 528H322L330 552H-222Z"/><path class="writing-plinth-grain" d="M-222 553H330M-89 553l.7 7M66 553l-.6 7M206 553l.8 7"/><path class="writing-plinth-light" d="M-211 528.6H321M-220 553.1H328"/></g>';
     // Keep the four silk paintings, desk and cushion; the separate archive replaces the old open rack.
     body += sprite('writing',-204,337-lift,518,223,'writing-interior','M81 57H860V153H665V511H81Z');
+    // Follow the embroidered rim in the painting itself, rather than placing
+    // another marker down on the paving beneath the low writing cushion.
+    var seatRim='M-56 530C-58 520.8 -27 515.8 14.2 515.8C55.4 515.8 87.4 520.8 85.4 530C83.3 538 -21.8 542.3 -56 530Z';
+    var seatThread='M-52 529.6C-53.6 522.9 -24.2 518.5 14.2 518.5C52.6 518.5 83.1 522.9 81.4 529.6M-51.7 531.1C-39.5 537.8 67.8 537.8 81.2 531.1M-45 531.9q-3 -3 -5 0q2 3 5 0q3 -3 5 0q-2 3 -5 0m0 -3.1q-3 2 0 3.1q3 -2 0 -3.1m0 3.1q-3 2 0 3.1q3 -2 0 -3.1M72 531.9q-3 -3 -5 0q2 3 5 0q3 -3 5 0q-2 3 -5 0m0 -3.1q-3 2 0 3.1q3 -2 0 -3.1m0 3.1q-3 2 0 3.1q3 -2 0 -3.1';
+    body += '<g class="writing-seat"><title>Sit on the embroidered cushion and write</title><ellipse class="hit writing-seat-hit" cx="14.2" cy="529.6" rx="73" ry="19"/><path class="writing-seat-warmth" d="'+seatRim+'"/><path class="writing-seat-shadow" d="'+seatThread+'"/><path class="writing-seat-stitch" d="'+seatThread+'"/></g>';
     body += hempRope(-116,235.129,-116,242,true)+hempRope(-15,237.419,-15,242,true)+label(-65,255,'WRITING',150);
     A.paperSpots.forEach(function(p,i) {
       var star=i%2, anchor=A.paperAnchors[i]-p[1], width=star?30:38, height=30, end=star?-14:0;
@@ -470,9 +518,161 @@
     body += '</g>';
     // This clip is the actual unrolled paper in the source painting, lifted with the table.
     var paper='writingPaper'+(++serial);
-    body += '<defs><clipPath id="'+paper+'"><path d="M-93.62 471.37H91.91L103.88 486.11H-97.61Z"/></clipPath></defs><g class="write-hello" clip-path="url(#'+paper+')"><text class="hello-text" x="37" y="480">Hello World!</text><rect class="hello-cover" x="35" y="469" width="67" height="16"/></g><g class="inkstone" data-easter="ink"><rect class="hit" x="121" y="471" width="36" height="20"/><path class="ink-glint" d="M126 479q9 3 19 0"/></g>'+glow(141,447,35);
+    body += '<defs><clipPath id="'+paper+'"><path d="M-93.62 471.37H91.91L103.88 486.11H-97.61Z"/></clipPath></defs><g class="write-hello handwritten-hello" clip-path="url(#'+paper+')"><title>Hello World! — written one brushstroke at a time</title><g class="hello-ink">'+helloStrokes()+'</g></g><g class="inkstone" data-easter="ink"><rect class="hit" x="121" y="471" width="36" height="20"/><path class="ink-glint" d="M126 479q9 3 19 0"/></g>'+glow(141,447,35);
     return station('writing',body,[-290,174,636,388]);
   };
+
+  // These are the actual pen routes, including the three separate strokes of H
+  // and the final dot. No font or covering rectangle reveals finished letters.
+  function helloStrokes() {
+    var strokes=[
+      ['H','M1.4 1.1Q1 5 .6 10.2'],
+      ['H','M7 1Q6.3 5.4 6.1 10.3'],
+      ['H','M.9 5.9Q3.6 5 6.5 5.6'],
+      ['e','M9.1 7.1Q13.7 7 13.2 5.3C12.8 3.6 9.2 4.5 8.9 7.5C8.6 10.9 12.1 10.9 14 8.8'],
+      ['l','M16.3 9.4C16 6.7 18.8 -.8 19 1.7C19.4 4.7 15.5 8.5 16.8 10Q17.4 10.9 19.4 9.2'],
+      ['l','M21.8 9.4C21.5 6.7 24.3 -.8 24.5 1.7C24.9 4.7 21 8.5 22.3 10Q22.9 10.9 24.9 9.2'],
+      ['o','M28.3 4.9C24.7 4.1 25 10.8 28.4 10.2C31.6 9.7 31.9 4.1 28.3 4.9Q30 5.5 31.8 5'],
+      ['W','M37.1 1.2L37.4 10.1Q37.6 10.6 38 9.8L42.1 2.1L42.9 10Q43.1 10.5 43.6 9.7L48.3 1.2'],
+      ['o','M51.5 4.9C47.9 4.1 48.2 10.8 51.6 10.2C54.8 9.7 55.1 4.1 51.5 4.9Q53.2 5.5 55 5'],
+      ['r','M56.3 10.1L57.5 4.9L57.3 7Q60.1 3.9 61 5.8'],
+      ['l','M62.5 9.4C62.2 6.7 65 -.8 65.2 1.7C65.6 4.7 61.7 8.5 63 10Q63.6 10.9 65.6 9.2'],
+      ['d','M69.2 5.1C65.6 4 65.4 10.9 68.4 10.3Q70.4 9.9 71 6.8'],
+      ['d','M72.2 1Q71.3 5.5 70.7 9.4Q70.4 11 72.5 9.6'],
+      ['!','M75.2 1.1L74.3 7.3'],
+      ['!','M74.1 9.8L74.12 10']
+    ];
+    function routes(from,to){return strokes.slice(from,to).map(function(s,i){return '<path class="hello-stroke" data-letter="'+s[0]+'" data-stroke="'+(from+i)+'" pathLength="1" d="'+s[1]+'"/>';}).join('');}
+    // Two short lines stay inside the actual elbow/brush reach. Both words
+    // remain on the original paper; their strokes still share one chronology.
+    return '<g class="hello-word" transform="matrix(.33 .014 .16 .45 49 473.4)">'+routes(0,7)+'</g><g class="hello-word" transform="matrix(.40 .014 .16 .45 34.6 479.7)">'+routes(7,15)+'</g>';
+  }
+
+  function writingInside(poly,x,y){var hit=false;for(var i=0,j=poly.length-1;i<poly.length;j=i++)if((poly[i][1]>y)!==(poly[j][1]>y)&&x<(poly[j][0]-poly[i][0])*(y-poly[i][1])/(poly[j][1]-poly[i][1])+poly[i][0])hit=!hit;return hit;}
+  function writingSegmentDistance(x,y,a,b){var dx=b[0]-a[0],dy=b[1]-a[1],t=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy)));return Math.hypot(x-a[0]-t*dx,y-a[1]-t*dy);}
+  function writingArmConfig(night,image){
+    var crop=crops[night?'nightWrite':'dayWrite'],sheet=sheets[crop[0]];
+    function native(p){return[25+(p[0]-crop[1])*119/(crop[3]-crop[1]),62+(p[1]-crop[2])*130/(crop[4]-crop[2])];}
+    var c={image:image,elbow:night?[110,137]:[113.8,136.5],grip:native(night?[1630,468]:[854,468]),tip:native(night?[1664,555]:[887,556]),vertices:[],movingVertices:[],data:null};
+    var forearm=[[103,132],[112,125],[125,119],[141,119],[147,147],[127,151],[108,144]];
+    var hand=(night?[[1583,452],[1605,431],[1635,433],[1649,450],[1649,472],[1636,487],[1584,501]]:[[793,456],[817,431],[844,431],[867,447],[871,471],[851,488],[797,505]]).map(native);
+    var brush=(night?[[1607,373],[1640,492],[1650,522],[1664,555]]:[[832,370],[855,488],[870,521],[887,556]]).map(native);
+    var vx=c.grip[0]-c.elbow[0],vy=c.grip[1]-c.elbow[1],length=Math.hypot(vx,vy);
+    function vertex(cx,cy){
+      var x=25+cx,y=62+cy,projection=((x-c.elbow[0])*vx+(y-c.elbow[1])*vy)/length;
+      var b=writingInside(forearm,x,y)?Math.max(0,Math.min(1,(projection+2)/7)):0;b=b*b*(3-2*b);
+      var pen=!writingInside(hand,x,y)&&brush.some(function(p,i){return i>0&&writingSegmentDistance(x,y,brush[i-1],p)<2.15;});
+      return{x:x,y:y,u:(crop[1]+cx/119*(crop[3]-crop[1]))/sheet[1],v:(crop[2]+cy/130*(crop[4]-crop[2]))/sheet[2],w:pen?[0,0,1]:[1-b,b,0]};
+    }
+    for(var y=0;y<130;y++)for(var x=0;x<119;x++){var a=vertex(x,y),b=vertex(x+1,y),d=vertex(x,y+1),e=vertex(x+1,y+1);c.vertices.push(a,b,d,b,e,d);}
+    c.data=new Float32Array(c.vertices.length*4);c.vertices.forEach(function(v,i){var n=i*4;c.data[n]=v.x;c.data[n+1]=v.y;c.data[n+2]=v.u;c.data[n+3]=v.v;if(v.w[0]<1)c.movingVertices.push(i);});
+    return c;
+  }
+  function writingAim(c,target){
+    var e=c.elbow,g=c.grip,h=c.tip,ux=g[0]-e[0],uy=g[1]-e[1],px=h[0]-g[0],py=h[1]-g[1],l1=Math.hypot(ux,uy),l2=Math.hypot(px,py),dx=target[0]-e[0],dy=target[1]-e[1],actual=Math.hypot(dx,dy);
+    var reach=Math.max(Math.abs(l1-l2)+.0001,Math.min(l1+l2-.0001,actual)),direction=Math.atan2(dy,dx);
+    var first=direction-Math.acos(Math.max(-1,Math.min(1,(l1*l1+reach*reach-l2*l2)/(2*l1*reach))));
+    var pen=direction+Math.acos(Math.max(-1,Math.min(1,(l2*l2+reach*reach-l1*l1)/(2*l2*reach))));
+    var fore=first-Math.atan2(uy,ux),wrist=pen-Math.atan2(py,px)-fore;
+    return{fore:fore,wrist:wrist,reachError:Math.max(0,actual-reach)};
+  }
+  function mountWritingArm(root){
+    var canvas=document.createElement('canvas');canvas.className='painted-writing-rig';canvas.width=840;canvas.height=660;canvas.setAttribute('aria-hidden','true');
+    var gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true});if(!gl)return null;
+    function shader(type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);return s;}
+    var program=gl.createProgram();gl.attachShader(program,shader(gl.VERTEX_SHADER,'attribute vec2 position;attribute vec2 uv;uniform mat3 sourcePose;varying vec2 tex;void main(){vec3 p=sourcePose*vec3(position,1.0);gl_Position=vec4((p.x+40.0)/280.0*2.0-1.0,1.0-(p.y+10.0)/220.0*2.0,0.0,1.0);tex=uv;}'));gl.attachShader(program,shader(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;uniform sampler2D painting;void main(){gl_FragColor=texture2D(painting,tex);}'));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))return null;
+    gl.useProgram(program);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.viewport(0,0,canvas.width,canvas.height);
+    var buffer=gl.createBuffer(),texture=gl.createTexture(),position=gl.getAttribLocation(program,'position'),uv=gl.getAttribLocation(program,'uv'),pose=gl.getUniformLocation(program,'sourcePose');
+    gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);
+    gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    var image=new Image();image.src=new URL('writing-upright-painted.webp',petArtBase).href;
+    var r={root:root,canvas:canvas,configs:[writingArmConfig(false,image),writingArmConfig(true,image)],current:null,measure:null};
+    r.draw=function(c,bones,offset){
+      if(!c.image.complete||!c.image.naturalWidth)return false;
+      if(r.current!==c.image){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c.image);r.current=c.image;}
+      var dual=bones.map(function(m){var a=Math.atan2(m[1],m[0])/2,co=Math.cos(a),si=Math.sin(a);return[co,si,(m[4]*co+m[5]*si)/2,(m[5]*co-m[4]*si)/2];});
+      for(var o=0;o<c.movingVertices.length;o++){var i=c.movingVertices[o],v=c.vertices[i],qc=0,qs=0,qx=0,qy=0;for(var j=0;j<3;j++){var q=dual[j],w=v.w[j];qc+=q[0]*w;qs+=q[1]*w;qx+=q[2]*w;qy+=q[3]*w;}var k=1/Math.hypot(qc,qs);qc*=k;qs*=k;qx*=k;qy*=k;var cs=qc*qc-qs*qs,sn=2*qc*qs,n=i*4;c.data[n]=cs*v.x-sn*v.y+2*(qx*qc-qy*qs);c.data[n+1]=sn*v.x+cs*v.y+2*(qx*qs+qy*qc);}
+      gl.uniformMatrix3fv(pose,false,new Float32Array([offset.a,offset.b,0,offset.c,offset.d,0,offset.e,offset.f,1]));gl.clear(gl.COLOR_BUFFER_BIT);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,c.data,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,c.vertices.length);return true;
+    };
+    root.appendChild(canvas);root._writingArm=r;return r;
+  }
+  // One clock drives the deposited ink and the same native brush tip. The
+  // shoulder/upper arm stay fixed; only the continuous elbow, wrist and brush
+  // texture move, with no silhouette holes or painted replacement joints.
+  var writingClock={station:null,ink:null,paths:[],route:[],start:null,frame:0,preview:null};
+  var writingReduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  function mountWritingClock() {
+    var st=document.querySelector('.st-writing'),ink=st&&st.querySelector('.hello-ink');
+    if(!ink)return false;
+    writingClock.station=st;writingClock.ink=ink;
+    writingClock.paths=all(ink,'.hello-stroke');
+    var lengths=writingClock.paths.map(function(p){return p.getTotalLength();});
+    var total=lengths.reduce(function(a,b){return a+b;},0),at=.3;
+    writingClock.route=lengths.map(function(length,i){var duration=6.15*length/total,start=at;at+=duration+.105;return {start:start,end:start+duration,length:length};});
+    writingClock.end=at-.105;writingClock.cycle=writingClock.end+2.7;
+    new MutationObserver(function(){
+      if(!st.classList.contains('is-acting')){writingClock.start=null;writingClock.preview=null;renderWriting(0,false);}
+    }).observe(st,{attributes:true,attributeFilter:['class']});
+    renderWriting(0,false);
+    return true;
+  }
+  function renderWriting(seconds,active) {
+    var c=writingClock,cycle=c.cycle||1,t=seconds%cycle,done=writingReduced.matches;
+    var fading=t>c.end+2.1,alpha=active?(done?1:fading?Math.max(0,1-(t-c.end-2.1)/.6):1):0;
+    c.ink.style.opacity=alpha;
+    var live=-1,point=null;
+    c.paths.forEach(function(p,i){
+      var route=c.route[i],fraction=active?(done?1:Math.max(0,Math.min(1,(t-route.start)/(route.end-route.start)))):0;
+      // pathLength=1 makes each independently measured route use the same dash.
+      p.style.strokeDashoffset=(1-fraction).toFixed(5);
+      p.style.opacity=fraction>0?1:0;
+      if(fraction>0&&fraction<1){live=i;point=p.getPointAtLength(route.length*fraction);}
+    });
+    c.station.dataset.writingStroke=live<0?(active&&t>=c.end?'complete':'rest'):String(live);
+    c.station.classList.toggle('is-inking',active&&!done&&live>=0);
+    var actor=document.querySelector('#char');
+    if(actor&&!active){actor.classList.remove('has-writing-paint');if(actor._writingArm)actor._writingArm.measure=null;}
+    if(actor&&active){
+      var rig=actor._writingArm||mountWritingArm(actor),svg=actor.querySelector('.painted-character'),back=svg&&svg.querySelector('.c-back');
+      if(rig&&back&&back.getScreenCTM()&&svg.getScreenCTM()){
+        function onPaper(index,at){return c.paths[index].getPointAtLength(c.route[index].length*at).matrixTransform(c.paths[index].getScreenCTM());}
+        var targetScreen;
+        if(point)targetScreen=point.matrixTransform(c.paths[live].getScreenCTM());
+        else{
+          var prev=-1;c.route.forEach(function(r,i){if(t>=r.end)prev=i;});
+          var first=onPaper(0,0),last=onPaper(c.paths.length-1,1),scale=Math.hypot(back.getScreenCTM().a,back.getScreenCTM().b)/.875;
+          if(done||t>=c.end){var u=done?1:Math.min(1,(t-c.end)/.5);targetScreen=new DOMPoint(last.x*(1-u)+(first.x-scale)*u,last.y*(1-u)+(first.y+2*scale)*u-Math.sin(u*Math.PI)*1.6*scale);}
+          else if(prev<0)targetScreen=new DOMPoint(first.x,first.y-1.4*scale);
+          else{var next=Math.min(prev+1,c.paths.length-1),a=onPaper(prev,1),b=onPaper(next,0),v=Math.min(1,(t-c.route[prev].end)/(c.route[next].start-c.route[prev].end));targetScreen=new DOMPoint(a.x*(1-v)+b.x*v,a.y*(1-v)+b.y*v-Math.sin(v*Math.PI)*1.4*scale);}
+        }
+        var nativeTarget=targetScreen.matrixTransform(back.getScreenCTM().inverse()),config=rig.configs[document.documentElement.dataset.theme==='dark'?1:0],aim=writingAim(config,[nativeTarget.x,nativeTarget.y]);
+        var fore=petRotate(aim.fore,config.elbow),pen=petProduct(fore,petRotate(aim.wrist,config.grip)),offset=svg.getScreenCTM().inverse().multiply(back.getScreenCTM());
+        var drawn=rig.draw(config,[[1,0,0,1,0,0],fore,pen],offset);if(drawn)actor.classList.add('has-writing-paint');
+        var nativeTip=new DOMPoint(config.tip[0],config.tip[1]).matrixTransform(new DOMMatrix(pen)),actualScreen=nativeTip.matrixTransform(back.getScreenCTM());
+        rig.measure={theme:document.documentElement.dataset.theme,stroke:live,rendered:drawn,inkContact:!!point,target:{x:targetScreen.x,y:targetScreen.y},brush:{x:actualScreen.x,y:actualScreen.y},error:Math.hypot(actualScreen.x-targetScreen.x,actualScreen.y-targetScreen.y),reachError:aim.reachError,elbow:config.elbow,grip:config.grip,nativeTip:config.tip};
+      }
+    }
+    return {seconds:seconds,cycle:cycle,writeEnd:c.end,stroke:live,complete:active&&(done||t>=c.end),tip:point?{x:point.x,y:point.y}:null};
+  }
+  // A deterministic seek is useful for checking partial letters and the final
+  // ink in the running scene. Passing null returns the clock to live writing.
+  A.seekWriting=function(seconds){
+    if(!writingClock.station&&!mountWritingClock())return null;
+    writingClock.preview=seconds===null?null:Math.max(0,Number(seconds)||0);
+    if(seconds===null){writingClock.start=performance.now();return null;}
+    return renderWriting(writingClock.preview,writingClock.station.classList.contains('is-acting'));
+  };
+  A.writingContact=function(){var actor=document.querySelector('#char');return actor&&actor._writingArm?actor._writingArm.measure:null;};
+  requestAnimationFrame(function writeFrame(t){
+    var c=writingClock;
+    if(!c.station){mountWritingClock();}
+    if(c.station){
+      var active=c.station.classList.contains('is-acting');
+      if(active){if(c.start===null)c.start=t;renderWriting(c.preview===null?(t-c.start)/1000:c.preview,true);}
+      else if(c.start!==null){c.start=null;renderWriting(0,false);}
+    }
+    c.frame=requestAnimationFrame(writeFrame);
+  });
   A.stations.life = function(catThumbs) {
     var root = parsed(old.life(catThumbs)), body = forecourt(-358,364,552,560,7)+sprite('house',-371,243,742,317)+label(0,357,'LIFE',95);
     body += '<g class="life-item suitcase" data-life="travel">'+sprite('case',151,493,77,67)+'<rect class="hit" x="151" y="493" width="77" height="67"/></g>';

@@ -11,6 +11,7 @@
   var SITE_LANG = "en";             // Page content stays English independently of the conversation.
   var W = 7500;                     // world width in units
   var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
+  var WALK_SPEED = 110, HUMAN_STEP = 65;
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
   // Each subtle stone inlay marks the position of its original scene action.
@@ -33,7 +34,9 @@
     { id: "mid", f: 0.42, build: ART.mid },
     { id: "near", f: 0.7, build: ART.near },
     { id: "ground", f: 1 },
-    { id: "front", f: 1.18, build: ART.foreground }
+    // The shore is attached to this same stone path, so its water and rooted
+    // plants share ground coordinates rather than sliding across the bricks.
+    { id: "front", f: 1, build: ART.foreground }
   ];
 
   var esc = G.esc, pick = G.pick;
@@ -46,14 +49,15 @@
 
   var state = {
     s: 1, cw: 0, ch: 0, viewW: 1000, sceneBottom: 0, mobile: false,
-    x: 710, target: 710, vel: 0, vmax: 500, dir: 1,
+    x: 710, target: 710, vel: 0, vmax: WALK_SPEED, dir: 1,
     cam: 0, camRate: 6, focusX: null, drift: 0,
     catX: 628, catDir: 1, catTrail: 1, catVel: 0, catStride: 0, catGaitMix: 0, charStride: 0,
     keys: { left: false, right: false },
     trip: null, near: null, panel: null,
     lang: "en",   // the site is in English; the guide switches to Chinese only when asked in Chinese
     raf: 0, last: 0, title: false, dragged: false,
-    guideMin: false   // the visitor folded the chat away themselves
+    guideMin: false,   // the visitor folded the chat away themselves
+    navTimer: 0, navToken: 0
   };
 
   // ---------- DOM ----------
@@ -74,9 +78,15 @@
       : st.id === "life" ? fn(D.cats.filter(function (c) { return c.photos && c.photos.length; }).map(function (c) { return thumbOf(c.photos[0]); }))
       : fn();
     if (st.id !== "writing" && st.id !== "life") {
-      var cx=st.stand-st.x,cy=GY+3;
-      var spot = '<g class="spot-inlay" transform="translate('+cx+' '+cy+')"><path class="spot" d="M-19 0Q-9 -1.5 0 -4Q9 -1.5 19 0Q9 1.5 0 4Q-9 1.5 -19 0Z"/><path class="spot-etch" d="M0 -2.4Q-7 -2.3 -10 0Q-7 2.3 0 2.4Q7 2.3 10 0Q7 -2.3 0 -2.4ZM-10 0H10M0 -2.4V2.4"/></g>';
-      inner = inner.replace(/(<g class="st [^>]*>(?:<rect class="hit"[^>]*>)?)/, "$1" + spot);
+      var cx = st.stand - st.x, cy = GY + 3;
+      // A shallow flower cut into the walking stone: the dark incision and
+      // lower light edge stay on the paving plane in both daylight and night.
+      var flower = 'M0 0C-7 -1.3 -11 -4.2 -7 -4.8C-2 -5.5 0 -2.3 0 0C0 -2.3 2 -5.5 7 -4.8C11 -4.2 7 -1.3 0 0C7 -1.3 18 -2.1 20 0C18 2.1 7 1.3 0 0C7 1.3 11 4.2 7 4.8C2 5.5 0 2.3 0 0C0 2.3 -2 5.5 -7 4.8C-11 4.2 -7 1.3 0 0C-7 1.3 -18 2.1 -20 0C-18 -2.1 -7 -1.3 0 0Z';
+      var border = 'M-24 0L-18 -3.3L-5 -5.7H5L18 -3.3L24 0L18 3.3L5 5.7H-5L-18 3.3Z';
+      var spot = '<g class="spot-inlay" style="--inlay-delay:-' + (st.x / 700).toFixed(2) + 's" transform="translate(' + cx + ' ' + cy + ')"><path class="spot-recess" d="' + flower + '"/><path class="spot-warmth" d="' + flower + border + '"/><path class="spot-etch" transform="translate(0 .55)" d="' + flower + border + '"/><path class="spot" d="' + flower + border + '"/><path class="spot-toolmarks" d="M-16 -1.3l2 -.4M12 2.1l2 -.4M-3 4.1l1.4 -.3"/></g>';
+      // Lay the cut above station terraces and their shadows, while the actor
+      // is rendered later above it. Otherwise a forecourt covers the carving.
+      inner = inner.replace(/<\/g>\s*$/, spot + "</g>");
     }
     return '<g transform="translate(' + st.x + ' 0)">' + inner + "</g>";
   }
@@ -126,7 +136,7 @@
     $("#guide-portrait").innerHTML = ART.portrait("p");
     $("#guide-fab-face").innerHTML = ART.portrait("f");
     if (ART.initMotionRigs) ART.initMotionRigs(groundEl);
-    waterExtension.innerHTML = '<svg aria-hidden="true" preserveAspectRatio="none"><rect class="pond"/><rect class="painted-water" fill="url(#paintWater)"/></svg>';
+    waterExtension.innerHTML = '<svg aria-hidden="true" preserveAspectRatio="none"><rect class="pond"/><rect class="painted-water" fill="url(#paintWater)"/>' + (ART.waterMotionMarkup ? ART.waterMotionMarkup() : '') + '</svg>';
   }
 
   // ---------- layout ----------
@@ -150,8 +160,9 @@
     var sunBounds = $("#sun").getBoundingClientRect();
     state.waterLightX = (sunBounds.left + sunBounds.width / 2 - r.left) / s;
     var extra = r.height - VH * s;
-    // Raise the walkable stage on tall phones rather than leaving all the spare height in the sky.
-    state.sceneBottom = state.mobile ? Math.max(0,r.height*.28-(VH-GY)*s,Math.min(guideReserve(),extra)) : 0;
+    // Reserve about 22% for actual water below the shore (around y=690),
+    // rather than counting the dry bank and masonry as part of the pond.
+    state.sceneBottom = state.mobile ? Math.max(0,r.height*.22-(VH-690)*s,Math.min(guideReserve(),extra)) : 0;
     worldEl.style.setProperty("--s", s);
     worldEl.style.setProperty("--scene-bottom", state.sceneBottom + "px");
     var extensionHeight = Math.max(1, state.sceneBottom / s);
@@ -180,7 +191,9 @@
   // ---------- rendering ----------
   function render(force) {
     var s = state.s;
-    var waterX = state.cam * 1.18;
+    // The extended mobile water samples the very same world texture as the
+    // bank SVG above it; a screen-anchored fill would leave a moving seam.
+    var waterX = state.cam;
     $("svg", waterExtension).setAttribute("viewBox", waterX + " " + VH + " " + state.viewW + " " + Math.max(1, state.sceneBottom / s));
     $$("rect", waterExtension).forEach(function (rect) { rect.setAttribute("x", waterX); });
     layerEls.forEach(function (L) {
@@ -192,7 +205,7 @@
     catEl.classList.toggle("face-left", state.catDir < 0);
     catEl.style.setProperty("--cat-facing", state.catDir);
     // Sun and moon stay in the sky while their broken reflection stays beneath them.
-    waterLightEl.setAttribute("transform", "translate(" + (state.cam * 1.18 + state.waterLightX).toFixed(1) + " 0)");
+    waterLightEl.setAttribute("transform", "translate(" + (state.cam + state.waterLightX).toFixed(1) + " 0)");
   }
 
   function camGoal() {
@@ -242,12 +255,13 @@
     var busy = false;
 
     if (state.keys.left || state.keys.right) {
+      cancelNavTransition();
       state.target = clamp(state.x + (state.keys.right ? 1 : -1) * 300, 90, W - 90);
-      state.vmax = 520; state.focusX = null; state.trip = null;
+      state.vmax = WALK_SPEED; state.focusX = null; state.trip = null;
     }
 
     // walking (velocity with accel/decel)
-    var dx = state.target - state.x;
+    var humanPreviousX = state.x, dx = state.target - state.x;
     if (Math.abs(dx) > 0.5 || Math.abs(state.vel) > 1) {
       busy = true;
       var desired = Math.sign(dx) * Math.min(state.vmax, Math.sqrt(2 * 2600 * Math.abs(dx)));
@@ -263,7 +277,9 @@
     charEl.classList.toggle("is-running", Math.abs(state.vel) > 700);
     if (ART.poseCharacter) {
       var humanMoving = Math.abs(state.vel) > 20 && !reduced;
-      if (humanMoving) state.charStride = (state.charStride + Math.min(Math.abs(state.vel) / 82, Math.abs(state.vel)>700?3:2.3) * dt) % 1;
+      if (humanMoving) state.charStride = (state.charStride + Math.abs(state.x-humanPreviousX) / HUMAN_STEP) % 1;
+      charEl._rigHumanWorldX = state.x;
+      charEl._rigHumanWorldScale = CHAR_W / 120;
       ART.poseCharacter(charEl,state.charStride,humanMoving);
     }
 
@@ -271,6 +287,9 @@
     var catGoal = state.x - state.catTrail * 82;
     // Leave the pouf to XiaoHei when Hanjing crouches down beside him.
     if (charEl.classList.contains("act-pet")) catGoal = byId.life.x - 142;
+    // The writer uses a fixed cushion-facing pose. Keep Bing beside that
+    // cushion from either arrival direction, clear of her painted skirt.
+    if (charEl.classList.contains("act-write")) catGoal = byId.writing.x - 142;
     var cdx = catGoal - state.catX, cstep = 0;
     if (!reduced && (Math.abs(cdx) > .4 || Math.abs(state.catVel) > 3)) {
       busy = true;
@@ -335,13 +354,24 @@
   }
 
   // ---------- movement API ----------
+  function cancelNavTransition() {
+    if (!state.navTimer) return;
+    clearTimeout(state.navTimer); state.navTimer = 0; state.navToken++;
+    worldEl.classList.remove("scene-changing");
+    state.target = state.x; state.vel = 0; state.trip = null; state.focusX = null;
+  }
+
   function walkTo(x, opts) {
     opts = opts || {};
+    cancelNavTransition();
     state.target = clamp(x, 90, W - 90);
     var dist = Math.abs(state.target - state.x);
-    state.vmax = clamp(dist / 2.1, 420, 2800);
+    state.vmax = WALK_SPEED;
     state.focusX = opts.focus != null ? opts.focus : null;
     state.trip = opts.trip || null;
+    // An interrupted station gesture must release its held body view before
+    // the first travelling step, including a reduced-motion navigation.
+    if (dist > .5) stopAction();
     if (reduced) {
       if (dist > .5) state.dir = state.target > state.x ? 1 : -1;
       state.x = state.target; state.catX = state.x - 82 * state.dir;
@@ -349,6 +379,34 @@
       state.vel = 0; state.cam = camGoal();
       render();
       if (state.trip) { var t = state.trip; state.trip = null; arrive(t); }
+      return;
+    }
+    if (opts.trip && dist > 500) {
+      // A distant Places jump is a brief scene change, followed by a real
+      // approach at the same walking pace as keys, scrolling and dragging.
+      var destination = state.target, trip = state.trip, focus = state.focusX;
+      var direction = destination > state.x ? 1 : -1, token = ++state.navToken;
+      state.target = state.x; state.vel = 0; state.trip = null;
+      charEl.classList.remove("is-walking", "is-running");
+      worldEl.classList.add("scene-changing");
+      state.navTimer = setTimeout(function () {
+        if (token !== state.navToken) return;
+        state.navTimer = 0;
+        state.x = clamp(destination - direction * 165, 90, W - 90);
+        state.target = destination; state.dir = direction; state.vel = 0;
+        state.trip = trip; state.focusX = focus;
+        state.catX = state.x - direction * 82;
+        state.catDir = state.catTrail = direction;
+        state.catVel = 0; state.catGaitMix = 0; state.catStride = 0; state.charStride = 0;
+        charEl._rigHumanWorldX = state.x;
+        if (ART.resetHumanStep) ART.resetHumanStep(charEl);
+        if (catEl._paintRig) { catEl._paintRig.catPlants = []; catEl._paintRig.catPreviousBodyX = undefined; }
+        state.cam = camGoal();
+        render();
+        worldEl.classList.remove("scene-changing");
+        start();
+      }, 140);
+      start();
       return;
     }
     start();
@@ -914,7 +972,9 @@
   }
   // The book on the shelves nearest her raised hand (top shelf first).
   function nearestBook() {
-    var best = null, bd = 1e9, cr = charEl.getBoundingClientRect(), hx = cr.left + cr.width * (state.dir > 0 ? 1.2 : -0.2);
+    // Select a real spine within the native side-view arm's reach rather than
+    // pulling a distant book to an overstretched frontal hand.
+    var best = null, bd = 1e9, cr = charEl.getBoundingClientRect(), hx = cr.left + cr.width * (state.dir > 0 ? .92 : .08);
     $$(".st-research .book", groundEl).forEach(function (b) {
       var r = ($(".book-hit",b)||b).getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - hx) + Math.max(0, r.top - cr.top) * 0.6;
       if (d < bd) { bd = d; best = b; }
@@ -929,10 +989,40 @@
     } },
     research: { face: 1, hands: true, busy: { en: "Shh, I'm reading 📖", zh: "嘘，我在看书 📖" }, run: function () {
       var book = nearestBook();
-      if (book && ART.aimHand) { var target = $(".book-hit",book), bounds=target.getBBox(); ART.aimHand(charEl,target,bounds.x+bounds.width/2,bounds.y+bounds.height/2); }
-      charEl.classList.add("act-reach");
-      later(function () { if (book) book.classList.add("is-taken"); charEl.classList.add("has-book"); }, 550);
-      later(function () { charEl.classList.remove("act-reach"); charEl.classList.add("act-read"); sayIfQuiet({ en: "Ooh, this one…", zh: "嗯，就这本……" }); }, 1150);
+      // A slow painted frame must finish the reach and withdrawal before the
+      // body turns. Wall-clock deadlines can otherwise skip the visible carry.
+      var sequence = (charEl._researchSequence || 0) + 1;
+      charEl._researchSequence = sequence;
+      if (charEl._paintRig) delete charEl._paintRig.researchBookMotion;
+      charEl._onResearchReachReady = function () {
+        if (acting !== "research" || charEl._researchSequence !== sequence) return;
+        delete charEl._onResearchReachReady;
+        if (book) book.classList.add("is-taken");
+        charEl.classList.add("has-book");
+      };
+      charEl._onResearchBookReturned = function () {
+        if (acting !== "research" || charEl._researchSequence !== sequence) return;
+        delete charEl._onResearchBookReturned;
+        charEl.classList.remove("act-reach");
+        if (ART.setHumanView) ART.setHumanView(charEl, "hold", 1);
+        later(function () {
+          if (ART.setHumanView) ART.setHumanView(charEl, "front", 1);
+          charEl.classList.add("act-read");
+          sayIfQuiet({ en: "Ooh, this one…", zh: "嗯，就这本……" });
+        }, 300);
+      };
+      // Turn the entire painted body toward the shelves before the shoulder
+      // reaches. A held shelf view prevents the idle pose from facing forward.
+      charEl.classList.add("act-turn");
+      if (ART.setHumanView) ART.setHumanView(charEl, "profile", 1);
+      later(function () {
+        if (ART.setHumanView) ART.setHumanView(charEl, "shelf", 1);
+        if (book && ART.aimHand) {
+          var target = $(".book-hit",book), bounds=target.getBBox();
+          ART.aimHand(charEl,target,bounds.x+bounds.width/2,bounds.y+bounds.height/2);
+        }
+      }, 260);
+      later(function () { charEl.classList.remove("act-turn"); charEl.classList.add("act-reach"); }, 400);
     } },
     talks: { face: -1, repeat: true, run: function () {
       charEl.classList.add("act-point");
@@ -941,13 +1031,17 @@
     } },
     education: { face: 1, hands: true, repeat: true, run: function () {
       charEl.classList.add("has-cap");
-      later(function () { charEl.classList.add("act-toss"); }, 250);
-      later(function () { flash(charEl, "is-jumping", 800); }, 420);
-      later(function () { sparkles(charEl); sayIfQuiet({ en: "Caps off! 🎓", zh: "毕业快乐！🎓" }); }, 1250);
-      later(function () { charEl.classList.remove("act-toss", "has-cap"); }, 3300);
+      // Leave a readable wearing phase before the same cap is released.
+      later(function () { charEl.classList.add("act-toss"); }, 800);
+      later(function () { flash(charEl, "is-jumping", 800); }, 950);
+      later(function () { sparkles(charEl); sayIfQuiet({ en: "Caps off! 🎓", zh: "毕业快乐！🎓" }); }, 1850);
+      later(function () { charEl.classList.remove("act-toss", "has-cap"); }, 3800);
     } },
-    writing: { busy: { en: "Shh, writing…", zh: "嘘，在写字……" }, run: function () {
+    writing: { face: 1, busy: { en: "Shh, writing…", zh: "嘘，在写字……" }, run: function () {
       charEl.classList.add("act-write");
+      // The action can start on the loop's final frame. Wake one more frame
+      // so the cat can step to her new seat-side goal even with a still camera.
+      later(start, 0);
     } },
     life: { face: 1, hands: true, busy: { en: "XiaoHei loves this part.", zh: "小黑最喜欢被摸了。" }, run: function () {
       charEl.classList.add("act-pet");
@@ -964,7 +1058,7 @@
       later(function () { charEl.classList.remove("act-mail"); }, 2700);
     } }
   };
-  var ACT_CLASSES = ["is-acting", "hands-free", "act-reach", "act-read", "has-book", "act-point", "has-cap", "act-toss",
+  var ACT_CLASSES = ["is-acting", "hands-free", "act-turn", "act-reach", "act-read", "has-book", "act-point", "has-cap", "act-toss",
     "act-type", "act-write", "act-pet", "has-letter", "act-mail", "is-bowing"];
 
   function startAction(id) {
@@ -982,7 +1076,12 @@
     actTimers.forEach(clearTimeout); actTimers = [];
     ACT_CLASSES.forEach(function (c) { charEl.classList.remove(c); });
     if(charEl._paintRig)charEl._paintRig.times={};
+    delete charEl._onResearchReachReady;
+    delete charEl._onResearchBookReturned;
+    delete charEl._rigBookPose;
+    if (charEl._paintRig) delete charEl._paintRig.researchBookMotion;
     delete charEl._rigHandTarget;
+    if (ART.setHumanView) ART.setHumanView(charEl, "front", state.dir);
     stEl(acting).classList.remove("is-acting");
     $$(".is-taken, .is-mailed", groundEl).forEach(function (el) { el.classList.remove("is-taken", "is-mailed"); });
     acting = null;
@@ -998,7 +1097,7 @@
   // Called every frame: once she has come to rest on a red circle, start that place's action.
   function checkSpot() {
     var id = null;
-    if (!state.title && !state.keys.left && !state.keys.right && Math.abs(state.vel) < 1 && Math.abs(state.target - state.x) < 0.5) {
+    if (!state.title && !state.navTimer && !state.keys.left && !state.keys.right && Math.abs(state.vel) < 1 && Math.abs(state.target - state.x) < 0.5) {
       for (var i = 0; i < STATIONS.length; i++) if (Math.abs(state.x - STATIONS[i].stand) <= 26) { id = STATIONS[i].id; break; }
     }
     if (id === acting) return;
@@ -1071,22 +1170,28 @@
     bubble(charEl, state.lang === "zh" ? "小黑是家里的大哥哥，也是大黄的双胞胎兄弟。" : "XiaoHei, our oldest brother — DaHuang's twin!", 3600);
   }
   function kittyPlay(kind) {
-    if (kind === "tail" && !butterflyEl.hidden) dismissButterfly(true);
+    // Only a real visiting butterfly can start a pounce. A normal greeting
+    // keeps the sitting body planted and moves just the tail and head.
+    if (kind !== "butterfly") {
+      if (!catEl.classList.contains("is-walking") && !catEl.classList.contains("is-settling")) flash(catEl, "is-tail-playing", 1700);
+      return;
+    }
+    if (butterflyEl.hidden) return;
     clearTimeout(kittyPlayTimer);
     catEl.classList.remove("is-pouncing", "is-tail-playing");
-    if (reduced || catEl.classList.contains("is-walking") || catEl.classList.contains("is-settling")) { kittyPoke(); return; }
+    if (reduced || catEl.classList.contains("is-walking") || catEl.classList.contains("is-settling")) return;
     void catEl.offsetWidth;
-    var cls = kind === "butterfly" ? "is-pouncing" : "is-tail-playing";
+    var cls = "is-pouncing";
     catEl.classList.add(cls);
-    kittyPlayTimer = setTimeout(function () { catEl.classList.remove(cls); }, kind === "butterfly" ? 1700 : 2200);
-    bubble(catEl, kind === "butterfly" ? "Mrrp… almost! 🦋" : "Caught my own tail!", 2000);
+    kittyPlayTimer = setTimeout(function () { catEl.classList.remove(cls); }, 1700);
+    bubble(catEl, "Mrrp… almost! 🦋", 2000);
   }
   function kittyPoke() {
     var lines = ["Mrrp! ♥", "I'm JinBingBing, the youngest of six!", "Purrrr…", "Follow us!"];
     bubble(catEl, lines[pokes++ % lines.length], 1800);
     flash(catEl, "is-happy", 1200);
     hearts(catEl);
-    if (pokes % 3 === 0 && !reduced && !catEl.classList.contains("is-walking") && !catEl.classList.contains("is-settling")) kittyPlay("tail");
+    if (!reduced && !catEl.classList.contains("is-walking") && !catEl.classList.contains("is-settling")) kittyPlay("tail");
   }
 
   function thumbOf(src) { return String(src).replace(/\/([^\/]+)$/, "/thumbs/$1"); }
@@ -1370,6 +1475,7 @@
     var down = null;
     worldEl.addEventListener("pointerdown", function (e) {
       if (state.title || e.button > 0) return;
+      cancelNavTransition();
       down = { x: e.clientX, char: state.x, id: e.pointerId };
       state.dragged = false;
     });
@@ -1378,8 +1484,9 @@
       var dx = e.clientX - down.x;
       if (!state.dragged && Math.abs(dx) > 8) state.dragged = true;
       if (state.dragged) {
+        cancelNavTransition();
         state.target = clamp(down.char - dx / state.s * 1.6, 90, W - 90);
-        state.vmax = 1400; state.focusX = null; state.trip = null;
+        state.vmax = WALK_SPEED; state.focusX = null; state.trip = null;
         start();
       }
     });
@@ -1392,8 +1499,9 @@
       var d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
       if (!d) return;
       e.preventDefault();
+      cancelNavTransition();
       state.target = clamp(state.target + d * 1.3 / state.s, 90, W - 90);
-      state.vmax = 900; state.focusX = null; state.trip = null;
+      state.vmax = WALK_SPEED; state.focusX = null; state.trip = null;
       start();
     }, { passive: false });
 
@@ -1429,8 +1537,8 @@
       }
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       var k = e.key;
-      if (k === "ArrowLeft" || k === "a" || k === "A") { state.keys.left = true; start(); e.preventDefault(); }
-      else if (k === "ArrowRight" || k === "d" || k === "D") { state.keys.right = true; start(); e.preventDefault(); }
+      if (k === "ArrowLeft" || k === "a" || k === "A") { cancelNavTransition(); state.keys.left = true; start(); e.preventDefault(); }
+      else if (k === "ArrowRight" || k === "d" || k === "D") { cancelNavTransition(); state.keys.right = true; start(); e.preventDefault(); }
       else if ((k === "Enter" || k === "e" || k === "E") && (e.target === document.body || e.target === worldEl) && state.near) { goTo(state.near.id); e.preventDefault(); }
       else if (k === "/") { e.preventDefault(); expandGuide(true, true); input.focus(); }
       else if (k === "Escape") { if (state.panel) closePanel(); else if (!guide.hidden) { expandGuide(false, true); fab.focus(); } }

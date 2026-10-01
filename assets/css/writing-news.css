@@ -1,0 +1,57 @@
+/* The board heading sits inside its original narrow timber rail. */
+.painted-station .paint-board-heading { pointer-events: none; }
+.painted-station .paint-board-title {
+  fill: url(#paintLetterInk);
+  stroke: #513720;
+  stroke-width: .15;
+  paint-order: stroke;
+  filter: url(#paintEngraving);
+  font: 600 8.6px Georgia, "Times New Roman", serif;
+  letter-spacing: 1.1px;
+}
+[data-theme="dark"] .painted-station .paint-board-heading { filter: brightness(.78) saturate(.8); }
+
+/* Each path is one handwritten stroke on the receding painted paper. */
+.painted-station .handwritten-hello { pointer-events: none; }
+.painted-station .hello-ink { opacity: 0; }
+.painted-station .hello-stroke {
+  fill: none;
+  stroke: #382c24;
+  stroke-width: 1.28;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1 1;
+  stroke-dashoffset: 1;
+  opacity: 0;
+}
+[data-theme="dark"] .painted-station .hello-stroke { stroke: #30251e; }
+.writing-seat { cursor: pointer; }
+.painted-station .writing-seat-hit { fill: transparent; stroke: none; pointer-events: all; }
+.writing-seat-warmth, .writing-seat-shadow, .writing-seat-stitch {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.writing-seat-shadow { stroke: #6c5335; stroke-width: .95; opacity: .33; }
+.writing-seat-stitch { stroke: #c6a574; stroke-width: .48; opacity: .85; animation: seatThreadBreath 3.6s ease-in-out infinite; }
+.writing-seat-warmth { stroke: #e1c28a; stroke-width: 1.8; opacity: .07; filter: blur(.65px); animation: seatWarmthBreath 3.6s ease-in-out infinite; }
+.st-writing.is-near .writing-seat-stitch { stroke: #d5af72; }
+[data-theme="dark"] .writing-seat-shadow { opacity: .2; }
+[data-theme="dark"] .writing-seat-stitch { stroke: #d5b581; }
+[data-theme="dark"] .writing-seat-warmth { stroke: #f0c990; }
+@keyframes seatThreadBreath { 0%,100% { opacity: .56; } 50% { opacity: .9; } }
+@keyframes seatWarmthBreath { 0%,100% { opacity: .055; } 50% { opacity: .17; } }
+/* The clock controls the preserved sleeve and brush, including pen lifts. */
+.act-write .painted-character .cb-arm { animation: none; }
+.painted-writing-rig { position: absolute; width: 233.333333% !important; height: 110% !important; left: -33.333333%; top: -5%; display: none; pointer-events: none; z-index: 0; }
+.has-writing-paint.act-write .painted-writing-rig { display: block; }
+.has-writing-paint.act-write .writing-native-base { opacity: 0; }
+[data-theme="dark"] .painted-writing-rig { filter: brightness(.77) saturate(.8); }
+.st-writing.is-inking .ink-glint { stroke: #a6b39d; opacity: .7; }
+@media (prefers-reduced-motion: reduce) {
+  .st-writing.is-acting .hello-ink { opacity: 1 !important; }
+  .st-writing.is-acting .hello-stroke { stroke-dashoffset: 0 !important; opacity: 1 !important; }
+  .act-write .painted-character .cb-arm { animation: none !important; }
+  .writing-seat-stitch, .writing-seat-warmth { animation: none; }
+}
