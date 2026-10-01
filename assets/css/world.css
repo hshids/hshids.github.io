@@ -38,8 +38,8 @@
   --w-line: #38352c; --w-line-soft: #686050;
   --w-fill: #f8f4ec; --w-note: #fcf8ef; --w-interior: #e2d7c3;
   --w-stone: #d8cfbf; --w-stone-dark: #4a4540; --w-rock: #cdc3b1;
-  --w-wood: #4a3a2e; --w-wood-2: #6b5443;
-  --w-roof: #515348; --w-column: #9a4938;
+  --w-wood: #4a3a2e; --w-wood-2: #6b5443; --w-wood-light: #887057;
+  --w-roof: #515348; --w-roof-light: #73786a; --w-roof-shade: #383f37; --w-column: #9a4938;
   --campus-granite-light: #cfcec3; --campus-granite: #aaa99c; --campus-granite-shade: #777e78;
   --campus-sand-light: #c8a57c; --campus-sand: #a17b56; --campus-sand-shade: #705541;
   --campus-slate-light: #777e7b; --campus-slate-shade: #3c4646;
@@ -85,8 +85,8 @@
   --w-line: #99998d; --w-line-soft: #858579;
   --w-fill: #1c232d; --w-note: #2a313b; --w-interior: #11171f;
   --w-stone: #2a323d; --w-stone-dark: #151a21; --w-rock: #1f2630;
-  --w-wood: #2e2520; --w-wood-2: #3d3129;
-  --w-roof: #0a0d11; --w-column: #8a3426;
+  --w-wood: #2e2520; --w-wood-2: #3d3129; --w-wood-light: #63513e;
+  --w-roof: #0a0d11; --w-roof-light: #303c42; --w-roof-shade: #080c11; --w-column: #8a3426;
   --campus-granite-light: #697775; --campus-granite: #434f51; --campus-granite-shade: #222c34;
   --campus-sand-light: #8a735b; --campus-sand: #5c4b3d; --campus-sand-shade: #302a28;
   --campus-slate-light: #4d6064; --campus-slate-shade: #16232d;
@@ -245,6 +245,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .layer { position: absolute; left: 0; bottom: var(--scene-bottom, 0px); will-change: transform; pointer-events: none; }
 .layer svg.scene { display: block; width: 100%; height: 100%; overflow: visible; }
 .under { position: absolute; left: 0; right: 0; bottom: 0; height: var(--scene-bottom, 0px); background: var(--w-water-deep); }
+.under > svg { display: block; width: 100%; height: 100%; }
 
 /* sky layer */
 .circuit { fill: none; stroke: var(--w-circuit); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
@@ -260,7 +261,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .dougong { fill: var(--w-dougong); stroke: var(--w-line); stroke-width: .9; }
 .t-wall { fill: url(#gWall); stroke: var(--w-line); stroke-width: 1.4; }
 .win-frame { fill: var(--w-interior); stroke: var(--w-line); stroke-width: 1.3; }
-.win-bars { fill: none; stroke: var(--w-wood-2); stroke-width: 2.6; }
+.win-bars { fill: none; stroke: var(--w-wood-2); stroke-width: 1.65; }
 .eave-board { fill: var(--w-wood); stroke: var(--w-line); stroke-width: 1; }
 .tile-end circle { fill: var(--w-roof); stroke: var(--w-fill); stroke-width: .7; }
 .roof-ridge { fill: var(--w-roof); stroke: var(--w-line); stroke-width: 1.3; }
@@ -341,6 +342,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .material-cloth { fill: url(#gLinen); opacity: .13; }
 .material-gabardine { fill: url(#gGabardine); opacity: .62; }
 .material-silk { fill: url(#gSilkWeave); opacity: .65; }
+.material-hair { fill: url(#gHairFibres); opacity: .9; }
 .material-leather { fill: url(#gLeatherGrain); opacity: .55; }
 [data-theme="dark"] .material-image { filter: brightness(.3) saturate(.5); }
 .object-shade, .roof-shade, .shelf-shadow, .alcove-shadow, .cloth-shadow, .slot-shadow { fill: var(--w-ink-fill); pointer-events: none; }
@@ -414,10 +416,23 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .flower-reflection { fill: none; stroke: var(--w-petal); stroke-width: 1.3; opacity: .32; }
 .pond-ring { fill: none; stroke: var(--w-disc); stroke-width: .8; opacity: 0; transform-box: fill-box; transform-origin: center; }
 .lotus-pond.is-stirred .pond-ring { animation: pondRipple 1.8s ease-out; }
-.pond-koi { opacity: 0; transition: opacity .5s; }
-.lotus-pond.is-stirred .pond-koi { opacity: .7; }
-.pond-koi path { fill: #e6dfce; }
-.pond-koi .koi-mark { fill: #b76344; }
+.pond-koi { opacity: 0; pointer-events: none; }
+.lotus-pond.is-stirred .pond-koi { animation: koiReveal 5.4s both; }
+.lotus-pond.is-stirred .koi-swim { animation: koiSwim 5.4s ease-in-out both; }
+.koi-facing { transform: scaleX(var(--koi-facing, 1)); }
+.koi-under-shadow { fill: var(--w-water-deep); opacity: .32; }
+.koi-body { fill: url(#gKoiPearl); stroke: #a4b5a2; stroke-width: .35; }
+.pond-koi .koi-mark { fill: #b9684e; opacity: .9; }
+.koi-fin { fill: #d7ddc7; stroke: #c8d2bc; stroke-width: .3; opacity: .6; }
+.koi-fin-rays, .koi-scales, .koi-spine, .koi-gill, .koi-barbel { fill: none; stroke: #97a694; stroke-width: .35; opacity: .65; }
+.koi-spine { stroke: #f7f0d3; stroke-width: .55; }
+.koi-eye { fill: #3e4840; }
+.lotus-pond.is-stirred .koi-tail { transform-origin: -18px 0; animation: koiTail .65s ease-in-out infinite; }
+.lotus-pond.is-stirred .koi-pectoral { transform-origin: 8px 0; animation: koiFins .9s ease-in-out infinite; }
+@keyframes koiReveal { 0%, 100% { opacity: 0; } 12%, 64% { opacity: .7; } 84% { opacity: .3; } }
+@keyframes koiSwim { 0% { transform: none; } 45% { transform: translate(var(--koi-half), -5px) rotate(calc(-1 * var(--koi-turn))); } 100% { transform: translate(var(--koi-travel), 5px) rotate(var(--koi-turn)); } }
+@keyframes koiTail { 0%, 100% { transform: rotate(-13deg); } 50% { transform: rotate(13deg); } }
+@keyframes koiFins { 50% { transform: scaleY(.7); } }
 @keyframes pondRipple { 0% { opacity: .7; transform: scale(.5); } 100% { opacity: 0; transform: scale(3.8); } }
 .ripple { fill: none; stroke: var(--w-fill); stroke-width: 1.4; opacity: .6; }
 .lotus-leaf .leaf-shadow { fill: var(--w-leaf-dark); opacity: .22; }
@@ -464,8 +479,8 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .wall { fill: url(#gWall); stroke: var(--w-line); stroke-width: 2; }
 .wall-shade { fill: var(--w-line); opacity: .07; }
 .gate-ring { fill: none; stroke: var(--w-line); stroke-width: 3.5; }
-.roof { fill: var(--w-roof); stroke: var(--w-line); stroke-width: 1.4; stroke-linejoin: round; }
-.roof-tiles, .roof-lines { fill: none; stroke: var(--w-fill); stroke-width: .8; opacity: .3; }
+.roof { fill: url(#gRoof); stroke: var(--w-line); stroke-width: 1; stroke-linejoin: round; }
+.roof-tiles, .roof-lines { fill: none; stroke: var(--w-fill); stroke-width: .65; opacity: .22; }
 .plaque rect { fill: var(--w-plaque); stroke: var(--w-accent); stroke-width: 1.6; transition: stroke-width .2s; }
 .plaque text { fill: var(--w-plaque-text); font-size: 14px; letter-spacing: .14em; }
 .hanging-lantern .rope, .hanging-lantern .lantern-rim { stroke: var(--w-line); stroke-width: 1.6; fill: none; }
@@ -483,7 +498,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .shelf { fill: url(#gWood); stroke: var(--w-line); stroke-width: .8; }
 .book { cursor: pointer; }
 .book-in { transition: transform .18s ease; }
-.book rect { fill: var(--bc); stroke: var(--w-line); stroke-width: 1.1; }
+.book rect { fill: var(--bc); stroke: var(--w-line-soft); stroke-width: .7; }
 .book path { stroke: rgba(255, 250, 240, .6); stroke-width: 1.2; }
 .book .book-spine { fill: none; stroke: rgba(25, 20, 15, .32); stroke-width: 1.4; }
 .book .book-leaf { fill: none; stroke-width: .7; }
@@ -667,6 +682,14 @@ a { color: var(--accent); text-underline-offset: 2px; }
 [data-theme="dark"] .screen-plum-branch { stroke: var(--w-line-soft); opacity: .8; }
 .screen-bark-edge { fill: none; stroke: var(--w-stone); stroke-width: .5; opacity: .65; }
 .screen-petal { stroke: var(--w-petal-dark); stroke-width: .35; }
+.screen-petal-vein { fill: none; stroke: var(--w-petal-dark); stroke-width: .16; opacity: .42; }
+.screen-petal-light { fill: none; stroke: var(--w-note); stroke-width: .22; opacity: .7; }
+.screen-anther { fill: var(--w-gold); }
+.screen-old-wood { fill: var(--w-wood); opacity: .78; }
+.screen-twig { fill: none; stroke: var(--w-wood-2); stroke-width: .5; }
+.screen-bark-grain { fill: none; stroke: var(--w-note); stroke-width: .3; opacity: .6; }
+.screen-leaf-shadow { fill: var(--w-leaf-dark); opacity: .28; }
+.screen-bamboo-vein { fill: none; stroke: var(--w-leaf-light); stroke-width: .18; opacity: .65; }
 .plum-petal { fill: var(--w-petal-light); }
 .plum-bud { fill: var(--w-petal); stroke: var(--w-petal-dark); stroke-width: .4; }
 .screen-flower-heart { fill: var(--w-gold); }
@@ -781,6 +804,38 @@ a { color: var(--accent); text-underline-offset: 2px; }
 @keyframes tasselSwing { 50% { transform: rotate(15deg); } }
 .life-item:hover .case, .life-item:hover .pot, .life-item:hover .screen { stroke: var(--w-accent); stroke-width: 2.6; }
 
+/* Life's open-front home shares the same timber, plaster and slate as the world. */
+.life-home { --w-column: #76513b; --w-dougong: #72513b; }
+.home-contact { fill: #302821; opacity: .18; }
+.home-room-shade { fill: #5a4332; opacity: .09; }
+.home-floor, .home-beam, .home-cabinet { fill: url(#gWood); stroke: var(--w-wood); stroke-width: .8; }
+.home-floor-joint, .home-cabinet-join { fill: none; stroke: var(--w-wood); stroke-width: .65; opacity: .55; }
+.home-threshold { fill: url(#gStone); stroke: var(--w-line-soft); stroke-width: .6; }
+.home-carving { fill: none; stroke: #cfb88e; stroke-width: .6; opacity: .7; }
+.home-paper { fill: #eee1c6; transition: fill .8s; }
+.home-lattice, .home-window-frame { fill: none; stroke: var(--w-wood-2); stroke-width: 2; }
+.home-window-frame { stroke-width: 3; }
+.home-sill, .home-counter { fill: var(--w-wood-2); stroke: var(--w-wood); stroke-width: 3; }
+.home-window-shadow { fill: #fbefc8; opacity: .13; }
+.home-eave-shadow { fill: #29231d; opacity: .1; }
+.home-ceramic { fill: #ccc9b0; stroke: #667166; stroke-width: .7; }
+.home-ceramic-rim { fill: none; stroke: #f5ecd7; stroke-width: .6; }
+.home-utensil, .home-utensil-bowl { fill: var(--w-metal); stroke: var(--w-metal-dark); stroke-width: 1; }
+.home-utensil { fill: none; stroke-width: 2; }
+.home-utensil-rail { fill: none; stroke: var(--w-wood-2); stroke-width: 3; }
+.home-lamp-cord { fill: none; stroke: var(--w-wood); stroke-width: 1; }
+.home-lamp-glow { fill: url(#gHomeLight); opacity: 0; transition: opacity .8s; pointer-events: none; }
+.home-lamp-shade { fill: #e2d0aa; stroke: #8e7352; stroke-width: .8; transition: fill .8s; }
+.home-lamp-ribs, .home-lamp-tassel { fill: none; stroke: #a18054; stroke-width: .55; }
+[data-theme="dark"] .life-home { --w-column: #614735; --w-dougong: #5a4232; }
+[data-theme="dark"] .home-paper { fill: #d1a365; }
+[data-theme="dark"] .home-room-shade { fill: #11171e; opacity: .16; }
+[data-theme="dark"] .home-window-shadow { fill: #e9bb79; opacity: .045; }
+[data-theme="dark"] .home-lamp-glow { opacity: .55; }
+[data-theme="dark"] .home-lamp-shade { fill: #f3c787; }
+[data-theme="dark"] .home-ceramic { fill: #727b73; stroke: #b4ac96; }
+[data-theme="dark"] .home-contact { fill: #000; opacity: .45; }
+
 .box { fill: url(#gRed); stroke: var(--w-line); stroke-width: 2; }
 .slot { stroke: var(--w-line); stroke-width: 3; stroke-linecap: round; }
 .arrow path { fill: var(--w-wood-2); stroke: var(--w-line); stroke-width: 1.3; }
@@ -791,7 +846,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .actor { position: absolute; left: 0; will-change: transform; pointer-events: none; cursor: pointer; }
 .actor svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .actor > svg { pointer-events: none; }
-.actor .c-root, .actor .c-back, .actor .c-crouch, .actor .cat-flip { pointer-events: visiblePainted; }
+.actor .c-root, .actor .c-back, .actor .c-crouch, .actor .c-mail, .actor .cat-flip { pointer-events: visiblePainted; }
 .sleeper-control { position: absolute; bottom: calc(var(--s) * 245px); width: calc(var(--s) * 84px); height: calc(var(--s) * 52px); padding: 0; border: 0; border-radius: 40%; background: transparent; pointer-events: auto; cursor: pointer; z-index: 1; }
 .sleeper-control:focus-visible { outline: none; }
 /* Clean ink: every line joins and ends round, drawn with geometric precision. */
@@ -808,6 +863,14 @@ a { color: var(--accent); text-underline-offset: 2px; }
 [data-theme="dark"] .o-day, [data-theme="dark"] .h-down { display: none; }
 .c-lantern-glow { animation: flicker 3s ease-in-out infinite; }
 .c-shadow, .cat-shadow { fill: rgba(20, 16, 12, .2); }
+.has-motion-rig:not(.is-walking):not(.is-settling):not(.is-pouncing) > .painted-cat > .cat-shadow { opacity: 0; }
+.cat-rest-shade { fill: rgba(20,16,12,.1); }
+.cat-paw-contact, .cat-tail-contact { fill: rgba(20,16,12,.24); }
+.pet-foot-contact { fill: rgba(20,16,12,.24); }
+.act-pet .painted-character > .c-flip > .c-shadow { opacity: 0; }
+[data-theme="dark"] .cat-rest-shade { fill: rgba(0,0,0,.18); }
+[data-theme="dark"] .cat-paw-contact, [data-theme="dark"] .cat-tail-contact { fill: rgba(0,0,0,.4); }
+[data-theme="dark"] .pet-foot-contact { fill: rgba(0,0,0,.42); }
 [data-theme="dark"] .c-shadow, [data-theme="dark"] .cat-shadow { fill: rgba(0, 0, 0, .45); }
 .face-left .c-flip { transform: scaleX(-1); transform-origin: 60px 0; }
 .c-root { animation: breathe 3.6s ease-in-out infinite; }
@@ -815,6 +878,103 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .c-eyes { animation: blink 5.3s infinite; transform-origin: 60px 40.6px; }
 .c-hairback { animation: sway 4.6s ease-in-out infinite; transform-origin: 60px 28px; }
 .c-mouth-open { opacity: 0; transform-origin: 60px 50.8px; }
+.identity-paint { pointer-events: none; }
+.actor .painted-head .identity-paint, .actor .painted-cat-head .identity-paint { pointer-events: visiblePainted; }
+.painted-lids, .painted-cat-lids { opacity: 0; pointer-events: none; animation: paintedBlink 5.3s infinite; }
+.painted-cat-lids { animation-duration: 6.2s; }
+.painted-lids.is-smiling { opacity: 1; animation: none; }
+.painted-face-flat, .painted-face-rig-wrap, .painted-face-feature { pointer-events: none; }
+.painted-face-rig-wrap { display: none; }
+.has-motion-rig .painted-face-rig-wrap { display: inline; }
+.has-motion-rig .painted-face-flat { display: none; }
+.act-read .painted-face-rig-wrap, .act-write .painted-face-rig-wrap, .act-pet .painted-face-rig-wrap { display: none; }
+.face-eye-shutter, .face-mouth-shutter { transform-box: view-box; transform: scaleY(0); }
+.face-eye-shutter { animation: faceLidClose 5s linear infinite; }
+.is-bowing .face-eye-shutter { animation: none; transform: scaleY(1); }
+.is-talking .face-mouth-shutter { animation: faceSpeechOpen .9s linear infinite; }
+/* The original iris remains still: 35 ms down, 85 ms closed, 35 ms up. */
+@keyframes faceLidClose { 0%,96.8%,99.9%,100% { transform: scaleY(0); } 97.5%,99.2% { transform: scaleY(1); } }
+@keyframes faceSpeechOpen { 0%,12%,39%,48%,76%,100% { transform: scaleY(0); } 18%,33%,54%,69% { transform: scaleY(1); } }
+.is-bowing .painted-lids, .cat.is-happy .painted-cat-lids { animation: none; opacity: 1; }
+.cat-body-paint { opacity: .76; }
+/* Every visible body part comes from its complete painting. */
+.painted-sprite { pointer-events: none; }
+.painted-character .painted-sprite, .painted-cat .painted-sprite { pointer-events: visiblePainted; }
+.painted-character .c-head { animation-duration: 9s; }
+.c-reading { display: none; animation: readBreathe 3.2s ease-in-out infinite; transform-origin: 60px 110px; }
+.act-read .c-root { display: none; }
+.act-read .c-reading { display: inline; }
+@keyframes readBreathe { 50% { transform: translateY(.5px) rotate(.2deg); } }
+.is-waving .painted-character .c-arm-f .paint-forearm { animation: foreWave 1.4s ease-in-out; }
+@keyframes foreWave { 18%,46%,76% { transform: rotate(-20deg); } 32%,60% { transform: rotate(8deg); } }
+.act-point .painted-character .c-arm-f .paint-forearm, .act-mail .painted-character .c-arm-f .paint-forearm { transform: rotate(-12deg); }
+.painted-character .c-arms-read .paint-read-left { transform: rotate(-48deg); }
+.painted-character .c-arms-read .paint-read-right { transform: rotate(48deg); }
+.painted-character .c-arms-read .painted-sprite { pointer-events: none; }
+.painted-cat .cat-tail-walk { transform-box: view-box; transform-origin: 26px 40px; animation: paintedTail 2.3s ease-in-out infinite; }
+.painted-cat .cat-tail-sit { transform-box: view-box; transform-origin: 35px 53px; animation: paintedTail 4s ease-in-out infinite; }
+@keyframes paintedTail { 50% { transform: rotate(3deg); } }
+.painted-sleeper .sc-painted-groom { display: none; }
+.painted-sleeper.is-grooming .sc-painted-rest { display: none; }
+.painted-sleeper.is-grooming .sc-painted-groom { display: inline; transform-origin: 0 0; animation: paintedGroom 3.6s ease-in-out; }
+.painted-sleeper.is-grooming .sc-groom-paw { animation: paintedGroomPaw 3.6s ease-in-out; }
+@keyframes paintedGroomPaw { 0%,100% { transform: rotate(-3deg); } 20%,35%,50%,65% { transform: rotate(2deg); } 27%,42%,57% { transform: rotate(-1deg); } }
+.painted-sleeper.is-grooming .sc-head { animation-name: paintedGroomHead; }
+@keyframes paintedGroomHead { 20%,35%,50%,65% { transform: rotate(-2deg) translateY(.5px); } 27%,42%,57% { transform: rotate(1deg); } }
+@keyframes paintedGroom { 0%, 100% { transform: none; } 20%, 35%, 50%, 65% { transform: rotate(1.2deg) translateY(.4px); } 27%, 42%, 57% { transform: rotate(-.7deg); } }
+.paint-label text, .paint-board-title, .paint-contact-arrows text { fill: #f4e8ce; font: 13px var(--font-display); letter-spacing: .8px; }
+.paint-inset-title { fill: #f4e8ce; font: 14px var(--font-display); letter-spacing: 1px; }
+.paint-screen-label { fill: #6f5840; font: 10px var(--font-display); letter-spacing: 2px; }
+.painted-character .c-back { transform: translateX(62px); }
+.painted-character .cb-arm { animation-name: paintWrite; }
+@keyframes paintWrite { 0%,100% { transform: none; } 30% { transform: rotate(-1.3deg) translateX(.3px); } 60% { transform: rotate(1deg); } }
+.painted-water { opacity: .58; pointer-events: none; }
+.pond-bank { fill: url(#paintBank); }
+[data-theme="dark"] .painted-path { filter: brightness(.38) saturate(.7); }
+[data-theme="dark"] .painted-water { filter: brightness(.38) saturate(.75); opacity: .65; }
+[data-theme="dark"] .pond-bank { filter: brightness(.4) saturate(.7); }
+[data-theme="dark"] .painted-bank { filter: brightness(.4) saturate(.7); }
+.painted-character .c-leg-f { transform-origin: 72px 150px; }
+.painted-character .c-leg-b { transform-origin: 44px 150px; }
+.is-walking .painted-character .c-leg { animation: none; }
+.is-walking .painted-character .c-root { animation: none; transform: translateY(var(--human-bob,0px)); }
+
+@keyframes paintLegF { 0%,100% { transform: rotate(8deg); } 50% { transform: rotate(-8deg); } }
+@keyframes paintLegB { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+.paint-contact-arrows text { font-size: 10.5px; letter-spacing: .2px; text-anchor: middle; fill: #352719; stroke: #c8ab77; stroke-width: .22; paint-order: stroke; }
+body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char .bubble { bottom: calc(100% + 52px); }
+.paint-sign-support { stroke: #4d3626; stroke-width: .65; }
+[data-theme="dark"] .paint-sign-support { filter: brightness(.65); }
+.painted-station .inkstone .hit { fill: transparent; stroke: none; pointer-events: all; }
+.paint-night-glow { opacity: 0; pointer-events: none; transition: opacity .8s; mix-blend-mode: screen; }
+[data-theme="dark"] .paint-night-glow { opacity: .6; }
+[data-theme="dark"] .painted-station .painted-sprite,
+[data-theme="dark"] .painted-character .painted-sprite, [data-theme="dark"] .painted-cat .painted-sprite,
+[data-theme="dark"] .painted-sleeper .painted-sprite { filter: brightness(.77) saturate(.8); }
+/* Dim each physical material once; photographs and projected slides keep their own light. */
+.painted-station .slide, .painted-station .cat-slide, .painted-station .easel > image { filter: none; }
+.p-lantern { pointer-events: none; }
+.hands-free .p-lantern, .th-avatar .p-lantern { display: none; }
+.has-motion-rig .c-root .p-lantern .painted-sprite { opacity: 1; }
+[data-theme="dark"] .painted-character .p-lantern .painted-sprite { filter: saturate(.88); }
+.hand-lantern-halo { opacity: .68; mix-blend-mode: screen; animation: handLanternLight 4.2s ease-in-out infinite; }
+.hand-lantern-core { opacity: .18; mix-blend-mode: screen; }
+@keyframes handLanternLight { 0%,100% { opacity: .58; } 44% { opacity: .72; } 64% { opacity: .64; } }
+/* A light falling on the frame is softer than the photograph's projected image. */
+[data-theme="dark"] .st-life > .paint-night-glow:last-child { opacity: .18; }
+@media (prefers-reduced-motion: reduce) { .hand-lantern-halo { animation: none; } }
+[data-theme="dark"] .paint-carved-links > .painted-sprite { filter: brightness(.77) saturate(.8); }
+.has-painted-celestial > :not(defs):not(.painted-celestial) { visibility: hidden; }
+.painted-celestial { pointer-events: none; }
+.paint-distant-lights { opacity: 0; transition: opacity .8s; }
+[data-theme="dark"] .paint-distant-lights { opacity: 1; }
+.bg-arch .painted-sprite { filter: saturate(.4); }
+[data-theme="dark"] .bg-arch .painted-sprite { filter: brightness(.38) saturate(.6); }
+.painted-grass, .garden-stone { opacity: .76; }
+[data-theme="dark"] .painted-grass, [data-theme="dark"] .garden-stone, [data-theme="dark"] .painted-reeds,
+[data-theme="dark"] .lotus-flower .painted-sprite, [data-theme="dark"] .lotus-leaf .painted-sprite { filter: brightness(.54) saturate(.72); }
+[data-theme="dark"] .identity-paint { filter: brightness(.86) saturate(.85); }
+@keyframes paintedBlink { 0%, 94%, 100% { opacity: 0; } 96%, 97% { opacity: 1; } }
 @keyframes breathe { 50% { transform: translateY(.8px); } }
 @keyframes tilt { 0%, 100% { transform: rotate(-1.5deg); } 50% { transform: rotate(1deg); } }
 @keyframes blink { 0%, 94%, 100% { transform: scaleY(1); } 96.5% { transform: scaleY(.08); } }
@@ -844,6 +1004,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .cat-walk { display: none; }
 .cat.is-walking .cat-walk { display: inline; }
 .cat.is-walking .cat-sit { display: none; }
+.cat.is-settling .cat-sit { display: none; }
 .face-left .cat-flip { transform: scaleX(-1); transform-origin: 45px 0; }
 .cat-tail-sit { animation: tail 3s ease-in-out infinite; transform-box: fill-box; transform-origin: 100% 100%; }
 .cat-tail-walk { animation: tail 1s ease-in-out infinite; transform-box: fill-box; transform-origin: 100% 100%; }
@@ -886,14 +1047,14 @@ a { color: var(--accent); text-underline-offset: 2px; }
 
 .bubble {
   position: absolute; left: 50%; bottom: calc(100% + 6px);
-  transform: translate(-50%, 4px); opacity: 0; pointer-events: none;
+  transform: translate(calc(-50% + var(--bubble-shift, 0px)), 4px); opacity: 0; pointer-events: none;
   max-width: 220px; width: max-content;
   background: var(--card); color: var(--ink); border: 1px solid var(--line-2);
   padding: 6px 11px; border-radius: 12px; font-size: 13px; line-height: 1.35;
   box-shadow: var(--shadow); transition: opacity .2s, transform .2s;
 }
-.bubble.show { opacity: 1; transform: translate(-50%, 0); }
-.face-left .bubble { transform: translate(-50%, 4px); }
+.bubble.show { opacity: 1; transform: translate(calc(-50% + var(--bubble-shift, 0px)), 0); }
+.face-left .bubble { transform: translate(calc(-50% + var(--bubble-shift, 0px)), 4px); }
 
 /* ---------- HUD ---------- */
 .hud {
@@ -1257,9 +1418,10 @@ a { color: var(--accent); text-underline-offset: 2px; }
 }
 
 /* ---------- red circles: what she does at each place ---------- */
-.spot { fill: rgba(184, 50, 42, .07); stroke: var(--w-accent); stroke-width: 2; stroke-dasharray: 6 4; stroke-linecap: round; opacity: .75; }
+.spot { fill: none; stroke: #8d8a78; stroke-width: .45; stroke-linecap: round; opacity: .42; }
+.spot-etch { fill: none; stroke: #c4bba0; stroke-width: .4; opacity: .5; pointer-events: none; }
 .st.is-near .spot, .st-writing.is-near .cushion { animation: spotPulse 1.8s ease-in-out infinite; }
-.st.is-acting .spot { stroke-dasharray: none; opacity: .95; animation: none; }
+.st.is-acting .spot { stroke: #bba378; opacity: .7; animation: none; }
 .st-writing.is-acting .cushion { animation: none; }
 @keyframes spotPulse { 50% { opacity: .35; } }
 
@@ -1381,6 +1543,7 @@ a { color: var(--accent); text-underline-offset: 2px; }
 @keyframes mailArm { 28%, 58% { transform: rotate(-92deg); } 42% { transform: rotate(-97deg); } 100% { transform: none; } }
 .post-letter { opacity: 0; fill: var(--w-fill); stroke: var(--w-line); stroke-width: 1.1; stroke-linejoin: round; }
 .post-letter path { fill: none; }
+.painted-station .post-letter { transform-box: fill-box; transform-origin: 50% 50%; fill: #f1e4c9; stroke: #827159; }
 .mailbox.is-mailed .post-letter { animation: postIn .7s ease-in forwards; }
 @keyframes postIn { 0% { opacity: 1; transform: translate(-14px, 10px) rotate(-12deg); } 60% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(10px) scale(.6, .3); } }
 .flag-arm { stroke: var(--w-line); stroke-width: 3; }
@@ -1402,6 +1565,10 @@ a { color: var(--accent); text-underline-offset: 2px; }
   .bird { display: none; }
   .cat-slide { animation: none !important; }
   .cat-slide:first-of-type { opacity: 1; }
+  .lotus-pond.is-stirred .pond-koi { animation: none !important; opacity: .65; }
+  .koi-swim, .koi-tail, .koi-pectoral { animation: none !important; transform: none !important; }
+  .painted-lids, .painted-cat-lids { opacity: 0; }
+  .painted-lids.is-smiling { opacity: 1; }
 }
 
 /* ---------- Talks & Posters: the lecture stage ---------- */
@@ -1489,9 +1656,11 @@ a { color: var(--accent); text-underline-offset: 2px; }
 /* the lecture hall (theater mode) */
 .theater { position: fixed; inset: 0; z-index: 70; overflow-y: auto; color: #f3ead9;
   background: radial-gradient(ellipse at 45% 32%, #3b2a20 0%, #1a130f 55%, #0b0907 100%); }
-.theater::before, .theater::after { content: ""; position: fixed; top: 0; bottom: 0; width: 7vw; z-index: 0; pointer-events: none;
-  background: repeating-linear-gradient(90deg, #6d1f18 0 14px, #8a2a21 14px 24px, #5a1913 24px 32px); box-shadow: inset 0 0 40px rgba(0, 0, 0, .6); }
-.theater::before { left: 0; } .theater::after { right: 0; }
+.th-curtain { position: fixed; top: 0; bottom: 0; width: 7vw; z-index: 0; pointer-events: none; overflow: hidden;
+  background: #38120e; box-shadow: 0 0 36px rgba(0, 0, 0, .5); }
+.th-curtain > svg { display: block; width: 100%; height: 100%; filter: brightness(.48) saturate(.65); }
+.th-curtain::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(10, 5, 3, .45), transparent 45%, rgba(10, 5, 3, .35)); }
+.th-curtain-left { left: 0; } .th-curtain-right { right: 0; transform: scaleX(-1); }
 .th-hall { position: relative; z-index: 1; max-width: 1100px; margin: 0 auto; padding: 18px 9vw 0; min-height: 100%; display: flex; flex-direction: column; }
 .th-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .th-marquee { margin: 0; font: 600 12.5px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: #f0c98a; }
@@ -1506,16 +1675,20 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .th-screen img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .9; }
 .th-screen iframe, .th-screen video { width: 100%; height: 100%; border: 0; display: block; }
 .th-start { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: inline-flex; gap: 10px; align-items: center;
-  padding: 14px 22px; border: 0; border-radius: 999px; background: #b8322a; color: #fff7f2; font: 600 16px var(--font-body); cursor: pointer;
+  padding: 14px 22px; border: 0; border-radius: 999px; background: #b8322a; color: #fff7f2; font: 600 16px var(--font-body); cursor: pointer; white-space: nowrap;
   box-shadow: 0 10px 30px rgba(0, 0, 0, .5); }
 .th-start:hover { background: #cf3c32; }
 .th-speaker { position: relative; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
-.th-avatar { width: 128px; height: 213px; margin-bottom: 18px; }
+.th-avatar { position: relative; width: 128px; height: 213px; margin-bottom: 18px; }
 .th-avatar svg { width: 100%; height: 100%; overflow: visible; display: block; }
 .th-avatar .c-glow { opacity: .6; }
-.th-podium { position: absolute; bottom: 0; left: 50%; width: 96px; transform: translateX(-38%); fill: #5a4638; stroke: #1f1712; stroke-width: 1.5; overflow: visible; }
-.th-podium rect { fill: #b8322a; }
-.th-audience { display: block; width: calc(100% + 18vw); margin: -60px -9vw 0; height: 140px; fill: #070504; position: relative; z-index: 2; pointer-events: none; }
+.th-avatar .c-shadow { display: none; }
+.th-podium { position: absolute; bottom: 0; left: 50%; width: 110px; transform: translateX(-38%); overflow: visible;
+  filter: brightness(.72) saturate(.72) drop-shadow(0 7px 8px rgba(0, 0, 0, .5)); }
+.th-audience { display: block; width: calc(100% + 18vw); margin: -30px -9vw 0; height: auto; aspect-ratio: 1142 / 194;
+  position: relative; z-index: 2; pointer-events: none; opacity: .92; filter: brightness(.26) saturate(.45) blur(.55px); transition: filter .8s;
+  mask-image: linear-gradient(to bottom, transparent, #000 22%, #000 86%, transparent); }
+.theater.is-playing .th-audience { filter: brightness(.17) saturate(.4) blur(.55px); }
 .th-program { position: relative; z-index: 3; margin: -18px 0 0; padding: 14px 0 28px; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; }
 .th-program-h { grid-column: 1 / -1; margin: 0; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: #cdbb9f; }
 .th-item { text-align: left; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .16); background: rgba(255, 255, 255, .05); color: #f3ead9; cursor: pointer; font: 600 13.5px/1.35 var(--font-display); }
@@ -1524,8 +1697,135 @@ a { color: var(--accent); text-underline-offset: 2px; }
 .theater-open .guide, .theater-open .panel { visibility: hidden; }
 @media (max-width: 699px) {
   .th-hall { padding: 12px 16px 0; }
-  .theater::before, .theater::after { width: 10px; }
+  .th-curtain { width: 10px; }
   .th-stage { grid-template-columns: 1fr; }
   .th-speaker { display: none; }
-  .th-audience { width: calc(100% + 32px); margin: -40px -16px 0; height: 90px; }
+  .th-audience { width: calc(100% + 32px); margin: -12px -16px 0; }
 }
+
+/* Joint origins use the actor's viewBox rather than a changing clipped bounding box. */
+.painted-character .c-arm, .painted-character .c-head, .painted-character .c-leg,
+.painted-character .paint-forearm, .painted-character .paint-knee, .painted-character .paint-ankle,
+.painted-character .cb-arm, .painted-character .cr-arm,
+.painted-cat-leg, .paint-cat-lower, .painted-cat .cat-head,
+.painted-sleeper .sc-head, .painted-sleeper .sc-groom-paw { transform-box: view-box; }
+.painted-character .c-head { animation-name: paintHeadIdle; }
+.painted-character .cr-arm { animation-name: paintPet; }
+@keyframes paintPet { 0%,100% { transform: none; } 50% { transform: rotate(.7deg); } }
+@keyframes paintHeadIdle { 50% { transform: rotate(.35deg); } }
+.is-waving .painted-character .c-arm-f { animation-name: paintedWave; }
+@keyframes paintedWave { 0%,100% { transform: none; } 18%,76% { transform: rotate(-85deg); } 32%,60% { transform: rotate(-78deg); } 46% { transform: rotate(-88deg); } }
+.is-waving .painted-character .c-arm-f .paint-forearm { animation-name: paintedForeWave; }
+@keyframes paintedForeWave { 0%,100% { transform: none; } 18%,46%,76% { transform: rotate(-70deg); } 32%,60% { transform: rotate(-52deg); } }
+.act-reach .painted-character .c-arm-f { animation-name: paintedReach; }
+@keyframes paintedReach { to { transform: rotate(-78deg); } }
+.act-reach .painted-character .c-arm-f .paint-forearm { transform: rotate(-32deg); }
+.paint-read-page { animation: paintedPageTurn 4.4s ease-in-out infinite; transform-box: view-box; pointer-events: none; }
+@keyframes paintedPageTurn { 0%,56%,100% { transform: none; opacity: 0; } 60% { opacity: 1; transform: scaleX(1); } 73% { opacity: 1; transform: scaleX(.08) translateY(-.7px); } 86% { opacity: 1; transform: scaleX(-1); } 94% { opacity: 0; transform: scaleX(-1); } }
+.painted-cat .cat-head { animation: paintCatLook 8s ease-in-out infinite; }
+@keyframes paintCatLook { 50% { transform: rotate(1deg); } }
+.cat.is-tail-playing .painted-cat .cat-head { animation-name: paintCatLookBack; }
+@keyframes paintCatLookBack { 20%,65% { transform: rotate(-7deg); } 42%,82% { transform: rotate(3deg); } }
+.painted-sleeper.is-grooming .sc-groom-paw { animation-name: paintedGroomPaw; }
+.painted-sleeper.is-grooming .sc-head { animation-name: paintedGroomHead; }
+.st-life.is-acting .painted-sleeper:not(.is-grooming) .sc-head { animation-name: paintedNuzzle; }
+@keyframes paintedNuzzle { 50% { transform: rotate(-1deg); } }
+.painted-celestial::before { pointer-events: none; }
+.paint-sun-halo { fill: url(#celestial-halo); animation: celestialBreath 12s ease-in-out infinite; }
+.painted-celestial .o-day > .painted-sprite { filter: saturate(.7); }
+@media (prefers-reduced-motion: reduce) {
+  .painted-character *, .painted-cat *, .painted-sleeper *, .paint-sun-halo { animation: none !important; }
+}
+/* The animation mesh keeps painted cloth and fur continuous across the joints. */
+.motion-rig { position: absolute; pointer-events: none; }
+[data-theme="dark"] .motion-rig-human, [data-theme="dark"] .motion-rig-cat,
+[data-theme="dark"] .painted-pet-rig { filter: brightness(.77) saturate(.8); }
+.motion-rig-human { width: 166.6667% !important; height: 110% !important; left: -33.3333%; top: -5%; }
+.painted-pet-rig { width: 166.6667%; height: 110%; left: -33.3333%; top: -5%; display: none; }
+.has-pet-paint.act-pet .painted-pet-rig { display: block; }
+.has-pet-paint.act-pet .c-crouch .painted-sprite { opacity: 0; }
+.motion-rig-cat { width: 122.2222% !important; height: 116.6667% !important; left: -11.1111%; top: -8.3333%; display: none; }
+.has-motion-rig .c-root .painted-sprite { opacity: 0; }
+.has-motion-rig.has-letter .p-letter .painted-sprite, .has-motion-rig.has-book .p-book .painted-sprite { opacity: 1; }
+.has-motion-rig.act-read .motion-rig-human, .has-motion-rig.act-write .motion-rig-human, .has-motion-rig.act-pet .motion-rig-human { display: none; }
+.c-mail { display: none; }
+.mail-pose-active .c-root, .mail-pose-active .painted-face-rig-wrap, .mail-pose-active .motion-rig-human { display: none; }
+.mail-pose-active .c-mail { display: inline; }
+.mail-profile .mail-forearm { transform-box: view-box; }
+.mail-held-letter { display: none; }
+.has-letter .mail-held-letter { display: inline; }
+.has-motion-rig .cat-walk { visibility: hidden; }
+.has-motion-rig.is-walking .motion-rig-cat, .has-motion-rig.is-settling .motion-rig-cat, .has-motion-rig.is-pouncing .motion-rig-cat { display: block; }
+.has-motion-rig.is-pouncing .motion-rig-cat { animation: rigCatPounce 1.65s ease-in-out; transform-origin: 50% 85%; }
+.has-motion-rig.is-pouncing > .hj-cat-svg { animation: none; }
+.has-motion-rig.is-pouncing .cat-shadow { animation: rigPounceShadow 1.65s ease-in-out; transform-box: fill-box; transform-origin: center; }
+@keyframes rigPounceShadow {
+  0%,100% { opacity: 1; transform: none; }
+  38% { opacity: .55; transform: translateX(calc(var(--cat-facing, 1) * 17px)) scaleX(.78); }
+  60% { opacity: 1; transform: translateX(calc(var(--cat-facing, 1) * 20px)); }
+  80% { opacity: .75; transform: translateX(calc(var(--cat-facing, 1) * 9px)) scaleX(.9); }
+}
+@keyframes rigCatPounce {
+  0%,100% { transform: scaleX(var(--cat-facing, 1)); }
+  14% { transform: translateY(2px) scaleX(var(--cat-facing, 1)) scaleY(.97); }
+  38% { transform: translate(calc(var(--cat-facing, 1) * 17px), -12px) rotate(calc(var(--cat-facing, 1) * -5deg)) scaleX(var(--cat-facing, 1)); }
+  60% { transform: translate(calc(var(--cat-facing, 1) * 20px), 0) scaleX(var(--cat-facing, 1)); }
+  80% { transform: translate(calc(var(--cat-facing, 1) * 9px), -5px) scaleX(var(--cat-facing, 1)); }
+}
+.has-motion-rig.face-left .motion-rig-human, .has-motion-rig.face-left .motion-rig-cat { transform: scaleX(-1); }
+.avatar-demo, .cat-demo { position: relative; }
+.painted-projection-wall { fill: #e9dfcc; stroke: #bca88c; stroke-width: .5; }
+.screen-talk:hover .painted-projection-wall { stroke-width: 1; }
+.st-talks.is-acting .painted-projection-wall { stroke-width: .7; }
+[data-theme="dark"] .motion-rig { filter: brightness(.77) saturate(.8); }
+.has-motion-rig .c-root .c-arm .painted-sprite { opacity: 1; }
+.has-motion-rig.has-native-arms .paint-arm-mount { display: none; }
+.has-motion-rig .rig-handprop .painted-sprite { opacity: 1; }
+.has-motion-rig .painted-character .c-root { animation: none; transform: none; }
+.has-motion-rig.is-bowing .c-upper { animation: none; }
+.has-motion-rig > svg { position: relative; z-index: 1; }
+.motion-rig { z-index: 0; }
+.paint-inset-title { font-size: 11.5px; letter-spacing: .45px; fill: #cfb17e; stroke: #593923; stroke-width: .18; paint-order: stroke; }
+.paint-label text { font-size: 14px; letter-spacing: .55px; fill: #efe1c4; stroke: #4b3020; stroke-width: .2; paint-order: stroke; }
+.st-education .paint-label text { font-size: 18px; letter-spacing: .2px; }
+.st-life .paint-label text { font-size: 18px; }
+
+.st-contact .paint-label text { font-size: 12.5px; letter-spacing: .85px; fill: #f1dfb9; stroke: #422819; stroke-width: .18; paint-order: stroke; }
+.paint-label text, .paint-inset-title, .st-contact .paint-label text { fill: url(#paintLetterInk); filter: url(#paintEngraving); }
+.painted-mail-flag .flag-arm { stroke: #917450; stroke-width: 1.3; }
+.painted-mail-flag .flag-arm-light { fill: none; stroke: #decea6; stroke-width: .25; }
+.painted-mail-flag .flag-plate { fill: url(#paintFlagMetal); stroke: #62492f; stroke-width: .4; }
+.painted-mail-flag .flag-bevel { fill: none; stroke: #e1c996; stroke-width: .35; }
+.painted-mail-flag .flag-wear { fill: none; stroke: #745737; stroke-width: .25; opacity: .55; }
+.painted-mail-flag .flag-pin { fill: #745a3b; }
+[data-theme="dark"] .painted-mail-flag { filter: brightness(.68) saturate(.8); }
+
+/* Paper keeps its warm material under moonlight; these colors are inks, not UI text colors. */
+.painted-station .hello-text { font-size: 9px !important; }
+.painted-station .hello-cover { fill: #efe5cf; }
+[data-theme="dark"] .painted-station .hello-cover { fill: #d7c7a8; }
+.painted-station .hello-text, [data-theme="dark"] .painted-station .hello-text,
+.painted-station .tutorial-scroll-label { fill: #3b2d24; font-size: 15px; }
+
+/* Writing sits together on a low carved stone terrace. */
+.writing-plinth-front { fill: #99988b; stroke: #747568; stroke-width: .45; }
+.writing-plinth-top { fill: #c1beb0; stroke: #95958a; stroke-width: .45; }
+.writing-plinth-grain { fill: none; stroke: #6e7064; stroke-width: .35; opacity: .65; }
+.writing-plinth-light { fill: none; stroke: #e9e3cf; stroke-width: .4; opacity: .65; }
+.writing-plinth-front { fill: url(#paintStone); }
+.writing-plinth-top { fill: url(#paintPaving); }
+.writing-plinth-front { filter: brightness(.79); }
+.paint-contact-shadow { pointer-events: none; }
+[data-theme="dark"] .paint-contact-shadow { opacity: .65; }
+[data-theme="dark"] .writing-plinth { filter: brightness(.64) saturate(.75); }
+.act-write .painted-character .c-back { transform: translate(62px,-13.7143px); }
+.act-write .painted-character .c-shadow { opacity: 0; }
+.st-writing .archive-label { font-size: 10.5px; fill: #3b2d24; letter-spacing: .1px; }
+.st-writing .hello-text { font-size: 10px !important; }
+.archive-scroll-glint { fill: none; stroke: #d6ae63; stroke-width: .5; opacity: 0; pointer-events: none; }
+.archive-scroll.is-unrolling .archive-scroll-glint { animation: archiveTap 1.5s ease-in-out; }
+@keyframes archiveTap { 20%,55% { opacity: .8; } }
+[data-theme="dark"] .st-writing .archive-cabinet > .painted-sprite { filter: brightness(.77) saturate(.8); }
+
+/* Receding physical paving planes share the painted stone under moonlight. */
+[data-theme="dark"] .paint-forecourt, [data-theme="dark"] .mailbox-footing { filter: brightness(.64) saturate(.75); }

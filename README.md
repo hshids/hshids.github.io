@@ -11,7 +11,7 @@ Tutorials and Blogs share the Writing section in both versions. The interactive 
 
 A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version. The old `about.html`, `tutorials.html` and `blog.html` redirect to the matching section of `basic.html`.
 
-There is no build step. Every file is plain HTML, CSS and JavaScript, and the pages also work when opened straight from disk.
+There is no build step. Every file is plain HTML, CSS and JavaScript. Use a static HTTP server for local previews so the painted animation textures can be read by the browser.
 
 ## Where things live
 
@@ -22,9 +22,13 @@ assets/js/art.js      ← SVG drawings: the avatar (and her pose drawings), JinB
                         architecture kit (tangRoof, dougong, architrave, columns, lattice, terrace), each
                         place, and the layered backdrop (distant palaces, pagodas, towers, clouds)
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
+assets/js/paint.js    ← painted scenes, material details, facial features and dedicated poses
+assets/js/rig.js      ← continuous 2D joints for painted sleeves, arms, legs and cat paws
+assets/js/gesture-hands.js ← painted gesture hands attached to the moving wrists
 assets/js/basic.js    ← renders basic.html from data.js
 assets/css/world.css, assets/css/basic.css
 assets/art/           ← painted parallax mountains and WebP material swatches used inside the SVGs
+reviews/fine-v7/      ← complete pose references, live pose controls and scene screenshots
 images/…              ← photos (each gallery folder has a thumbs/ subfolder)
 files/…               ← PDFs (posters, slides)
 tutorials/, blog/     ← the original tutorial and blog pages (unchanged)
@@ -111,7 +115,7 @@ Water lilies float close to the water and fold into fuller buds at night; a few 
 
 Education uses campus keepsakes on supported stone terraces: UC Davis's painted steel water tower and bicycle, Georgetown's gray masonry and clock tower, and Lehigh's warm stone library and rounded apse. Stone courses, recessed windows, slate roofs and night lighting use distinct materials; the flags remain clear of the raised Education sign.
 
-Screenshots of all seven scenes, both themes, Writing panels and the Basic Writing section are in [the visual review](reviews/material-v3/index.html).
+Complete painted pose references, live day/night motion controls, and screenshots of all seven scenes on desktop and phone are in [the painted world review](reviews/fine-v7/index.html).
 
 ## Preview locally
 

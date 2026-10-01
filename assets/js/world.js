@@ -13,15 +13,15 @@
   var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
-  // "stand" is each place's red circle: stop on it and she does something there (see ACTIONS).
+  // Each subtle stone inlay marks the position of its original scene action.
   var STATIONS = [
-    { id: "home", x: 700, stand: 610, half: 320, label: "Welcome", zh: "入口" },
+    { id: "home", x: 700, stand: 710, half: 320, label: "Welcome", zh: "入口" },
     { id: "research", x: 1750, stand: 1630, half: 290, label: "Research", zh: "研究" },
     { id: "talks", x: 2850, stand: 2880, half: 350, label: "Talks", zh: "报告" },
     { id: "education", x: 4000, stand: 3880, half: 340, label: "Education", zh: "求学" },
     { id: "writing", x: 5050, stand: 4990, half: 330, label: "Writing", zh: "写作" },
     { id: "life", x: 6000, stand: 5943, half: 330, label: "Life", zh: "生活" },
-    { id: "contact", x: 6900, stand: 6788, half: 260, label: "Contact", zh: "联系" }
+    { id: "contact", x: 6900, stand: 6882, half: 340, label: "Contact", zh: "联系" }
   ];
   var byId = {};
   STATIONS.forEach(function (s) { byId[s.id] = s; });
@@ -46,9 +46,9 @@
 
   var state = {
     s: 1, cw: 0, ch: 0, viewW: 1000, sceneBottom: 0, mobile: false,
-    x: 610, target: 610, vel: 0, vmax: 500, dir: 1,
+    x: 710, target: 710, vel: 0, vmax: 500, dir: 1,
     cam: 0, camRate: 6, focusX: null, drift: 0,
-    catX: 520, catDir: 1, catTrail: 1, catVel: 0, catStride: 0,
+    catX: 628, catDir: 1, catTrail: 1, catVel: 0, catStride: 0, catGaitMix: 0, charStride: 0,
     keys: { left: false, right: false },
     trip: null, near: null, panel: null,
     lang: "en",   // the site is in English; the guide switches to Chinese only when asked in Chinese
@@ -57,7 +57,7 @@
   };
 
   // ---------- DOM ----------
-  var worldEl = $("#world"), layersEl = $("#layers"), hud = $("#hud");
+  var worldEl = $("#world"), layersEl = $("#layers"), hud = $("#hud"), waterExtension = $(".under");
   var panel = $("#panel"), panelBody = $("#panel-body");
   var guide = $("#guide"), fab = $("#guide-fab"), log = $("#guide-log"), chips = $("#guide-chips"), form = $("#guide-form"), input = $("#guide-input");
   var charEl, catEl, butterflyEl, groundEl, waterLightEl, catLegs = [], layerEls = [];
@@ -74,7 +74,8 @@
       : st.id === "life" ? fn(D.cats.filter(function (c) { return c.photos && c.photos.length; }).map(function (c) { return thumbOf(c.photos[0]); }))
       : fn();
     if (st.id !== "writing" && st.id !== "life") {
-      var spot = '<ellipse class="spot" cx="' + (st.stand - st.x) + '" cy="' + (GY + 3) + '" rx="27" ry="6.5"/>';
+      var cx=st.stand-st.x,cy=GY+3;
+      var spot = '<g class="spot-inlay" transform="translate('+cx+' '+cy+')"><path class="spot" d="M-19 0Q-9 -1.5 0 -4Q9 -1.5 19 0Q9 1.5 0 4Q-9 1.5 -19 0Z"/><path class="spot-etch" d="M0 -2.4Q-7 -2.3 -10 0Q-7 2.3 0 2.4Q7 2.3 10 0Q7 -2.3 0 -2.4ZM-10 0H10M0 -2.4V2.4"/></g>';
       inner = inner.replace(/(<g class="st [^>]*>(?:<rect class="hit"[^>]*>)?)/, "$1" + spot);
     }
     return '<g transform="translate(' + st.x + ' 0)">' + inner + "</g>";
@@ -92,15 +93,17 @@
           '<div class="actor cat" id="cat">' + ART.cat() + '<div class="bubble" id="cat-bubble"></div></div>' +
           '<button type="button" class="cat-butterfly" hidden aria-label="Let JinBingBing chase this visiting butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bf-flight"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></g></svg></button>' +
           '<div class="actor char" id="char">' + ART.character("w") + '<div class="bubble" id="char-bubble"></div></div>';
-        el.insertAdjacentHTML("beforeend", '<button type="button" id="xiaohei-control" class="sleeper-control" aria-label="Wake XiaoHei, our oldest brother, for a little grooming" style="left:calc(var(--s) * ' + (byId.life.x - 33) + 'px)"></button>');
+        el.insertAdjacentHTML("beforeend", '<button type="button" id="xiaohei-control" class="sleeper-control" aria-label="Wake XiaoHei, our oldest brother, for a little grooming" style="left:calc(var(--s) * ' + (byId.life.x - 19) + 'px);bottom:calc(var(--s) * 251px)"></button>');
         ART.screenPlants.forEach(function (plant, i) {
-          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-screen-plant="' + plant + '" aria-label="Look closely at the ' + plant + ' painting on silk" style="left:calc(var(--s) * ' + (byId.writing.x - 140 + i * 74) + 'px);bottom:calc(var(--s) * 321px);width:calc(var(--s) * 58px);height:calc(var(--s) * 70px)"></button>');
+          var sp = ART.screenSpots[i];
+          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-screen-plant="' + plant + '" aria-label="Look closely at the ' + plant + ' painting on silk" style="left:calc(var(--s) * ' + (byId.writing.x + sp[0]) + 'px);bottom:calc(var(--s) * ' + (VH - sp[1] - sp[3]) + 'px);width:calc(var(--s) * ' + sp[2] + 'px);height:calc(var(--s) * ' + sp[3] + 'px)"></button>');
         });
         ART.paperSpots.forEach(function (p, i) {
           el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-ornament="' + i + '" aria-label="Gently stir paper ' + (i % 2 ? "star " : "crane ") + (i + 1) + '" style="left:calc(var(--s) * ' + (byId.writing.x + p[0] - 26) + 'px);bottom:calc(var(--s) * ' + (VH - p[1] - 22) + 'px);width:calc(var(--s) * 54px);height:calc(var(--s) * 50px)"></button>');
         });
         D.tutorials.forEach(function (t, i) {
-          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-tutorial="' + t.id + '" aria-label="Read ' + esc(t.title) + '" style="left:calc(var(--s) * ' + (byId.writing.x + 176) + 'px);bottom:calc(var(--s) * ' + (VH - (446 + i * 26) - 14) + 'px);width:calc(var(--s) * 128px);height:calc(var(--s) * 28px)"></button>');
+          var sp = ART.tutorialSpots[i];
+          el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-tutorial="' + t.id + '" aria-label="Read ' + esc(t.title) + '" style="left:calc(var(--s) * ' + (byId.writing.x + sp[0]) + 'px);bottom:calc(var(--s) * ' + (VH - sp[1] - sp[3]) + 'px);width:calc(var(--s) * ' + sp[2] + 'px);height:calc(var(--s) * ' + sp[3] + 'px)"></button>');
         });
         groundEl = el;
       } else {
@@ -116,11 +119,14 @@
     catLegs = $$(".cat-gait-leg", catEl).map(function (leg) {
       var phases = { 'hind-near': 0, 'fore-near': .25, 'hind-far': .5, 'fore-far': .75 };
       return { length: +leg.dataset.legLength, phase: phases[leg.dataset.catLeg], hind: leg.dataset.catLeg.indexOf('hind') === 0,
-        fur: $(".cat-leg-fur", leg), fibres: $(".cat-leg-fibres", leg), paw: $(".cat-gait-paw", leg) };
+        fur: $(".cat-leg-fur", leg), fibres: $(".cat-leg-fibres", leg), paw: $(".cat-gait-paw", leg),
+        paint: leg.dataset.painted === "true" ? leg : null, lowerPaint: $(".paint-cat-lower", leg) };
     });
     waterLightEl = $("#water-light");
     $("#guide-portrait").innerHTML = ART.portrait("p");
     $("#guide-fab-face").innerHTML = ART.portrait("f");
+    if (ART.initMotionRigs) ART.initMotionRigs(groundEl);
+    waterExtension.innerHTML = '<svg aria-hidden="true" preserveAspectRatio="none"><rect class="pond"/><rect class="painted-water" fill="url(#paintWater)"/></svg>';
   }
 
   // ---------- layout ----------
@@ -134,7 +140,10 @@
     state.cw = r.width; state.ch = r.height;
     state.mobile = r.width < 700;
     var writingFrame = state.panel === "writing" || state.focusX === byId.writing.x;
-    var minUnits = state.mobile ? (writingFrame ? 620 : 480) : 720;
+    var lifeFrame=state.panel === "life" || state.focusX === byId.life.x;
+    var educationFrame=state.panel === "education" || state.focusX === byId.education.x;
+    var contactFrame=state.panel === "contact" || state.focusX === byId.contact.x;
+    var minUnits = state.mobile ? (educationFrame ? 800 : lifeFrame ? 640 : contactFrame ? 660 : writingFrame ? 620 : 480) : 720;
     var s = Math.min(r.height / VH, r.width / minUnits);
     state.s = s;
     state.viewW = r.width / s;
@@ -142,9 +151,15 @@
     state.waterLightX = (sunBounds.left + sunBounds.width / 2 - r.left) / s;
     var extra = r.height - VH * s;
     // Raise the walkable stage on tall phones rather than leaving all the spare height in the sky.
-    state.sceneBottom = state.mobile ? Math.max(extra * 0.62, Math.min(guideReserve(), extra)) : 0;
+    state.sceneBottom = state.mobile ? Math.max(0,r.height*.28-(VH-GY)*s,Math.min(guideReserve(),extra)) : 0;
     worldEl.style.setProperty("--s", s);
     worldEl.style.setProperty("--scene-bottom", state.sceneBottom + "px");
+    var extensionHeight = Math.max(1, state.sceneBottom / s);
+    $$("rect", waterExtension).forEach(function (rect) {
+      rect.setAttribute("y", VH);
+      rect.setAttribute("width", state.viewW);
+      rect.setAttribute("height", extensionHeight);
+    });
     layerEls.forEach(function (L) {
       L.el.style.width = L.width * s + "px";
       L.el.style.height = VH * s + "px";
@@ -165,6 +180,9 @@
   // ---------- rendering ----------
   function render(force) {
     var s = state.s;
+    var waterX = state.cam * 1.18;
+    $("svg", waterExtension).setAttribute("viewBox", waterX + " " + VH + " " + state.viewW + " " + Math.max(1, state.sceneBottom / s));
+    $$("rect", waterExtension).forEach(function (rect) { rect.setAttribute("x", waterX); });
     layerEls.forEach(function (L) {
       L.el.style.transform = "translate3d(" + (-state.cam * L.f * s).toFixed(1) + "px,0,0)";
     });
@@ -182,11 +200,15 @@
     // With the dialogue box open beside a panel, keep the avatar (who is talking) in view.
     var fx = state.focusX != null && !(fr[0] > 0 && state.panel) ? state.focusX : state.x;
     if (state.mobile && state.focusX === byId.writing.x) fx += 35;  // Fit the desk and the scroll rack together.
+    if (state.mobile && state.focusX === byId.education.x) fx += 20; // Include the branch support and the outer edge of Lehigh's campus.
+    if (state.mobile && state.focusX === byId.life.x) fx += 29;
+    if (state.mobile && state.focusX === byId.contact.x) fx += 20;
     return clamp(fx - (fr[0] + (fr[1] - fr[0]) / 2) / state.s, 0, Math.max(0, W - state.viewW));
   }
 
   // ---------- loop ----------
   function poseCatLegs(moving) {
+    if (ART.poseCat) { ART.poseCat(catEl,state.catStride,moving); return; }
     catLegs.forEach(function (leg) {
       var phase = (state.catStride + leg.phase) % 1, stance = .62;
       var swing = Math.max(0, (phase - stance) / (1 - stance));
@@ -194,6 +216,17 @@
       var y = leg.length - (moving ? Math.sin(swing * Math.PI) * 4.5 : 0);
       var kneeX = x * .35 + (leg.hind ? -1.3 : .7), kneeY = leg.length * .52;
       function n(v) { return v.toFixed(2); }
+      if (leg.paint) {
+        // Two-bone IK follows a planted stance and a lifted return stroke.
+        var upper = leg.length * .54, lower = leg.length - upper;
+        var reach = Math.min(leg.length - .02, Math.hypot(x, y));
+        var a = Math.acos(clamp((upper * upper + reach * reach - lower * lower) / (2 * upper * reach), -1, 1));
+        var bend = Math.PI - Math.acos(clamp((upper * upper + lower * lower - reach * reach) / (2 * upper * lower), -1, 1));
+        var sign = leg.hind ? -1 : 1, base = Math.atan2(-x, y);
+        leg.paint.style.transform = moving ? "rotate(" + n((base + sign * a) * 180 / Math.PI) + "deg)" : "none";
+        leg.lowerPaint.style.transform = moving ? "rotate(" + n(-sign * bend * 180 / Math.PI) + "deg)" : "none";
+        return;
+      }
       leg.fur.setAttribute("d", "M-3 0Q" + n(kneeX - 3) + " " + n(kneeY) + " " + n(x - 2.4) + " " + n(y - 1) + "L" + n(x + 2.4) + " " + n(y - 1) + "Q" + n(kneeX + 3) + " " + n(kneeY) + " 3 0Z");
       leg.fibres.setAttribute("d", "M-1 3Q" + n(kneeX - .5) + " " + n(kneeY) + " " + n(x - .8) + " " + n(y - 4) + "M1 4l.3 2");
       leg.paw.setAttribute("transform", "translate(" + n(x) + " " + n(y) + ")");
@@ -228,13 +261,23 @@
     }
     charEl.classList.toggle("is-walking", Math.abs(state.vel) > 20);
     charEl.classList.toggle("is-running", Math.abs(state.vel) > 700);
+    if (ART.poseCharacter) {
+      var humanMoving = Math.abs(state.vel) > 20 && !reduced;
+      if (humanMoving) state.charStride = (state.charStride + Math.min(Math.abs(state.vel) / 82, Math.abs(state.vel)>700?3:2.3) * dt) % 1;
+      ART.poseCharacter(charEl,state.charStride,humanMoving);
+    }
 
     // Ease into following, keep facing the actual motion, and finish the last step before sitting.
     var catGoal = state.x - state.catTrail * 82;
+    // Leave the pouf to XiaoHei when Hanjing crouches down beside him.
+    if (charEl.classList.contains("act-pet")) catGoal = byId.life.x - 142;
     var cdx = catGoal - state.catX, cstep = 0;
     if (!reduced && (Math.abs(cdx) > .4 || Math.abs(state.catVel) > 3)) {
       busy = true;
-      var catMax = Math.max(320, Math.abs(state.vel) * 1.12);
+      // A short catch-up uses a quick walk; long scene travel can still keep up.
+      var catNearMax=160+Math.min(80,Math.abs(cdx)*.65),catFollowBlend=clamp((Math.abs(cdx)-180)/140,0,1);
+      catFollowBlend=catFollowBlend*catFollowBlend*(3-2*catFollowBlend);
+      var catMax=catNearMax+(Math.max(240,Math.abs(state.vel)*1.12)-catNearMax)*catFollowBlend;
       var catDesired = Math.sign(cdx) * Math.min(catMax, Math.sqrt(2 * 2600 * Math.abs(cdx)));
       state.catVel += clamp(catDesired - state.catVel, -3200 * dt, 3200 * dt);
       cstep = state.catVel * dt;
@@ -247,15 +290,27 @@
     var catMoving = Math.abs(cstep) > .01;
     var wasCatMoving = catEl.classList.contains("is-walking");
     catEl.classList.toggle("is-walking", catMoving);
+    state.catGaitMix=clamp(state.catGaitMix+(catMoving?dt/.14:-dt/.22),0,1);
+    catEl._rigCatGaitMix=state.catGaitMix;
+    catEl.classList.toggle("is-settling",!catMoving&&state.catGaitMix>0&&!reduced);
     if (catMoving) {
-      // Keep the tiny steps readable even during a fast trip across the whole world.
-      state.catStride = (state.catStride + Math.min(Math.abs(cstep) / 54, dt / .42)) % 1;
+      // Travel, cadence and the planted paw anchors use the same source scale.
+      // Faster following lengthens the airborne part rather than sliding paws.
+      var catScale=CAT_W/90,catSpeed=Math.max(Math.abs(state.catVel),Math.abs(cstep)/Math.max(dt,.001))/catScale;
+      catEl._rigCatCycleSource=clamp(catSpeed/3.4,32,480);
+      catEl._rigCatWorldX=state.catX;catEl._rigCatFacing=state.catDir;
+      state.catStride = (state.catStride + Math.abs(cstep)/(catScale*catEl._rigCatCycleSource)) % 1;
       poseCatLegs(true);
       catEl.classList.remove("is-pouncing", "is-tail-playing", "is-happy");
       if (!butterflyEl.hidden) dismissButterfly(true);
-    } else if (wasCatMoving) {
+    } else if (state.catGaitMix>0&&!reduced) {
+      busy=true;
+      catEl._rigCatWorldX=state.catX;catEl._rigCatFacing=state.catDir;
+      poseCatLegs(true);
+    } else if (wasCatMoving||catEl._catWasSettling) {
       poseCatLegs(false);
     }
+    catEl._catWasSettling=catEl.classList.contains("is-settling");
 
     // camera
     if (state.title && !reduced) {
@@ -341,12 +396,17 @@
 
   // ---------- character reactions ----------
   function flash(el, cls, ms) {
+    if(el._paintRig)delete el._paintRig.times[cls];
     el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls);
     setTimeout(function () { el.classList.remove(cls); }, ms);
   }
   function bubble(el, text, ms) {
     var b = el.querySelector(".bubble");
-    b.textContent = text; b.classList.add("show");
+    b.textContent = text; b.style.setProperty('--bubble-shift','0px'); b.classList.add("show");
+    requestAnimationFrame(function () {
+      var r=b.getBoundingClientRect(),edge=12,shift=r.left<edge?edge-r.left:r.right>innerWidth-edge?innerWidth-edge-r.right:0;
+      b.style.setProperty('--bubble-shift',shift.toFixed(2)+'px');
+    });
     clearTimeout(b._t); b._t = setTimeout(function () { b.classList.remove("show"); }, ms || 1800);
   }
   function doAction(a) {
@@ -854,9 +914,9 @@
   }
   // The book on the shelves nearest her raised hand (top shelf first).
   function nearestBook() {
-    var best = null, bd = 1e9, cr = charEl.getBoundingClientRect(), hx = cr.left + cr.width * (state.dir > 0 ? 0.72 : 0.28);
+    var best = null, bd = 1e9, cr = charEl.getBoundingClientRect(), hx = cr.left + cr.width * (state.dir > 0 ? 1.2 : -0.2);
     $$(".st-research .book", groundEl).forEach(function (b) {
-      var r = b.getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - hx) + Math.max(0, r.top - cr.top) * 0.6;
+      var r = ($(".book-hit",b)||b).getBoundingClientRect(), d = Math.abs(r.left + r.width / 2 - hx) + Math.max(0, r.top - cr.top) * 0.6;
       if (d < bd) { bd = d; best = b; }
     });
     return best;
@@ -869,6 +929,7 @@
     } },
     research: { face: 1, hands: true, busy: { en: "Shh, I'm reading 📖", zh: "嘘，我在看书 📖" }, run: function () {
       var book = nearestBook();
+      if (book && ART.aimHand) { var target = $(".book-hit",book), bounds=target.getBBox(); ART.aimHand(charEl,target,bounds.x+bounds.width/2,bounds.y+bounds.height/2); }
       charEl.classList.add("act-reach");
       later(function () { if (book) book.classList.add("is-taken"); charEl.classList.add("has-book"); }, 550);
       later(function () { charEl.classList.remove("act-reach"); charEl.classList.add("act-read"); sayIfQuiet({ en: "Ooh, this one…", zh: "嗯，就这本……" }); }, 1150);
@@ -895,6 +956,7 @@
     } },
     contact: { face: 1, hands: true, repeat: true, run: function () {
       var mb = $(".mailbox", stEl("contact"));
+      if (ART.aimHand) ART.aimHand(charEl,mb,-6,449);
       mb.classList.remove("is-mailed");
       charEl.classList.add("has-letter", "act-mail");
       later(function () { charEl.classList.remove("has-letter"); mb.classList.add("is-mailed"); }, 1300);
@@ -919,6 +981,8 @@
     if (!acting) return;
     actTimers.forEach(clearTimeout); actTimers = [];
     ACT_CLASSES.forEach(function (c) { charEl.classList.remove(c); });
+    if(charEl._paintRig)charEl._paintRig.times={};
+    delete charEl._rigHandTarget;
     stEl(acting).classList.remove("is-acting");
     $$(".is-taken, .is-mailed", groundEl).forEach(function (el) { el.classList.remove("is-taken", "is-mailed"); });
     acting = null;
@@ -951,7 +1015,7 @@
         document.documentElement.getAttribute("data-theme") === "dark" ||
         document.body.classList.contains("theater-open") || !$("#video-modal").hidden ||
         Math.abs(state.vel) > 1 || Math.abs(state.target - state.x) > .5 || Math.abs(state.catVel) > 1 ||
-        catEl.classList.contains("is-walking") || catEl.classList.contains("is-tail-playing") || catEl.classList.contains("is-pouncing")) return false;
+        catEl.classList.contains("is-walking") || catEl.classList.contains("is-settling") || catEl.classList.contains("is-tail-playing") || catEl.classList.contains("is-pouncing")) return false;
     var box = catEl.getBoundingClientRect(), scene = worldEl.getBoundingClientRect();
     return box.left > scene.left + 24 && box.right < scene.right - 24 && box.top > scene.top + 44;
   }
@@ -1010,7 +1074,7 @@
     if (kind === "tail" && !butterflyEl.hidden) dismissButterfly(true);
     clearTimeout(kittyPlayTimer);
     catEl.classList.remove("is-pouncing", "is-tail-playing");
-    if (reduced || catEl.classList.contains("is-walking")) { kittyPoke(); return; }
+    if (reduced || catEl.classList.contains("is-walking") || catEl.classList.contains("is-settling")) { kittyPoke(); return; }
     void catEl.offsetWidth;
     var cls = kind === "butterfly" ? "is-pouncing" : "is-tail-playing";
     catEl.classList.add(cls);
@@ -1022,7 +1086,7 @@
     bubble(catEl, lines[pokes++ % lines.length], 1800);
     flash(catEl, "is-happy", 1200);
     hearts(catEl);
-    if (pokes % 3 === 0 && !reduced && !catEl.classList.contains("is-walking")) kittyPlay("tail");
+    if (pokes % 3 === 0 && !reduced && !catEl.classList.contains("is-walking") && !catEl.classList.contains("is-settling")) kittyPlay("tail");
   }
 
   function thumbOf(src) { return String(src).replace(/\/([^\/]+)$/, "/thumbs/$1"); }
@@ -1075,11 +1139,7 @@
   var theater = null, talkIdx = 0;
   function driveSrc(id) { return "https://drive.google.com/file/d/" + encodeURIComponent(id) + "/preview"; }
   function buildTheater() {
-    var heads = "", r = ART.rng(77);
-    for (var x = 10; x < 1000; x += 58 + r() * 26) {
-      var s = 0.8 + r() * 0.45, hy = 70 + r() * 14;
-      heads += '<g transform="translate(' + x.toFixed(0) + " " + hy.toFixed(0) + ") scale(" + s.toFixed(2) + ')">' + ART.audienceFigure(Math.round(x), true) + '</g>';
-    }
+    var curtain = '<svg viewBox="0 0 62 323" preserveAspectRatio="none">' + ART.paintSprite("theaterCurtain", 0, 0, 62, 323) + '</svg>';
     theater = document.createElement("div");
     theater.className = "theater";
     theater.id = "theater";
@@ -1088,20 +1148,23 @@
     theater.setAttribute("aria-modal", "true");
     theater.setAttribute("aria-labelledby", "th-title");
     theater.innerHTML =
+      '<div class="th-curtain th-curtain-left" aria-hidden="true">' + curtain + '</div>' +
+      '<div class="th-curtain th-curtain-right" aria-hidden="true">' + curtain + '</div>' +
       '<div class="th-hall">' +
         '<div class="th-top"><p class="th-marquee"><span class="th-dot" aria-hidden="true"></span>Now presenting · Hanjing Shi</p>' +
           '<button type="button" class="icon-btn th-close" aria-label="Leave the lecture hall"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
         '<h2 id="th-title"></h2><p class="th-venue" id="th-venue"></p>' +
         '<div class="th-stage"><div class="th-screen" id="th-screen"></div>' +
-          '<div class="th-speaker face-left" aria-hidden="true"><div class="th-avatar hj-char">' + ART.character("th") + '</div>' +
-          '<svg class="th-podium" viewBox="0 0 80 96"><path d="M8 96L12 22H68L72 96Z"/><path d="M2 22L8 10H72L78 22Z"/><rect x="30" y="46" width="20" height="14" rx="2"/><path d="M34 10Q30 -6 18 -10" fill="none" stroke-width="3"/></svg></div></div>' +
-        '<svg class="th-audience" viewBox="0 0 1000 140" preserveAspectRatio="xMidYMax slice" aria-hidden="true">' + heads + "</svg>" +
+          '<div class="th-speaker face-left" aria-hidden="true"><div class="th-avatar hj-char face-left">' + ART.character("th") + '</div>' +
+          '<svg class="th-podium" viewBox="0 0 128 131">' + ART.paintSprite("theaterPodium", 0, 0, 128, 131, "", "M1008 637L1024 630H1128V641L1119 645V746L1125 751V755H1019V747L1017 646H1008Z") + '</svg></div></div>' +
+        '<svg class="th-audience" viewBox="0 0 1142 194" preserveAspectRatio="xMidYMax meet" aria-hidden="true">' + ART.paintSprite("theaterAudience", 0, 0, 1142, 194) + "</svg>" +
         '<nav class="th-program" aria-label="Program"><p class="th-program-h">Program</p>' +
           D.videos.map(function (v, i) {
             return '<button type="button" class="th-item" data-talk="' + i + '"><span class="th-item-venue">' + esc(v.venue) + "</span>" + esc(v.title) + "</button>";
           }).join("") + "</nav>" +
       "</div>";
     document.body.appendChild(theater);
+    if (ART.initMotionRigs) ART.initMotionRigs(theater);
     theater.addEventListener("click", function (e) {
       if (e.target.closest(".th-close")) { closeTheater(); return; }
       var b = e.target.closest("[data-talk]");
@@ -1229,11 +1292,16 @@
     var ring = $(".pond-ring", el), koi = $(".pond-koi", el);
     var waterY = clamp(point.y, 714, 790);
     ring.setAttribute("cx", point.x); ring.setAttribute("cy", waterY);
-    koi.setAttribute("transform", "translate(" + (point.x - 18) + " " + (waterY + 3) + ")");
+    var direction = clientX > worldEl.getBoundingClientRect().left + state.cw * .58 ? -1 : 1;
+    koi.setAttribute("transform", "translate(" + point.x + " " + (waterY + 3) + ")");
+    koi.style.setProperty("--koi-facing", direction);
+    koi.style.setProperty("--koi-half", (direction * 42) + "px");
+    koi.style.setProperty("--koi-travel", (direction * 94) + "px");
+    koi.style.setProperty("--koi-turn", (direction * 9) + "deg");
     clearTimeout(el._stirTimer);
     el.classList.remove("is-stirred"); void el.getBoundingClientRect();
     el.classList.add("is-stirred");
-    el._stirTimer = setTimeout(function () { el.classList.remove("is-stirred"); }, 2600);
+    el._stirTimer = setTimeout(function () { el.classList.remove("is-stirred"); }, reduced ? 2400 : 5600);
   }
 
   function onWorldClick(e) {

@@ -594,11 +594,13 @@
   }
 
   function rock(x, y, w, h) {
+    if (window.HJArt && window.HJArt.paintSprite) return window.HJArt.paintSprite('rock',x-w/2,y-h,w,h,'garden-stone');
     var d = "M" + f1(x - w / 2) + " " + y + "L" + f1(x - w * .42) + " " + f1(y - h * .46) + "Q" + f1(x - w * .33) + " " + f1(y - h * .91) + " " + f1(x - w * .12) + " " + f1(y - h * .96) + "L" + f1(x + w * .09) + " " + f1(y - h) + "Q" + f1(x + w * .32) + " " + f1(y - h * .85) + " " + f1(x + w * .4) + " " + f1(y - h * .41) + "L" + f1(x + w / 2) + " " + y + "Z";
     return '<g><path class="rock" d="' + d + '"/>' + surface(d, "stone") + '<path class="rock-shadow" d="M' + f1(x + w * .09) + ' ' + f1(y - h) + 'l' + f1(w * .08) + ' ' + f1(h * .55) + 'l' + f1(w * .33) + ' ' + f1(h * .45) + 'H' + f1(x + w * .05) + 'Z"/><path class="rock-fissure" d="M' + f1(x - w * .1) + ' ' + f1(y - h * .91) + 'l-2 ' + f1(h * .35) + ' 5 3 -4 ' + f1(h * .26) + '"/></g>';
   }
 
   function grass(x, y, s) {
+    if (window.HJArt && window.HJArt.paintSprite) return '<g class="painted-grass" transform="translate('+f1(x)+' '+f1(y)+') scale('+(s || 1)+')">'+window.HJArt.paintSprite('grass',-12,-23,24,23)+'</g>';
     var r = rng(Math.round(x * 31 + y * 11)), blades = "", ribs = "";
     for (var i = 0; i < 8; i++) {
       var bx = (r() - .5) * 15, h = 9 + r() * 19, lean = (r() - .5) * 25, w = .6 + r() * 1.1;
@@ -611,6 +613,7 @@
 
   // A Tang stone lamp: lotus base, slim pillar, lotus seat, lamp chamber, flat octagonal cap and pearl.
   function stoneLantern(x) {
+    if (window.HJArt && window.HJArt.paintSprite) return window.HJArt.paintSprite('lantern',x-19,GY-72,38,72,'garden-lantern');
     var y = GY;
     return '<g class="stone-lantern" transform="translate(' + x + " " + y + ')">' +
       '<circle class="lantern-glow" cx="0" cy="-54" r="34"/>' +
@@ -757,6 +760,11 @@
   // --- distant Tang architecture: single-colour silhouettes with a few light details ---
   function box(x, y, w, h) { return "M" + f1(x) + " " + f1(y) + "h" + f1(w) + "v" + f1(h) + "h" + f1(-w) + "Z"; }
   function bgWrap(cls, sil, det, lights, x, base, scale, span, roofs, eaves) {
+    if (window.HJArt && window.HJArt.paintSprite) {
+      var tower = span / scale <= 108, pw = tower ? 80 * scale : Math.min(160 * scale, span * 1.35), ph = tower ? 168 * scale : pw * 1.05;
+      var uidPaint = 'distantPaint'+f1(x)+'b'+f1(base);
+      return '<g class="bg-site '+cls+'"><defs><linearGradient id="'+uidPaint+'" x2="0" y2="1"><stop offset=".75" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient><mask id="m'+uidPaint+'" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#'+uidPaint+')"/></mask></defs><g class="bg-arch '+cls+'" mask="url(#m'+uidPaint+')">'+window.HJArt.paintSprite(tower ? 'pagoda' : 'pavilion',x-pw/2,base-ph,pw,ph)+'<g class="paint-distant-lights">'+(tower ? [0.3,.55,.77] : [.61]).map(function(py){return '<ellipse cx="'+x+'" cy="'+f1(base-ph+ph*py)+'" rx="'+f1(pw*.12)+'" ry="'+f1(ph*.025)+'" fill="url(#gHomeLight)"/>';}).join('')+'</g></g></g>';
+    }
     var uid = "feet" + f1(x) + "b" + f1(base), r = rng(Math.round(x)), foliage = "", lines = "";
     // Match the painted bank's quadratic curves, so trees at its edges cannot float above it.
     function slope(tx) {
@@ -911,7 +919,7 @@
       var w = i === 5 ? 24 : 180, h = w * 2 / 3;
       return '<pattern id="g' + name + '" width="' + w + '" height="' + h + '" patternUnits="userSpaceOnUse"><image class="material-image" href="assets/art/material-' + i + '.webp" width="' + w + '" height="' + h + '" preserveAspectRatio="none"/></pattern>';
     }).join("");
-    return '<defs>' + materials + '<filter id="gOcclusion" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>' +
+    return '<defs>' + materials + '<radialGradient id="gKoiPearl" cx=".4" cy=".35" r=".8"><stop stop-color="#f2ebd5"/><stop offset=".65" stop-color="#d6d9c4"/><stop offset="1" stop-color="#a6bbac"/></radialGradient><radialGradient id="gHomeLight"><stop stop-color="#ffd394" stop-opacity=".65"/><stop offset="1" stop-color="#f0aa54" stop-opacity="0"/></radialGradient><filter id="gOcclusion" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>' +
       '<linearGradient id="gTreeRoots" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="-20" y2="2"><stop stop-color="white"/><stop offset=".45" stop-color="#aaa"/><stop offset="1" stop-color="black"/></linearGradient><mask id="mTreeRoots" maskUnits="userSpaceOnUse" x="-100" y="-180" width="200" height="190"><rect x="-100" y="-180" width="200" height="190" fill="url(#gTreeRoots)"/></mask>' +
       '<pattern id="gMineral" width="160" height="128" patternUnits="userSpaceOnUse"><g class="mineral-flecks">' + marks + '</g><path class="mineral-wash" d="M12 28l18 -7 14 9 -7 11 -20 -3ZM84 84l26 -8 16 9 -8 12 -27 -2Z"/></pattern>' +
       '<pattern id="gClay" width="90" height="68" patternUnits="userSpaceOnUse"><path class="clay-grain" d="M8 12l14 -3M31 16l17 2M52 8l23 3M18 48l12 -4M45 56l23 -2M73 40l8 1M9 29l6 1M61 27l9 -2"/></pattern>' +
@@ -935,13 +943,14 @@
       '<linearGradient id="gPaper" x1="0" y1="0" x2=".1" y2="1"><stop stop-color="var(--w-note)"/><stop offset=".6" stop-color="var(--w-fill)"/><stop offset="1" stop-color="var(--w-stone)"/></linearGradient>' +
       '<linearGradient id="gAudienceCloth" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="var(--w-line-soft)"/><stop offset=".5" stop-color="var(--w-ink-fill)"/><stop offset="1" stop-color="var(--w-ink)"/></linearGradient>' +
       '<linearGradient id="gTheaterCloth" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#312b27"/><stop offset=".5" stop-color="#141212"/><stop offset="1" stop-color="#070504"/></linearGradient>' +
-      '<pattern id="gGabardine" width="3" height="3" patternUnits="userSpaceOnUse"><path d="M-1 1L1 -1M0 3L3 0M2 4L4 2" stroke="#6d5438" stroke-width=".2" opacity=".6"/><path d="M0 1L1 0M1 3L3 1" stroke="#f5e2bc" stroke-width=".2" opacity=".6"/></pattern>' +
+      '<pattern id="gGabardine" width="1.2" height="1.2" patternUnits="userSpaceOnUse"><path d="M-.4 .4L.4 -.4M0 1.2L1.2 0M.8 1.6L1.6 .8" stroke="#79644c" stroke-width=".08" opacity=".34"/><path d="M0 .4L.4 0M.4 1.2L1.2 .4" stroke="#f1e4cf" stroke-width=".08" opacity=".4"/></pattern>' +
       '<pattern id="gSilkWeave" width="2" height="2" patternUnits="userSpaceOnUse"><path d="M0 .5H2M.5 0V2" stroke="#9c939c" stroke-width=".1" opacity=".28"/></pattern>' +
       '<pattern id="gLeatherGrain" width="12" height="10" patternUnits="userSpaceOnUse"><path d="M1 2l1 1M5 1l2 1M10 3l1 1M2 7l2 1M8 6l1 1M6 9l1 1" stroke="#27201a" stroke-width=".6" opacity=".3"/></pattern>' +
       // materials: soft light from the upper left, so surfaces read as solid rather than flat
       '<linearGradient id="gWall" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-fill)"/><stop offset="1" style="stop-color:var(--w-interior)"/></linearGradient>' +
       '<linearGradient id="gStone" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--w-stone)"/><stop offset="1" style="stop-color:var(--w-rock)"/></linearGradient>' +
-      '<linearGradient id="gWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-wood-2)"/><stop offset="1" style="stop-color:var(--w-wood)"/></linearGradient>' +
+      '<linearGradient id="gWood" x1="0" y1="0" x2=".25" y2="1"><stop offset="0" style="stop-color:var(--w-wood-light)"/><stop offset=".34" style="stop-color:var(--w-wood-2)"/><stop offset="1" style="stop-color:var(--w-wood)"/></linearGradient>' +
+      '<linearGradient id="gRoof" x1=".2" y1="0" x2=".75" y2="1"><stop stop-color="var(--w-roof-light)"/><stop offset=".45" stop-color="var(--w-roof)"/><stop offset="1" stop-color="var(--w-roof-shade)"/></linearGradient>' +
       '<linearGradient id="gRed" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--w-accent)"/><stop offset="1" style="stop-color:var(--w-accent-deep)"/></linearGradient>' +
       '<linearGradient id="gMachine" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-machine-2)"/><stop offset="1" style="stop-color:var(--w-machine)"/></linearGradient>' +
       '<linearGradient id="gCampusGranite" x1="0" y1="0" x2="1" y2=".65"><stop stop-color="var(--campus-granite-light)"/><stop offset=".65" stop-color="var(--campus-granite)"/><stop offset="1" stop-color="var(--campus-granite-shade)"/></linearGradient>' +
@@ -1084,6 +1093,24 @@
       '<g class="deco">' + deco + "</g>";
   }
 
+  // A Kohaku koi seen through the water: pearl scales, irregular markings and translucent fins.
+  function koi() {
+    var scales = '';
+    for (var row = -1; row <= 1; row++) {
+      for (var x = -11; x < 14; x += 4) {
+        scales += 'M' + (x + (row % 2 ? 2 : 0)) + ' ' + (row * 2.6) + 'q2 -1.6 3.4 0';
+      }
+    }
+    return '<g class="koi-swim"><g class="koi-facing"><ellipse class="koi-under-shadow" cx="0" cy="3" rx="23" ry="5"/>' +
+      '<g class="koi-tail"><path class="koi-fin" d="M-17 -1Q-26 -2 -33 -10Q-29 -2 -31 0Q-29 2 -33 10Q-26 2 -17 1Z"/><path class="koi-fin-rays" d="M-18 0L-30 -7M-18 0h-11M-18 0L-30 7"/></g>' +
+      '<g class="koi-pectoral"><path class="koi-fin" d="M8 -3Q6 -8 -1 -10Q1 -5 6 -2ZM8 3Q6 8 -1 10Q1 5 6 2Z"/><path class="koi-fin-rays" d="M7 -3l-5 -5M7 3l-5 5"/></g>' +
+      '<path class="koi-body" d="M-19 0C-14 -1 -12 -5 -1 -6C12 -7 20 -4 24 0C20 4 12 7 -1 6C-12 5 -14 1 -19 0Z"/>' +
+      '<path class="koi-mark" d="M10 -5Q15 -6 20 -2Q17 0 19 2Q15 5 10 4Q12 1 8 -1Q11 -2 10 -5ZM-7 -5Q-3 -6 2 -5Q4 -3 1 -1Q5 2 2 5L-3 5Q-6 3 -3 1Q-8 0 -7 -5Z"/>' +
+      '<path class="koi-scales" d="' + scales + '"/><path class="koi-spine" d="M-14 0Q-1 -1 13 0"/>' +
+      '<path class="koi-gill" d="M16 -3Q13 0 16 3"/><circle class="koi-eye" cx="20" cy="-2" r=".8"/><circle class="koi-eye" cx="20" cy="2" r=".8"/>' +
+      '<path class="koi-barbel" d="M23 -.8q4 -2 5 -1M23 .8q4 2 5 1"/></g></g>';
+  }
+
   function foreground(width) {
     var r = rng(71), reeds = "", blades = "", stems = "", flowers = "", leaves = "", reflections = "";
     var sr = rng(186), shorePoints = [[0, 685]], shore, bank, bankGrass = "", shoreMarks = "", waterLines = "", bed = "";
@@ -1163,7 +1190,7 @@
       '<g class="lotus-pond"><path class="pond" d="' + waterShape + '"/><path class="pond-shallows" d="' + waterShape + '"/><path class="pond-edge" d="' + shore + '"/>' +
       '<path class="shore-waterline" d="' + shoreMarks + '"/><path class="submerged-stems" d="' + bed + '"/>' + waterLines +
       '<g id="water-light" class="water-light"><ellipse cx="0" cy="756" rx="115" ry="40" fill="url(#gWaterLight)"/><g class="water-sparkle">' + lightLines + '</g></g>' + reflections +
-      '<g class="pond-koi" transform="translate(420 763)"><path d="M-14 0Q-7 -6 6 -3L14 -7L11 0L14 6L6 3Q-7 6 -14 0Z"/><path class="koi-mark" d="M-9 -2q5 -2 8 2q-4 3 -7 2Z"/></g>' +
+      '<g class="pond-koi" transform="translate(420 763)">' + koi() + '</g>' +
       '<ellipse class="pond-ring" cx="420" cy="760" rx="35" ry="7"/>' + stems + leaves + flowers + '</g>' +
       '<path class="reed-blades" d="' + blades + '"/><path class="reeds" d="' + reeds + '"/>';
   }
@@ -1439,25 +1466,39 @@
   function silkPainting(x, i) {
     var ink = '';
     function flower(cx,cy,r,kind) {
-      var petals = '', n = kind === 'chrysanthemum' ? 18 : kind === 'plum' ? 5 : 5;
-      for (var k = 0; k < n; k++) petals += '<path class="screen-petal ' + kind + '-petal" transform="rotate(' + (k * 360/n + (kind === 'plum' ? 12 : 0)) + ')" d="' + (kind === 'chrysanthemum' ? 'M-.6 -1Q-3 -5 -1 -10Q2 -11 2 -7L1 -1Z' : kind === 'orchid' ? 'M0 0Q-3 -5 0 -9Q3 -4 0 0Z' : 'M0 0C-5 -2 -4 -7 0 -6C4 -7 5 -2 0 0Z') + '"/>';
-      return '<g transform="translate(' + cx + ' ' + cy + ') scale(' + r + ')">' + petals + '<circle class="screen-flower-heart" r="1.2"/><path class="screen-stamens" d="M-1 0l-1 -2M0 -.7V-3M1 0l1 -2"/></g>';
+      var petals = '', stamens = '', tiers = kind === 'chrysanthemum' ? [20, 15, 10] : [5];
+      tiers.forEach(function(n, tier) {
+        for (var k = 0; k < n; k++) {
+          var angle = k * 360/n + (kind === 'plum' ? 12 : tier * 13), len = 1 - tier * .23;
+          var d = kind === 'chrysanthemum' ? 'M-.7 -.6C-2.2 -4 -3.2 -8 -1.5 -10.2Q.4 -12 1.9 -10Q2.3 -7 .7 -.6Z' : kind === 'orchid' ? 'M0 .5C-2.8 -2 -2.5 -6 -.2 -9.8C2.5 -7 3 -2 0 .5Z' : 'M0 .5C-2.8 -.7 -4.9 -3.1 -3.4 -5.3Q-1.5 -7.7 .3 -6.4Q3.5 -7.4 4 -4.9C4.5 -2.6 2.5 -.6 0 .5Z';
+          petals += '<g transform="rotate(' + f1(angle) + ') scale(' + len + ')"><path class="screen-petal ' + kind + '-petal" d="' + d + '"/><path class="screen-petal-vein" d="M0 -.7Q-.6 -3 -.1 ' + (kind === 'plum' ? '-5.2' : '-8.2') + 'M-1.1 -2.1l-.9 -1.7M.9 -2.2l.8 -1.8"/><path class="screen-petal-light" d="M-1.5 -5.3Q-.4 -7 .4 -6.1"/></g>';
+        }
+      });
+      var count = kind === 'plum' ? 11 : kind === 'chrysanthemum' ? 9 : 5;
+      for(var st = 0; st < count; st++) {
+        var a = st / count * Math.PI * 2, sx = f1(Math.cos(a) * 2), sy = f1(Math.sin(a) * 2);
+        stamens += '<path class="screen-stamens" d="M0 0L' + sx + ' ' + sy + '"/><circle class="screen-anther" cx="' + sx + '" cy="' + sy + '" r=".25"/>';
+      }
+      return '<g transform="translate(' + cx + ' ' + cy + ') rotate(' + (cx * .7) + ') scale(' + r + ')">' + petals + '<circle class="screen-flower-heart" r=".9"/>' + stamens + '</g>';
     }
     if (i === 0) {
       ink = '<path class="screen-plum-branch" d="M-18 32C-13 21 -12 11 -7 -2Q-2 -16 16 -28M-10 10Q-20 2 -23 -18M-5 -6Q8 -5 18 -15M-10 16l14 6"/><path class="screen-bark-edge" d="M-17 30q5 -12 7 -18M-8 0Q-2 -13 13 -25M-21 -10l2 6M1 -12l4 -4"/>' +
+        '<path class="screen-old-wood" d="M-20 34Q-13 21 -11 8Q-8 -10 8 -22Q-4 -10 -6 1Q-9 21 -16 34Z"/><path class="screen-twig" d="M-22 -17l-3 -9M14 -25l6 -5M12 -10l10 -2M-10 18l1 8"/><path class="screen-bark-grain" d="M-16 29l2 -5M-12 17l1 -5M-8 1l1 -4M-5 -9l2 -3"/>' +
         [[-21,-16,.63],[-13,-4,.8],[-7,-1,.68],[4,-14,.75],[15,-26,.7],[16,-13,.64],[-5,18,.65]].map(function(p){return flower(p[0],p[1],p[2],'plum');}).join('') +
         '<path class="screen-bud-stalk" d="M-19 -12l-6 -7M8 -20l5 1M9 20l4 -4"/><circle class="plum-bud" cx="-25" cy="-20" r="1.8"/><circle class="plum-bud" cx="14" cy="-19" r="1.5"/><circle class="plum-bud" cx="13" cy="16" r="1.6"/>';
     } else if (i === 1) {
       ink = '<path class="screen-orchid-leaf" d="M0 31C-11 15 -18 -9 -22 -25C-18 -7 -8 12 3 29ZM0 31C-4 11 0 -12 10 -29C4 -9 -1 11 3 30ZM1 31C7 7 19 -6 25 -5C15 0 9 15 4 31ZM0 30C-15 15 -24 11 -27 17C-18 14 -9 22 0 33ZM4 31C14 15 20 9 25 16C19 13 14 23 6 32Z"/>' +
+        '<path class="screen-leaf-shadow" d="M0 31Q-14 9 -22 -25Q-13 8 2 29ZM2 30Q4 5 10 -29Q0 2 0 31Z"/>' +
         '<path class="screen-leaf-vein" d="M-1 28Q-12 8 -20 -20M2 28Q-2 -1 8 -24M4 29Q11 9 22 -3M-22 16l15 9"/><path class="screen-fine-stem" d="M1 29Q-14 11 -11 -8M3 28Q17 10 14 -16"/>' + flower(-11,-9,.65,'orchid') + flower(14,-17,.72,'orchid') +
         '<path class="screen-orchid-lip" d="M-12 -8q-4 5 1 6q4 -2 1 -6M13 -16q-4 5 1 6q4 -2 1 -6"/>';
     } else if (i === 2) {
       ink = '<path class="screen-bamboo-culm" d="M-15 32L-12 -30H-9L-12 32ZM-2 32L2 -25H4L0 32ZM12 32L14 -17H16L15 32Z"/><path class="screen-bamboo-nodes" d="M-15 21h4M-14 7h4M-13 -8h4M-12 -23h4M-1 19h4M0 4h4M1 -11h4M13 21h4M13 7h4M14 -8h4"/><path class="screen-bamboo-light" d="M-13 29l.5 -7M-12 19l.5 -10M-11 5l.5 -10M-10 -11l.5 -10M1 18l.5 -12M2 2l.5 -11"/>';
       [[-11,-19,-18],[-12,4,15],[3,-10,-8],[14,7,22]].forEach(function(p){
-        ink += '<g transform="translate(' + p[0] + ' ' + p[1] + ') rotate(' + p[2] + ')"><path class="screen-fine-stem" d="M0 0Q7 -4 15 -3M0 0Q-6 -5 -13 -4"/><path class="screen-bamboo-leaf" d="M2 -1Q4 -10 8 -12Q8 -6 2 -1ZM5 -2Q14 -9 20 -7Q15 -4 5 -2ZM8 -3Q15 0 16 7Q11 4 8 -3ZM-1 -1Q-7 -11 -11 -11Q-9 -4 -1 -1ZM-5 -3Q-15 -8 -19 -5Q-12 -3 -5 -3Z"/></g>';
+        ink += '<g transform="translate(' + p[0] + ' ' + p[1] + ') rotate(' + p[2] + ')"><path class="screen-fine-stem" d="M0 0Q7 -4 15 -3M0 0Q-6 -5 -13 -4"/><path class="screen-bamboo-leaf" d="M2 -1Q4 -10 8 -12Q8 -6 2 -1ZM5 -2Q14 -9 20 -7Q15 -4 5 -2ZM8 -3Q15 0 16 7Q11 4 8 -3ZM-1 -1Q-7 -11 -11 -11Q-9 -4 -1 -1ZM-5 -3Q-15 -8 -19 -5Q-12 -3 -5 -3Z"/><path class="screen-bamboo-vein" d="M3 -2l4 -8M7 -3l11 -4M9 -2l5 6M-2 -2l-7 -7M-7 -4l-9 -1"/></g>';
       });
     } else {
       ink = '<path class="screen-fine-stem" d="M-7 31Q-3 10 6 -11M-3 18Q-11 14 -14 3"/><path class="screen-chrys-leaf" d="M-3 18l-8 -3 -1 -4 -5 1 -4 -5 -2 6 -4 2 5 3 1 5 6 -2 5 3ZM1 9l7 -3 2 -4 4 1 4 -4 1 5 4 2 -5 3 -2 5 -5 -3 -7 2Z"/><path class="screen-leaf-vein" d="M-4 19l-19 -9M2 10l17 -8M-13 15l-3 4M9 7l4 4"/>' + flower(6,-15,1.12,'chrysanthemum') + flower(-14,1,.63,'chrysanthemum') +
+        '<path class="screen-bamboo-vein" d="M-8 17l-5 -6M-13 16l-6 -2M-12 18l-3 4M8 8l3 -4M12 6l4 -1M10 9l4 2"/>' +
         '<path class="screen-bud-stalk" d="M-3 12Q-1 0 -3 -4"/><ellipse class="chrys-bud" cx="-3" cy="-5" rx="2.4" ry="3.6"/><path class="screen-stamens" d="M-5 -4l2 -3 2 3"/>';
     }
     return '<g class="screen-painting" data-screen-plant="' + SCREEN_PLANTS[i] + '" transform="translate(' + (x + 37) + ' 444)"><title>' + ['Plum blossoms','Orchids','Bamboo','Chrysanthemums'][i] + ' on silk</title><g class="screen-pigment" clip-path="url(#gSilkPaintingClip)">' + ink + '</g><path class="screen-ground-wash" d="M-25 32Q-9 29 9 33Q20 30 26 34H-25Z"/></g>';
@@ -1561,28 +1602,72 @@
       '<path class="pouf-stitches" d="M-56 -6Q-35 2 0 2Q38 2 56 -6"/></g>';
   }
 
-  // 6. Life: suitcase (travel), stove and pot (cooking), a sleeping cat, and a film screen (movies).
+  // An open-front home: its floor meets the walk, and the three bays stay clickable.
+  function lifeHouse() {
+    var floor = '', carving = '';
+    for (var x = -331; x < 338; x += 47) {
+      floor += '<path class="home-floor-joint" d="M' + x + ' 535l-4 19m1 -9h43"/>';
+    }
+    for (var bx = -303; bx < 329; bx += 39) {
+      carving += 'M' + bx + ' 360h17v5h-9v-3h5';
+    }
+    function homeWindow(x, y, w, h) {
+      var bars = '';
+      for (var tx = x + 9; tx < x + w; tx += 16) bars += 'M' + tx + ' ' + (y + 4) + 'v' + (h - 8);
+      for (var ty = y + 12; ty < y + h - 3; ty += 16) bars += 'M' + (x + 4) + ' ' + ty + 'h' + (w - 8);
+      return '<g class="home-window"><rect class="home-paper" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/>' + surface(box(x, y, w, h), 'cloth') +
+        '<path class="home-lattice" d="' + bars + '"/><rect class="home-window-frame" x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '"/><path class="home-sill" d="M' + (x - 4) + ' ' + (y + h + 3) + 'h' + (w + 8) + '"/></g>';
+    }
+    function homeLamp(x) {
+      return '<g class="home-lamp" transform="translate(' + x + ' 371)"><path class="home-lamp-cord" d="M0 -14v17"/><ellipse class="home-lamp-glow" cx="0" cy="44" rx="82" ry="110"/>' +
+        '<path class="home-lamp-shade" d="M-8 4Q-16 17 -8 30Q0 35 8 30Q16 17 8 4Z"/>' + surface('M-8 4Q-16 17 -8 30Q0 35 8 30Q16 17 8 4Z', 'cloth') +
+        '<path class="home-lamp-ribs" d="M-8 5Q-12 17 -8 29M8 5Q12 17 8 29M0 4v28M-9 5H9M-9 30H9"/><path class="home-lamp-tassel" d="M0 33v8m-2 -3v5m4 -5v5"/></g>';
+    }
+    return '<g class="life-home"><title>A little home: cooking, cats and memories</title>' +
+      '<ellipse class="home-contact" cx="0" cy="560" rx="355" ry="5"/>' +
+      tWall(-339, 358, 678, 194) +
+      '<path class="home-room-shade" d="M-337 360h240v176h-240ZM98 360h239v176H98Z"/>' +
+      '<path class="home-floor" d="M-339 536H339L347 554H-347Z"/>' + surface('M-339 536H339L347 554H-347Z', 'wood') + floor +
+      '<path class="home-threshold" d="M-347 554H347V560H-347Z"/>' + surface(box(-346, 555, 692, 4), 'stone') +
+      homeWindow(-304, 388, 105, 76) + homeWindow(-53, 389, 110, 73) + homeWindow(133, 389, 80, 67) +
+      '<path class="home-window-shadow" d="M-304 465l54 71h128l-77 -71ZM-53 463l-27 73H42l15 -73Z"/>' +
+      // Kitchen cabinets and utensils are behind the stove; the foreground handles remain clear.
+      '<g class="home-kitchen"><path class="home-cabinet" d="M-319 487h115v59h-115Z"/>' + surface(box(-318, 488, 113, 57), 'wood') +
+        '<path class="home-cabinet-join" d="M-315 493h48v47h-48ZM-262 493h53v47h-53Z"/><path class="home-counter" d="M-323 481h124v7h-124Z"/><path class="home-cabinet-join" d="M-272 510v7M-258 510v7"/>' +
+        '<path class="home-ceramic" d="M-291 473q0 9 12 9q12 0 12 -9ZM-286 467q0 7 10 7q10 0 10 -7Z"/><path class="home-ceramic-rim" d="M-291 473q12 4 24 0M-286 467q10 3 20 0"/>' +
+        '<path class="home-utensil" d="M-164 401v39m-12 -39v32q0 9 6 9q6 0 6 -9M-143 403v21"/><ellipse class="home-utensil-bowl" cx="-143" cy="434" rx="5" ry="9"/>' +
+        '<path class="home-utensil-rail" d="M-183 398h46"/></g>' +
+      // A small tea tray gives the middle bay a lived-in, quiet feeling.
+      '<g class="home-tea" transform="translate(65 506)"><path class="home-cabinet" d="M-19 0h37v7h-37Zm3 7v18m27 -18v18"/><path class="home-ceramic" d="M-13 -5h10q1 6 -5 6q-5 0 -5 -6ZM4 -7q-2 -9 5 -10q8 1 7 10v7H4Z"/><path class="home-ceramic-rim" d="M-12 -5h8M5 -8h10M9 -17v-3"/></g>' +
+      homeLamp(-115) + homeLamp(111) +
+      // The projecting roof, brackets and column bases all meet their supporting members.
+      dougong(-330, 330, 343, 110) + architrave(-341, 341, 361) +
+      '<path class="home-beam" d="M-344 352h688v12h-688Z"/>' + surface(box(-343, 353, 686, 10), 'wood') +
+      '<path class="home-carving" d="' + carving + '"/>' +
+      columns([-337, -95, 96, 337], 364, 557) +
+      tangRoof(0, 339, 370, 65, { top: .68, chiwei: 8 }) +
+      '<path class="home-eave-shadow" d="M-333 368H333v12H-333Z"/>' +
+      sign(0, 357, 'LIFE', 100, [-11, -11]) +
+    '</g>';
+  }
+
+  // 6. Life: all the original belongings now share an open-front home.
   S.life = function (catThumbs) {
     var y = GY;
     var slides = (catThumbs || []).map(function (src, i, all) {
       return '<image class="cat-slide" href="' + esc(src) + '" x="74" y="' + (y - 152) + '" width="82" height="76" preserveAspectRatio="xMidYMid slice" style="animation-duration:' + (all.length * 2.5) + 's;animation-delay:' + (i * 2.5) + 's"/>';
     }).join("");
     return '<g class="st st-life" data-station="life">' +
-      '<rect class="hit" x="-320" y="300" width="640" height="262"/>' +
-      gshadow(-250, 36) + gshadow(-130, 32) + gshadow(130, 34) + gshadow(247, 22) +
-      sign(-120, 330, "LIFE", 100, [-36, -37]) +
-      '<path class="sign-support" d="M-309 560L-305 296L-299 289L-293 295L-298 560Z"/>' + surface("M-308 559L-304 297L-300 292L-302 559Z", "wood") +
-      '<path class="bark-line" d="M-304 550L-301 314M-303 483l2 -12M-302 374l2 -18"/>' +
-      '<path class="branch" d="M-300 300C-200 290 -60 296 40 288"/>' +
-      '<path class="bark-line" d="M-297 297Q-224 291 -161 293M-120 292q48 0 77 -2"/>' +
+      '<rect class="hit" x="-372" y="265" width="744" height="297"/>' + lifeHouse() +
+      gshadow(190, 36) + gshadow(-238, 32) + gshadow(130, 34) + gshadow(247, 22) +
       // suitcase
-      '<g class="life-item suitcase" data-life="travel" transform="translate(-250 ' + y + ')"><title>Travel</title>' +
+      '<g class="life-item suitcase" data-life="travel" transform="translate(190 ' + y + ')"><title>Travel</title>' +
         '<path class="case-side" d="M28 -62l7 4v54l-7 3Z"/><rect class="case" x="-32" y="-64" width="64" height="62" rx="7"/><path class="material material-leather" d="M-30 -62H27Q30 -62 30 -59V-7Q30 -4 27 -4H-27Q-30 -4 -30 -7Z"/><path class="case-corners" d="M-31 -55q0 -8 8 -8M23 -63q8 0 8 8M-31 -12q0 9 8 9M23 -3q8 0 8 -9"/><path class="object-shade" d="M26 -60h4v52q0 4 -7 4H-25v-3h48q3 0 3 -4Z"/><path class="case-handle" d="M-12 -64V-74H12V-64"/><path class="case-strap" d="M-18 -63V-3M18 -63V-3"/><path class="case-stitch" d="M-20 -59V-6M20 -59V-6"/>' +
         '<path class="case-seam" d="M-23 -60h44q7 0 7 7v40q0 7 -7 7h-43M-29 -54v42"/><path class="leather-wear" d="M-26 -61l8 1M27 -13l-1 5 -7 2M-28 -7l7 2"/>' +
         '<path class="case-buckles" d="M-21 -45h8v10h-8ZM13 -45h8v10h-8Z"/>' +
         '<circle class="sticker s1" cx="-8" cy="-20" r="7"/><path class="sticker-ink" d="M-12 -17l4 -8 4 8M-11 -17h6"/><rect class="sticker s2" x="6" y="-30" width="16" height="11" rx="2" transform="rotate(10 14 -24)"/><path class="sticker s3" d="M-2 -54l5 9h-10z"/></g>' +
       // stove + pot with steam
-      '<g class="life-item stove" data-life="food" transform="translate(-130 ' + y + ')"><title>Cooking</title>' +
+      '<g class="life-item stove" data-life="food" transform="translate(-238 ' + y + ')"><title>Cooking</title>' +
         '<g class="steam"><path d="M-8 -80c-8 -10 8 -16 0 -28"/><path d="M6 -84c-8 -10 8 -16 0 -28"/><path d="M18 -78c-6 -8 6 -14 0 -22"/></g>' +
         '<path class="stove-body" d="M-28 0V-34H28V0Z"/><rect class="stove-fire" x="-14" y="-28" width="28" height="12" rx="3"/>' +
         '<path class="pot" d="M-29 -61Q0 -67 29 -61V-42Q27 -34 0 -34Q-27 -34 -29 -42Z"/><path class="pot-rim" d="M-29 -61Q0 -54 29 -61M-28 -40Q0 -33 28 -40"/><path class="pot-brushing" d="M-23 -54q22 4 43 0M-22 -51q20 4 43 0M-21 -46q20 4 43 0"/><path class="object-shade" d="M18 -62Q30 -60 30 -44V-36H21Q25 -45 18 -62Z"/><path class="metal-highlight" d="M-25 -43q0 -13 16 -17M-26 -37H23"/><path class="pot-handle" d="M-29 -50q-11 -4 -11 4q0 7 11 4M29 -50q11 -4 11 4q0 7 -11 4"/><g class="pot-lid-group"><path class="pot-lid" d="M-31 -63Q0 -83 31 -63Q0 -57 -31 -63Z"/><path class="pot-rim" d="M-27 -64Q0 -78 25 -64"/><path class="lid-knob" d="M-5 -74v-4q5 -4 10 0v4Z"/></g><path class="stove-details" d="M-25 -4h50M-22 -33h44M-23 -28h4M19 -28h4"/><circle class="stove-knob" cx="20" cy="-12" r="3"/></g>' +
