@@ -1,0 +1,26 @@
+/* Weight stays on the stone; only the painted posture reaches upward. */
+.has-motion-rig.is-pouncing .motion-rig-cat {
+  animation: none;
+  transform: scaleX(var(--cat-facing, 1));
+}
+.has-motion-rig.is-pouncing > .hj-cat-svg,
+.has-motion-rig.is-pouncing .cat-shadow {
+  animation: none;
+}
+.has-motion-rig.is-pouncing .cat-shadow {
+  opacity: .75;
+  transform: none;
+}
+.cat-butterfly { bottom: calc(var(--s) * 282px - 22px); }
+.cat-butterfly.is-escaping { animation: butterflyPlantedPlay 2.8s ease-in both; }
+@keyframes butterflyPlantedPlay {
+  0% { opacity: .9; transform: none; }
+  16% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * 1px), -1px); }
+  30% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * -2px), -2px); }
+  48% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * 22px), -22px); }
+  72% { opacity: .8; transform: translate(calc(var(--butterfly-facing) * 12px), -40px); }
+  100% { opacity: 0; transform: translate(calc(var(--butterfly-facing) * 110px), -76px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cat-butterfly, .cat-butterfly.is-escaping { animation: none; }
+}

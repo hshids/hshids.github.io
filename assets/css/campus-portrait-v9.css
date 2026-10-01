@@ -1,0 +1,11 @@
+/* Warm glazing remains inside the painted arches, behind their mullions. */
+.campus-night-light {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .85s ease;
+  mix-blend-mode: screen;
+}
+[data-theme="dark"] .campus-night-light { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+  .campus-night-light { transition: none; }
+}

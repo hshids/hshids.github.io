@@ -17,8 +17,7 @@
 .native-shelf-view.has-book .native-shelf-book { display: inline; }
 .native-profile-view.has-book .native-shelf-book { display: inline; }
 .native-view-props .painted-sprite { opacity: 1 !important; }
-.native-gait-frames .native-profile-lantern .hand-lantern-paint,
-.native-gait-frames .native-profile-lantern .hand-lantern-core { display: none; }
+/* Walking and greeting use the same painted lantern, held by the near hand. */
 .has-native-human-views.native-profile-view .c-root,
 .has-native-human-views.native-shelf-view .c-root { pointer-events: none; }
 

@@ -1,0 +1,4 @@
+/* A few different-sized living trees frame the path. Distant groves retain
+   their existing ridge masks and atmospheric perspective. */
+.ground-tree-young .vegetation-image { opacity: .91; }
+.ground-tree-mature .vegetation-image { opacity: .97; }

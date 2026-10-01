@@ -7,7 +7,7 @@
   function identity(){return [1,0,0,1,0,0];}
   function rotate(deg,x,y){var a=deg*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return [c,s,-s,c,x-c*x+s*y,y-s*x-c*y];}
   function multiply(a,b){return [a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];}
-  function asset(name){if(!images[name]){var im=new Image();im.src=new URL(name+'.webp',artBase).href;images[name]=im;}return images[name];}
+  function asset(name){if(!images[name]){var im=new Image();im.src=new URL(name+'.webp',artBase).href;if(im.decode)im.decode().catch(function(){});images[name]=im;}return images[name];}
   function polygon(path){var n=path.match(/-?\d+(?:\.\d+)?/g).map(Number),p=[];for(var i=0;i<n.length;i+=2)p.push([n[i],n[i+1]]);return p;}
   function within(p,x,y){var inside=false;for(var i=0,j=p.length-1;i<p.length;j=i++){if(((p[i][1]>y)!==(p[j][1]>y))&&(x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0]))inside=!inside;}return inside;}
   function shader(gl,type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error('Painted motion shader failed');return s;}
@@ -38,7 +38,7 @@
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);
     gl.bindTexture(gl.TEXTURE_2D,tex);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
     function mesh(c){
-      var vertices=[],foreground=[],step=c.step||2,box=c.box,cols=Math.ceil(box[2]/step),rows=Math.ceil(box[3]/step);
+      var vertices=[],foreground=[],step=c.step||2,box=c.box,cols=Math.ceil(box[2]/step),rows=Math.ceil(box[3]/step),lattice=c.gaitFrame!==undefined?{}:null;
       function append(list,a,b,d){
         if(c.alphaPrefix){
           var w=c.sheet[0],h=c.sheet[1],stride=w+1,prefix=c.alphaPrefix;
@@ -48,7 +48,7 @@
         }
         list.push(a,b,d);
       }
-      function vertex(cx,cy){var x=box[0]+cx/cols*box[2],y=box[1]+cy/rows*box[3];return {x:x,y:y,u:(c.crop[0]+cx/cols*c.crop[2])/c.sheet[0],v:(c.crop[1]+cy/rows*c.crop[3])/c.sheet[1],weights:c.weights(x,y)};}
+      function vertex(cx,cy){var key=cy*(cols+1)+cx;if(lattice&&lattice[key])return lattice[key];var x=box[0]+cx/cols*box[2],y=box[1]+cy/rows*box[3],v={x:x,y:y,u:(c.crop[0]+cx/cols*c.crop[2])/c.sheet[0],v:(c.crop[1]+cy/rows*c.crop[3])/c.sheet[1],weights:c.weights(x,y)};if(lattice)lattice[key]=v;return v;}
       if(c.grid){
         var previous=null;
         var previousY=0;
@@ -75,15 +75,29 @@
       c.alphaPrefix=null;return c;
     }
     configurations.forEach(function(c){if(!c.prepare)mesh(c);});root.appendChild(canvas);
-    var current=null,currentMesh=null,rig={root:root,type:type,draw:function(c,bones){
+    var current=null,currentMesh=null,paintTextures={},rig={root:root,type:type,textureUploads:0,draw:function(c,bones){
       var image=asset(c.image);if(!image.complete||!image.naturalWidth)return;
       if(c.prepare&&!c.prepared){c.prepare(image);mesh(c);c.prepared=true;}
-      if(current!==image){gl.bindTexture(gl.TEXTURE_2D,tex);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);current=image;}
+      // Keep each decoded native painting in this rig's own GL context.
+      // A walking frame alternates two complete source sheets; rebinding
+      // their textures avoids uploading both full images on every frame.
+      gl.activeTexture(gl.TEXTURE0);
+      if(current!==image){
+        if(paintTextures[c.image])tex=paintTextures[c.image];
+        else{
+          if(current)tex=gl.createTexture();
+          paintTextures[c.image]=tex;gl.bindTexture(gl.TEXTURE_2D,tex);
+          gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+          gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,image);rig.textureUploads++;
+        }
+        current=image;
+      }
+      gl.bindTexture(gl.TEXTURE_2D,tex);
       gl.uniform1f(gl.getUniformLocation(program,'alphaCutoff'),c.alphaCutoff||0);
       gl.uniform2f(gl.getUniformLocation(program,'paintSize'),c.sheet[0],c.sheet[1]);
       gl.uniform2f(gl.getUniformLocation(program,'poseY'),rig.poseY?rig.poseY[0]:1,rig.poseY?rig.poseY[1]:0);
       gl.uniform1f(lightUniforms.contour,c.sourceCuts?1:0);
-      var surface=A.actorSurfaceLight?A.actorSurfaceLight(root,c,bones,type):null;
+      var litConfig=c;if(c.gaitFrame!==undefined&&rig.gaitBlend&&c.night){var g=rig.gaitBlend;litConfig=Object.assign({},c,{lamp:g.first.lamp.map(function(p,i){return p+(g.next.lamp[i]-p)*g.u;})});}var surface=A.actorSurfaceLight?A.actorSurfaceLight(root,litConfig,bones,type):null;
       gl.uniform4fv(lightUniforms.surface,surface?surface.light:[0,0,1,0]);
       gl.uniform3fv(lightUniforms.lamp,surface?surface.lamp:[0,0,0]);
       var handPlanes=c.handBounds&&A.gestureHands?A.gestureHands.cutPlanes(c,c.handMask||{}):null;
@@ -102,7 +116,7 @@
         var v=c.vertices[i],x=0,y=0,qc=0,qs=0,qx=0,qy=0,sx=0,sxy=0,syx=0,sy=0;
         if(v.drawFrame===drawFrame){c.data[i*4]=c.data[v.dataOffset];c.data[i*4+1]=c.data[v.dataOffset+1];continue;}
         v.drawFrame=drawFrame;
-        if(v.weights.length===1){var only=bones[v.weights[0][0]],offset=i*4;c.data[offset]=only[0]*v.x+only[2]*v.y+only[4];c.data[offset+1]=only[1]*v.x+only[3]*v.y+only[5];continue;}
+        if(v.weights.length===1){var only=bones[v.weights[0][0]],offset=i*4,warp=c.gaitWarp,w=warp?v.drawIndex*2:0,vx=v.x+(warp?warp[w]:0),vy=v.y+(warp?warp[w+1]:0);c.data[offset]=only[0]*vx+only[2]*vy+only[4];c.data[offset+1]=only[1]*vx+only[3]*vy+only[5];continue;}
         for(var j=0;j<v.weights.length;j++){
           var w=v.weights[j],m=bones[w[0]];
           if(dq&&!v.linear){var d=w[0]*4;qc+=dq[d]*w[1];qs+=dq[d+1]*w[1];qx+=dq[d+2]*w[1];qy+=dq[d+3]*w[1];if(stretch){sx+=stretch[d]*w[1];sxy+=stretch[d+1]*w[1];syx+=stretch[d+2]*w[1];sy+=stretch[d+3]*w[1];}}
@@ -122,6 +136,7 @@
       if(c.nativeArms)root.classList.add('has-native-arms');
       root.classList.add('has-motion-rig');
     },configs:configurations,times:{}};
+    if(type==='human'&&configurations.some(function(c){return c.gaitFrame!==undefined;})){var baseDraw=rig.draw;rig.draw=gaitCompositor(gl,canvas,rig,baseDraw,function(){gl.useProgram(program);gl.enable(gl.BLEND);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);});}
     root._paintRig=rig;rigs.push(rig);return rig;
   }
   function human(root){
@@ -305,6 +320,7 @@
       if(nightFace)nightFace.setAttribute('transform','matrix('+ratio+' 0 0 '+yRatio+' '+((60-500*184/1507)-(29-334*62/345)*ratio)+' '+((8-13*184/1507)-(8-10*184/1494)*yRatio)+')');
       root.classList.add('has-native-human-views');
       prepareNativeProps(root);
+      prewarmGait(rig);
     }
     return rig;
   }
@@ -393,26 +409,101 @@
     var soles=night?[[48.0184,190.3373],[71.9434,191.8153]]:[[41.1158,190.3306],[72.7898,191.8145]];
     return {image:'hanjing-hold-native',sheet:[1536,1024],crop:crop,box:[ox+crop[0]*k,8,crop[2]*k,184],step:4,weights:function(){return [[0,1]];},nativeView:'hold',night:night,pivots:{mount:[0,0]},footContacts:soles.map(function(p){return {x:p[0],y:p[1],stance:true,lift:0};}),heldBookCenter:night?[70.6225,63.8835]:[71.3145,65.1290],alphaCutoff:.35};
   }
-  var walkSheets={
-    'day-a':{sheet:[2079,756],frames:[{crop:[29,14,521,719],nose:362},{crop:[557,13,407,717],nose:861},{crop:[1069,13,349,719],nose:1345},{crop:[1544,13,521,720],nose:1859}]},
-    'day-b':{sheet:[2054,766],frames:[{crop:[46,12,564,738],nose:398},{crop:[565,10,414,741],nose:864},{crop:[1021,10,398,739],nose:1351},{crop:[1517,10,502,741],nose:1849}]},
-    'night-a':{sheet:[1844,853],frames:[{crop:[61,3,380,831],nose:296,lamp:[155.2,554]},{crop:[520,5,349,828],nose:766,lamp:[820.9,545]},{crop:[954,4,335,827],nose:1213,lamp:[1245.5,557.5]},{crop:[1460,7,371,824],nose:1644,lamp:[1514.5,557]}]},
-    'night-b':{sheet:[1853,849],frames:[{crop:[71,15,398,806],nose:319,lamp:[180.3,548.9]},{crop:[553,13,286,810],nose:765,lamp:[659.9,548.3]},{crop:[1039,13,266,810],nose:1230,lamp:[1124.4,548.7]},{crop:[1434,13,396,802],nose:1663,lamp:[1727.7,527.3]}]}
-  };
-  var walkSoles={
-    'day-a':[[[194.9,725],[439.7,731]],[[716.4,717],[905.3,726]],[[1222.8,680],[1321.7,728]],[[1764,730],[1968.9,687]]],
-    'day-b':[[[212.9,747],[487.8,743]],[[714.2,713],[924.3,748]],[[1195,666],[1360,746]],[[1784.6,748],[1917,689]]],
-    'night-a':[[[151.6,821],[385.3,831]],[[581.4,797],[759.6,830]],[[1022.4,761],[1200.5,828]],[[1630.5,828],[1723.8,781]]],
-    'night-b':[[[156.6,814],[377.3,818]],[[627.2,795],[777.3,820]],[[1106.6,776],[1223.6,820]],[[1543.7,812],[1734.7,804]]]
-  };
+  var walkSheets={"day-a":{"sheet":[2079,756],"frames":[{"crop":[29,13,521,706],"nose":364},{"crop":[568,12,392,704],"nose":861},{"crop":[1066,13,329,704],"nose":1344},{"crop":[1541,12,520,707],"nose":1856}]},"day-b":{"sheet":[2054,766],"frames":[{"crop":[48,11,550,738],"nose":402},{"crop":[567,10,417,740],"nose":867},{"crop":[1029,10,447,739],"nose":1358},{"crop":[1526,9,500,742],"nose":1852}]},"night-a":{"sheet":[1844,853],"frames":[{"crop":[61,1,385,833],"nose":301},{"crop":[518,2,337,831],"nose":775},{"crop":[948,2,340,830],"nose":1216},{"crop":[1485,2,348,830],"nose":1649}]},"night-b":{"sheet":[1852,849],"frames":[{"crop":[67,14,405,809],"nose":322},{"crop":[551,14,327,811],"nose":772},{"crop":[1031,14,299,811],"nose":1237},{"crop":[1431,13,402,806],"nose":1663}]}};
+  var walkSoles={"day-a":[[[194.9,713],[436.77,718]],[[715.21,706],[913.42,715]],[[1240.25,671],[1336.09,716]],[[1758.75,718],[1961,676]]],"day-b":[[[215.32,748],[490.93,743]],[[719.5,712],[933.63,749]],[[1146.9,674],[1380.21,748]],[[1784.6,748],[1917,689]]],"night-a":[[[155.42,822],[396.68,833]],[[582.67,801],[763.81,832]],[[1022.68,766],[1201.32,831]],[[1629.19,831],[1719.7,782]]],"night-b":[[[153.33,818],[368,822]],[[626,799],[785.1,824]],[[1103.67,783],[1233.18,824]],[[1543.7,812],[1734.7,804]]],"day-return":[null,null,null,[[1764,730],[1968.9,687]]],"night-return":[null,null,null,[[1630.5,828],[1723.8,781]]]};
   function nativeWalkFrame(night,phase){
-    var key=(night?'night':'day')+(phase<4?'-a':'-b'),source=walkSheets[key],part=source.frames[phase%4],crop=part.crop,k=184/crop[3],ox=69-part.nose*k,oy=8-crop[1]*k;
+    var key=(night?'night':'day')+(phase<4?'-a':'-b'),source=walkSheets[key],part=source.frames[phase%4],image='hanjing-walk-'+(night?'night':'day')+'-motion'+(phase<4?'-a':'-b');if(phase===7){key=(night?'night':'day')+'-return';source={sheet:night?[1844,853]:[2079,756]};part=night?{crop:[1460,7,371,824],nose:1644}:{crop:[1544,13,521,720],nose:1859};image=night?'hanjing-walk-night-empty-a':'hanjing-walk-day-a';}var crop=part.crop,k=184/crop[3],ox=69-part.nose*k,oy=8-crop[1]*k;
     var soles=walkSoles[key][phase%4],support=phase%4===0?(soles[0][1]>soles[1][1]?0:1):phase%4===3?0:1;
     var feet=soles.map(function(p,i){var y=oy+p[1]*k;return {x:ox+p[0]*k,y:y,stance:i===support,lift:Math.max(0,192-y)};});
     // Each phase is a complete native drawing of the clothing and anatomy.
     // Never skin a shared painted shoe or silk skirt with two opposing knees.
-    return {image:'hanjing-walk-'+key,sheet:source.sheet,crop:crop,box:[ox+crop[0]*k,8,crop[2]*k,184],step:4,weights:function(){return [[0,1]];},nativeView:'profile',gaitFrame:phase,footContacts:feet,night:night,pivots:{mount:[0,0]},lamp:part.lamp?[ox+part.lamp[0]*k,oy+part.lamp[1]*k]:null,cutouts:!night&&key==='day-b'?(phase===4?[[557,0,620,666]]:phase===5?[[565,675,628,766]]:null):null,alphaCutoff:.45};
+    return gaitControls({image:image,sheet:source.sheet,crop:crop,box:[ox+crop[0]*k,8,crop[2]*k,184],step:4,weights:function(){return [[0,1]];},nativeView:'profile',gaitFrame:phase,footContacts:feet,night:night,pivots:{mount:[0,0]},lamp:part.lamp?[ox+part.lamp[0]*k,oy+part.lamp[1]*k]:null,cutouts:!night&&key==='day-b'?(phase===4?[[557,0,620,666]]:phase===5?[[565,675,628,766]]:null):null,alphaCutoff:.45},key,phase%4,k,ox,oy);
   }
+  // Both native paintings move to one shared anatomical pose before their
+  // interior materials blend. Only one deformed silhouette supplies alpha;
+  // a second transparent person or duplicate limbs can never be composited.
+  var walkHands={"day-a":[[[185,394],[430,357]],[[776,408],[921,357]],[[1370,385],[1190,380]],[[1920,360],[1693,384]]],"day-b":[[[423,402],[214,387]],[[840,418],[711,399]],[[1178,400],[1442,374]],[[1890,392],[1681,391]]],"night-a":[[[157,450],[388,419]],[[715,458],[833,425]],[[1247,435],[1088,429]],[[1700,430],[1516,440]]],"night-b":[[[369,425],[165,441]],[[704,450],[859,432]],[[1110,445],[1304,436]],[[1700,429],[1511,438]]],"day-return":[null,null,null,[[1689,409],[1942,350]]],"night-return":[null,null,null,[[1525,445],[1720,438]]]};
+  function gaitControls(c,key,part,k,ox,oy){
+    function pt(p){return[ox+p[0]*k,oy+p[1]*k];}
+    var hands=walkHands[key][part],feet=c.footContacts.map(function(f){return[f.x,f.y];});
+    var points=[[59,15],[69,24],[60,36],[55,44],[67,44],[49,77],[68,77],[59,99],[69,101]];
+    hands.forEach(function(h,i){var hand=pt(h),shoulder=points[3+i];points.push([(shoulder[0]+hand[0])*.5,shoulder[1]+23],hand);});
+    feet.forEach(function(f){points.push([(61+f[0])*.5,134+(f[1]-190)*.18],[f[0],f[1]-7],f,[f[0]-5,f[1]-2],[f[0]+6,f[1]-2]);});
+    c.gaitControls=points;c.nearGrip=pt(hands[0]);
+    if(c.night)c.lamp=[c.nearGrip[0],c.nearGrip[1]+16];
+    return c;
+  }
+  function safeGaitMesh(c,frame){
+    var triangles=c.indices;if(!triangles)return;
+    for(var iteration=0;iteration<12;iteration++){var corrected=0;
+      for(var i=0;i<triangles.length;i+=3){var a=triangles[i],b=triangles[i+1],d=triangles[i+2],va=c.uniqueVertices[a],vb=c.uniqueVertices[b],vd=c.uniqueVertices[d],ax=va.x+frame[a*2],ay=va.y+frame[a*2+1],bx=vb.x+frame[b*2],by=vb.y+frame[b*2+1],dx=vd.x+frame[d*2],dy=vd.y+frame[d*2+1],area=(bx-ax)*(dy-ay)-(by-ay)*(dx-ax),rest=(vb.x-va.x)*(vd.y-va.y)-(vb.y-va.y)*(vd.x-va.x),minimum=rest*.20;
+        if(area<minimum){var ga=[by-dy,dx-bx],gb=[dy-ay,ax-dx],gd=[ay-by,bx-ax],length=ga[0]*ga[0]+ga[1]*ga[1]+gb[0]*gb[0]+gb[1]*gb[1]+gd[0]*gd[0]+gd[1]*gd[1],strength=(minimum-area)/Math.max(.0001,length);[[a,ga],[b,gb],[d,gd]].forEach(function(v){frame[v[0]*2]+=v[1][0]*strength;frame[v[0]*2+1]+=v[1][1]*strength;});corrected++;}
+      }
+      if(!corrected)break;
+    }
+  }
+
+  var gaitCageCache={};
+  function prewarmGait(rig){
+    var poses=rig.configs.filter(function(c){return c.gaitFrame!==undefined;}),jobs=[];
+    [false,true].forEach(function(night){var outfit=poses.filter(function(c){return c.night===night;});outfit.forEach(function(c,i){jobs.push([c,outfit[(i+1)%8]],[outfit[(i+1)%8],c]);});});
+    var state=rig.root._gaitWarmState={complete:0,total:jobs.length};
+    function next(){
+      var pair=jobs.shift();if(!pair)return;
+      // Populate a directed pose field once during scene entry. Every actual
+      // animation frame only interpolates these cached shared coordinates.
+      gaitField(pair[0],pair[1],0,0);pair[0].gaitWarp.fill(0);state.complete++;
+      if(jobs.length){if(window.requestIdleCallback)window.requestIdleCallback(next,{timeout:300});else setTimeout(next,0);}
+    }
+    if(window.requestIdleCallback)window.requestIdleCallback(next,{timeout:300});else setTimeout(next,0);
+  }
+  function gaitField(c,next,u,t){
+    var key=(c.night?'night':'day')+'-'+c.gaitFrame+'-'+next.gaitFrame,cache=gaitCageCache[key],steps=64;
+    if(!cache){
+      var from=c.gaitControls,to=next.gaitControls,delta=from.map(function(p,i){return[to[i][0]-p[0],to[i][1]-p[1]];}),points=c.uniqueVertices.map(function(v){return[v.x,v.y];});
+      cache=[new Float32Array(c.uniqueVertices.length*2)];
+      for(var step=1;step<=steps;step++){
+        var at=(step-.5)/steps,controls=from.map(function(p,i){return[p[0]+delta[i][0]*at,p[1]+delta[i][1]*at];}),frame=new Float32Array(points.length*2);
+        points.forEach(function(p,i){var sx=0,sy=0,total=0;
+          controls.forEach(function(control,n){var dx=p[0]-control[0],dy=p[1]-control[1],distance=dx*dx+dy*dy+36,weight=1/(distance*distance);total+=weight;sx+=delta[n][0]*weight;sy+=delta[n][1]*weight;});
+          p[0]+=sx/total/steps;p[1]+=sy/total/steps;
+          frame[i*2]=p[0]-c.uniqueVertices[i].x;frame[i*2+1]=p[1]-c.uniqueVertices[i].y;
+        });
+        safeGaitMesh(c,frame);points.forEach(function(p,i){p[0]=c.uniqueVertices[i].x+frame[i*2];p[1]=c.uniqueVertices[i].y+frame[i*2+1];});cache.push(frame);
+      }
+      gaitCageCache[key]=cache;
+    }
+    var at=clamp(u,0,1)*steps,lower=Math.floor(at),fraction=at-lower,a=cache[lower],b=cache[Math.min(steps,lower+1)];
+    c.gaitWarp=c.gaitWarp||new Float32Array(c.uniqueVertices.length*2);
+    c.uniqueVertices.forEach(function(v,i){var dx=a[i*2]+(b[i*2]-a[i*2])*fraction,dy=a[i*2+1]+(b[i*2+1]-a[i*2+1])*fraction;
+      function soft(a,b,z){var f=clamp((z-a)/(b-a),0,1);return f*f*(3-2*f);}
+      var hair=c.night?soft(27,33,v.y)*(1-soft(37,42,v.y))*soft(61,53,v.x):soft(31,61,v.y)*(1-soft(64,70,v.y))*soft(55,31,v.x);
+      var cloth=soft(109,156,v.y)*(1-soft(177,190,v.y))*soft(13,30,Math.abs(v.x-63));
+      var belt=c.night?0:soft(86,96,v.y)*(1-soft(105,112,v.y))*soft(11,28,Math.abs(v.x-64));
+      dx+=hair*(c.night?.24:.65)*Math.sin(t/860+v.y*.15)+cloth*(c.night?.4:1.35)*Math.sin(t/1040+v.y*.075)+belt*.45*Math.sin(t/1030+v.y*.11);
+      dy+=hair*.15*Math.cos(t/1100+v.x*.2)+cloth*(c.night?.1:.28)*Math.sin(t/1210+v.y*.08);
+      c.gaitWarp[i*2]=dx;c.gaitWarp[i*2+1]=dy;
+    });safeGaitMesh(c,c.gaitWarp);
+  }
+  function gaitCompositor(gl,canvas,rig,baseDraw,restore){
+    var p=gl.createProgram();gl.attachShader(p,shader(gl,gl.VERTEX_SHADER,'attribute vec2 screenPosition;varying vec2 st;void main(){st=screenPosition*.5+.5;gl_Position=vec4(screenPosition,0.0,1.0);}'));gl.attachShader(p,shader(gl,gl.FRAGMENT_SHADER,'precision highp float;varying vec2 st;uniform sampler2D firstPose;uniform sampler2D secondPose;uniform float portion;void main(){vec4 a=texture2D(firstPose,st),b=texture2D(secondPose,st);vec4 primary=portion<.5?a:b;float common=smoothstep(.15,.8,min(a.a,b.a));vec3 color=mix(primary.rgb,mix(a.rgb,b.rgb,portion),common);gl_FragColor=vec4(color,primary.a);}'));gl.linkProgram(p);
+    var quad=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,quad);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
+    var targets=[0,1].map(function(){var texture=gl.createTexture(),framebuffer=gl.createFramebuffer();gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,canvas.width,canvas.height,0,gl.RGBA,gl.UNSIGNED_BYTE,null);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.bindFramebuffer(gl.FRAMEBUFFER,framebuffer);gl.framebufferTexture2D(gl.FRAMEBUFFER,gl.COLOR_ATTACHMENT0,gl.TEXTURE_2D,texture,0);return{texture:texture,framebuffer:framebuffer};});
+    gl.bindFramebuffer(gl.FRAMEBUFFER,null);
+    return function(c,bones){
+      var g=rig.gaitBlend;
+      if(!g||c.gaitFrame===undefined)return baseDraw(c,bones);
+      if(!asset(g.first.image).complete||!asset(g.next.image).complete||!asset(g.first.image).naturalWidth||!asset(g.next.image).naturalWidth){return baseDraw(rig.configs[c.night?1:0],Array.from({length:12},identity));}
+      gaitField(g.first,g.next,g.u,g.time);gaitField(g.next,g.first,1-g.u,g.time);
+      [g.first,g.next].forEach(function(pose,i){restore();gl.bindFramebuffer(gl.FRAMEBUFFER,targets[i].framebuffer);baseDraw(pose,bones);});
+      gl.bindFramebuffer(gl.FRAMEBUFFER,null);gl.useProgram(p);gl.disable(gl.BLEND);gl.bindBuffer(gl.ARRAY_BUFFER,quad);
+      var position=gl.getAttribLocation(p,'screenPosition');gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,0,0);
+      targets.forEach(function(target,i){gl.activeTexture(i?gl.TEXTURE1:gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,target.texture);gl.uniform1i(gl.getUniformLocation(p,i?'secondPose':'firstPose'),i);});
+      gl.uniform1f(gl.getUniformLocation(p,'portion'),g.u);gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+      restore();rig.currentGaitMix=g.u;
+    };
+  }
+
   function prepareNativeProps(root){
     var svg=root.querySelector('.painted-character'),flip=svg&&svg.querySelector('.c-flip');if(!flip)return;
     var ns='http://www.w3.org/2000/svg',layer=document.createElementNS(ns,'g');layer.setAttribute('class','native-view-props');
@@ -474,11 +565,12 @@
     root.classList.toggle('native-shelf-return',c.shelfReturnFrame!==undefined);
     root._rigNativeShelfReturnFrame=c.shelfReturnFrame===undefined?null:{phase:c.shelfReturnFrame,sourcePhase:c.shelfSourcePhase,painting:c.image,crop:c.crop};
     if(c.shelfReturnFrame!==undefined)root._rigBookPose={stage:'native-return',progress:rig.researchBookMotion.returned,reach:rig.researchBookMotion.reach,center:c.heldBookCenter.slice(),grip:c.heldBookGrip.slice(),painting:c.image,phase:c.shelfReturnFrame};
-    root._rigNativeFrame=c.gaitFrame===undefined?null:{phase:c.gaitFrame,painting:c.image,crop:c.crop};
+    root._rigNativeFrame=c.gaitFrame===undefined?null:{phase:c.gaitFrame,painting:c.image,crop:c.crop,mix:rig.gaitBlend?rig.gaitBlend.u:0};
+    if(c.gaitFrame!==undefined&&rig.gaitBlend){var g=rig.gaitBlend;root._rigNativeFeet=g.first.footContacts.map(function(f,i){var other=g.next.footContacts[i],x=f.x+(other.x-f.x)*g.u,y=f.y+(other.y-f.y)*g.u;return{x:x,y:y,actualY:y,stance:y>189.5,lift:Math.max(0,192-y)};});}
     root._rigBodyDy=jumpY;root._rigHeadMatrix=multiply([1,0,0,jumpScale,0,rig.poseY[1]],b[0]);root._rigCapAnchor={x:60,y:8,headWidth:c.night?30:34,width:c.night?30:34};
     var lantern=root.querySelector('.native-profile-lantern');
     if(lantern){
-      if(c.lamp)lantern.setAttribute('transform','translate('+(c.lamp[0]-33.9)+' '+(c.lamp[1]-133.9)+')');
+      if(c.lamp){var lamp=c.lamp;if(c.gaitFrame!==undefined&&rig.gaitBlend){var g=rig.gaitBlend;lamp=g.first.lamp.map(function(p,i){return p+(g.next.lamp[i]-p)*g.u;});}lantern.setAttribute('transform','translate('+(lamp[0]-33.9)+' '+(lamp[1]-133.9)+')');}
       else if(p.handL){var lp=p.handL,m=b[4],lx=m[0]*lp[0]+m[2]*lp[1]+m[4],ly=m[1]*lp[0]+m[3]*lp[1]+m[5];lantern.setAttribute('transform','translate('+(lx-33.9)+' '+(ly-117.9)+')');}
     }
     var book=root.querySelector('.native-shelf-book');
@@ -509,7 +601,7 @@
       }
       return nearest;
     }
-    return renderer(root,'cat',[{image:'cats-painted',sheet:[1536,1024],crop:[764,33,742,553],box:[2,6,86,64],cutouts:[[942,576,998,590]],step:1.5,legs:legs,weights:function(x,y){
+    var base={image:'cats-painted',sheet:[1536,1024],crop:[764,33,742,553],box:[2,6,86,64],cutouts:[[942,576,998,590]],step:1.5,legs:legs,weights:function(x,y){
       for(var i=legs.length-1;i>=0;i--){var l=legs[i];if(within(l.path,x,y)){
         var feather=clamp(edgeDistance(l.path,x,y)/3,0,1);feather=feather*feather*(3-2*feather);
         feather+=(1-feather)*clamp((y-l.k[1])/5,0,1);
@@ -522,7 +614,7 @@
       // and planted paws keep their original dimensions and ground targets.
       if(x>=28&&x<=64&&y<49){var back=clamp((49-y)/17,0,1)*clamp(Math.min(x-26,67-x)/8,0,1);return [[15,back],[0,1-back]].filter(function(w){return w[1]>0;});}
       return [[0,1]];
-    }}]);
+    }};var configs=A.catV9Configurations?A.catV9Configurations(base):[base];configs.forEach(function(c){asset(c.image);});return renderer(root,'cat',configs);
   }
   function active(rig,name,t){if(!rig.root.classList.contains(name)){delete rig.times[name];return null;}if(rig.times[name]===undefined)rig.times[name]=t;return (t-rig.times[name])/1000;}
   function aimAngles(c,target,letter){
@@ -706,15 +798,15 @@
     // The native walking painting already carries its fluffy tail upright.
     // A restrained slow tip sweep, soft back flex and small look-ahead nod
     // accompany the footfall instead of bouncing the whole cat sprite.
-    var tail=reduced?0:Math.sin(t/1050)*4.2+Math.sin(t/2470)*1.2;
+    var tail=A.catV9TailAngle?A.catV9TailAngle(t):reduced?0:Math.sin(t/1050)*4.2+Math.sin(t/2470)*1.2;
     var head=reduced?0:Math.sin(t/1870)*1.1+(moving?Math.sin(phase*Math.PI*2)*.55*gait:0)-reach*2;
     var spine=reduced?0:moving?Math.sin(phase*Math.PI*2+.7)*.55*gait:Math.sin(t/1900)*.2;
-    b.push(multiply(body,rotate(tail,26,40)),multiply(body,rotate(head,64,36)),multiply(body,rotate(spine,43,42)));
+    b.push(multiply(body,rotate(tail,28,40)),multiply(body,rotate(head,64,36)),multiply(body,rotate(spine,43,42)));
     root._rigCatTailAngle=tail;root._rigCatHeadAngle=head;root._rigCatSpineAngle=spine;
     return b;
   }
   function humanView(r,t,dark){
-    var root=r.root,view=root._rigRequestedView,wave=active(r,'is-waving',t);
+    var root=r.root,view=root._rigRequestedView,wave=active(r,'is-waving',t);r.gaitBlend=null;
     root.classList.remove('native-wave-frames','native-gesture-frames','native-point-view','native-shelf-return');root._rigNativeWaveFrame=null;root._rigNativeGestureFrame=null;root._rigNativeShelfReturnFrame=null;
     if(!view){
       if(root.classList.contains('is-walking'))view='profile';
@@ -732,7 +824,8 @@
         var fraction=clamp((t-r.settleStart)/(r.settleDuration||240),0,1),travel=Math.min(1,fraction/.72),contact=r.settleContact;
         phase=(r.settlePhase+(contact-r.settlePhase)*travel)%1;
       }
-      return r.configs[6+(dark?8:0)+Math.min(7,Math.floor(phase*8))];
+      var at=phase*8,index=Math.min(7,Math.floor(at)),u=at-index,base=6+(dark?8:0),first=r.configs[base+index],next=r.configs[base+(index+1)%8];r.gaitBlend={first:first,next:next,u:u,time:t};
+      return u<.5?first:next;
     }
     root.classList.remove('native-gait-frames');root._rigNativeFrame=null;
     if(view==='front'&&dark&&wave!==null&&wave<1.4&&!reduced){
@@ -751,7 +844,7 @@
     }
     var index=(view==='profile'?2:view==='shelf'?4:view==='hold'?22:0)+(dark?1:0);return r.configs[index];
   }
-  function frame(t){var dark=document.documentElement.dataset.theme==='dark';rigs.forEach(function(r){if(r.type==='cat'&&!r.root.classList.contains('is-pouncing'))delete r.times['is-pouncing'];var hidden=r.type==='human'?(r.root.classList.contains('act-read')||r.root.classList.contains('act-write')||r.root.classList.contains('act-pet')):(!r.root.classList.contains('is-walking')&&!r.root.classList.contains('is-settling')&&!r.root.classList.contains('is-pouncing'));if(r.type==='human'&&hidden){r.root.classList.remove('native-profile-view','native-shelf-view','native-hold-view','native-wave-frames','native-gesture-frames','native-point-view','native-shelf-return','native-step-settling');r.root._rigNativeShelfReturnFrame=null;}if(hidden||!r.root.isConnected||r.root.closest('[hidden]'))return;if(r.type==='cat'&&r.root._rigCatWorldX!==undefined&&(r.root.classList.contains('is-walking')||r.root.classList.contains('is-settling')))return;var c=r.type==='human'?humanView(r,t,dark):r.configs[0];r.draw(c,r.type==='human'?(c.nativeView?nativeHumanBones(r,c,t):humanBones(r,c,t)):catBones(r,c,t));});requestAnimationFrame(frame);}
+  function frame(t){var dark=document.documentElement.dataset.theme==='dark';rigs.forEach(function(r){if(r.type==='cat'&&!r.root.classList.contains('is-pouncing'))delete r.times['is-pouncing'];var hidden=r.type==='human'?(r.root.classList.contains('act-read')||r.root.classList.contains('act-write')||r.root.classList.contains('act-pet')):(!r.root.classList.contains('is-walking')&&!r.root.classList.contains('is-settling')&&!r.root.classList.contains('is-pouncing'));if(r.type==='human'&&hidden){r.root.classList.remove('native-profile-view','native-shelf-view','native-hold-view','native-wave-frames','native-gesture-frames','native-point-view','native-shelf-return','native-step-settling');r.root._rigNativeShelfReturnFrame=null;if(r.hiddenTheme!==dark){var rest=r.configs[dark?1:0],paint=asset(rest.image);if(paint.complete&&paint.naturalWidth){r.gaitBlend=null;r.poseY=null;r.draw(rest,Array.from({length:12},identity));r.hiddenTheme=dark;}}}else if(r.type==='human')r.hiddenTheme=null;if(hidden||!r.root.isConnected||r.root.closest('[hidden]'))return;if(r.type==='cat'&&r.root._rigCatWorldX!==undefined&&(r.root.classList.contains('is-walking')||r.root.classList.contains('is-settling')))return;var c=r.type==='human'?humanView(r,t,dark):(A.catV9Frame?A.catV9Frame(r,t):r.configs[0]);r.draw(c,r.type==='human'?(c.nativeView?nativeHumanBones(r,c,t):humanBones(r,c,t)):(c.nativeCatPose!==undefined?[identity()]:catBones(r,c,t)));});requestAnimationFrame(frame);}
   A.initMotionRigs=function(container){container.querySelectorAll('.painted-character').forEach(function(el){var root=el.closest('#char,.avatar-demo')||el.parentElement;if(!root._paintRig)human(root);});container.querySelectorAll('.painted-cat').forEach(function(el){var root=el.closest('#cat,.cat-demo')||el.parentElement;if(!root._paintRig)cat(root);});};
   A.aimHand=function(root,element,x,y){
     var svg=root.querySelector('.painted-character'),from=element.getScreenCTM(),to=svg.getScreenCTM();
@@ -760,7 +853,19 @@
   var oldHuman=A.poseCharacter,oldCat=A.poseCat;
   A.setHumanView=function(root,view,direction){root._rigRequestedView=view==='front'?null:view;root._rigViewDirection=direction||1;if(root._paintRig){delete root._paintRig.bookRetractStart;root._paintRig.settleStart=0;}root.classList.remove('native-step-settling');};
   A.resetHumanStep=function(root){root._rigStride=0;root._rigFootPose=null;root.classList.remove('native-step-settling');if(root._paintRig){root._paintRig.wasHumanMoving=false;root._paintRig.settleStart=0;}};
-  A.poseCharacter=function(root,stride,moving){root._rigStride=stride;var r=root._paintRig;if(!r){oldHuman(root,stride,moving);return;}if(moving){root._rigRequestedView=null;root._rigViewDirection=root.classList.contains('face-left')?-1:1;root.classList.remove('native-step-settling');}else if(r.wasHumanMoving){r.settleStart=performance.now();r.settlePhase=stride;r.settleContact=Math.ceil(stride*2+.001)/2;r.settleDuration=240;root.classList.add('native-step-settling');}r.wasHumanMoving=moving;};
+  A.poseCharacter=function(root,stride,moving){
+    root._rigStride=stride;var r=root._paintRig;if(!r){oldHuman(root,stride,moving);return;}
+    var worldX=root._rigHumanWorldX,travel=worldX!==undefined&&r.worldX!==undefined?worldX-r.worldX:0;
+    r.worldX=worldX;
+    var direction=Math.abs(travel)>.001?(travel<0?-1:1):(root.classList.contains('face-left')?-1:1),transition=moving&&(!r.wasHumanMoving||r.moveDirection!==direction);
+    if(moving){root._rigRequestedView=null;root._rigViewDirection=direction;root.classList.remove('native-step-settling');}
+    else if(r.wasHumanMoving){r.settleStart=performance.now();r.settlePhase=stride;r.settleContact=Math.ceil(stride*2+.001)/2;r.settleDuration=240;root.classList.add('native-step-settling');}
+    r.wasHumanMoving=moving;r.moveDirection=direction;
+    // World updates the walking class before its final facing CSS. Use the
+    // actual displacement, and paint the initial / turned pose in this same
+    // hook so a compositor frame cannot expose a previous view or direction.
+    if(transition&&!root.classList.contains('act-write')&&!root.classList.contains('act-read')&&!root.classList.contains('act-pet')){var now=performance.now(),dark=document.documentElement.dataset.theme==='dark',c=humanView(r,now,dark);r.draw(c,c.nativeView?nativeHumanBones(r,c,now):humanBones(r,c,now));}
+  };
   A.poseCat=function(root,stride,moving){root._rigStride=stride;if(!root._paintRig)oldCat(root,stride,moving);else if(moving&&root._rigCatWorldX!==undefined){var r=root._paintRig,c=r.configs[0];r.draw(c,catBones(r,c,performance.now()));}else if(!moving){root._paintRig.catPlants=[];root._paintRig.catPreviousBodyX=undefined;}};
   requestAnimationFrame(frame);
 })();

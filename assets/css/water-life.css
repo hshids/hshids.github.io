@@ -10,10 +10,43 @@
 
 /* Fine ribbons ride above the original painting; its texture stays fixed in
    world coordinates. Motion is local glint travel, not a sliding water image. */
-.water-current { fill: url(#fine-pond-current); pointer-events: none; opacity: .76; }
-.fine-ripple { fill: none; stroke: var(--w-water-line); stroke-width: .55; stroke-linecap: round; stroke-dasharray: 8 21 15 28; opacity: .16; animation: fineRipple var(--ripple-time, 16s) linear var(--ripple-delay, 0s) infinite; }
+.water-current { fill: url(#fine-pond-current); pointer-events: none; opacity: .88; }
+.fine-ripple { fill: none; stroke: var(--w-water-line); stroke-width: .65; stroke-linecap: round; stroke-dasharray: 8 21 15 28; opacity: .18; animation: fineRipple var(--ripple-time, 12s) linear var(--ripple-delay, 0s) infinite; }
 .fine-ripple.is-soft { stroke-width: .35; stroke-dasharray: 5 34 13 19; opacity: .11; animation-direction: reverse; }
-[data-theme="dark"] .water-current { opacity: .48; }
+[data-theme="dark"] .water-current { opacity: .62; }
+.pond-surface-glints, .pond-reed-root { pointer-events: none; }
+.pond-moving-glint { fill: none; stroke: var(--w-water-line); stroke-width: .7; stroke-linecap: round; opacity: .18; animation: pondGlintTravel var(--water-time, 7s) ease-in-out var(--water-delay, 0s) infinite; }
+.painted-reed-plant { filter: saturate(.74) contrast(.94); }
+.reed-water-contact { fill: var(--w-leaf-dark); opacity: .2; }
+[data-theme="dark"] .painted-reed-plant { filter: brightness(.48) saturate(.66); }
+[data-theme="dark"] .pond-moving-glint { stroke: #b0bdb6; stroke-width: .58; }
+.reed-sway { transform-box: view-box; transform-origin: 0px 0px; animation: paintedReedSway var(--plant-time, 7s) ease-in-out var(--plant-delay, 0s) infinite; }
+.lily-pad-drift { animation: paintedPadDrift var(--plant-time, 9s) ease-in-out var(--plant-delay, 0s) infinite; }
+.lily-flower-drift { animation: paintedFlowerDrift var(--plant-time, 8s) ease-in-out var(--plant-delay, 0s) infinite; }
+.lotus-stalk-sway { transform-box: view-box; animation: paintedLotusSway var(--plant-time, 8s) ease-in-out var(--plant-delay, 0s) infinite; }
+.water-motion-outside { animation-play-state: paused !important; }
+@keyframes pondGlintTravel {
+  0%, 100% { transform: translateX(-2px); opacity: .08; }
+  45% { transform: translateX(2.6px); opacity: .3; }
+  72% { transform: translateX(1.2px); opacity: .16; }
+}
+@keyframes paintedReedSway {
+  0%, 100% { transform: rotate(calc(var(--reed-angle, .8deg) * -.5)); }
+  45% { transform: rotate(var(--reed-angle, .8deg)); }
+  72% { transform: rotate(calc(var(--reed-angle, .8deg) * .15)); }
+}
+@keyframes paintedPadDrift {
+  0%, 100% { transform: translate(calc(var(--float-dx, .6px) * -.5), -.2px); }
+  50% { transform: translate(var(--float-dx, .6px), .28px); }
+}
+@keyframes paintedFlowerDrift {
+  0%, 100% { transform: translate(-.36px, -.18px); }
+  50% { transform: translate(.5px, .26px); }
+}
+@keyframes paintedLotusSway {
+  0%, 100% { transform: rotate(-.45deg); }
+  50% { transform: rotate(.72deg); }
+}
 @keyframes fineRipple {
   0% { stroke-dashoffset: 0; opacity: .09; }
   36% { opacity: .22; }
@@ -21,5 +54,6 @@
   100% { stroke-dashoffset: -72; opacity: .09; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .fine-ripple { animation: none !important; opacity: .1; }
+  .fine-ripple, .pond-moving-glint, .reed-sway, .lily-pad-drift, .lily-flower-drift, .lotus-stalk-sway { animation: none !important; }
+  .fine-ripple { opacity: .1; }
 }

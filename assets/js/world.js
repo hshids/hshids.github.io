@@ -11,7 +11,7 @@
   var SITE_LANG = "en";             // Page content stays English independently of the conversation.
   var W = 7500;                     // world width in units
   var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
-  var WALK_SPEED = 110, HUMAN_STEP = 65;
+  var WALK_SPEED = 165, HUMAN_STEP = 110;
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
   // Each subtle stone inlay marks the position of its original scene action.
@@ -147,13 +147,14 @@
 
   function layout() {
     var r = worldEl.getBoundingClientRect();
+    var viewportChanged = r.width !== state.cw || r.height !== state.ch;
     state.cw = r.width; state.ch = r.height;
     state.mobile = r.width < 700;
     var writingFrame = state.panel === "writing" || state.focusX === byId.writing.x;
     var lifeFrame=state.panel === "life" || state.focusX === byId.life.x;
     var educationFrame=state.panel === "education" || state.focusX === byId.education.x;
     var contactFrame=state.panel === "contact" || state.focusX === byId.contact.x;
-    var minUnits = state.mobile ? (educationFrame ? 800 : lifeFrame ? 640 : contactFrame ? 660 : writingFrame ? 620 : 480) : 720;
+    var minUnits = state.mobile ? (educationFrame ? 800 : lifeFrame ? 640 : contactFrame ? 660 : writingFrame ? 660 : 480) : 720;
     var s = Math.min(r.height / VH, r.width / minUnits);
     state.s = s;
     state.viewW = r.width / s;
@@ -175,6 +176,9 @@
       L.el.style.width = L.width * s + "px";
       L.el.style.height = VH * s + "px";
     });
+    // An idle world has no running camera tick. After a resize, compose the
+    // same place using the new scale instead of retaining desktop coordinates.
+    if (viewportChanged && !state.title) state.cam = camGoal();
     render(true);
   }
 
@@ -212,7 +216,7 @@
     var fr = freeRange();
     // With the dialogue box open beside a panel, keep the avatar (who is talking) in view.
     var fx = state.focusX != null && !(fr[0] > 0 && state.panel) ? state.focusX : state.x;
-    if (state.mobile && state.focusX === byId.writing.x) fx += 35;  // Fit the desk and the scroll rack together.
+    if (state.mobile && state.focusX === byId.writing.x) fx += 40;  // Leave breathing room around the desk and scroll rack.
     if (state.mobile && state.focusX === byId.education.x) fx += 20; // Include the branch support and the outer edge of Lehigh's campus.
     if (state.mobile && state.focusX === byId.life.x) fx += 29;
     if (state.mobile && state.focusX === byId.contact.x) fx += 20;
@@ -250,7 +254,10 @@
   function start() { if (!state.raf) { state.last = 0; state.raf = requestAnimationFrame(tick); } }
 
   function tick(t) {
-    var dt = state.last ? Math.min(0.05, (t - state.last) / 1000) : 0.016;
+    // Keep a normal walking pace when painting an intricate scene takes
+    // more than one display frame. Resume from a long pause without a leap.
+    var elapsed = state.last ? (t - state.last) / 1000 : 0.016;
+    var dt = elapsed > 1 ? 0.016 : Math.min(0.12, elapsed);
     state.last = t;
     var busy = false;
 
@@ -1094,7 +1101,7 @@
     else if (a.busy) bubble(charEl, pick(state.lang, a.busy), 1800);
     return true;
   }
-  // Called every frame: once she has come to rest on a red circle, start that place's action.
+  // Start each place's action when she comes to rest on its stone inlay.
   function checkSpot() {
     var id = null;
     if (!state.title && !state.navTimer && !state.keys.left && !state.keys.right && Math.abs(state.vel) < 1 && Math.abs(state.target - state.x) < 0.5) {
@@ -1128,7 +1135,7 @@
       if (screenX < 110) state.catDir = 1;
       else if (screenX > state.cw - 110) state.catDir = -1;
       render();
-      butterflyEl.style.left = "calc(var(--s) * " + (state.catX + state.catDir * 47).toFixed(1) + "px - 22px)";
+      butterflyEl.style.left = "calc(var(--s) * " + (state.catX + state.catDir * 26).toFixed(1) + "px - 22px)";
       butterflyEl.style.setProperty("--butterfly-facing", state.catDir);
       butterflyEl.classList.remove("is-escaping");
       butterflyEl.hidden = false;
@@ -1183,8 +1190,11 @@
     void catEl.offsetWidth;
     var cls = "is-pouncing";
     catEl.classList.add(cls);
-    kittyPlayTimer = setTimeout(function () { catEl.classList.remove(cls); }, 1700);
-    bubble(catEl, "Mrrp… almost! 🦋", 2000);
+    kittyPlayTimer = setTimeout(function () {
+      var finished = catEl.classList.contains(cls);
+      catEl.classList.remove(cls);
+      if (finished) bubble(catEl, "Mrrp… almost! 🦋", 2000);
+    }, 2200);
   }
   function kittyPoke() {
     var lines = ["Mrrp! ♥", "I'm JinBingBing, the youngest of six!", "Purrrr…", "Follow us!"];

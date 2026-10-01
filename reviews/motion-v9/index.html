@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hanjing's world · Movement and small details</title>
+<style>
+:root{color-scheme:light;--ink:#352e26;--muted:#746c60;--line:#d7cebd;--paper:#f4f0e6}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 Georgia,serif;padding:32px max(20px,5vw) 60px}main{max-width:1400px;margin:auto}header{display:flex;align-items:baseline;justify-content:space-between;gap:20px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:20px}h1{font-size:clamp(28px,4vw,42px);font-weight:500;margin:0}h2{font-size:26px;font-weight:500;margin:32px 0 12px}p{color:var(--muted);max-width:74ch}a{color:inherit;text-underline-offset:4px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}.details{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}figure{margin:0}img,video{display:block;width:100%;height:auto;border:1px solid var(--line);background:#e8e1d4}figcaption{color:var(--muted);font-size:14px;margin:7px 0 14px}.phone{max-width:390px;margin:auto}.details img{height:220px;object-fit:contain}.still img{max-height:700px;object-fit:contain}footer{margin-top:36px;color:var(--muted);font-size:14px}@media(max-width:700px){.grid,.details{grid-template-columns:1fr}.details img{height:auto;max-height:320px}}
+</style>
+</head><body><main>
+<header><h1>Movement and small details.</h1><a href="../../index.html?world&amp;v=motion-world-v9">Enter the interactive world →</a></header>
+<p>Walking, writing, warm windows, and a few small surprises. These recordings come from the interactive world; open a picture to look closer.</p>
+<h2>Walking in the courtyard</h2>
+<div class="grid">
+<figure><video controls playsinline preload="none" poster="day-walk.webp" aria-label="Day walking with a moving coat and hair"><source src="day-walk.mp4" type="video/mp4"></video><figcaption>Day · Coat, belt and hair move gently with the steps.</figcaption></figure>
+<figure><video controls playsinline preload="none" poster="night-walk.webp" aria-label="Night walking with a lantern"><source src="night-walk.mp4" type="video/mp4"></video><figcaption>Night · A softly moving hem and a lantern held in one hand.</figcaption></figure>
+</div>
+<h2>A letter at a time</h2>
+<div class="grid">
+<figure><video controls playsinline preload="none" poster="day-writing.webp" aria-label="Day Writing interaction"><source src="day-writing.mp4" type="video/mp4"></video><figcaption>Day · Hello World! written by hand on the paper.</figcaption></figure>
+<figure><video controls playsinline preload="none" poster="night-writing.webp" aria-label="Night Writing interaction"><source src="night-writing.mp4" type="video/mp4"></video><figcaption>Night · Writing at the low wooden desk by candlelight.</figcaption></figure>
+</div>
+<h2>The water and the garden</h2>
+<div class="grid"><figure><video controls playsinline preload="none" poster="night-pond.webp" aria-label="Recorded Night ripples and gently moving plants"><source src="night-water.mp4" type="video/mp4"></video><figcaption>Night · Small ripples, gently moving plants and quiet reflections.</figcaption></figure></div><div class="grid" id="garden"></div>
+<h2>Windows and portraits</h2>
+<div class="details">
+<figure><a href="georgetown-windows.webp"><img src="georgetown-windows.webp" loading="lazy" alt="Warm light inside Georgetown's windows"></a><figcaption>Georgetown · Warm light behind the window mullions.</figcaption></figure>
+<figure><a href="lehigh-windows.webp"><img src="lehigh-windows.webp" loading="lazy" alt="Warm light inside Lehigh's windows"></a><figcaption>Lehigh · Quiet windows after dark.</figcaption></figure>
+<figure><a href="day-ask-face.webp"><img src="day-ask-face.webp" style="object-fit:scale-down" loading="lazy" alt="The complete Day Mini Hanjing portrait"></a><figcaption>Mini Hanjing · A complete face in the Day portrait.</figcaption></figure>
+</div>
+<h2>Writing on a phone</h2>
+<div class="grid">
+<figure class="phone"><a href="phone-day-writing.webp"><img src="phone-day-writing.webp" loading="lazy" alt="Day Writing scene on a phone"></a><figcaption>Day · Screen, desk and Tutorials cabinet.</figcaption></figure>
+<figure class="phone"><a href="phone-night-writing.webp"><img src="phone-night-writing.webp" loading="lazy" alt="Night Writing scene on a phone"></a><figcaption>Night · Writing and its warm local light.</figcaption></figure>
+</div>
+<footer><a href="verification.md">Review notes</a> · <a href="../../index.html?world&amp;v=motion-world-v9">Explore the world</a></footer>
+</main>
+<script>
+const views=[['day-pond.webp','Day · Ripples and feathery reeds'],['day-research.webp','Research · Varied trees rooted beside the path'],['day-contact.webp','Contact · Trees, stones and the paving']];
+document.getElementById('garden').innerHTML=views.map(([file,caption])=>`<figure class="still"><a href="${file}"><img src="${file}" loading="lazy" alt="${caption}"></a><figcaption>${caption}</figcaption></figure>`).join('');
+</script>
+</body></html>
