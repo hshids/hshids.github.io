@@ -15,6 +15,16 @@
   };
   function node(tag, attrs) { var el = document.createElementNS(ns, tag); Object.keys(attrs || {}).forEach(function (key) { el.setAttribute(key, attrs[key]); }); return el; }
   function fixed(v) { return v.toFixed(3); }
+  function changedAttribute(el, name, value) {
+    if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+  }
+  function contactMode(root) {
+    return [settings.enabled, document.documentElement.dataset.theme,
+      "act-read", "act-write", "act-pet", "hands-free", "face-left",
+      "is-walking", "native-step-settling"].map(function (item, i) {
+        return i < 2 ? item : root.classList.contains(item);
+      }).join("|");
+  }
   function installDefs() {
     if (document.getElementById("actor-light-defs")) return;
     var svg = node("svg", { id: "actor-light-defs", "class": "defs", width: "0", height: "0", "aria-hidden": "true" });
@@ -34,14 +44,24 @@
     flip.insertBefore(group, flip.firstChild);
     root._actorContacts = { group: group, feet: feet }; mounted.push(root);
     root.classList.toggle("actor-lighting", settings.enabled);
-    new MutationObserver(function () { if (!root._actorContactPending) { root._actorContactPending = true; requestAnimationFrame(function () { root._actorContactPending = false; updateContact(root, root._actorActiveConfig || root._rigNativeConfig); }); } }).observe(root, { attributes: true, attributeFilter: ["class"] });
+    new MutationObserver(function () {
+      // Gait drawing already updates the real sole contacts. Changes to
+      // unrelated action classes do not need another SVG write next frame.
+      if (contactMode(root) === root._actorContactMode || root._actorContactPending) return;
+      root._actorContactPending = true;
+      requestAnimationFrame(function () {
+        root._actorContactPending = false;
+        updateContact(root, root._actorActiveConfig || root._rigNativeConfig);
+      });
+    }).observe(root, { attributes: true, attributeFilter: ["class"] });
     return root._actorContacts;
   }
   function updateContact(root, config) {
     var view = root._actorContacts || mount(root);
     if (!view) return;
+    root._actorContactMode = contactMode(root);
     var hidden = !settings.enabled || root.classList.contains("act-write") || root.classList.contains("act-pet");
-    view.group.toggleAttribute("hidden", hidden);
+    if (view.group.hasAttribute("hidden") !== hidden) view.group.toggleAttribute("hidden", hidden);
     if (hidden) return;
     var dark = document.documentElement.dataset.theme === "dark", read = root.classList.contains("act-read");
     // Native action feet already include their current jump lift. Copy the
@@ -83,15 +103,16 @@
       var planeY = planted ? foot.y + .12 : groundY;
       var weight = planted ? .30 : lift > 3 ? .045 : .11, spread = planted ? 7.5 : 6;
       var core = view.feet[i].contact, cast = view.feet[i].cast;
-      core.setAttribute("d", "M" + fixed(x - spread) + " " + fixed(planeY) + "Q" + fixed(x) + " " + fixed(planeY - .55) + " " + fixed(x + spread) + " " + fixed(planeY) + "Q" + fixed(x + spread - 1.5) + " " + fixed(planeY + .45) + " " + fixed(x - spread + 1) + " " + fixed(planeY + .3) + "Z");
-      core.setAttribute("opacity", fixed(weight));
+      changedAttribute(core, "d", "M" + fixed(x - spread) + " " + fixed(planeY) + "Q" + fixed(x) + " " + fixed(planeY - .55) + " " + fixed(x + spread) + " " + fixed(planeY) + "Q" + fixed(x + spread - 1.5) + " " + fixed(planeY + .45) + " " + fixed(x - spread + 1) + " " + fixed(planeY + .3) + "Z");
+      changedAttribute(core, "opacity", fixed(weight));
       // The nearby held light takes precedence over the moon for this short
       // shoe shadow. Local coordinates mirror with the same painted body.
       var direction = heldLamp ? Math.max(-1, Math.min(1, (x - heldLamp[0]) / 24)) : castDirection;
       var end = x + direction * (dark ? 7 : 13);
-      cast.style.fill = "url(#" + (direction > 0 ? "actor-ground-shade-right" : "actor-ground-shade") + ")";
-      cast.setAttribute("d", "M" + fixed(x - spread) + " " + fixed(planeY - .08) + "L" + fixed(end - spread * .8) + " " + fixed(planeY + 2.4) + "Q" + fixed(end) + " " + fixed(planeY + 3.1) + " " + fixed(end + spread * .8) + " " + fixed(planeY + 2.5) + "L" + fixed(x + spread) + " " + fixed(planeY - .08) + "Z");
-      cast.setAttribute("opacity", planted ? ".72" : ".30");
+      var fill = "url(#" + (direction > 0 ? "actor-ground-shade-right" : "actor-ground-shade") + ")";
+      if (cast.style.fill !== fill) cast.style.fill = fill;
+      changedAttribute(cast, "d", "M" + fixed(x - spread) + " " + fixed(planeY - .08) + "L" + fixed(end - spread * .8) + " " + fixed(planeY + 2.4) + "Q" + fixed(end) + " " + fixed(planeY + 3.1) + " " + fixed(end + spread * .8) + " " + fixed(planeY + 2.5) + "L" + fixed(x + spread) + " " + fixed(planeY - .08) + "Z");
+      changedAttribute(cast, "opacity", planted ? ".72" : ".30");
       root._actorContactFeet.push({ x: x, y: planeY, lift: lift, stance: planted, shadowDx: end - x });
     });
   }

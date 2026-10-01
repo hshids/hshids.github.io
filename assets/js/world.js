@@ -154,7 +154,7 @@
     var lifeFrame=state.panel === "life" || state.focusX === byId.life.x;
     var educationFrame=state.panel === "education" || state.focusX === byId.education.x;
     var contactFrame=state.panel === "contact" || state.focusX === byId.contact.x;
-    var minUnits = state.mobile ? (educationFrame ? 800 : lifeFrame ? 640 : contactFrame ? 660 : writingFrame ? 660 : 480) : 720;
+    var minUnits = state.mobile ? (educationFrame ? 800 : lifeFrame ? 640 : contactFrame ? 660 : writingFrame ? 700 : 480) : 720;
     var s = Math.min(r.height / VH, r.width / minUnits);
     state.s = s;
     state.viewW = r.width / s;
@@ -216,7 +216,7 @@
     var fr = freeRange();
     // With the dialogue box open beside a panel, keep the avatar (who is talking) in view.
     var fx = state.focusX != null && !(fr[0] > 0 && state.panel) ? state.focusX : state.x;
-    if (state.mobile && state.focusX === byId.writing.x) fx += 40;  // Leave breathing room around the desk and scroll rack.
+    if (state.mobile && state.focusX === byId.writing.x) fx += 56;  // Include the complete screen and the scroll rack beside it.
     if (state.mobile && state.focusX === byId.education.x) fx += 20; // Include the branch support and the outer edge of Lehigh's campus.
     if (state.mobile && state.focusX === byId.life.x) fx += 29;
     if (state.mobile && state.focusX === byId.contact.x) fx += 20;
@@ -284,7 +284,10 @@
     charEl.classList.toggle("is-running", Math.abs(state.vel) > 700);
     if (ART.poseCharacter) {
       var humanMoving = Math.abs(state.vel) > 20 && !reduced;
-      if (humanMoving) state.charStride = (state.charStride + Math.abs(state.x-humanPreviousX) / HUMAN_STEP) % 1;
+      if (humanMoving) {
+        var gaitStep = ART.humanGaitStepWorld ? ART.humanGaitStepWorld(document.documentElement.dataset.theme === "dark") : HUMAN_STEP;
+        state.charStride = (state.charStride + Math.abs(state.x-humanPreviousX) / gaitStep) % 1;
+      }
       charEl._rigHumanWorldX = state.x;
       charEl._rigHumanWorldScale = CHAR_W / 120;
       ART.poseCharacter(charEl,state.charStride,humanMoving);
@@ -327,6 +330,7 @@
       catEl._rigCatWorldX=state.catX;catEl._rigCatFacing=state.catDir;
       state.catStride = (state.catStride + Math.abs(cstep)/(catScale*catEl._rigCatCycleSource)) % 1;
       poseCatLegs(true);
+      if (catEl.classList.contains("is-pouncing")) cancelKittyPlay();
       catEl.classList.remove("is-pouncing", "is-tail-playing", "is-happy");
       if (!butterflyEl.hidden) dismissButterfly(true);
     } else if (state.catGaitMix>0&&!reduced) {
@@ -529,6 +533,10 @@
     POKES.zh = POKES.zh.concat(window.HJRituals.pokes.zh);
   }
 
+  function scrollGuideToEnd() {
+    if (!guide.hidden && !guide.classList.contains("collapsed")) log.scrollTop = log.scrollHeight;
+  }
+
   function addMsg(who, text) {
     var m = document.createElement("div");
     m.className = "msg msg-" + who;
@@ -541,7 +549,7 @@
     $$(".msg-guide", log).forEach(function (el) { el.classList.remove("latest"); });
     if (who === "guide") m.classList.add("latest");
     while (log.children.length > 40) log.removeChild(log.firstChild);
-    log.scrollTop = log.scrollHeight;
+    scrollGuideToEnd();
     return m;
   }
 
@@ -559,7 +567,7 @@
     var textEl = m.querySelector(".msg-text"), extra = m.querySelector(".msg-extra");
     var full = a.text, i = 0;
     var cps = /[㐀-鿿]/.test(full) ? 55 : 110;
-    var step = Math.max(1, Math.ceil(full.length / (2.2 * 60)));   // never type for more than ~2.2 s
+    var rate = Math.max(cps, full.length / 2.2), started = performance.now();
     charEl.classList.add("is-talking");
     if (guide.classList.contains("collapsed") && !opts.silent) sayShort(full);
     function done() {
@@ -568,18 +576,23 @@
       if (a.html) extra.innerHTML = a.lang === "en" ? a.html.replace(/RedNote \(小红书\)/g, "RedNote") : a.html;
       setChips(a.chips && a.chips.length ? a.chips : null);
       charEl.classList.remove("is-talking");
-      log.scrollTop = log.scrollHeight;
+      scrollGuideToEnd();
     }
     var timer = 0;
     if (reduced) { done(); }
     else {
       typing = { done: done };
       timer = setInterval(function () {
-        i = Math.min(full.length, i + Math.max(step, Math.round(cps / 60)));
-        textEl.textContent = full.slice(0, i);
-        log.scrollTop = log.scrollHeight;
+        // Progress follows elapsed time even when an intricate scene misses
+        // a frame. A folded conversation needs no forced scroll layout.
+        var next = Math.min(full.length, Math.floor((performance.now() - started) * rate / 1000));
+        if (next !== i) {
+          i = next;
+          textEl.textContent = full.slice(0, i);
+          scrollGuideToEnd();
+        }
         if (i >= full.length) { typing = null; done(); }
-      }, 1000 / 60);
+      }, 1000 / 30);
     }
     // On phones the answer stays in the chat sheet; she still walks to the place.
     if (a.go && !opts.noMove) goTo(a.go, { quiet: true, focus: a.focus, fromChat: true, panel: !state.mobile });
@@ -991,7 +1004,7 @@
   var ACTIONS = {
     home: { face: 1, repeat: true, run: function () {
       flash(charEl, "is-waving", 1400);
-      later(function () { flash(charEl, "is-bowing", 900); }, 1400);
+      later(function () { flash(charEl, "is-bowing", ART.bowDepth ? ART.bowDepth.duration * 1000 : 900); }, 1400);
       later(function () { sayIfQuiet({ en: "Welcome in!", zh: "欢迎光临！" }); }, 300);
     } },
     research: { face: 1, hands: true, busy: { en: "Shh, I'm reading 📖", zh: "嘘，我在看书 📖" }, run: function () {
@@ -1114,6 +1127,7 @@
 
   var pokes = 0;
   var kittyPlayTimer = 0;
+  var kittyPlaySequence = 0;
   var butterflyVisitTimer = 0, butterflyChaseTimer = 0, butterflyLeaveTimer = 0;
 
   function butterflyReady() {
@@ -1152,7 +1166,7 @@
       butterflyEl.classList.remove("is-escaping");
     }
     if (catEl && catEl.classList.contains("is-pouncing")) {
-      clearTimeout(kittyPlayTimer); catEl.classList.remove("is-pouncing");
+      cancelKittyPlay();
     }
     if (again) scheduleButterfly(45000 + Math.random() * 30000);
   }
@@ -1164,7 +1178,7 @@
     poseCatLegs(false);
     kittyPlay("butterfly");
     butterflyEl.classList.add("is-escaping");
-    butterflyLeaveTimer = setTimeout(function () { dismissButterfly(true); }, 2800);
+    butterflyLeaveTimer = setTimeout(function () { dismissButterfly(true); }, ART.catPlayUsesRenderedClock ? 12000 : 4600);
   }
 
   function groomXiaoHei() {
@@ -1176,6 +1190,12 @@
     sleeper._groomTimer = setTimeout(function () { sleeper.classList.remove("is-grooming"); }, reduced ? 1400 : 3700);
     bubble(charEl, state.lang === "zh" ? "小黑是家里的大哥哥，也是大黄的双胞胎兄弟。" : "XiaoHei, our oldest brother — DaHuang's twin!", 3600);
   }
+  function cancelKittyPlay() {
+    clearTimeout(kittyPlayTimer); kittyPlayTimer = 0; kittyPlaySequence++;
+    catEl._onKittyPlayFrame = null; catEl._onKittyPlayFinished = null;
+    catEl.classList.remove("is-pouncing");
+  }
+
   function kittyPlay(kind) {
     // Only a real visiting butterfly can start a pounce. A normal greeting
     // keeps the sitting body planted and moves just the tail and head.
@@ -1184,17 +1204,41 @@
       return;
     }
     if (butterflyEl.hidden) return;
-    clearTimeout(kittyPlayTimer);
-    catEl.classList.remove("is-pouncing", "is-tail-playing");
+    cancelKittyPlay();
+    catEl.classList.remove("is-tail-playing");
     if (reduced || catEl.classList.contains("is-walking") || catEl.classList.contains("is-settling")) return;
     void catEl.offsetWidth;
     var cls = "is-pouncing";
+    var sequence = kittyPlaySequence;
+    function finish() {
+      if (sequence !== kittyPlaySequence || !catEl.classList.contains(cls)) return;
+      cancelKittyPlay();
+      bubble(catEl, "Mrrp… almost! 🦋", 2000);
+      dismissButterfly(true);
+    }
+    butterflyEl.style.setProperty("--butterfly-play-x", "0px");
+    butterflyEl.style.setProperty("--butterfly-play-y", "0px");
+    butterflyEl.style.setProperty("--butterfly-play-opacity", ".9");
+    if (ART.catPlayUsesRenderedClock) {
+      // The visitor stays by the reaching paw for the whole visible hold.
+      // A slow first draw cannot make the butterfly leave before that pose.
+      catEl._onKittyPlayFrame = function (elapsed) {
+        if (sequence !== kittyPlaySequence || !catEl.classList.contains(cls)) return;
+        var flight = clamp((elapsed - 2.8) / 1, 0, 1);
+        var eased = flight * flight * (3 - 2 * flight);
+        var hover = Math.sin(elapsed * 3) * (1 - eased);
+        butterflyEl.style.setProperty("--butterfly-play-x", (state.catDir * (hover + eased * 110)).toFixed(2) + "px");
+        butterflyEl.style.setProperty("--butterfly-play-y", (-Math.sin(elapsed * 2.1) * (1 - eased) - eased * 76).toFixed(2) + "px");
+        butterflyEl.style.setProperty("--butterfly-play-opacity", (.9 * (1 - eased)).toFixed(3));
+      };
+      catEl._onKittyPlayFinished = finish;
+    }
     catEl.classList.add(cls);
     kittyPlayTimer = setTimeout(function () {
-      var finished = catEl.classList.contains(cls);
-      catEl.classList.remove(cls);
-      if (finished) bubble(catEl, "Mrrp… almost! 🦋", 2000);
-    }, 2200);
+      if (ART.catPlayUsesRenderedClock) {
+        if (sequence === kittyPlaySequence) { cancelKittyPlay(); dismissButterfly(true); }
+      } else finish();
+    }, ART.catPlayUsesRenderedClock ? 12000 : 3800);
   }
   function kittyPoke() {
     var lines = ["Mrrp! ♥", "I'm JinBingBing, the youngest of six!", "Purrrr…", "Follow us!"];

@@ -1,0 +1,7 @@
+/* The original brief blink continues through a polite bow. A head nod supplies
+   its downward gaze; holding rectangular eyelid patches over the full bow
+   exaggerated their dark lash bands and the front painting's pale skin. */
+.has-motion-rig.is-bowing .face-eye-shutter {
+  animation: faceLidClose 5s linear infinite;
+  transform: scaleY(0);
+}

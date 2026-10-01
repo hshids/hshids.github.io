@@ -6,6 +6,17 @@
   mix-blend-mode: screen;
 }
 [data-theme="dark"] .campus-night-light { opacity: 1; }
+/* The rooms emit light; the masonry only receives cool ambient moonlight.
+   UC Davis retains its accepted metal paint and tower exposure. */
+[data-theme="dark"] .campus-keepsake[data-school="ms"] > .painted-sprite,
+[data-theme="dark"] .campus-keepsake[data-school="phd"] > .painted-sprite {
+  filter: brightness(.56) saturate(.63);
+}
+.campus-window-wall-spill { stroke-linejoin: round; }
+.davis-bicycle-lamp { pointer-events: none; }
+.campus-bike-night-light { opacity: 0; mix-blend-mode: screen; transition: opacity .85s ease; }
+[data-theme="dark"] .campus-bike-night-light { opacity: 1; }
+[data-theme="dark"] .campus-bike-hardware { filter: brightness(.52) saturate(.7); }
 @media (prefers-reduced-motion: reduce) {
-  .campus-night-light { transition: none; }
+  .campus-night-light, .campus-bike-night-light { transition: none; }
 }

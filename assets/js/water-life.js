@@ -56,27 +56,37 @@
       var rand = seeded(601 + i * 43), h = 99 + rand() * 18, w = h * 1024 / 1536;
       var x = +node.getAttribute("x") + +node.getAttribute("width") * .5;
       var y = 795.5 + rand() * 1.8;
-      var style = '--plant-time:' + number(5.8 + rand() * 3.1) + 's;--plant-delay:-' + number(rand() * 9) + 's;--reed-angle:' + number(.65 + rand() * .48) + 'deg';
+      var style = '--plant-time:' + number(5.8 + rand() * 3.1) + 's;--plant-delay:-' + number(rand() * 9) + 's;--reed-angle:' + number(1.10 + rand() * .62) + 'deg';
       node.outerHTML = '<g class="pond-reed-root" transform="translate(' + number(x) + ' ' + number(y) + ')"><title>Common reed — Phragmites australis</title><ellipse class="reed-water-contact" cx="0" cy="1.5" rx="' + number(w * .17) + '" ry="1.7"/><g class="reed-sway" style="' + style + '"><image class="painted-reed-plant" href="assets/art/pond-phragmites-painted.webp" x="' + number(-w * .5) + '" y="' + number(-1470 * h / 1536) + '" width="' + number(w) + '" height="' + number(h) + '"/></g></g>';
     });
 
-    // Floating pads only bob fractions of a world unit; lotus stalks and
-    // their flower share one rooted rotation so the bloom cannot disconnect.
+    // Movement is readable at ordinary scene scale. Rooted flowers and their
+    // exact stalk now live in one animated/observed group: their timing cannot
+    // diverge when one flower crosses the visibility boundary before its stem.
     all(root, ".lotus-leaf").forEach(function (node, i) {
       var rand = seeded(913 + i * 17);
-      motionGroup(root, node, "lily-pad-drift", '--plant-time:' + number(7.2 + rand() * 4.4) + 's;--plant-delay:-' + number(rand() * 12) + 's;--float-dx:' + number(.38 + rand() * .4) + 'px');
+      motionGroup(root, node, "lily-pad-drift", '--plant-time:' + number(7.2 + rand() * 4.4) + 's;--plant-delay:-' + number(rand() * 12) + 's;--float-dx:' + number(1.15 + rand() * .65) + 'px');
     });
     var stems = all(root, ".lotus-stem");
     all(root, ".lotus-flower").forEach(function (node, i) {
-      var stem = stems[i], start = stem && /^M([\d.-]+)\s+([\d.-]+)/.exec(stem.getAttribute("d"));
+      var position = /translate\(([\d.-]+)\s+([\d.-]+)\)/.exec(node.getAttribute('transform'));
+      var stem = position && stems.filter(function (candidate) {
+        var points = candidate.getAttribute('d').match(/-?\d+(?:\.\d+)?/g);
+        return points && Math.abs(+points[points.length - 2] - +position[1]) < .11 && Math.abs(+points[points.length - 1] - (+position[2] + 1)) < .11;
+      })[0];
+      var start = stem && /^M([\d.-]+)\s+([\d.-]+)/.exec(stem.getAttribute("d"));
       var rand = seeded(727 + i * 71), time = number(6.6 + rand() * 3.9), delay = number(rand() * 11);
+      var light = stem && stem.nextElementSibling, group;
       if (node.classList.contains("stem-lotus") && start) {
         var style = '--plant-time:' + time + 's;--plant-delay:-' + delay + 's;transform-origin:' + start[1] + 'px ' + start[2] + 'px';
-        var light = stem.nextElementSibling, stemsGroup = motionGroup(root, stem, "lotus-stalk-sway", style);
-        if (light && light.classList.contains("stem-light")) stemsGroup.appendChild(light);
-        motionGroup(root, node, "lotus-stalk-sway", style);
+        group = motionGroup(root, node, "lotus-stalk-sway", style);
+        group.setAttribute('data-plant-root', start[1] + ' ' + start[2]);
       } else {
-        motionGroup(root, node, "lily-flower-drift", '--plant-time:' + time + 's;--plant-delay:-' + delay + 's');
+        group = motionGroup(root, node, "lily-flower-drift", '--plant-time:' + time + 's;--plant-delay:-' + delay + 's');
+      }
+      if (stem) {
+        group.insertBefore(stem, node);
+        if (light && light.classList.contains("stem-light")) group.insertBefore(light, node);
       }
     });
 
@@ -85,7 +95,7 @@
     // interaction and the camera's brick/bank/water registration unchanged.
     var glints = '', gr = seeded(872);
     for (var gx = 36; gx < width; gx += 86 + gr() * 98) {
-      var gy = 714 + gr() * 80, gw = 16 + gr() * 28;
+      var gy = 714 + gr() * 80, gw = 28 + gr() * 43;
       glints += '<path class="pond-moving-glint" style="--water-time:' + number(5.2 + gr() * 4.3) + 's;--water-delay:-' + number(gr() * 10) + 's" d="M' + number(gx) + ' ' + number(gy) + 'q' + number(gw * .48) + ' -.8 ' + number(gw) + ' 0m-' + number(gw * .58) + ' 2.8q' + number(gw * .25) + ' -.5 ' + number(gw * .5) + ' 0"/>';
     }
     if (water) water.insertAdjacentHTML("afterend", '<g class="pond-surface-glints" aria-hidden="true">' + glints + '</g>');

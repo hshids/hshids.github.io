@@ -28,7 +28,6 @@ assets/js/gesture-hands.js ← painted gesture hands attached to the moving wris
 assets/js/basic.js    ← renders basic.html from data.js
 assets/css/world.css, assets/css/basic.css
 assets/art/           ← painted parallax mountains and WebP material swatches used inside the SVGs
-reviews/fine-v7/      ← complete pose references, live pose controls and scene screenshots
 images/…              ← photos (each gallery folder has a thumbs/ subfolder)
 files/…               ← PDFs (posters, slides)
 tutorials/, blog/     ← the original tutorial and blog pages (unchanged)
@@ -115,8 +114,6 @@ Water lilies float close to the water and fold into fuller buds at night; a few 
 
 Education uses campus keepsakes on supported stone terraces: UC Davis's painted steel water tower and bicycle, Georgetown's gray masonry and clock tower, and Lehigh's warm stone library and rounded apse. Stone courses, recessed windows, slate roofs and night lighting use distinct materials; the flags remain clear of the raised Education sign.
 
-Complete painted pose references, live day/night motion controls, and screenshots of all seven scenes on desktop and phone are in [the painted world review](reviews/fine-v7/index.html).
-
 ## Preview locally
 
 ```bash
@@ -151,8 +148,6 @@ Optional scene scripts are additive in `assets/js/rituals.js`; the original intr
 The pond is one continuous water plane with a curved bank, a submerged shelf, textured plants, and a screen-aligned sun/moon reflection. Ripples and koi appear at the tapped position. Pine and willow artwork uses transparent local assets and retains the existing parallax layers; distant architecture has foliage rooted on the same slope as its foundation and fades into the landscape. Foreground trees follow the actual paving edge, with soil, contact shadows and partially covered roots; distant roots fade into their slopes and retain the ridge occlusion masks.
 
 The Road trips map shows two schematic crossings: 2021 from San Francisco to Washington, DC via Chicago in the north, and 2025 from DC to San Francisco through Texas in the south. The replay follows each direction in order; 46 states is the overall visited total, separate from these two drives.
-
-The latest [Life and landscape screenshot review](reviews/life-v5/index.html) includes the soft cushion, both travel routes, mobile map, and every scene by day and night.
 
 The cat gallery follows arrival order: DaHuang, XiaoHei, XiaoHeiHei, TuanZi, GuoZi, then JinBingBing. The companion badge follows JinBingBing’s stable `id`; the projector and photo viewer use the same family order. Gallery cards use short family-story labels. Photo captions lead with each cat’s story, with coat/breed labels kept secondary.
 

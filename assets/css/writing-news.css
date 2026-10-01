@@ -17,7 +17,8 @@
 .painted-station .hello-stroke {
   fill: none;
   stroke: #382c24;
-  stroke-width: 1.28;
+  stroke-width: 1.02;
+  vector-effect: none;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 1 1;
@@ -48,6 +49,13 @@
 .has-writing-paint.act-write .painted-writing-rig { display: block; }
 .has-writing-paint.act-write .writing-native-base { opacity: 0; }
 [data-theme="dark"] .painted-writing-rig { filter: brightness(.77) saturate(.8); }
+.actor > .writing-brush-plane { position: absolute; width: 233.333333% !important; height: 110% !important; left: -33.333333%; top: -5%; display: none; pointer-events: none; z-index: 0; overflow: visible; }
+.has-writing-paint.act-write .writing-brush-plane { display: block; }
+.writing-brush-plane * { pointer-events: none; }
+.writing-tip-contact { fill: #423b2c; }
+.actor-lighting .writing-brush-plane { filter: url(#actor-tonal-day); }
+[data-theme="dark"] .writing-brush-plane { filter: brightness(.77) saturate(.8); }
+[data-theme="dark"] .actor-lighting .writing-brush-plane { filter: url(#actor-tonal-night) saturate(.86); }
 .st-writing.is-inking .ink-glint { stroke: #a6b39d; opacity: .7; }
 @media (prefers-reduced-motion: reduce) {
   .st-writing.is-acting .hello-ink { opacity: 1 !important; }

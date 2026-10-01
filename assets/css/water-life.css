@@ -15,20 +15,20 @@
 .fine-ripple.is-soft { stroke-width: .35; stroke-dasharray: 5 34 13 19; opacity: .11; animation-direction: reverse; }
 [data-theme="dark"] .water-current { opacity: .62; }
 .pond-surface-glints, .pond-reed-root { pointer-events: none; }
-.pond-moving-glint { fill: none; stroke: var(--w-water-line); stroke-width: .7; stroke-linecap: round; opacity: .18; animation: pondGlintTravel var(--water-time, 7s) ease-in-out var(--water-delay, 0s) infinite; }
+.pond-moving-glint { fill: none; stroke: var(--w-water-line); stroke-width: .95; stroke-linecap: round; opacity: .25; animation: pondGlintTravel var(--water-time, 7s) ease-in-out var(--water-delay, 0s) infinite; }
 .painted-reed-plant { filter: saturate(.74) contrast(.94); }
 .reed-water-contact { fill: var(--w-leaf-dark); opacity: .2; }
 [data-theme="dark"] .painted-reed-plant { filter: brightness(.48) saturate(.66); }
-[data-theme="dark"] .pond-moving-glint { stroke: #b0bdb6; stroke-width: .58; }
+[data-theme="dark"] .pond-moving-glint { stroke: #b8c9c0; stroke-width: .78; }
 .reed-sway { transform-box: view-box; transform-origin: 0px 0px; animation: paintedReedSway var(--plant-time, 7s) ease-in-out var(--plant-delay, 0s) infinite; }
 .lily-pad-drift { animation: paintedPadDrift var(--plant-time, 9s) ease-in-out var(--plant-delay, 0s) infinite; }
 .lily-flower-drift { animation: paintedFlowerDrift var(--plant-time, 8s) ease-in-out var(--plant-delay, 0s) infinite; }
 .lotus-stalk-sway { transform-box: view-box; animation: paintedLotusSway var(--plant-time, 8s) ease-in-out var(--plant-delay, 0s) infinite; }
 .water-motion-outside { animation-play-state: paused !important; }
 @keyframes pondGlintTravel {
-  0%, 100% { transform: translateX(-2px); opacity: .08; }
-  45% { transform: translateX(2.6px); opacity: .3; }
-  72% { transform: translateX(1.2px); opacity: .16; }
+  0%, 100% { transform: translateX(-3.8px); opacity: .10; }
+  45% { transform: translateX(5.2px); opacity: .42; }
+  72% { transform: translateX(2.3px); opacity: .22; }
 }
 @keyframes paintedReedSway {
   0%, 100% { transform: rotate(calc(var(--reed-angle, .8deg) * -.5)); }
@@ -36,16 +36,16 @@
   72% { transform: rotate(calc(var(--reed-angle, .8deg) * .15)); }
 }
 @keyframes paintedPadDrift {
-  0%, 100% { transform: translate(calc(var(--float-dx, .6px) * -.5), -.2px); }
-  50% { transform: translate(var(--float-dx, .6px), .28px); }
+  0%, 100% { transform: translate(calc(var(--float-dx, 1.5px) * -.5), -.48px); }
+  50% { transform: translate(var(--float-dx, 1.5px), .65px); }
 }
 @keyframes paintedFlowerDrift {
-  0%, 100% { transform: translate(-.36px, -.18px); }
-  50% { transform: translate(.5px, .26px); }
+  0%, 100% { transform: translate(-.85px, -.35px); }
+  50% { transform: translate(1.35px, .48px); }
 }
 @keyframes paintedLotusSway {
-  0%, 100% { transform: rotate(-.45deg); }
-  50% { transform: rotate(.72deg); }
+  0%, 100% { transform: rotate(-1.45deg); }
+  50% { transform: rotate(2.15deg); }
 }
 @keyframes fineRipple {
   0% { stroke-dashoffset: 0; opacity: .09; }

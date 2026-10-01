@@ -9,7 +9,7 @@
     keepsakes: ["keepsakes-painted",1536,1024], details: ["details-painted",1774,887],
     reading: ["reading-painted",1536,1024], finishes: ["finishes-painted",2172,724],
     gallery: ["gallery-screen-painted",1024,1536], research: ["research-painted",1568,1003],
-    materials: ["materials-painted",1536,1024], writers: ["writing-upright-painted",1774,887], lowWriting: ["writing-low-painted",1536,1024],
+    materials: ["materials-painted",1536,1024], writers: ["writing-grip-painted",1774,887], lowWriting: ["writing-screen-complete-painted",1536,1024],
     scholar: ["scholar-painted",1536,1024], talks: ["talks-painted",1586,992],
     branches: ["branch-signs-painted",1774,887], water: ["water-continuous-painted",1536,1024],
     dayExpressions: ["hanjing-day-expression",2172,724], nightExpressions: ["hanjing-night-expression",2172,724],
@@ -303,7 +303,7 @@
     function compile(type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);return s;}
     var program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,'attribute vec2 position;attribute vec2 uv;varying vec2 tex;void main(){gl_Position=vec4((position.x+40.0)/200.0*2.0-1.0,1.0-(position.y+10.0)/220.0*2.0,0.0,1.0);tex=uv;}'));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;uniform sampler2D painting;void main(){gl_FragColor=texture2D(painting,tex);}'));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))return;
     gl.useProgram(program);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.viewport(0,0,canvas.width,canvas.height);
-    var buffer=gl.createBuffer(),indexBuffer=gl.createBuffer(),texture=gl.createTexture(),position=gl.getAttribLocation(program,'position'),uv=gl.getAttribLocation(program,'uv');gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    var buffer=gl.createBuffer(),texture=gl.createTexture(),position=gl.getAttribLocation(program,'position'),uv=gl.getAttribLocation(program,'uv');gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
     function inside(p,x,y){var hit=false;for(var i=0,j=p.length-1;i<p.length;j=i++)if((p[i][1]>y)!==(p[j][1]>y)&&x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0])hit=!hit;return hit;}
     // The influence boundary lies outside the free sleeve/skin silhouette.
     // Only the shoulder connection fades into the unchanged torso.
@@ -317,7 +317,7 @@
       var dual=bones.map(function(m){var a=Math.atan2(m[1],m[0])/2,co=Math.cos(a),si=Math.sin(a);return[co,si,(m[4]*co+m[5]*si)/2,(m[5]*co-m[4]*si)/2];});
       // The fixed body and all texture coordinates are cached. Only native arm
       // vertices need joint math; this preserves exactly the same geometry.
-      for(var o=0;o<c.movingVertices.length;o++){var i=c.movingVertices[o],v=c.vertices[i],qc=0,qs=0,qx=0,qy=0;for(var j=0;j<3;j++){var q=dual[j],w=v.w[j];qc+=q[0]*w;qs+=q[1]*w;qx+=q[2]*w;qy+=q[3]*w;}var k=1/Math.hypot(qc,qs);qc*=k;qs*=k;qx*=k;qy*=k;var cs=qc*qc-qs*qs,sn=2*qc*qs,n=i*4;c.data[n]=cs*v.x-sn*v.y+2*(qx*qc-qy*qs);c.data[n+1]=sn*v.x+cs*v.y+2*(qx*qs+qy*qc);}gl.clear(gl.COLOR_BUFFER_BIT);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,c.data,gl.DYNAMIC_DRAW);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,c.indices,gl.STATIC_DRAW);gl.drawElements(gl.TRIANGLES,c.indices.length,gl.UNSIGNED_SHORT,0);return true;};
+      for(var o=0;o<c.movingVertices.length;o++){var i=c.movingVertices[o],v=c.vertices[i],qc=0,qs=0,qx=0,qy=0;for(var j=0;j<3;j++){var q=dual[j],w=v.w[j];qc+=q[0]*w;qs+=q[1]*w;qx+=q[2]*w;qy+=q[3]*w;}var k=1/Math.hypot(qc,qs);qc*=k;qs*=k;qx*=k;qy*=k;var cs=qc*qc-qs*qs,sn=2*qc*qs,n=i*4;c.data[n]=cs*v.x-sn*v.y+2*(qx*qc-qy*qs);c.data[n+1]=sn*v.x+cs*v.y+2*(qx*qs+qy*qc);}gl.clear(gl.COLOR_BUFFER_BIT);gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,c.data,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,c.vertices.length);return true;};
     root.appendChild(canvas);root._petPaintRig=r;petRigs.push(r);
   }
   function petRotate(a,p){var cs=Math.cos(a),sn=Math.sin(a);return[cs,sn,-sn,cs,p[0]-cs*p[0]+sn*p[1],p[1]-sn*p[0]-cs*p[1]];}
@@ -487,9 +487,9 @@
     return station('education',body,[-380,284,795,309]);
   };
   A.stations.writing = function(tutorials) {
-    var lift=12, archiveBox=[213,325,135,223], sx=135/843, sy=223/1392;
+    var lift=12, archiveBox=[245,325,135,223], sx=135/843, sy=223/1392;
     // The silk paintings and low desk share a single stone footing.
-    A.screenSpots=[[-187,346,93,119],[-85,346,101,119],[23,346,99,119],[130,346,86,119]];
+    A.screenSpots=[[-187,346,93,119],[-85,346,101,119],[23,346,99,119],[130,346,104,119]];
     A.paperSpots=[[-90,296],[-34,278],[24,303],[82,282],[142,305],[200,272]];
     A.paperAnchors=[231.6883,235.5858,245.2151,243.381,243.1517,246.1273];
     A.tutorialSpots=[446,710,972,1225].map(function(y) {
@@ -497,9 +497,11 @@
       return [cx-52,cy-15,104,30];
     });
     var body=forecourt(-289,-206,548,560,4)+sprite('branchWriting',-280,184.459,495,376);
-    body += '<g class="writing-plinth"><path class="writing-plinth-front" d="M-222 552H362V560H-222Z"/><path class="writing-plinth-top" d="M-213 528H354L362 552H-222Z"/><path class="writing-plinth-grain" d="M-222 553H362M-89 553l.7 7M66 553l-.6 7M206 553l.8 7"/><path class="writing-plinth-light" d="M-211 528.6H353M-220 553.1H360"/></g>';
+    body += '<g class="writing-plinth"><path class="writing-plinth-front" d="M-222 552H394V560H-222Z"/><path class="writing-plinth-top" d="M-213 528H386L394 552H-222Z"/><path class="writing-plinth-grain" d="M-222 553H394M-89 553l.7 7M66 553l-.6 7M206 553l.8 7"/><path class="writing-plinth-light" d="M-211 528.6H385M-220 553.1H392"/></g>';
     // Keep the four silk paintings, desk and cushion; the separate archive replaces the old open rack.
-    body += sprite('writingLow',-204,337-lift,518,223*476/454,'writing-interior','M81 57H860V153H665V533H81ZM294 460V537H525V460Z')+sprite('writingCushion',-204+(298-81)*518/779,337-lift+(443-57)*223/454,225*518/779,68*223/454,'writing-cushion-paint');
+    // The restored source has a complete chrysanthemum panel and no old
+    // empty rack. No rectangular cut is allowed through its silk or frame.
+    body += sprite('writingLow',-204,337-lift,518,223*476/454,'writing-interior','M81 57H860V533H81ZM294 460V537H525V460Z')+sprite('writingCushion',-204+(298-81)*518/779,337-lift+(443-57)*223/454,225*518/779,68*223/454,'writing-cushion-paint');
     // Follow the embroidered rim in the painting itself, rather than placing
     // another marker down on the paving beneath the low writing cushion.
     var seatRim='M-56 530C-58 520.8 -27 515.8 14.2 515.8C55.4 515.8 87.4 520.8 85.4 530C83.3 538 -21.8 542.3 -56 530Z';
@@ -520,7 +522,7 @@
     // This clip is the actual unrolled paper in the source painting, lifted with the table.
     var paper='writingPaper'+(++serial);
     body += '<defs><clipPath id="'+paper+'"><path d="M-93.62 500.55H91.91L103.88 515.29H-97.61Z"/></clipPath></defs><g class="write-hello handwritten-hello" clip-path="url(#'+paper+')"><title>Hello World! — handwritten one letter at a time</title><g class="hello-ink">'+helloStrokes()+'</g></g><g class="inkstone" data-easter="ink"><rect class="hit" x="121" y="500.18" width="36" height="20"/><path class="ink-glint" d="M126 508.18q9 3 19 0"/></g>'+glow(141,476.18,35);
-    return station('writing',body,[-290,174,668,388]);
+    return station('writing',body,[-290,174,700,388]);
   };
 
   // Simple handwritten letters appear in their normal reading order. The
@@ -540,7 +542,12 @@
       ['d','M69.2 4.9C65.6 4.2 65.3 10.4 69 9.8Q71.2 9.5 71.5 6.6M72.2 1L71.1 9.7'],
       ['!','M76 1.1L75.2 7.3M75 9.7L75.02 9.9']
     ];
-    return '<g class="hello-word" transform="matrix(.27 .008 .08 .63 50 502.4)">'+letters.map(function(s,i){return '<path class="hello-stroke" data-letter="'+s[0]+'" data-stroke="'+i+'" pathLength="1" d="'+s[1]+'"/>';}).join('')+'</g>';
+    function row(from,to,x,y) {
+      return '<g class="hello-row" data-writing-row="'+(from===0?0:1)+'" transform="matrix(.50 .008 .06 .46 '+x+' '+y+')">'+letters.slice(from,to).map(function(s,j){var i=from+j;return '<path class="hello-stroke" data-letter="'+s[0]+'" data-stroke="'+i+'" data-row="'+(from===0?0:1)+'"'+(from?' transform="translate(-34.4 0)"':'')+' pathLength="1" d="'+s[1]+'"/>';}).join('')+'</g>';
+    }
+    // Two small handwritten lines give each native glyph room to breathe on
+    // the real sheet, without reaching past either outfit's preserved wrist.
+    return '<g class="hello-word">'+row(0,5,49,501.5)+row(5,11,47,506.4)+'</g>';
   }
 
   function writingInside(poly,x,y){var hit=false;for(var i=0,j=poly.length-1;i<poly.length;j=i++)if((poly[i][1]>y)!==(poly[j][1]>y)&&x<(poly[j][0]-poly[i][0])*(y-poly[i][1])/(poly[j][1]-poly[i][1])+poly[i][0])hit=!hit;return hit;}
@@ -550,15 +557,18 @@
     function native(p){return[25+(p[0]-crop[1])*119/(crop[3]-crop[1]),62+(p[1]-crop[2])*130/(crop[4]-crop[2])];}
     var c={image:image,elbow:night?[110,137]:[113.8,136.5],grip:native(night?[1630,468]:[854,468]),tip:native(night?[1664,555]:[887,556]),vertices:[],movingVertices:[],data:null};
     var hand=(night?[[1583,452],[1605,431],[1635,433],[1649,450],[1649,472],[1636,487],[1584,501]]:[[793,456],[817,431],[844,431],[867,447],[871,471],[851,488],[797,505]]).map(native);
-    var brush=(night?[[1607,373],[1640,492],[1650,522],[1664,555]]:[[832,370],[855,488],[870,521],[887,556]]).map(native);
     function smooth(a,b,x){var u=Math.max(0,Math.min(1,(x-a)/(b-a)));return u*u*(3-2*u);}
     function vertex(cx,cy){
       var x=25+cx,y=62+cy;
       // The entire forearm, cuff and outline share one smooth field. Its
       // narrow movement fades continuously into the original upper sleeve.
       var fore=smooth(c.elbow[0]-6,c.elbow[0]+10,x)*smooth(113,122,y)*(1-smooth(145,154,y));
-      var pen=!writingInside(hand,x,y)&&brush.some(function(p,i){return i>0&&writingSegmentDistance(x,y,brush[i-1],p)<2.15;});
-      return{x:x,y:y,u:(crop[1]+cx/119*(crop[3]-crop[1]))/sheet[1],v:(crop[2]+cy/130*(crop[4]-crop[2]))/sheet[2],w:pen?[0,0,1]:[1-fore,fore,0]};
+      // The wrist transitions into the real painted thumb and fingers;
+      // their grasp follows the brush while the cuff remains on the forearm.
+      // The old brush has been removed from this source, so no narrow rod
+      // is bent or enlarged by the clothing mesh.
+      var wrist=writingInside(hand,x,y)?smooth(c.grip[0]-10,c.grip[0]-2,x)*.8:0;
+      return{x:x,y:y,u:(crop[1]+cx/119*(crop[3]-crop[1]))/sheet[1],v:(crop[2]+cy/130*(crop[4]-crop[2]))/sheet[2],w:[1-fore,fore*(1-wrist),fore*wrist]};
     }
     var columns=72,rows=79,grid=[],indices=[];
     for(var y=0;y<=rows;y++)for(var x=0;x<=columns;x++)grid.push(vertex(x*119/columns,y*130/rows));
@@ -575,6 +585,23 @@
     var fore=first-Math.atan2(uy,ux),wrist=pen-Math.atan2(py,px)-fore;
     return{fore:fore,wrist:wrist,reachError:Math.max(0,actual-reach)};
   }
+  function writingBrushPlane(root){
+    var ns='http://www.w3.org/2000/svg',svg=document.createElementNS(ns,'svg'),id='writingBrush'+(++serial);
+    svg.setAttribute('class','writing-brush-plane');svg.setAttribute('viewBox','-40 -10 280 220');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');
+    // One straight bamboo shaft sits behind the real painted fingers. Its
+    // tiny nodes, grain and ferrule share the same amber/dark ink palette as
+    // the desk; the tapered hairs finish at the single actual paper contact.
+    svg.innerHTML='<defs><linearGradient id="'+id+'Wood" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#352619"/><stop offset=".32" stop-color="#ac8150"/><stop offset=".58" stop-color="#86613b"/><stop offset="1" stop-color="#3d291a"/></linearGradient><linearGradient id="'+id+'Binding" x1="0" y1="0" x2="1" y2="0"><stop stop-color="#5f4a29"/><stop offset=".36" stop-color="#b69b65"/><stop offset=".55" stop-color="#d8c38d"/><stop offset="1" stop-color="#594124"/></linearGradient><linearGradient id="'+id+'Hair" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#615647"/><stop offset=".3" stop-color="#352e26"/><stop offset="1" stop-color="#141719"/></linearGradient></defs>'+
+      '<g class="writing-brush-world"><ellipse class="writing-tip-contact" rx=".65" ry=".16"/><g class="writing-brush-tool">'+
+      '<path class="writing-bamboo-shaft" d="M-.43 -20Q0 -20.35 .43 -20L.38 9.25Q0 9.45 -.38 9.25Z" fill="url(#'+id+'Wood)" stroke="#35281c" stroke-width=".12"/>'+
+      '<path d="M-.19 -18.9L-.11 -13.9M.17 -11.9L.11 -5.9M-.16 -4.1L-.12 2.8M.12 4.1L.08 7.1" fill="none" stroke="#d2af72" stroke-width=".075" opacity=".76"/>'+
+      '<path d="M-.41 -13.55q.41 .17 .82 0m-.8 .42q.38 .12 .78 0M-.4 -5.05q.4 .18 .8 0m-.8 .4q.4 .12 .8 0M-.38 3.6q.38 .15 .76 0" fill="none" stroke="#63472b" stroke-width=".16"/>'+
+      '<path d="M-.32 -19.8Q0 -19.95 .32 -19.8" fill="none" stroke="#d3b47e" stroke-width=".12"/><path d="M-.44 8.1L.44 8.1L.53 9.35Q0 9.56 -.53 9.35Z" fill="url(#'+id+'Binding)" stroke="#463625" stroke-width=".1"/>'+
+      '<path class="writing-brush-hairs" d="M-.52 9.3C-.68 10.66 -.46 12.47 0 14C.45 12.44 .68 10.65 .52 9.3Q0 9.52 -.52 9.3Z" fill="url(#'+id+'Hair)" stroke="#242420" stroke-width=".1"/>'+
+      '<path d="M-.31 9.8Q-.4 11.45 0 13.7M-.12 9.72Q-.25 11.77 0 13.83M.15 9.65Q.27 11.76 0 13.8M.36 9.76Q.37 11.33 .05 13.5" fill="none" stroke="#817362" stroke-width=".075" opacity=".65"/>'+
+      '</g></g>';
+    root.appendChild(svg);return {svg:svg,world:svg.querySelector('.writing-brush-world'),tool:svg.querySelector('.writing-brush-tool'),contact:svg.querySelector('.writing-tip-contact')};
+  }
   function mountWritingArm(root){
     var canvas=document.createElement('canvas');canvas.className='painted-writing-rig';canvas.width=840;canvas.height=660;canvas.setAttribute('aria-hidden','true');
     var gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true});if(!gl)return null;
@@ -584,8 +611,8 @@
     var buffer=gl.createBuffer(),indexBuffer=gl.createBuffer(),texture=gl.createTexture(),position=gl.getAttribLocation(program,'position'),uv=gl.getAttribLocation(program,'uv'),pose=gl.getUniformLocation(program,'sourcePose');
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);
     gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
-    var image=new Image();image.src=new URL('writing-upright-painted.webp',petArtBase).href;
-    var r={root:root,canvas:canvas,configs:[writingArmConfig(false,image),writingArmConfig(true,image)],current:null,measure:null};
+    var image=new Image();image.src=new URL('writing-grip-painted.webp',petArtBase).href;
+    var r={root:root,canvas:canvas,brush:writingBrushPlane(root),configs:[writingArmConfig(false,image),writingArmConfig(true,image)],current:null,measure:null};
     r.draw=function(c,bones,offset){
       if(!c.image.complete||!c.image.naturalWidth)return false;
       if(r.current!==c.image){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c.image);r.current=c.image;}
@@ -607,7 +634,7 @@
     writingClock.paths=all(ink,'.hello-stroke');
     var lengths=writingClock.paths.map(function(p){return p.getTotalLength();});
     var total=lengths.reduce(function(a,b){return a+b;},0),at=.3;
-    writingClock.route=lengths.map(function(length,i){var duration=.43+1.85*length/total,start=at;at+=duration+.105;return {start:start,end:start+duration,length:length};});
+    writingClock.route=lengths.map(function(length,i){var duration=.43+1.85*length/total,start=at;at+=duration+(i===4?.42:.105);return {start:start,end:start+duration,length:length};});
     writingClock.end=at-.105;writingClock.cycle=writingClock.end+2.7;
     new MutationObserver(function(){
       if(!st.classList.contains('is-acting')){writingClock.start=null;writingClock.preview=null;renderWriting(0,false);}
@@ -648,7 +675,13 @@
         var fore=petRotate(aim.fore,config.elbow),pen=petProduct(fore,petRotate(aim.wrist,config.grip)),offset=svg.getScreenCTM().inverse().multiply(back.getScreenCTM());
         var drawn=rig.draw(config,[[1,0,0,1,0,0],fore,pen],offset);if(drawn)actor.classList.add('has-writing-paint');
         var nativeTip=new DOMPoint(config.tip[0],config.tip[1]).matrixTransform(new DOMMatrix(pen)),actualScreen=nativeTip.matrixTransform(back.getScreenCTM());
-        rig.measure={theme:document.documentElement.dataset.theme,stroke:live,rendered:drawn,inkContact:!!point,letter:live<0?null:c.paths[live].dataset.letter,target:{x:targetScreen.x,y:targetScreen.y},brush:{x:actualScreen.x,y:actualScreen.y},error:Math.hypot(actualScreen.x-targetScreen.x,actualScreen.y-targetScreen.y),reachError:aim.reachError,elbow:config.elbow,grip:config.grip,nativeTip:config.tip};
+        var dx=config.tip[0]-config.grip[0],dy=config.tip[1]-config.grip[1],length=Math.hypot(dx,dy),ux=dx/length,uy=dy/length;
+        var basis=new DOMMatrix([uy,-ux,ux*length/14,uy*length/14,config.grip[0],config.grip[1]]),tool=new DOMMatrix(pen).multiply(basis);
+        function matrix(m){return 'matrix('+[m.a,m.b,m.c,m.d,m.e,m.f].map(function(n){return n.toFixed(6);}).join(' ')+')';}
+        rig.brush.world.setAttribute('transform',matrix(offset));rig.brush.tool.setAttribute('transform',matrix(tool));
+        rig.brush.contact.setAttribute('cx',nativeTip.x);rig.brush.contact.setAttribute('cy',nativeTip.y+.06);rig.brush.contact.style.opacity=point?'.14':'0';
+        var visibleTip=new DOMPoint(0,14).matrixTransform(rig.brush.tool.getScreenCTM()),visibleGrip=new DOMPoint(0,0).matrixTransform(rig.brush.tool.getScreenCTM()),handGrip=new DOMPoint(config.grip[0],config.grip[1]).matrixTransform(new DOMMatrix(fore)).matrixTransform(back.getScreenCTM());
+        rig.measure={theme:document.documentElement.dataset.theme,stroke:live,rendered:drawn,inkContact:!!point,letter:live<0?null:c.paths[live].dataset.letter,row:live<0?null:Number(c.paths[live].dataset.row),target:{x:targetScreen.x,y:targetScreen.y},brush:{x:visibleTip.x,y:visibleTip.y},error:Math.hypot(visibleTip.x-targetScreen.x,visibleTip.y-targetScreen.y),computedTip:{x:actualScreen.x,y:actualScreen.y},brushGrip:{x:visibleGrip.x,y:visibleGrip.y},handGrip:{x:handGrip.x,y:handGrip.y},gripError:Math.hypot(visibleGrip.x-handGrip.x,visibleGrip.y-handGrip.y),reachError:aim.reachError,elbow:config.elbow,grip:config.grip,nativeGrip:config.grip,nativeTip:config.tip,forearmAngle:aim.fore,wristAngle:aim.wrist,shaftLength:20*length/14};
       }
     }
     return {seconds:seconds,cycle:cycle,writeEnd:c.end,stroke:live,complete:active&&(done||t>=c.end),tip:point?{x:point.x,y:point.y}:null};

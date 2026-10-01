@@ -1,4 +1,8 @@
-/* Weight stays on the stone; only the painted posture reaches upward. */
+/* Sit and play share the original complete painted cat and connected joints. */
+.cat .painted-cat-lids { display: none !important; }
+.cat.cat-continuous-sit .cat-sit { visibility: hidden; }
+.cat.cat-continuous-sit .motion-rig-cat { display: block; }
+.cat.cat-continuous-sit > .painted-cat > .cat-shadow { opacity: .65; }
 .has-motion-rig.is-pouncing .motion-rig-cat {
   animation: none;
   transform: scaleX(var(--cat-facing, 1));
@@ -11,15 +15,11 @@
   opacity: .75;
   transform: none;
 }
-.cat-butterfly { bottom: calc(var(--s) * 282px - 22px); }
-.cat-butterfly.is-escaping { animation: butterflyPlantedPlay 2.8s ease-in both; }
-@keyframes butterflyPlantedPlay {
-  0% { opacity: .9; transform: none; }
-  16% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * 1px), -1px); }
-  30% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * -2px), -2px); }
-  48% { opacity: .9; transform: translate(calc(var(--butterfly-facing) * 22px), -22px); }
-  72% { opacity: .8; transform: translate(calc(var(--butterfly-facing) * 12px), -40px); }
-  100% { opacity: 0; transform: translate(calc(var(--butterfly-facing) * 110px), -76px); }
+.cat-butterfly { bottom: calc(var(--s) * 276px - 22px); }
+.cat-butterfly.is-escaping {
+  animation: none;
+  opacity: var(--butterfly-play-opacity, .9);
+  transform: translate(var(--butterfly-play-x, 0px), var(--butterfly-play-y, 0px));
 }
 @media (prefers-reduced-motion: reduce) {
   .cat-butterfly, .cat-butterfly.is-escaping { animation: none; }
