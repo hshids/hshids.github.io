@@ -26,7 +26,13 @@
   opacity: 0;
 }
 [data-theme="dark"] .painted-station .hello-stroke { stroke: #30251e; }
-.writing-seat { cursor: pointer; }
+.writing-seat {
+  --seat-thread: #d2a260;
+  --seat-warmth: #f3ce8b;
+  --seat-glow-low: .23;
+  --seat-glow-high: .47;
+  cursor: pointer;
+}
 .painted-station .writing-seat-hit { fill: transparent; stroke: none; pointer-events: all; }
 .writing-seat-warmth, .writing-seat-shadow, .writing-seat-stitch {
   fill: none;
@@ -34,15 +40,51 @@
   stroke-linejoin: round;
   pointer-events: none;
 }
-.writing-seat-shadow { stroke: #6c5335; stroke-width: .95; opacity: .33; }
-.writing-seat-stitch { stroke: #c6a574; stroke-width: .48; opacity: .85; animation: seatThreadBreath 3.6s ease-in-out infinite; }
-.writing-seat-warmth { stroke: #e1c28a; stroke-width: 1.8; opacity: .07; filter: blur(.65px); animation: seatWarmthBreath 3.6s ease-in-out infinite; }
-.st-writing.is-near .writing-seat-stitch { stroke: #d5af72; }
-[data-theme="dark"] .writing-seat-shadow { opacity: .2; }
-[data-theme="dark"] .writing-seat-stitch { stroke: #d5b581; }
-[data-theme="dark"] .writing-seat-warmth { stroke: #f0c990; }
-@keyframes seatThreadBreath { 0%,100% { opacity: .56; } 50% { opacity: .9; } }
-@keyframes seatWarmthBreath { 0%,100% { opacity: .055; } 50% { opacity: .17; } }
+/* The dark stitch recess keeps the gold thread visible on the pale fabric.
+   The light follows that same painted cushion seam, without moving the seat. */
+.writing-seat-shadow { stroke: #695134; stroke-width: 2.1; opacity: .72; }
+.writing-seat-stitch {
+  stroke: var(--seat-thread);
+  stroke-width: 1.08;
+  opacity: .9;
+  animation: seatThreadBreath 4.4s ease-in-out infinite;
+  transition: stroke .2s, stroke-width .2s;
+}
+.writing-seat-warmth {
+  stroke: var(--seat-warmth);
+  stroke-width: 3;
+  opacity: var(--seat-glow-low);
+  filter: blur(.65px) drop-shadow(0 0 1.1px rgba(236, 190, 109, .35));
+  animation: seatWarmthBreath 4.4s ease-in-out infinite;
+}
+.st-writing.is-near .writing-seat { --seat-thread: #e9bb75; --seat-glow-low: .3; --seat-glow-high: .58; }
+[data-theme="dark"] .writing-seat {
+  --seat-thread: #efcb92;
+  --seat-warmth: #ffd89c;
+  --seat-glow-low: .34;
+  --seat-glow-high: .65;
+}
+[data-theme="dark"] .writing-seat-shadow { stroke: #30291f; opacity: .88; }
+[data-theme="dark"] .st-writing.is-near .writing-seat { --seat-thread: #ffe0ac; --seat-glow-low: .43; --seat-glow-high: .75; }
+.writing-seat:hover .writing-seat-stitch,
+.layer-ground:has(#writing-seat-control:hover, #writing-seat-control:focus-visible) .writing-seat-stitch {
+  stroke: #ffe8b8;
+  stroke-width: 1.45;
+  animation: none;
+  opacity: 1;
+}
+.writing-seat:hover .writing-seat-warmth,
+.layer-ground:has(#writing-seat-control:hover, #writing-seat-control:focus-visible) .writing-seat-warmth {
+  animation: none;
+  opacity: .76;
+}
+/* The semantic control shares the cushion's world coordinates. Its feedback
+   is drawn on the textile above, rather than as a separate website button. */
+#writing-seat-control { position: absolute; z-index: 3; padding: 0; border: 0; background: transparent; border-radius: 50%; cursor: pointer; touch-action: manipulation; pointer-events: auto; }
+#writing-seat-control:focus-visible { outline: none; }
+@media (max-width: 720px) { #writing-seat-control { min-height: 44px; } }
+@keyframes seatThreadBreath { 0%,100% { opacity: .77; } 50% { opacity: 1; } }
+@keyframes seatWarmthBreath { 0%,100% { opacity: var(--seat-glow-low); } 50% { opacity: var(--seat-glow-high); } }
 /* The clock controls the preserved sleeve and brush, including pen lifts. */
 .act-write .painted-character .cb-arm { animation: none; }
 .painted-writing-rig { position: absolute; width: 233.333333% !important; height: 110% !important; left: -33.333333%; top: -5%; display: none; pointer-events: none; z-index: 0; }
@@ -61,5 +103,6 @@
   .st-writing.is-acting .hello-ink { opacity: 1 !important; }
   .st-writing.is-acting .hello-stroke { stroke-dashoffset: 0 !important; opacity: 1 !important; }
   .act-write .painted-character .cb-arm { animation: none !important; }
-  .writing-seat-stitch, .writing-seat-warmth { animation: none; }
+  .writing-seat-stitch { animation: none; opacity: 1; }
+  .writing-seat-warmth { animation: none; opacity: var(--seat-glow-high); }
 }

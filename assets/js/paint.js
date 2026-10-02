@@ -308,10 +308,43 @@
     // The influence boundary lies outside the free sleeve/skin silhouette.
     // Only the shoulder connection fades into the unchanged torso.
     var arm=[[82,106],[104,103],[129,130],[149,139],[158,140],[159,167],[134,170],[110,154],[99,141],[81,125]];
+    // The sleeveless night portrait has a different shoulder and elbow from
+    // the trench coat. This boundary follows its native skin silhouette,
+    // outside the free edges and clear of the other hand resting on the knee.
+    var nightArm=[[84,109.2],[92,109.5],[96.4,114.8],[100.1,120.3],[108,126.4],[116,130.6],[125,134.8],[137,139.4],[145.6,140.5],[150,148.6],[149,155.4],[140,154.1],[130,148.9],[120,145.1],[111,142.5],[101,138.2],[92.2,132],[84.5,124],[84,116]];
+    function petSmooth(a,b,v){var k=Math.max(0,Math.min(1,(v-a)/(b-a)));return k*k*(3-2*k);}
     function petEdge(x,y){var distance=Infinity;for(var i=0,j=arm.length-1;i<arm.length;j=i++){var a=arm[j],z=arm[i],dx=z[0]-a[0],dy=z[1]-a[1],p=Math.max(0,Math.min(1,((x-a[0])*dx+(y-a[1])*dy)/(dx*dx+dy*dy)));distance=Math.min(distance,Math.hypot(x-a[0]-dx*p,y-a[1]-dy*p));}var f=Math.max(0,Math.min(1,distance/3));return f*f*(3-2*f);}
-    function config(night){var crop=crops[night?'nightPet':'dayPet'],sheet=sheets[crop[0]],image=new Image();image.src=new URL(sheet[0]+'.webp',petArtBase).href;var c={image:image,vertices:[],data:null,shoulder:[96,113],elbow:[112,136],tip:night?[144.829889,152.262739]:[145.773952,153.477833]};
-      function v(cx,cy){var x=21+cx,y=77+cy,a=inside(arm,x,y)?Math.max(0,Math.min(1,(y-110)/12))*petEdge(x,y):0,dx=x-112,dy=y-136,projection=(dx*33.5+dy*17)/37.56,b=Math.max(0,Math.min(1,(projection+6)/12));if(y>141)a*=1-Math.max(0,Math.min(1,(y-141)/6))*(1-Math.max(0,Math.min(1,(x-109)/5)));return{x:x,y:y,u:(crop[1]+cx/126*(crop[3]-crop[1]))/sheet[1],v:(crop[2]+cy/115*(crop[4]-crop[2]))/sheet[2],w:[1-a,a*(1-b),a*b]};}
-      for(var y=0;y<115;y++)for(var x=0;x<126;x++){var a=v(x,y),b=v(x+1,y),d=v(x,y+1),e=v(x+1,y+1);c.vertices.push(a,b,d,b,e,d);}c.data=new Float32Array(c.vertices.length*4);c.movingVertices=[];c.vertices.forEach(function(v,i){var n=i*4;c.data[n]=v.x;c.data[n+1]=v.y;c.data[n+2]=v.u;c.data[n+3]=v.v;if(v.w[0]<1)c.movingVertices.push(i);});return c;}
+    function config(night){var crop=crops[night?'nightPet':'dayPet'],sheet=sheets[crop[0]],image=new Image();image.src=new URL(sheet[0]+'.webp',petArtBase).href;var c={image:image,vertices:[],data:null,shoulder:night?[90,116.7]:[96,113],elbow:night?[106.5,133.4]:[112,136],tip:night?[144.829889,152.262739]:[145.773952,153.477833]};
+      function v(cx,cy){
+        var x=21+cx,y=77+cy,a,b;
+        if(night){
+          var ux=c.elbow[0]-c.shoulder[0],uy=c.elbow[1]-c.shoulder[1],fx=c.tip[0]-c.elbow[0],fy=c.tip[1]-c.elbow[1];
+          var along=((x-c.shoulder[0])*ux+(y-c.shoulder[1])*uy)/Math.hypot(ux,uy);
+          // Skin at the shoulder stays attached to the qipao. Beyond that
+          // attachment the whole silhouette moves, including its outer edge.
+          a=inside(nightArm,x,y)?petSmooth(-1,8,along):0;
+          var fore=((x-c.elbow[0])*fx+(y-c.elbow[1])*fy)/Math.hypot(fx,fy);
+          b=petSmooth(-4.5,4.5,fore);
+        }else{
+          a=inside(arm,x,y)?Math.max(0,Math.min(1,(y-110)/12))*petEdge(x,y):0;
+          var dx=x-112,dy=y-136,projection=(dx*33.5+dy*17)/37.56;b=Math.max(0,Math.min(1,(projection+6)/12));
+          if(y>141)a*=1-Math.max(0,Math.min(1,(y-141)/6))*(1-Math.max(0,Math.min(1,(x-109)/5)));
+        }
+        return{x:x,y:y,u:(crop[1]+cx/126*(crop[3]-crop[1]))/sheet[1],v:(crop[2]+cy/115*(crop[4]-crop[2]))/sheet[2],w:[1-a,a*(1-b),a*b]};
+      }
+      var freeArm=[];
+      for(var y=0;y<115;y++)for(var x=0;x<126;x++){
+        var a=v(x,y),b=v(x+1,y),d=v(x,y+1),e=v(x+1,y+1);
+        [[a,b,d],[b,e,d]].forEach(function(triangle){
+          // A relaxed bare hand passes in front of the knee, never behind
+          // later body triangles in the original source-image row order.
+          var list=night&&triangle.some(function(p){return p.w[0]<1;})?freeArm:c.vertices;
+          Array.prototype.push.apply(list,triangle);
+        });
+      }
+      Array.prototype.push.apply(c.vertices,freeArm);
+      c.data=new Float32Array(c.vertices.length*4);c.movingVertices=[];c.vertices.forEach(function(v,i){var n=i*4;c.data[n]=v.x;c.data[n+1]=v.y;c.data[n+2]=v.u;c.data[n+3]=v.v;if(v.w[0]<1)c.movingVertices.push(i);});return c;
+    }
     var r={root:root,canvas:canvas,configs:[config(false),config(true)],upper:0,lower:0,last:0,groomMix:0,current:null};
     r.draw=function(c,bones){if(!c.image.complete||!c.image.naturalWidth)return false;if(r.current!==c.image){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c.image);r.current=c.image;}
       var dual=bones.map(function(m){var a=Math.atan2(m[1],m[0])/2,co=Math.cos(a),si=Math.sin(a);return[co,si,(m[4]*co+m[5]*si)/2,(m[5]*co-m[4]*si)/2];});
@@ -412,8 +445,20 @@
   A.sleepingCat = sleeper;
   A.screenSpots = [[-187,358,93,119],[-85,358,101,119],[23,358,99,119],[130,358,102,119]];
 
+  // Small foil, stitches and worn metal highlights follow the real painted
+  // surfaces. They do not contribute hit areas or alter any prop animation.
+  function materialHint(path,kind,delay) {
+    return '<g class="material-hint-detail '+(kind||'hint-wood')+'" aria-hidden="true" style="--hint-delay:-'+(delay||0)+'s"><path class="material-hint-recess" d="'+path+'" transform="translate(0 .38)"/><path class="material-hint" d="'+path+'"/></g>';
+  }
+  function sourceHint(name,box,commands,kind,delay) {
+    var crop=crops[name],sx=box[2]/(crop[3]-crop[1]),sy=box[3]/(crop[4]-crop[2]);
+    var path=commands.map(function(command){
+      return command[0]+command.slice(1).map(function(v,i){return ((i%2?box[1]:box[0])+(v-crop[i%2?2:1])*(i%2?sy:sx)).toFixed(2);}).join(' ');
+    }).join('');
+    return materialHint(path,kind,delay);
+  }
   function label(x,y,text,width) {
-    return '<g class="paint-label" transform="translate('+x+' '+y+')">'+sprite('plaquePanel',-width/2,-13,width,26)+'<text text-anchor="middle" y="4">'+text+'</text></g>';
+    return '<g class="paint-label" transform="translate('+x+' '+y+')">'+sprite('plaquePanel',-width/2,-13,width,26)+materialHint('M'+(-width*.18)+' 9.2q'+(width*.18)+' -.35 '+(width*.36)+' 0','hint-wood',width/25)+'<text text-anchor="middle" y="4">'+text+'</text></g>';
   }
   // A shared painted wood sample gives the narrow support beams the same material as the carved signs.
   function timberSupport(shape,grain) {
@@ -449,7 +494,7 @@
   var old = {}; Object.keys(A.stations).forEach(function(k) { old[k] = A.stations[k]; });
   A.stations.home = function () {
     return station('home',forecourt(-313,155,542,560,8)+sprite('gate',-333,288.668,510,272)+label(-78,405,'WELCOME',122)+
-      '<g class="board" data-open="news">'+sprite('board',153,420.347,112,140)+'<rect class="hit" x="153" y="420.347" width="112" height="140"/><g class="paint-board-heading" transform="translate(209.2 460.7) skewX(-1.1)"><text class="paint-board-title" text-anchor="middle">NEWS</text></g></g>'+glow(51,454.668,50),[-350,280,640,283]);
+      '<g class="board" data-open="news">'+sprite('board',153,420.347,112,140)+sourceHint('board',[153,420.347,112,140],[['M',744,701],['Q',772,699,801,701]],'hint-wood',1.7)+'<rect class="hit" x="153" y="420.347" width="112" height="140"/><g class="paint-board-heading" transform="translate(209.2 460.7) skewX(-1.1)"><text class="paint-board-title" text-anchor="middle">NEWS</text></g></g>'+glow(51,454.668,50),[-350,280,640,283]);
   };
   A.stations.research = function (pubs,themes) {
     var root = parsed(old.research(pubs,themes)), body = forecourt(-280,282,549,560,7)+sprite('researchHouse',-300,177.235,600,384), rowX=[-120,-120,-120];
@@ -457,7 +502,7 @@
       var n=['ancientBlue','ancientJade','ancientOchre'][i%3];
       var dims = b.querySelector('rect'), w = +dims.getAttribute('width'), h = +dims.getAttribute('height');
       var bw=w*.73, bh=Math.min(28,h*.7);
-      b.querySelector('.book-in').innerHTML = sprite(n,0,-bh,bw,bh)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
+      b.querySelector('.book-in').innerHTML = sprite(n,0,-bh,bw,bh)+materialHint('M'+(bw*.17)+' '+(-bh*.81)+'L'+(bw*.82)+' '+(-bh*.81)+'M'+(bw*.22)+' '+(-bh*.22)+'L'+(bw*.78)+' '+(-bh*.22),'hint-book',i*.41)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
       // Shelves in the painting are shallow and spaced evenly through the interior.
       var tr = b.getAttribute('transform'), row = tr.match(/translate\((-?[\d.]+) ([\d.]+)/);
       if (row) { var ri={436:0,482:1,528:2}[row[2]], y=[436.435,467.435,500.935][ri]; b.setAttribute('transform','translate('+rowX[ri]+' '+y+')'); rowX[ri]+=bw+2; }
@@ -471,9 +516,9 @@
     // Live slides still advance on the painted projection wall.
     var projection='<g class="screen-talk"><rect class="screen-frame painted-projection-wall" x="-189" y="383.376" width="214" height="98" rx="1"/>';
     videos.forEach(function(v,i){projection+='<image class="slide slide-'+i+'" href="'+v.thumb+'" x="-189" y="383.376" width="214" height="98" preserveAspectRatio="xMidYMid meet" style="animation-delay:'+(i*4)+'s"/>';});
-    body+=projection+'</g>';
+    body+=projection+materialHint('M-105 481.5q24 -.2 48 0','hint-wood',1.9)+'</g>';
     posters.slice(0,2).forEach(function(p,i){var w=i?105:137,h=i?135:130,x=i?325:205,y=560-h+(i ? .690 : .664);
-      body+='<g class="easel" data-poster="'+p.paper+'" transform="translate('+x+' 0)"><title>Poster · '+p.venue+'</title>'+sprite('posterFrame',-w/2,y,w,h)+'<image href="'+p.thumb+'" x="'+(-w*.34)+'" y="'+(y+h*.105)+'" width="'+(w*.68)+'" height="'+(h*.605)+'" preserveAspectRatio="xMidYMid meet"/></g>';
+      body+='<g class="easel" data-poster="'+p.paper+'" transform="translate('+x+' 0)"><title>Poster · '+p.venue+'</title>'+sprite('posterFrame',-w/2,y,w,h)+'<image href="'+p.thumb+'" x="'+(-w*.34)+'" y="'+(y+h*.105)+'" width="'+(w*.68)+'" height="'+(h*.605)+'" preserveAspectRatio="xMidYMid meet"/>'+sourceHint('posterFrame',[-w/2,y,w,h],[['M',930,535],['Q',982,533,1043,535]],'hint-wood',2.6+i)+'</g>';
     });
     body += label(-81,349.376,'TALKS',100)+glow(-240,419.376,36)+glow(107,419.376,36);
     return station('talks',body,[-370,210,740,352]);
@@ -510,9 +555,9 @@
     body += hempRope(-116,235.129,-116,242,true)+hempRope(-15,237.419,-15,242,true)+label(-65,255,'WRITING',150);
     A.paperSpots.forEach(function(p,i) {
       var star=i%2, anchor=A.paperAnchors[i]-p[1], width=star?30:38, height=30, end=star?-14:0;
-      body += '<g class="paper-ornament '+(star ? 'paper-star' : 'crane')+'" data-ornament="'+i+'" transform="translate('+p[0]+' '+p[1]+')"><g class="'+(star ? 'star-bob' : 'crane-bob')+'" style="transform-box:view-box;transform-origin:0px '+anchor+'px;animation-delay:'+(i*-.7)+'s">'+hempRope(0,anchor,0,end,true)+sprite(star ? 'star' : 'crane',-width/2,-15,width,height)+'</g></g>';
+      body += '<g class="paper-ornament '+(star ? 'paper-star' : 'crane')+'" data-ornament="'+i+'" transform="translate('+p[0]+' '+p[1]+')"><g class="'+(star ? 'star-bob' : 'crane-bob')+'" style="transform-box:view-box;transform-origin:0px '+anchor+'px;animation-delay:'+(i*-.7)+'s">'+hempRope(0,anchor,0,end,true)+sprite(star ? 'star' : 'crane',-width/2,-15,width,height)+sourceHint(star?'star':'crane',[-width/2,-15,width,height],star?[['M',1566,236],['L',1559,197]]:[['M',1134,328],['L',1178,304],['L',1210,313]],'hint-paper',i*.67)+'</g></g>';
     });
-    A.screenPlants.forEach(function(p,i) { var sp=A.screenSpots[i]; body += '<g class="screen-painting" data-screen-plant="'+p+'"><rect class="hit" x="'+sp[0]+'" y="'+sp[1]+'" width="'+sp[2]+'" height="'+sp[3]+'"/></g>'; });
+    A.screenPlants.forEach(function(p,i) { var sp=A.screenSpots[i],center=[174,328,494,657][i]; body += '<g class="screen-painting" data-screen-plant="'+p+'"><rect class="hit" x="'+sp[0]+'" y="'+sp[1]+'" width="'+sp[2]+'" height="'+sp[3]+'"/>'+sourceHint('writingLow',[-204,325,518,223*476/454],[['M',center-13,338],['Q',center,336.7,center+13,338]],'hint-wood',i*.93)+'</g>'; });
     body += '<g class="archive-cabinet">'+sprite('archiveCabinet',archiveBox[0],archiveBox[1],archiveBox[2],archiveBox[3]);
     tutorials.forEach(function(t,i) {
       var sp=A.tutorialSpots[i], cx=sp[0]+sp[2]/2,cy=sp[1]+sp[3]/2;
@@ -707,11 +752,11 @@
   });
   A.stations.life = function(catThumbs) {
     var root = parsed(old.life(catThumbs)), body = forecourt(-358,364,552,560,7)+sprite('house',-371,243,742,317)+label(0,357,'LIFE',95);
-    body += '<g class="life-item suitcase" data-life="travel">'+sprite('case',151,493,77,67)+'<rect class="hit" x="151" y="493" width="77" height="67"/></g>';
-    body += '<g class="life-item stove" data-life="food" transform="translate(-238 560)">'+jointedProp('stove',[-40,-92,80,92],[{path:'M-32 -95H33V-74Q0 -68 -32 -74Z',cls:'pot-lid-group',pivot:'0px -76px'}])+'<rect class="hit" x="-40" y="-92" width="80" height="92"/><g class="steam"><path d="M-8 -92c-8 -10 8 -16 0 -28"/><path d="M6 -92c-8 -10 8 -16 0 -28"/></g></g>';
+    body += '<g class="life-item suitcase" data-life="travel">'+sprite('case',151,493,77,67)+sourceHint('case',[151,493,77,67],[['M',87,191],['L',103,192],['L',103,202]],'hint-metal',2.4)+'<rect class="hit" x="151" y="493" width="77" height="67"/></g>';
+    body += '<g class="life-item stove" data-life="food" transform="translate(-238 560)">'+jointedProp('stove',[-40,-92,80,92],[{path:'M-32 -95H33V-74Q0 -68 -32 -74Z',cls:'pot-lid-group',pivot:'0px -76px'}])+sourceHint('stove',[-40,-92,80,92],[['M',490,163],['Q',536,171,588,166]],'hint-metal',.8)+'<rect class="hit" x="-40" y="-92" width="80" height="92"/><g class="steam"><path d="M-8 -92c-8 -10 8 -16 0 -28"/><path d="M6 -92c-8 -10 8 -16 0 -28"/></g></g>';
     body += '<g class="life-item nap" data-life="cats" transform="translate(0 -6)">'+sprite('pouf',-24,542,94,21)+sleeper()+'<path class="pouf-piping" d="M-20 553Q23 565 66 553"/></g>';
     var slides=catThumbs.map(function(src,i,arr){return '<image class="cat-slide" href="'+src+'" x="235" y="409" width="81" height="107" preserveAspectRatio="xMidYMid slice" style="animation-duration:'+(arr.length*2.5)+'s;animation-delay:'+(i*2.5)+'s"/>';}).join('');
-    body += '<g class="life-item cinema" data-life="cats"><path class="beam-light" d="M154 502L235 409V516Z"/>'+sprite('galleryScreen',215,384,121,176)+slides+'<rect class="hit" x="215" y="384" width="121" height="176"/>'+'<text class="paint-screen-label" x="277" y="536" text-anchor="middle">6 CATS</text><g class="film-projector" transform="translate(256 0) scale(-1 1)">'+jointedProp('projector',[98,455,60,105],[{path:'M128 469A10.5 11 0 1 0 107 469A10.5 11 0 1 0 128 469Z',cls:'reel-spokes',pivot:'117.5px 469px'},{path:'M156 486A10.5 10.5 0 1 0 135 486A10.5 10.5 0 1 0 156 486Z',cls:'reel-spokes',pivot:'145.5px 486px'}])+'<rect class="hit" x="98" y="455" width="60" height="105"/></g></g>'+glow(0,445,80)+glow(-278,448,48)+glow(243,443,48);
+    body += '<g class="life-item cinema" data-life="cats"><path class="beam-light" d="M154 502L235 409V516Z"/>'+sprite('galleryScreen',215,384,121,176)+slides+sourceHint('galleryScreen',[215,384,121,176],[['M',430,1178],['Q',489,1175,554,1178]],'hint-wood',3.2)+'<rect class="hit" x="215" y="384" width="121" height="176"/>'+'<text class="paint-screen-label" x="277" y="536" text-anchor="middle">6 CATS</text><g class="film-projector" transform="translate(256 0) scale(-1 1)">'+jointedProp('projector',[98,455,60,105],[{path:'M128 469A10.5 11 0 1 0 107 469A10.5 11 0 1 0 128 469Z',cls:'reel-spokes',pivot:'117.5px 469px'},{path:'M156 486A10.5 10.5 0 1 0 135 486A10.5 10.5 0 1 0 156 486Z',cls:'reel-spokes',pivot:'145.5px 486px'}])+sourceHint('projector',[98,455,60,105],[['M',795,151],['Q',788,161,796,174]],'hint-metal',3.9)+'<rect class="hit" x="98" y="455" width="60" height="105"/></g></g>'+glow(0,445,80)+glow(-278,448,48)+glow(243,443,48);
     return station('life',body,[-373,238,746,324]);
   };
   A.stations.contact = function() {
@@ -719,8 +764,8 @@
     var mailbox=root.querySelector('.mailbox'), letter=html(mailbox.querySelector('.post-letter'));
     var flag='<g class="flag painted-mail-flag"><path class="flag-arm" d="M30 452V426"/><path class="flag-arm-light" d="M29.55 450V427"/><path class="flag-plate" d="M30 425H44.8L46 426.2V435L44.8 436H30Z"/><path class="flag-bevel" d="M31 425.7H44.3L45.3 426.6V434.6M31 435.2H44.4"/><path class="flag-wear" d="M32 428l3 -.2m6 4l2 -.3m-10 2l1.8 -.25"/><circle class="flag-pin" cx="30" cy="452" r="2"/><circle cx="29.5" cy="451.5" r=".65" fill="#d8ba7b"/></g>';
     letter='<g class="post-letter">'+sprite('letter',-18,437,22,13)+'</g>';
-    body += '<ellipse cx="50" cy="561" rx="47" ry="4" fill="#332e25" opacity=".18"/><g class="mailbox-footing"><path d="M2 556H98L97 560H3Z" fill="url(#paintStone)" stroke="#71695b" stroke-width=".45"/><path d="M9 546.5H90L98 556H2Z" fill="url(#paintPaving)" stroke="#8b8271" stroke-width=".35"/><path d="M10 547H89M3 556H97" fill="none" stroke="#dfd3b7" stroke-width=".45"/><path d="M2 556H98" fill="none" stroke="#695f51" stroke-width=".45"/></g><g class="mailbox" transform="translate(50 -4)">'+sprite('postbox',-37,411,74,149)+flag+letter+'</g>';
-    body += '<g class="paint-carved-links"><title>Scholar · LinkedIn · GitHub</title>'+sprite('carvedSignpost',178,344.565,148,216)+'</g>'+hempRope(-178,308,-178,331,true)+hempRope(-82,320,-82,331,true)+label(-130,344,'CONTACT',130);
+    body += '<ellipse cx="50" cy="561" rx="47" ry="4" fill="#332e25" opacity=".18"/><g class="mailbox-footing"><path d="M2 556H98L97 560H3Z" fill="url(#paintStone)" stroke="#71695b" stroke-width=".45"/><path d="M9 546.5H90L98 556H2Z" fill="url(#paintPaving)" stroke="#8b8271" stroke-width=".35"/><path d="M10 547H89M3 556H97" fill="none" stroke="#dfd3b7" stroke-width=".45"/><path d="M2 556H98" fill="none" stroke="#695f51" stroke-width=".45"/></g><g class="mailbox" transform="translate(50 -4)">'+sprite('postbox',-37,411,74,149)+sourceHint('postbox',[-37,411,74,149],[['M',121,484],['Q',155,486,192,487]],'hint-metal',1.6)+flag+letter+'</g>';
+    body += '<g class="paint-carved-links"><title>Scholar · LinkedIn · GitHub</title>'+sprite('carvedSignpost',178,344.565,148,216)+sourceHint('carvedSignpost',[178,344.565,148,216],[['M',1440,314],['Q',1466,313,1490,315],['M',1480,458],['Q',1507,456,1530,459],['M',1440,600],['Q',1468,598,1495,601]],'hint-wood',4.2)+'</g>'+hempRope(-178,308,-178,331,true)+hempRope(-82,320,-82,331,true)+label(-130,344,'CONTACT',130);
     return station('contact',body,[-340,223,675,339]);
   };
 

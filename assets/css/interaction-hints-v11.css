@@ -1,0 +1,130 @@
+/* Interaction light belongs to the material: shallow stone cuts, tiny foil
+   bands, brass lips, paper creases and the existing cushion seams. */
+.spot-warmth {
+  stroke: #dbb775;
+  stroke-width: 1.75;
+  animation: carvedGoldBreath 5.8s ease-in-out var(--inlay-delay, 0s) infinite;
+}
+.spot-etch { stroke: #d6bd91; }
+.st.is-near .spot-warmth, .st.is-acting .spot-warmth { stroke-width: 1.9; }
+[data-theme="dark"] .spot-warmth {
+  stroke: #e8c990;
+  animation-name: carvedGoldNightBreath;
+}
+[data-theme="dark"] .spot-etch { stroke: #b8b69b; }
+@keyframes carvedGoldBreath { 0%,100% { opacity: .22; } 50% { opacity: .46; } }
+@keyframes carvedGoldNightBreath { 0%,100% { opacity: .31; } 50% { opacity: .59; } }
+
+/* Each small mark stays with its prop, including the lifted book and gently
+   moving origami. No image or transparent interaction rectangle is lit. */
+.material-hint-detail {
+  --hint-low: .31;
+  --hint-high: .61;
+  pointer-events: none;
+}
+.material-hint, .material-hint-recess {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+.material-hint-recess { stroke: #4d3926; stroke-width: 1.3; opacity: .27; }
+.material-hint {
+  stroke: #e0bd7d;
+  stroke-width: .82;
+  opacity: var(--hint-low);
+  animation: materialGoldBreath 5.8s ease-in-out var(--hint-delay, 0s) infinite;
+  transition: stroke .2s, stroke-width .2s;
+}
+.hint-metal .material-hint { stroke: #e9cc8c; stroke-width: .74; }
+.hint-book .material-hint { stroke: #d6b06e; stroke-width: .56; }
+.hint-paper { --hint-low: .27; --hint-high: .52; }
+.hint-paper .material-hint { stroke: #e0c598; stroke-width: .55; }
+.hint-paper .material-hint-recess { stroke: #8f744c; stroke-width: .78; opacity: .15; }
+[data-theme="dark"] .material-hint-detail { --hint-low: .4; --hint-high: .72; }
+[data-theme="dark"] .material-hint { stroke: #eed09b; }
+[data-theme="dark"] .hint-paper { --hint-low: .33; --hint-high: .59; }
+[data-theme="dark"] .material-hint-recess { stroke: #211d18; opacity: .43; }
+@keyframes materialGoldBreath { 0%,100% { opacity: var(--hint-low); } 50% { opacity: var(--hint-high); } }
+
+.book:hover .material-hint,
+.board:hover .material-hint,
+.screen-talk:hover .material-hint,
+.easel:hover .material-hint,
+.campus-keepsake:hover .material-hint,
+.life-item:hover .material-hint,
+.mailbox:hover .material-hint,
+.paint-carved-links:hover .material-hint,
+.screen-painting:hover .material-hint,
+.paper-ornament:hover .material-hint {
+  stroke: #f5d99c;
+  animation: none;
+  opacity: .94;
+}
+
+/* The archival paper already has a small gold roller edge. The inkstone's
+   own reflective rim is quiet while idle; its grinding action retains its
+   original green reflection and motion. */
+.archive-scroll:not(.is-unrolling) .archive-scroll-glint,
+.st-writing:not(.is-inking) .ink-glint {
+  --hint-low: .3;
+  --hint-high: .61;
+  stroke: #dbb77b;
+  stroke-width: .72;
+  animation: materialGoldBreath 5.8s ease-in-out -1.2s infinite;
+  pointer-events: none;
+}
+.archive-scroll:hover:not(.is-unrolling) .archive-scroll-glint,
+.st-writing:not(.is-inking) .inkstone:hover .ink-glint { animation: none; opacity: .94; stroke: #f3d498; }
+[data-theme="dark"] .archive-scroll:not(.is-unrolling) .archive-scroll-glint,
+[data-theme="dark"] .st-writing:not(.is-inking) .ink-glint { --hint-low: .42; --hint-high: .73; stroke: #efd19a; }
+
+/* XiaoHei's hint is the real soft pouf piping, below his fur, never a ring
+   around the cat. Writing's independently reviewed embroidered cue stays
+   entirely in writing-news.css. */
+.st-life .pouf-piping {
+  --hint-low: .44;
+  --hint-high: .77;
+  stroke: #dfb97c;
+  stroke-width: 1.2;
+  opacity: var(--hint-low);
+  animation: materialGoldBreath 5.8s ease-in-out -.8s infinite;
+  pointer-events: none;
+}
+[data-theme="dark"] .st-life .pouf-piping { --hint-low: .51; --hint-high: .86; stroke: #efd19b; }
+.st-life .nap:hover .pouf-piping,
+.st-life .nap.is-touched .pouf-piping,
+.layer-ground:has(#xiaohei-control:hover, #xiaohei-control:focus-visible) .st-life .pouf-piping {
+  stroke: #f5d99c;
+  stroke-width: 1.65;
+  opacity: 1;
+  animation: none;
+}
+
+/* Native keyboard/touch controls illuminate their corresponding material.
+   The physical mark replaces the old rectangular outline on these invisible
+   paper controls; all other controls keep their existing focus indicators. */
+.paper-control:focus-visible { outline: none; box-shadow: none; }
+.layer-ground:has(.paper-control[data-screen-plant="plum"]:is(:hover, :focus-visible)) .screen-painting[data-screen-plant="plum"] .material-hint,
+.layer-ground:has(.paper-control[data-screen-plant="orchid"]:is(:hover, :focus-visible)) .screen-painting[data-screen-plant="orchid"] .material-hint,
+.layer-ground:has(.paper-control[data-screen-plant="bamboo"]:is(:hover, :focus-visible)) .screen-painting[data-screen-plant="bamboo"] .material-hint,
+.layer-ground:has(.paper-control[data-screen-plant="chrysanthemum"]:is(:hover, :focus-visible)) .screen-painting[data-screen-plant="chrysanthemum"] .material-hint,
+.layer-ground:has(.paper-control[data-ornament="0"]:is(:hover, :focus-visible)) .paper-ornament[data-ornament="0"] .material-hint,
+.layer-ground:has(.paper-control[data-ornament="1"]:is(:hover, :focus-visible)) .paper-ornament[data-ornament="1"] .material-hint,
+.layer-ground:has(.paper-control[data-ornament="2"]:is(:hover, :focus-visible)) .paper-ornament[data-ornament="2"] .material-hint,
+.layer-ground:has(.paper-control[data-ornament="3"]:is(:hover, :focus-visible)) .paper-ornament[data-ornament="3"] .material-hint,
+.layer-ground:has(.paper-control[data-ornament="4"]:is(:hover, :focus-visible)) .paper-ornament[data-ornament="4"] .material-hint,
+.layer-ground:has(.paper-control[data-ornament="5"]:is(:hover, :focus-visible)) .paper-ornament[data-ornament="5"] .material-hint { animation: none; opacity: .94; stroke: #f5d99c; stroke-width: 1.35; }
+.layer-ground:has(.paper-control[data-tutorial="r"]:is(:hover, :focus-visible)) .archive-scroll[data-tutorial="r"]:not(.is-unrolling) .archive-scroll-glint,
+.layer-ground:has(.paper-control[data-tutorial="python"]:is(:hover, :focus-visible)) .archive-scroll[data-tutorial="python"]:not(.is-unrolling) .archive-scroll-glint,
+.layer-ground:has(.paper-control[data-tutorial="stats"]:is(:hover, :focus-visible)) .archive-scroll[data-tutorial="stats"]:not(.is-unrolling) .archive-scroll-glint,
+.layer-ground:has(.paper-control[data-tutorial="web"]:is(:hover, :focus-visible)) .archive-scroll[data-tutorial="web"]:not(.is-unrolling) .archive-scroll-glint { animation: none; opacity: .94; stroke: #f3d498; stroke-width: 1.25; }
+
+@media (prefers-reduced-motion: reduce) {
+  .spot-warmth { animation: none !important; opacity: .4; }
+  [data-theme="dark"] .spot-warmth { opacity: .51; }
+  .material-hint,
+  .archive-scroll:not(.is-unrolling) .archive-scroll-glint,
+  .st-writing:not(.is-inking) .ink-glint,
+  .st-life .pouf-piping { animation: none !important; opacity: var(--hint-high); }
+}

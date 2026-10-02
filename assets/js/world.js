@@ -104,6 +104,7 @@
           '<button type="button" class="cat-butterfly" hidden aria-label="Let JinBingBing chase this visiting butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bf-flight"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></g></svg></button>' +
           '<div class="actor char" id="char">' + ART.character("w") + '<div class="bubble" id="char-bubble"></div></div>';
         el.insertAdjacentHTML("beforeend", '<button type="button" id="xiaohei-control" class="sleeper-control" aria-label="Wake XiaoHei, our oldest brother, for a little grooming" style="left:calc(var(--s) * ' + (byId.life.x - 19) + 'px);bottom:calc(var(--s) * 251px)"></button>');
+        el.insertAdjacentHTML("beforeend", '<button type="button" id="writing-seat-control" aria-label="Sit at the writing desk" style="left:calc(var(--s) * ' + (byId.writing.x - 58.8) + 'px);bottom:calc(var(--s) * ' + (VH - 529.6) + 'px);width:calc(var(--s) * 146px);height:calc(var(--s) * 38px);transform:translateY(50%)"></button>');
         ART.screenPlants.forEach(function (plant, i) {
           var sp = ART.screenSpots[i];
           el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-screen-plant="' + plant + '" aria-label="Look closely at the ' + plant + ' painting on silk" style="left:calc(var(--s) * ' + (byId.writing.x + sp[0]) + 'px);bottom:calc(var(--s) * ' + (VH - sp[1] - sp[3]) + 'px);width:calc(var(--s) * ' + sp[2] + 'px);height:calc(var(--s) * ' + sp[3] + 'px)"></button>');
@@ -1474,6 +1475,7 @@
     if (t.closest("#char")) { if (pokeAction()) return; flash(charEl, "is-waving", 1500); bubble(charEl, POKES[state.lang][Math.floor(Math.random() * POKES[state.lang].length)], 2400); return; }
     if (t.closest(".cat-butterfly")) { chaseButterfly(); return; }
     if (t.closest("#cat")) { doAction("meow"); return; }
+    if (t.closest("#writing-seat-control")) { goTo("writing"); return; }
     if ((el = t.closest(".lotus-pond"))) {
       stirPond(e.clientX, e.clientY); return;
     }

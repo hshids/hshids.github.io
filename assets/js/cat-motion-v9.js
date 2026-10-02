@@ -74,17 +74,41 @@
     var originalWeights=base.weights;
     base.image='cats-upright-painted';base.crop=[764,2,742,584];base.box=[2,6+(2-33)*64/553,86,584*64/553];
     base.weights=function(x,y){if(inside(uprightTail,x,y)){var amount=smooth((42-y)/12);return amount?[[13,amount],[0,1-amount]].filter(function(w){return w[1]>0;}):[[0,1]];}return originalWeights(x,y);};
-    var originalHead=[[37+(40-9)*622/68,25+(6-7)*570/62],
-      [37+(79-9)*622/68,25+(6-7)*570/62],
-      [37+(79-9)*622/68,25+(41-7)*570/62],
-      [37+(69-9)*622/68,25+(44.5-7)*570/62],
-      [37+(44-9)*622/68,25+(44.5-7)*570/62],
-      [37+(37-9)*622/68,25+(35-7)*570/62],
-      [37+(37-9)*622/68,25+(22-7)*570/62]];
-    var layers=[{image:'jinbingbing-bind-native',sheet:[1536,1024],crop:[0,0,1000,1000],box:[9,7,68,62],step:1.3,dual:true,
-      excludePaths:[[[360,0],[1000,0],[1000,590],[500,590],[360,425]]],weights:sittingWeights},
-      {image:'cats-painted',sheet:[1536,1024],crop:[37,25,622,570],box:[9,7,68,62],step:1.3,dual:true,clipPath:originalHead,weights:headWeights}];
-    front.forEach(function(leg){layers.push({image:'jinbingbing-bind-native',sheet:[1536,1024],crop:leg.crop,box:leg.box,step:1.1,dual:true,weights:function(x,y){return limbWeights(leg,x,y);}});});
+    // The original long chest ruff continues down over the upper forelegs.
+    // It is native fur, at its original UVs, rather than a new shoulder cap.
+    var originalHead=[[40,6],[79,6],[79,41],[73,47],[67,53.8],
+      [61.5,56],[51.5,55.5],[45,51],[37,35],[37,22]].map(function(p){
+        return [37+(p[0]-9)*622/68,25+(p[1]-7)*570/62];
+      });
+    var bodyLayer={image:'jinbingbing-bind-native',sheet:[1536,1024],crop:[0,0,1000,1000],box:[9,7,68,62],step:1.3,dual:true,
+      excludePaths:[[[360,0],[1000,0],[1000,590],[500,590],[360,425]]],weights:sittingWeights};
+    var headLayer={image:'cats-painted',sheet:[1536,1024],crop:[37,25,622,570],box:[9,7,68,62],step:1.3,dual:true,clipPath:originalHead,weights:headWeights};
+    function legParts(leg){
+      var crop=leg.crop,box=leg.box,dx=leg.e[0]-leg.k[0],dy=leg.e[1]-leg.k[1],length=Math.hypot(dx,dy);
+      var rectangle=[[crop[0],crop[1]],[crop[0]+crop[2],crop[1]],
+        [crop[0]+crop[2],crop[1]+crop[3]],[crop[0],crop[1]+crop[3]]];
+      function distance(p){var x=box[0]+(p[0]-crop[0])*box[2]/crop[2],y=box[1]+(p[1]-crop[1])*box[3]/crop[3];return ((x-leg.k[0])*dx+(y-leg.k[1])*dy)/length-(length-6.5);}
+      function clipped(sign){
+        var result=[];
+        rectangle.forEach(function(b,i){var a=rectangle[(i+rectangle.length-1)%rectangle.length],da=distance(a),db=distance(b),ai=sign*da>=0,bi=sign*db>=0;
+          if(ai!==bi){var u=da/(da-db);result.push([a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u]);}
+          if(bi)result.push(b.slice());
+        });return result;
+      }
+      function part(points){
+        var xs=points.map(function(p){return p[0];}),ys=points.map(function(p){return p[1];});
+        var left=Math.max(crop[0],Math.floor(Math.min.apply(null,xs))),top=Math.max(crop[1],Math.floor(Math.min.apply(null,ys)));
+        var right=Math.min(crop[0]+crop[2],Math.ceil(Math.max.apply(null,xs))),bottom=Math.min(crop[1]+crop[3],Math.ceil(Math.max.apply(null,ys)));
+        return {image:'jinbingbing-bind-native',sheet:[1536,1024],crop:[left,top,right-left,bottom-top],
+          box:[box[0]+(left-crop[0])*box[2]/crop[2],box[1]+(top-crop[1])*box[3]/crop[3],(right-left)*box[2]/crop[2],(bottom-top)*box[3]/crop[3]],
+          clipPath:points,step:1.1,dual:true,weights:function(x,y){return limbWeights(leg,x,y);}};
+      }
+      // Complementary native masks preserve every limb pixel once. Upper
+      // legs sit behind the hanging ruff; wrists and paws emerge in front.
+      return {proximal:part(clipped(-1)),distal:part(clipped(1))};
+    }
+    var nearParts=legParts(front[0]),farParts=legParts(front[1]);
+    var layers=[bodyLayer,farParts.proximal,nearParts.proximal,headLayer,farParts.distal,nearParts.distal];
     return [base,{image:'cats-painted',sheet:[1536,1024],crop:[37,25,622,570],box:[9,7,68,62],sitFeline:true,front:front,layers:layers,weights:function(){return [[0,1]];}}];
   };
   A.catV10Active=function(root){
@@ -102,19 +126,23 @@
       elapsed=motion.elapsed;
     }else{rig.catPlayMotion=null;delete rig.times['is-pouncing'];}
     var pose=pouncing?play(elapsed):{rear:0,reach:0},b=Array.from({length:16},identity);
-    var torso=rotate(-7*pose.rear,40,56);torso[5]-=.9*pose.rear;b[15]=torso;
+    // Match the complete rear-supported reference: the chest and abdomen
+    // rise together while the haunches and tail coil retain their contact.
+    var torso=rotate(-15*pose.rear,40,56);torso[5]-=.9*pose.rear;b[15]=torso;
     var greeting=!reduced&&(root.classList.contains('is-tail-playing')||root.classList.contains('is-happy')),greet=0;
     if(greeting){if(rig.catGreetingStart===undefined)rig.catGreetingStart=t;var seconds=(t-rig.catGreetingStart)/1000;greet=Math.sin(seconds*5)*Math.max(0,1-seconds/1.8);}else delete rig.catGreetingStart;
-    var headAngle=reduced?0:greet*1.8+Math.sin(t/2350)*.18-pose.rear*.7;
+    var headAngle=reduced?0:greet*1.8+Math.sin(t/2350)*.18-pose.rear*6;
     b[14]=multiply(torso,rotate(headAngle,60,28));
     var tailDy=reduced?0:Math.sin(t/1100)*1.45+Math.sin(t/2220)*.35+greet*1.1;
     b[13]=rotate(reduced?0:Math.sin(t/1490)*.75,31,58);b[13][5]+=tailDy;
-    var near=pose.reach<.45?mix(front[1].rest,[58.5,47],pose.reach/.45):mix([58.5,47],[76,22],(pose.reach-.45)/.55);
+    // Reach on the butterfly's side rather than crossing the left paw
+    // through the cheek. The peak paw clears the muzzle in the reference.
+    var near=pose.reach<.45?mix(front[0].rest,[67,43],pose.reach/.45):mix([67,43],[78.5,16],(pose.reach-.45)/.55);
     if(pouncing&&elapsed>=1.2&&elapsed<2.8){near[0]+=Math.sin((elapsed-1.2)*6)*.42;near[1]+=Math.sin((elapsed-1.2)*5)*.34;}
-    var far=mix(front[0].rest,[62,43.5],pose.rear);
-    [far,near].forEach(function(target,i){var leg=front[i],limbs=solve(leg,target,torso,pose.rear||pose.reach);for(var j=0;j<3;j++)b[leg.bone+j]=limbs[j];});
-    root._rigCatTailAngle=0;root._rigCatTailTipDy=tailDy;root._rigCatHeadAngle=headAngle;root._rigCatSpineAngle=-7*pose.rear;
-    root._rigCatPounceFrame=pouncing?{continuous:true,time:elapsed,painting:'cats-painted',rear:pose.rear,reach:pose.reach,hind:{x:35,y:68},forepaw:transform(b[12],front[1].e),otherPaw:transform(b[6],front[0].e)}:null;
+    var far=mix(front[1].rest,[55.5,46.5],pose.rear);
+    [near,far].forEach(function(target,i){var leg=front[i],limbs=solve(leg,target,torso,pose.rear||pose.reach);for(var j=0;j<3;j++)b[leg.bone+j]=limbs[j];});
+    root._rigCatTailAngle=0;root._rigCatTailTipDy=tailDy;root._rigCatHeadAngle=headAngle;root._rigCatSpineAngle=-15*pose.rear;
+    root._rigCatPounceFrame=pouncing?{continuous:true,time:elapsed,painting:'cats-painted',rear:pose.rear,reach:pose.reach,hind:{x:35,y:68},forepaw:transform(b[6],front[0].e),otherPaw:transform(b[12],front[1].e)}:null;
     return b;
   };
   // rig calls this only after its full painting was successfully drawn.
@@ -132,5 +160,7 @@
     }
   };
   A.catPlayUsesRenderedClock=true;
-  A.catV9TailAngle=function(t){return reduced?0:Math.sin(t/670)*6.2+Math.sin(t/1710)*.7;};
+  // A whole raised tail needs a readable sweep at the cat's 66px world size.
+  // Its slower second rhythm stays independent of the four-paw cadence.
+  A.catV9TailAngle=function(t){return reduced?0:Math.sin(t/760)*11.5+Math.sin(t/1730)*2.2;};
 })();
