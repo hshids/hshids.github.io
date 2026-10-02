@@ -2,6 +2,19 @@
 (function () {
   "use strict";
   var A = window.HJArt, serial = 0;
+  var mobilePaintResources=matchMedia('(pointer: coarse), (max-width: 699px)').matches;
+  function paintingSource(name) {
+    var theme=/^hanjing-(day|night)(?:-|$)/.exec(name),src='assets/art/'+name+'.webp';
+    if(mobilePaintResources&&theme&&(theme[1]==='night')!==(document.documentElement.dataset.theme==='dark'))
+      return 'data-paint-theme="'+(theme[1]==='night'?'dark':'light')+'" data-paint-src="'+src+'"';
+    return 'href="'+src+'"';
+  }
+  A.activatePaintTheme=function(theme) {
+    document.querySelectorAll('image[data-paint-theme="'+theme+'"]').forEach(function(image){
+      image.setAttribute('href',image.getAttribute('data-paint-src'));
+      image.removeAttribute('data-paint-src');image.removeAttribute('data-paint-theme');
+    });
+  };
   var sheets = {
     day: ["hanjing-day",1774,887], night: ["hanjing-night",1774,887],
     cats: ["cats-painted",1536,1024], buildings: ["buildings-painted",1536,1024],
@@ -82,7 +95,7 @@
     if (name === 'heiGroom' && !sourceClip) sourceClip = 'M870 578H1360V598H1519V979H870Z';
     return '<svg class="painted-sprite ' + (cls || '') + '" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="width:'+w+'px;height:'+h+'px;overflow:hidden" viewBox="'+b[1]+' '+b[2]+' '+(b[3]-b[1])+' '+(b[4]-b[2])+'" preserveAspectRatio="none" overflow="hidden">' +
       (sourceClip ? '<defs><clipPath id="'+id+'"><path d="'+sourceClip+'"/></clipPath></defs>' : '') +
-      '<image href="assets/art/'+s[0]+'.webp" width="'+s[1]+'" height="'+s[2]+'"'+(sourceClip ? ' clip-path="url(#'+id+')"' : '')+'/></svg>';
+      '<image '+paintingSource(s[0])+' width="'+s[1]+'" height="'+s[2]+'"'+(sourceClip ? ' clip-path="url(#'+id+')"' : '')+'/></svg>';
   }
   function parsed(markup) {
     return new DOMParser().parseFromString('<svg xmlns="http://www.w3.org/2000/svg">'+markup+'</svg>', 'image/svg+xml').documentElement;
@@ -103,7 +116,7 @@
         '<filter id="'+id+'Soft" x="-25%" y="-25%" width="150%" height="150%"><feGaussianBlur stdDeviation=".09"/></filter>'+
         '<mask id="'+id+'Blend" maskUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'"><rect x="'+(x+.09)+'" y="'+(y+.09)+'" width="'+(w-.18)+'" height="'+(h-.18)+'" rx=".28" fill="white" filter="url(#'+id+'Soft)"/></mask>'+
         '<clipPath id="'+id+'Reveal" clipPathUnits="userSpaceOnUse"><rect class="'+(kind==='face-eyelid'?'face-eye-shutter':'face-mouth-shutter')+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="transform-origin:'+x+'px '+y+'px"/></clipPath></defs>'+
-        '<g mask="url(#'+id+'Blend)"><g clip-path="url(#'+id+'Reveal)"><svg class="painted-sprite face-feature-paint" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="width:'+w+'px;height:'+h+'px;overflow:hidden" viewBox="'+source.join(' ')+'" preserveAspectRatio="none" overflow="hidden"><image href="assets/art/'+s[0]+'.webp" width="'+s[1]+'" height="'+s[2]+'"/></svg></g></g></g>';
+        '<g mask="url(#'+id+'Blend)"><g clip-path="url(#'+id+'Reveal)"><svg class="painted-sprite face-feature-paint" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="width:'+w+'px;height:'+h+'px;overflow:hidden" viewBox="'+source.join(' ')+'" preserveAspectRatio="none" overflow="hidden"><image '+paintingSource(s[0])+' width="'+s[1]+'" height="'+s[2]+'"/></svg></g></g></g>';
     }
     function features(night,rig) {
       var sheet=night?'nightExpressions':'dayExpressions';
@@ -297,13 +310,19 @@
   // Petting has its own two-joint chain. Its entire texture stays in one mesh,
   // so moving the elbow cannot uncover the knee or replace a sleeve with a cap.
   var petRigs=[],petArtBase=new URL('../art/',document.currentScript.src);
+  // Touch/mobile browsers need no petting context or meshes before the action.
+  var lazyPetResources=matchMedia('(pointer: coarse), (max-width: 699px)').matches;
   function petRig(root){
     var canvas=document.createElement('canvas');canvas.className='motion-rig painted-pet-rig';canvas.width=600;canvas.height=660;canvas.setAttribute('aria-hidden','true');
     var gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true});if(!gl)return;
     function compile(type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);return s;}
-    var program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,'attribute vec2 position;attribute vec2 uv;varying vec2 tex;void main(){gl_Position=vec4((position.x+40.0)/200.0*2.0-1.0,1.0-(position.y+10.0)/220.0*2.0,0.0,1.0);tex=uv;}'));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;uniform sampler2D painting;void main(){gl_FragColor=texture2D(painting,tex);}'));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))return;
-    gl.useProgram(program);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.viewport(0,0,canvas.width,canvas.height);
-    var buffer=gl.createBuffer(),texture=gl.createTexture(),position=gl.getAttribLocation(program,'position'),uv=gl.getAttribLocation(program,'uv');gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);
+    var program,buffer,texture,position,uv;
+    function initializeGL(){
+      program=gl.createProgram();gl.attachShader(program,compile(gl.VERTEX_SHADER,'attribute vec2 position;attribute vec2 uv;varying vec2 tex;void main(){gl_Position=vec4((position.x+40.0)/200.0*2.0-1.0,1.0-(position.y+10.0)/220.0*2.0,0.0,1.0);tex=uv;}'));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,'precision mediump float;varying vec2 tex;uniform sampler2D painting;void main(){gl_FragColor=texture2D(painting,tex);}'));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))return false;
+      gl.useProgram(program);gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.viewport(0,0,canvas.width,canvas.height);
+      buffer=gl.createBuffer();texture=gl.createTexture();position=gl.getAttribLocation(program,'position');uv=gl.getAttribLocation(program,'uv');gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);gl.bindTexture(gl.TEXTURE_2D,texture);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);return true;
+    }
+    if(!initializeGL())return;
     function inside(p,x,y){var hit=false;for(var i=0,j=p.length-1;i<p.length;j=i++)if((p[i][1]>y)!==(p[j][1]>y)&&x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0])hit=!hit;return hit;}
     // The influence boundary lies outside the free sleeve/skin silhouette.
     // Only the shoulder connection fades into the unchanged torso.
@@ -345,8 +364,11 @@
       Array.prototype.push.apply(c.vertices,freeArm);
       c.data=new Float32Array(c.vertices.length*4);c.movingVertices=[];c.vertices.forEach(function(v,i){var n=i*4;c.data[n]=v.x;c.data[n+1]=v.y;c.data[n+2]=v.u;c.data[n+3]=v.v;if(v.w[0]<1)c.movingVertices.push(i);});return c;
     }
-    var r={root:root,canvas:canvas,configs:[config(false),config(true)],upper:0,lower:0,last:0,groomMix:0,current:null};
-    r.draw=function(c,bones){if(!c.image.complete||!c.image.naturalWidth)return false;if(r.current!==c.image){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c.image);r.current=c.image;}
+    var r={root:root,canvas:canvas,configs:lazyPetResources?[null,null]:[config(false),config(true)],upper:0,lower:0,last:0,groomMix:0,current:null};
+    r.getConfig=function(night){var i=night?1:0;return r.configs[i]||(r.configs[i]=config(night));};
+    canvas.addEventListener('webglcontextlost',function(event){event.preventDefault();r.contextLost=true;r.current=null;r.last=0;canvas.style.display='none';root.classList.remove('has-pet-paint');});
+    canvas.addEventListener('webglcontextrestored',function(){if(root._petPaintRig!==r||!initializeGL())return;r.contextLost=false;r.current=null;r.last=0;canvas.style.removeProperty('display');});
+    r.draw=function(c,bones){if(r.contextLost||gl.isContextLost()||!c.image.complete||!c.image.naturalWidth)return false;if(r.current!==c.image){gl.bindTexture(gl.TEXTURE_2D,texture);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,c.image);r.current=c.image;}
       var dual=bones.map(function(m){var a=Math.atan2(m[1],m[0])/2,co=Math.cos(a),si=Math.sin(a);return[co,si,(m[4]*co+m[5]*si)/2,(m[5]*co-m[4]*si)/2];});
       // The fixed body and all texture coordinates are cached. Only native arm
       // vertices need joint math; this preserves exactly the same geometry.
@@ -357,8 +379,8 @@
   function petProduct(a,b){return[a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];}
   function petAim(c,target){var p=c.shoulder,e=c.elbow,h=c.tip,ux=e[0]-p[0],uy=e[1]-p[1],fx=h[0]-e[0],fy=h[1]-e[1],l1=Math.hypot(ux,uy),l2=Math.hypot(fx,fy),dx=target[0]-p[0],dy=target[1]-p[1],d=Math.max(Math.abs(l1-l2)+.1,Math.min(l1+l2-.1,Math.hypot(dx,dy))),direction=Math.atan2(dy,dx),bend=Math.acos(Math.max(-1,Math.min(1,(l1*l1+d*d-l2*l2)/(2*l1*d)))),a=direction+bend,theta=-Math.acos(Math.max(-1,Math.min(1,(d*d-l1*l1-l2*l2)/(2*l1*l2))));return[a-Math.atan2(uy,ux),theta-Math.atan2(fy,fx)+Math.atan2(uy,ux)];}
   requestAnimationFrame(function petFrame(t){
-    all(document,'#char,.avatar-demo').forEach(function(root){if(root.querySelector('.c-crouch')&&!root._petPaintRig)petRig(root);});
-    petRigs.forEach(function(r){var root=r.root;if(!root.isConnected||!root.classList.contains('act-pet')){r.last=0;root.classList.remove('has-pet-paint');return;}var c=r.configs[document.documentElement.dataset.theme==='dark'?1:0],svg=root.querySelector('.painted-character'),sleep=document.querySelector('.st-life .sc-painted-rest .sc-head'),groom=document.querySelector('.st-life .sleep-cat.is-grooming'),target;
+    all(document,'#char,.avatar-demo').forEach(function(root){if(root.querySelector('.c-crouch')&&!root._petPaintRig&&(!lazyPetResources||root.classList.contains('act-pet')))petRig(root);});
+    petRigs.forEach(function(r){var root=r.root;if(r.contextLost||!root.isConnected||!root.classList.contains('act-pet')){r.last=0;root.classList.remove('has-pet-paint');return;}var c=r.getConfig(document.documentElement.dataset.theme==='dark'),svg=root.querySelector('.painted-character'),sleep=document.querySelector('.st-life .sc-painted-rest .sc-head'),groom=document.querySelector('.st-life .sleep-cat.is-grooming'),target;
       if(!groom&&sleep&&sleep.getScreenCTM()&&svg.getScreenCTM()){var crown=new DOMPoint(-39+(255.5-31)/746*78,-31+(688.5-634)/346*36).matrixTransform(sleep.getScreenCTM()).matrixTransform(svg.getScreenCTM().inverse());target=[crown.x,crown.y];r.sleepTarget=target;}else target=r.sleepTarget||[133,143];
       var reduced=matchMedia('(prefers-reduced-motion: reduce)').matches,dt=r.last?Math.min(.1,(t-r.last)/1000):0;r.last=t;
       var sweep=reduced?0:Math.sin(t/1100*Math.PI*2);target=[target[0]+sweep*.42,target[1]+sweep*.1];
@@ -751,7 +773,7 @@
     c.frame=requestAnimationFrame(writeFrame);
   });
   A.stations.life = function(catThumbs) {
-    var root = parsed(old.life(catThumbs)), body = forecourt(-358,364,552,560,7)+sprite('house',-371,243,742,317)+label(0,357,'LIFE',95);
+    var body = forecourt(-358,364,552,560,7)+sprite('house',-371,243,742,317)+label(0,357,'LIFE',95);
     body += '<g class="life-item suitcase" data-life="travel">'+sprite('case',151,493,77,67)+sourceHint('case',[151,493,77,67],[['M',87,191],['L',103,192],['L',103,202]],'hint-metal',2.4)+'<rect class="hit" x="151" y="493" width="77" height="67"/></g>';
     body += '<g class="life-item stove" data-life="food" transform="translate(-238 560)">'+jointedProp('stove',[-40,-92,80,92],[{path:'M-32 -95H33V-74Q0 -68 -32 -74Z',cls:'pot-lid-group',pivot:'0px -76px'}])+sourceHint('stove',[-40,-92,80,92],[['M',490,163],['Q',536,171,588,166]],'hint-metal',.8)+'<rect class="hit" x="-40" y="-92" width="80" height="92"/><g class="steam"><path d="M-8 -92c-8 -10 8 -16 0 -28"/><path d="M6 -92c-8 -10 8 -16 0 -28"/></g></g>';
     body += '<g class="life-item nap" data-life="cats" transform="translate(0 -6)">'+sprite('pouf',-24,542,94,21)+sleeper()+'<path class="pouf-piping" d="M-20 553Q23 565 66 553"/></g>';
@@ -760,8 +782,7 @@
     return station('life',body,[-373,238,746,324]);
   };
   A.stations.contact = function() {
-    var root=parsed(old.contact()), body=forecourt(-352,340,543,560,6)+sprite('tree',-340,225,410,335);
-    var mailbox=root.querySelector('.mailbox'), letter=html(mailbox.querySelector('.post-letter'));
+    var body=forecourt(-352,340,543,560,6)+sprite('tree',-340,225,410,335), letter;
     var flag='<g class="flag painted-mail-flag"><path class="flag-arm" d="M30 452V426"/><path class="flag-arm-light" d="M29.55 450V427"/><path class="flag-plate" d="M30 425H44.8L46 426.2V435L44.8 436H30Z"/><path class="flag-bevel" d="M31 425.7H44.3L45.3 426.6V434.6M31 435.2H44.4"/><path class="flag-wear" d="M32 428l3 -.2m6 4l2 -.3m-10 2l1.8 -.25"/><circle class="flag-pin" cx="30" cy="452" r="2"/><circle cx="29.5" cy="451.5" r=".65" fill="#d8ba7b"/></g>';
     letter='<g class="post-letter">'+sprite('letter',-18,437,22,13)+'</g>';
     body += '<ellipse cx="50" cy="561" rx="47" ry="4" fill="#332e25" opacity=".18"/><g class="mailbox-footing"><path d="M2 556H98L97 560H3Z" fill="url(#paintStone)" stroke="#71695b" stroke-width=".45"/><path d="M9 546.5H90L98 556H2Z" fill="url(#paintPaving)" stroke="#8b8271" stroke-width=".35"/><path d="M10 547H89M3 556H97" fill="none" stroke="#dfd3b7" stroke-width=".45"/><path d="M2 556H98" fill="none" stroke="#695f51" stroke-width=".45"/></g><g class="mailbox" transform="translate(50 -4)">'+sprite('postbox',-37,411,74,149)+sourceHint('postbox',[-37,411,74,149],[['M',121,484],['Q',155,486,192,487]],'hint-metal',1.6)+flag+letter+'</g>';

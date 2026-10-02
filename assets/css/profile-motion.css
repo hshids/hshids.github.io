@@ -1,4 +1,7 @@
 /* Native side and rear paintings replace every frontal feature while turning. */
+.motion-rig-lost .rig-handprop,
+.motion-rig-lost .rig-gesture-hand,
+.motion-rig-lost .gesture-hand-layer { display: none !important; }
 .native-profile-view .c-root .c-arm,
 .native-shelf-view .c-root .c-arm,
 .native-profile-view .painted-face-rig-wrap,

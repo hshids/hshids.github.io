@@ -19,9 +19,13 @@
     dayOne:'hanjing-hands-day-one-arm.webp',nightOne:'hanjing-hands-night-one-arm.webp',
     dayWave:'hanjing-wave-day-native'+waveFormat,nightWave:'hanjing-wave-night-native'+waveFormat};
   var loaded={},sections={};
-  Object.keys(files).forEach(function(key){
-    var im=new Image();im.src=new URL(files[key],base).href;loaded[key]=im;
-  });
+  var mobileDonors=window.matchMedia('(pointer: coarse)').matches||window.matchMedia('(max-width: 699px)').matches;
+  function donorImage(key){
+    if(!loaded[key]){var im=new Image();loaded[key]=im;im.src=new URL(files[key],base).href;}
+    return loaded[key];
+  }
+  var initialTheme=document.documentElement.dataset.theme==='dark'?'night':'day';
+  Object.keys(files).forEach(function(key){if(!mobileDonors||key.indexOf(initialTheme)===0)donorImage(key);});
   function node(tag,attributes){
     var el=document.createElementNS(NS,tag);
     Object.keys(attributes||{}).forEach(function(key){el.setAttribute(key,attributes[key]);});
@@ -97,6 +101,7 @@
     var key=id+'_'+side,old=state.entries[key];if(old)return old;
     var outfit=root.querySelector('.c-root > .o-'+(c.night?'night':'day'));if(!outfit)return null;
     var file=(c.night?'night':'day')+(/_wave$/.test(id)?'Wave':/point|reach/.test(id)?'One':'');
+    donorImage(file);
     var outer=node('g',{class:'rig-gesture-hand','data-hand':side,'data-donor':id,'aria-hidden':'true'});
     outer.style.pointerEvents='none';outer.style.display='none';
     var defs=node('defs'),clip=node('clipPath',{id:'nativeGestureHand'+(++serial),clipPathUnits:'userSpaceOnUse'});
@@ -142,7 +147,8 @@
       }
       value.inner.setAttribute('transform','matrix('+matrix(id,wrist,c.pivots[side==='left'?'el':'er'],request[2],handScale,target.unit).join(' ')+')');
       value.outer.setAttribute('transform','matrix('+bone.join(' ')+')');
-      if(value.ready&&loaded[value.file].complete&&loaded[value.file].naturalWidth){
+      var donor=donorImage(value.file);
+      if(value.ready&&donor.complete&&donor.naturalWidth){
         value.outer.style.display='inline';visible[side]=true;
       }
     });

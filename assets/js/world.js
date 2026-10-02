@@ -64,7 +64,9 @@
   var worldEl = $("#world"), layersEl = $("#layers"), hud = $("#hud"), waterExtension = $(".under");
   var panel = $("#panel"), panelBody = $("#panel-body");
   var guide = $("#guide"), fab = $("#guide-fab"), log = $("#guide-log"), chips = $("#guide-chips"), form = $("#guide-form"), input = $("#guide-input");
-  var charEl, catEl, butterflyEl, groundEl, waterLightEl, catLegs = [], layerEls = [];
+  var charEl, catEl, butterflyEl, groundEl, waterLightEl, catLegs = [], layerEls = [], stationViews = [];
+  var deferStationImages = window.matchMedia && matchMedia("(max-width: 699px)").matches;
+  var firstStation = byId[(location.hash || "").slice(1)];
 
   function svgWrap(width, inner, cls) {
     return '<svg class="' + cls + '" viewBox="0 0 ' + width + " " + VH + '" preserveAspectRatio="xMinYMax meet" aria-hidden="true" focusable="false">' + inner + "</svg>";
@@ -88,7 +90,38 @@
       // is rendered later above it. Otherwise a forecourt covers the carving.
       inner = inner.replace(/<\/g>\s*$/, spot + "</g>");
     }
+    if (deferStationImages && st.id !== "home" && (!firstStation || st.id !== firstStation.id)) {
+      // Keep the complete original image URL and dimensions without fetching
+      // distant station paintings, slides and photos before they are needed.
+      inner = inner.replace(/<image\b[^>]*>/g, function (tag) {
+        return tag.replace(/(\s)href=(["'])(.*?)\2/, "$1data-mobile-src=$2$3$2");
+      });
+    }
     return '<g transform="translate(' + st.x + ' 0)">' + inner + "</g>";
+  }
+
+  function hydrateStation(view) {
+    view.images.forEach(function (image) {
+      image.setAttribute("href", image.getAttribute("data-mobile-src"));
+      image.removeAttribute("data-mobile-src");
+    });
+    view.images = [];
+  }
+
+  function updateStationViews() {
+    var left = state.cam, right = left + state.viewW;
+    var loadingMargin = state.keys.left || state.keys.right || Math.abs(state.vel) > 20 ||
+      Math.abs(state.target - state.x) > 1 || state.trip ? 750 : 250;
+    stationViews.forEach(function (view) {
+      if (!state.mobile || (view.right >= left - loadingMargin && view.left <= right + loadingMargin)) hydrateStation(view);
+      // The wider loading margin fills the original artwork before the much
+      // smaller drawing boundary can enter the viewport during a real walk.
+      var hidden = state.mobile && (view.right < left - 180 || view.left > right + 180);
+      if (hidden !== view.hidden) {
+        view.node.style.display = hidden ? "none" : "";
+        view.hidden = hidden;
+      }
+    });
   }
 
   function build() {
@@ -127,6 +160,11 @@
     charEl = $("#char");
     catEl = $("#cat");
     butterflyEl = $(".cat-butterfly");
+    stationViews = STATIONS.map(function (st) {
+      var node = $('.st[data-station="' + st.id + '"]', groundEl), bounds = node.getBBox();
+      return { id: st.id, node: node, left: st.x + Math.min(bounds.x, -st.half),
+        right: st.x + Math.max(bounds.x + bounds.width, st.half), images: $$("image[data-mobile-src]", node), hidden: false };
+    });
     catLegs = $$(".cat-gait-leg", catEl).map(function (leg) {
       var phases = { 'hind-near': 0, 'fore-near': .25, 'hind-far': .5, 'fore-far': .75 };
       return { length: +leg.dataset.legLength, phase: phases[leg.dataset.catLeg], hind: leg.dataset.catLeg.indexOf('hind') === 0,
@@ -196,6 +234,7 @@
   // ---------- rendering ----------
   function render(force) {
     var s = state.s;
+    updateStationViews();
     // The extended mobile water samples the very same world texture as the
     // bank SVG above it; a screen-anchored fill would leave a moving seam.
     var waterX = state.cam;
@@ -431,6 +470,7 @@
   function goTo(id, opts) {
     var st = byId[id];
     if (!st) return;
+    stationViews.forEach(function (view) { if (view.id === st.id) hydrateStation(view); });
     opts = opts || {};
     if (id === "tutorials") { id = "writing"; if (!opts.focus) opts.focus = { section: "writing-tutorials" }; }
     var already = Math.abs(state.x - st.stand) < 2;
@@ -499,6 +539,7 @@
   // ---------- theme ----------
   function setTheme(t) {
     document.documentElement.setAttribute("data-theme", t);
+    if (ART.activatePaintTheme) ART.activatePaintTheme(t);
     store("hj-theme", t);
     var btn = $("#theme-btn");
     btn.setAttribute("aria-pressed", t === "dark" ? "true" : "false");

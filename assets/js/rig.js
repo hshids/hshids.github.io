@@ -2,12 +2,17 @@
 (function () {
   'use strict';
   var A=window.HJArt, rigs=[], images={}, reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var mobileResources=matchMedia('(pointer: coarse)').matches||matchMedia('(max-width: 699px)').matches;
   var artBase=new URL('../art/',document.currentScript.src);
   function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
   function identity(){return [1,0,0,1,0,0];}
   function rotate(deg,x,y){var a=deg*Math.PI/180,c=Math.cos(a),s=Math.sin(a);return [c,s,-s,c,x-c*x+s*y,y-s*x-c*y];}
   function multiply(a,b){return [a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]];}
-  function asset(name){if(!images[name]){var im=new Image();im.src=new URL(name+'.webp',artBase).href;if(im.decode){im._hjMotionDecode=im.decode();im._hjMotionDecode.catch(function(){});}images[name]=im;}return images[name];}
+  function asset(name){if(!images[name]){var im=new Image();im.src=new URL(name+'.webp',artBase).href;if(im.decode&&!mobileResources){im._hjMotionDecode=im.decode();im._hjMotionDecode.catch(function(){});}images[name]=im;}return images[name];}
+  function preloadHumanTheme(configurations,dark){
+    function preload(c){if(c.layers)c.layers.forEach(preload);else if(c.gaitFrame===undefined||c.profileWalk)asset(c.image);}
+    configurations.forEach(function(c){if(!mobileResources||c.night===dark)preload(c);});
+  }
   function polygon(path){var n=path.match(/-?\d+(?:\.\d+)?/g).map(Number),p=[];for(var i=0;i<n.length;i+=2)p.push([n[i],n[i+1]]);return p;}
   function within(p,x,y){var inside=false;for(var i=0,j=p.length-1;i<p.length;j=i++){if(((p[i][1]>y)!==(p[j][1]>y))&&(x<(p[j][0]-p[i][0])*(y-p[i][1])/(p[j][1]-p[i][1])+p[i][0]))inside=!inside;}return inside;}
   function shader(gl,type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error('Painted motion shader failed');return s;}
@@ -80,7 +85,7 @@
       if(c.profileWalk){c.skinData=new Float32Array(c.uniqueVertices.length*11);c.uniqueVertices.forEach(function(v,i){var n=i*11;v.weights.forEach(function(w,j){c.skinData[n+j]=w[0];c.skinData[n+4+j]=w[1];});var wind=c.windWeights(v.x,v.y);c.skinData[n+8]=wind[0];c.skinData[n+9]=wind[1];c.skinData[n+10]=wind[2];});}
       c.alphaPrefix=null;return c;
     }
-    function initialize(c){if(c.layers){c.layers.forEach(initialize);return;}if(c.gaitFrame!==undefined&&!c.profileWalk)return;if(!c.prepare)mesh(c);}configurations.forEach(initialize);root.appendChild(canvas);
+    function initialize(c){if(c.layers){c.layers.forEach(initialize);return;}if(c.gaitFrame!==undefined&&!c.profileWalk)return;if(!mobileResources&&!c.prepare&&!c.vertices)mesh(c);}configurations.forEach(initialize);root.appendChild(canvas);
     function ensurePainting(c,image){
       var cached=paintTextures[c.image];if(cached)return cached;
       cached=rig.textureUploads===0?tex:gl.createTexture();paintTextures[c.image]=cached;
@@ -109,9 +114,12 @@
       return c.nativeMaskTexture;
     }
     var current=null,currentMesh=null,currentMask=null,paintTextures={},rig={root:root,type:type,textureUploads:0,draw:function(c,bones,keepCanvas){
+      if(rig.contextLost||rig.retired||gl.isContextLost())return false;
+      if(!keepCanvas&&type==='human'&&mobileResources)rig.prepareTheme(document.documentElement.dataset.theme==='dark');
       if(c.layers){function sourceReady(layer){return layer.layers?layer.layers.every(sourceReady):asset(layer.image).complete&&asset(layer.image).naturalWidth;}if(!c.layers.every(sourceReady))return false;var savedSurface=rig.layerSurface;rig.layerSurface=A.actorSurfaceLight?A.actorSurfaceLight(root,c,bones,type):null;if(!keepCanvas)gl.clear(gl.COLOR_BUFFER_BIT);var complete=true;c.layers.forEach(function(layer){if(c.walkTime!==undefined)layer.walkTime=c.walkTime;if(!rig.draw(layer,bones,true))complete=false;});rig.layerSurface=savedSurface;return complete;}
       var image=asset(c.image);if(!image.complete||!image.naturalWidth)return false;
       if(c.prepare&&!c.prepared){c.prepare(image);mesh(c);c.prepared=true;}
+      if(!c.vertices)mesh(c);
       // Keep each decoded native painting in this rig's own GL context.
       // Each walking part retains one fixed native material; other actions
       // reuse cached textures without uploading them every frame.
@@ -166,22 +174,48 @@
         if(c.profileWalk){if(!c.indexBuffer){c.indexBuffer=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.indexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,c.indices,gl.STATIC_DRAW);}else gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.indexBuffer);}else{gl.bufferData(gl.ARRAY_BUFFER,c.drawData,gl.DYNAMIC_DRAW);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);if(currentMesh!==c){gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,c.indices,gl.STATIC_DRAW);currentMesh=c;}}
         gl.drawElements(gl.TRIANGLES,c.indices.length,gl.UNSIGNED_SHORT,0);
       }else{gl.bufferData(gl.ARRAY_BUFFER,c.data,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,c.vertices.length);}
+      if(gl.isContextLost())return false;
       if(!rig.ready){rig.ready=true;}
       if(c.nativeArms)root.classList.add('has-native-arms');
-      root.classList.add('has-motion-rig');return true;
+      root.classList.add('has-motion-rig');root.classList.remove('motion-rig-lost');if(rig.schedulePortrait)rig.schedulePortrait();return true;
     },configs:configurations,times:{}};
     root._paintRig=rig;rigs.push(rig);
+    var nativeClasses=['has-motion-rig','has-native-arms','has-native-human-views','native-profile-view','native-shelf-view','native-hold-view','native-gait-frames','native-wave-frames','native-gesture-frames','native-point-view','native-shelf-return','native-step-settling'];
+    function clearGraphics(c,release){
+      if(c.layers){c.layers.forEach(function(layer){clearGraphics(layer,release);});return;}
+      if(c.nativeMaskTexture){if(release)gl.deleteTexture(c.nativeMaskTexture);if(currentMask===c.nativeMaskTexture)currentMask=null;delete c.nativeMaskTexture;}
+      ['skinBuffer','positionBuffer','indexBuffer'].forEach(function(key){if(c[key]){if(release)gl.deleteBuffer(c[key]);delete c[key];}});
+      delete c.cachePrepared;delete c.warmQueued;if(currentMesh===c)currentMesh=null;
+    }
+    canvas.addEventListener('webglcontextlost',function(event){
+      if(rig.retired)return;
+      event.preventDefault();rig.contextLost=true;canvas.style.visibility='hidden';
+      root.classList.add('motion-rig-lost');
+      nativeClasses.forEach(function(name){root.classList.remove(name);});
+      if(type==='human')root.querySelectorAll('.c-root .c-arm,.c-root .paint-forearm,.c-root .c-upper').forEach(function(el){el.style.removeProperty('transform');el.style.removeProperty('animation');});
+    });
+    canvas.addEventListener('webglcontextrestored',function(){
+      if(rig.retired||!root.isConnected)return;
+      rig.retired=true;configurations.forEach(function(c){clearGraphics(c,false);});
+      var index=rigs.indexOf(rig);if(index>=0)rigs.splice(index,1);canvas.remove();
+      var replacement=renderer(root,type,configurations);
+      if(!replacement){root._paintRig=null;return;}
+      Object.keys(rig).forEach(function(key){if(typeof rig[key]!=='function'&&key!=='ready'&&key!=='contextLost'&&key!=='retired'&&!(key in replacement))replacement[key]=rig[key];});
+      replacement.times=rig.times;
+      if(type==='human')root.classList.add('has-native-human-views');
+    });
     if(type==='human'){
-      var warming=[],warmScheduled=false,warmTotal=0,warmDone=0;
+      var warming=[],warmScheduled=false,warmTotal=0,warmDone=0,warmToken={};
       rig.cacheWarm={total:0,complete:0,tasks:[],errors:[]};
       function enqueue(layer){
+        if(layer.cachePrepared||layer.warmQueued===warmToken)return;layer.warmQueued=warmToken;
         var image=asset(layer.image);warmTotal++;rig.cacheWarm.total=warmTotal;
         var decoded=image._hjMotionDecode||new Promise(function(resolve,reject){if(image.complete&&image.naturalWidth)resolve();else{image.addEventListener('load',resolve,{once:true});image.addEventListener('error',reject,{once:true});}});
-        Promise.resolve(decoded).then(function(){warming.push(layer);scheduleWarm();}).catch(function(){rig.cacheWarm.errors.push(layer.image);});
+        Promise.resolve(decoded).then(function(){if(rig.retired||rig.contextLost||mobileResources&&layer.night!==rig.resourceTheme){if(layer.warmQueued===warmToken)delete layer.warmQueued;return;}warming.push(layer);scheduleWarm();}).catch(function(){if(layer.warmQueued===warmToken)delete layer.warmQueued;rig.cacheWarm.errors.push(layer.image);});
       }
       function scheduleWarm(){if(warmScheduled||!warming.length)return;warmScheduled=true;if(window.requestIdleCallback)window.requestIdleCallback(warmOne,{timeout:150});else setTimeout(warmOne,25);}
       function warmOne(){
-        warmScheduled=false;var layer=warming.shift();if(!layer)return;var started=performance.now(),image=asset(layer.image),uploads=rig.textureUploads;
+        warmScheduled=false;var layer=warming.shift();if(!layer)return;if(layer.warmQueued===warmToken)delete layer.warmQueued;if(rig.retired||rig.contextLost)return;if(mobileResources&&layer.night!==rig.resourceTheme){scheduleWarm();return;}var started=performance.now(),image=asset(layer.image),uploads=rig.textureUploads;
         try{
           // Preparation never clears/draws the actor or changes its pose/class.
           // Preserve the textures used by the currently visible rendering.
@@ -191,7 +225,57 @@
         finally{gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,currentMask);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);}
         scheduleWarm();
       }
-      var dark=document.documentElement.dataset.theme==='dark';configurations.filter(function(c){return c.profileWalk&&c.layers;}).sort(function(a,b){return(a.night===dark?0:1)-(b.night===dark?0:1);}).forEach(function(c){c.layers.forEach(enqueue);});
+      if(mobileResources){
+        var portraitScheduled=false,portraitLoading=false;
+        rig.portraitWarm={status:'waiting',tasks:[],errors:[]};
+        function portraitIdle(){
+          return rig.ready&&!rig.contextLost&&!rig.retired&&!gl.isContextLost()&&root.isConnected&&!root.closest('[hidden]')&&
+            !root._rigRequestedView&&!/\b(?:act-[\w-]+|is-walking|is-running|is-waving|is-bowing|native-step-settling)\b/.test(root.className)&&
+            configurations.filter(function(c){return c.profileWalk&&c.layers&&c.night===rig.resourceTheme;}).every(function(c){return c.layers.every(function(layer){return layer.cachePrepared;});});
+        }
+        // Prepare only the other standing portrait after the visible outfit
+        // and its walking materials are ready. Each idle task does one stage;
+        // it never draws or changes the actor's pose, props or action clock.
+        rig.schedulePortrait=function(){
+          if(portraitScheduled||portraitLoading||rig.portraitWarm.status==='failed'||!portraitIdle())return;
+          if(configurations.slice(0,2).every(function(c){return c.prepared&&c.vertices&&paintTextures[c.image];})){rig.portraitWarm.status='ready';return;}
+          var c=configurations[rig.resourceTheme?0:1],image=asset(c.image);
+          if(!image.complete||!image.naturalWidth){
+            portraitLoading=true;rig.portraitWarm.status='loading';
+            image.addEventListener('load',function(){portraitLoading=false;rig.schedulePortrait();},{once:true});
+            image.addEventListener('error',function(){portraitLoading=false;rig.portraitWarm.status='failed';rig.portraitWarm.errors.push(c.image);},{once:true});
+            return;
+          }
+          portraitScheduled=true;
+          function preparePortrait(deadline){
+            portraitScheduled=false;if(!portraitIdle())return;
+            if(deadline&&!deadline.didTimeout&&deadline.timeRemaining()<8){rig.schedulePortrait();return;}
+            var started=performance.now(),stage;
+            try{
+              if(c.prepare&&!c.prepared){c.prepare(image);c.prepared=true;stage='prepare';}
+              else if(!c.vertices){mesh(c);stage='mesh';}
+              else if(!paintTextures[c.image]){try{ensurePainting(c,image);stage='texture';}finally{gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,currentMask);gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,tex);}}
+              if(stage)rig.portraitWarm.tasks.push({image:c.image,stage:stage,duration:performance.now()-started});
+              rig.schedulePortrait();
+            }catch(error){rig.portraitWarm.status='failed';rig.portraitWarm.errors.push(c.image+': '+error.message);}
+          }
+          if(window.requestIdleCallback)window.requestIdleCallback(preparePortrait,{timeout:750});else setTimeout(preparePortrait,50);
+        };
+      }
+      rig.prepareTheme=function(dark){
+        if(rig.resourceTheme===dark)return;
+        if(mobileResources){
+          preloadHumanTheme(configurations,dark);
+          if(rig.resourceTheme!==undefined){
+            var retained={};retained[configurations[0].image]=true;retained[configurations[1].image]=true;function retain(c){if(c.layers)c.layers.forEach(retain);else retained[c.image]=true;}
+            configurations.forEach(function(c){if(c.night===dark)retain(c);else clearGraphics(c,true);});
+            Object.keys(paintTextures).forEach(function(name){if(!retained[name]){var unused=paintTextures[name];gl.deleteTexture(unused);if(tex===unused){tex=null;current=null;}delete paintTextures[name];}});
+          }
+        }
+        rig.resourceTheme=dark;
+        configurations.filter(function(c){return c.profileWalk&&c.layers&&(!mobileResources||c.night===dark);}).sort(function(a,b){return(a.night===dark?0:1)-(b.night===dark?0:1);}).forEach(function(c){c.layers.forEach(enqueue);});
+      };
+      rig.prepareTheme(document.documentElement.dataset.theme==='dark');
     }
     return rig;
   }
@@ -369,7 +453,7 @@
     for(var gesturePhase=0;gesturePhase<8;gesturePhase++)configs.push(nativeWaveFrame(gesturePhase));
     ['point','toss'].forEach(function(action){for(var phase=0;phase<5;phase++)configs.push(nativeGestureFrame(action,phase));});
     for(var returnPhase=0;returnPhase<4;returnPhase++)configs.push(nativeShelfReturnFrame(returnPhase));
-    function preload(c){if(c.layers)c.layers.forEach(preload);else if(c.gaitFrame===undefined||c.profileWalk)asset(c.image);}configs.forEach(preload);
+    preloadHumanTheme(configs,document.documentElement.dataset.theme==='dark');
     var rig=renderer(root,'human',configs);
     if(rig){
       var nightFace=root.querySelector('.painted-face-rig > .o-night'),ratio=(184/1507)/(62/345),yRatio=(184/1507)/(184/1494);
@@ -959,7 +1043,7 @@
     }
     var index=(view==='profile'?2:view==='shelf'?4:view==='hold'?22:0)+(dark?1:0);return r.configs[index];
   }
-  function frame(t){var dark=document.documentElement.dataset.theme==='dark';rigs.forEach(function(r){if(r.type==='cat'&&!r.root.classList.contains('is-pouncing'))delete r.times['is-pouncing'];var hidden=r.type==='human'?(r.root.classList.contains('act-read')||r.root.classList.contains('act-write')||r.root.classList.contains('act-pet')):(!r.root.classList.contains('is-walking')&&!r.root.classList.contains('is-settling')&&!r.root.classList.contains('is-pouncing')&&!(A.catV10Active&&A.catV10Active(r.root)));if(r.type==='human'&&hidden){r.root.classList.remove('native-profile-view','native-shelf-view','native-hold-view','native-wave-frames','native-gesture-frames','native-point-view','native-shelf-return','native-step-settling');r.root._rigNativeShelfReturnFrame=null;if(r.hiddenTheme!==dark){var rest=r.configs[dark?1:0],paint=asset(rest.image);if(paint.complete&&paint.naturalWidth){r.gaitBlend=null;r.poseY=null;r.draw(rest,Array.from({length:12},identity));r.hiddenTheme=dark;}}}else if(r.type==='human')r.hiddenTheme=null;if(hidden||!r.root.isConnected||r.root.closest('[hidden]'))return;if(r.type==='human'&&!reduced&&r.root._rigHumanWorldX!==undefined&&r.root.classList.contains('is-walking'))return;if(r.type==='cat'&&r.root._rigCatWorldX!==undefined&&(r.root.classList.contains('is-walking')||r.root.classList.contains('is-settling')))return;var c=r.type==='human'?humanView(r,t,dark):(A.catV9Frame?A.catV9Frame(r,t):r.configs[0]);var drawn=r.draw(c,r.type==='human'?(c.nativeView?nativeHumanBones(r,c,t):humanBones(r,c,t)):(c.sitFeline&&A.catV10Bones?A.catV10Bones(r,c,t):catBones(r,c,t)));if(drawn&&r.type==='cat'&&A.catV10Drawn)A.catV10Drawn(r,c,t);});requestAnimationFrame(frame);}
+  function frame(t){var dark=document.documentElement.dataset.theme==='dark';rigs.forEach(function(r){if(r.contextLost||r.retired)return;if(r.type==='cat'&&!r.root.classList.contains('is-pouncing'))delete r.times['is-pouncing'];var hidden=r.type==='human'?(r.root.classList.contains('act-read')||r.root.classList.contains('act-write')||r.root.classList.contains('act-pet')):(!r.root.classList.contains('is-walking')&&!r.root.classList.contains('is-settling')&&!r.root.classList.contains('is-pouncing')&&!(A.catV10Active&&A.catV10Active(r.root)));if(r.type==='human'&&hidden){r.root.classList.remove('native-profile-view','native-shelf-view','native-hold-view','native-wave-frames','native-gesture-frames','native-point-view','native-shelf-return','native-step-settling');r.root._rigNativeShelfReturnFrame=null;if(r.hiddenTheme!==dark){var rest=r.configs[dark?1:0],paint=asset(rest.image);if(paint.complete&&paint.naturalWidth){r.gaitBlend=null;r.poseY=null;r.draw(rest,Array.from({length:12},identity));r.hiddenTheme=dark;}}}else if(r.type==='human')r.hiddenTheme=null;if(hidden||!r.root.isConnected||r.root.closest('[hidden]'))return;if(r.type==='human'&&!reduced&&r.root._rigHumanWorldX!==undefined&&r.root.classList.contains('is-walking'))return;if(r.type==='cat'&&r.root._rigCatWorldX!==undefined&&(r.root.classList.contains('is-walking')||r.root.classList.contains('is-settling')))return;var c=r.type==='human'?humanView(r,t,dark):(A.catV9Frame?A.catV9Frame(r,t):r.configs[0]);var drawn=r.draw(c,r.type==='human'?(c.nativeView?nativeHumanBones(r,c,t):humanBones(r,c,t)):(c.sitFeline&&A.catV10Bones?A.catV10Bones(r,c,t):catBones(r,c,t)));if(drawn&&r.type==='cat'&&A.catV10Drawn)A.catV10Drawn(r,c,t);});requestAnimationFrame(frame);}
   A.initMotionRigs=function(container){container.querySelectorAll('.painted-character').forEach(function(el){var root=el.closest('#char,.avatar-demo')||el.parentElement;if(!root._paintRig)human(root);});container.querySelectorAll('.painted-cat').forEach(function(el){var root=el.closest('#cat,.cat-demo')||el.parentElement;if(!root._paintRig)cat(root);});};
   A.aimHand=function(root,element,x,y){
     var svg=root.querySelector('.painted-character'),from=element.getScreenCTM(),to=svg.getScreenCTM();
@@ -970,7 +1054,7 @@
   A.setHumanView=function(root,view,direction){root._rigRequestedView=view==='front'?null:view;root._rigViewDirection=direction||1;if(root._paintRig){delete root._paintRig.bookRetractStart;root._paintRig.settleStart=0;}root.classList.remove('native-step-settling');};
   A.resetHumanStep=function(root){root._rigStride=0;root._rigFootPose=null;root.classList.remove('native-step-settling');if(root._paintRig){root._paintRig.wasHumanMoving=false;root._paintRig.settleStart=0;}};
   A.poseCharacter=function(root,stride,moving){
-    root._rigStride=stride;var r=root._paintRig;if(!r){oldHuman(root,stride,moving);return;}
+    root._rigStride=stride;var r=root._paintRig;if(!r||r.contextLost||r.retired){oldHuman(root,stride,moving);return;}
     var worldX=root._rigHumanWorldX,travel=worldX!==undefined&&r.worldX!==undefined?worldX-r.worldX:0;
     r.worldX=worldX;
     var direction=Math.abs(travel)>.001?(travel<0?-1:1):(root.classList.contains('face-left')?-1:1);
@@ -982,6 +1066,6 @@
     // separate rig loop continues to own idle, settling and other gestures.
     if(moving&&!root.classList.contains('act-write')&&!root.classList.contains('act-read')&&!root.classList.contains('act-pet')){var now=performance.now(),dark=document.documentElement.dataset.theme==='dark',c=humanView(r,now,dark);r.draw(c,c.nativeView?nativeHumanBones(r,c,now):humanBones(r,c,now));}
   };
-  A.poseCat=function(root,stride,moving){root._rigStride=stride;if(!root._paintRig)oldCat(root,stride,moving);else if(moving&&root._rigCatWorldX!==undefined){var r=root._paintRig,c=r.configs[0],t=performance.now(),drawn=r.draw(c,catBones(r,c,t));if(drawn&&A.catV10Drawn)A.catV10Drawn(r,c,t);}else if(!moving){root._paintRig.catPlants=[];root._paintRig.catPreviousBodyX=undefined;}};
+  A.poseCat=function(root,stride,moving){root._rigStride=stride;if(!root._paintRig||root._paintRig.contextLost||root._paintRig.retired)oldCat(root,stride,moving);else if(moving&&root._rigCatWorldX!==undefined){var r=root._paintRig,c=r.configs[0],t=performance.now(),drawn=r.draw(c,catBones(r,c,t));if(drawn&&A.catV10Drawn)A.catV10Drawn(r,c,t);}else if(!moving){root._paintRig.catPlants=[];root._paintRig.catPreviousBodyX=undefined;}};
   requestAnimationFrame(frame);
 })();
