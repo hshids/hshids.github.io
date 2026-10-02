@@ -13,7 +13,7 @@
   function shader(gl,type,source){var s=gl.createShader(type);gl.shaderSource(s,source);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error('Painted motion shader failed');return s;}
   function renderer(root,type,configurations){
     var canvas=document.createElement('canvas');canvas.className='motion-rig motion-rig-'+type;canvas.setAttribute('aria-hidden','true');
-    var width=type==='human'?200:110,height=type==='human'?220:84,pad=type==='human'?40:10,top=type==='human'?10:6;
+    var width=type==='human'?200:110,height=type==='human'?250:84,pad=type==='human'?40:10,top=type==='human'?40:6;
     var rasterScale=Math.max(1.5,Math.min(2,window.devicePixelRatio||1));
     canvas.width=Math.round(width*rasterScale);canvas.height=Math.round(height*rasterScale);
     var gl=canvas.getContext('webgl',{alpha:true,premultipliedAlpha:false,antialias:true,preserveDrawingBuffer:false});if(!gl)return null;
@@ -37,6 +37,7 @@
     var maskUniforms={sampler:gl.getUniformLocation(program,'nativeMask'),crop:gl.getUniformLocation(program,'nativeMaskCrop'),enabled:gl.getUniformLocation(program,'nativeMaskOn')};gl.uniform1i(maskUniforms.sampler,1);
     var bowUniforms={form:gl.getUniformLocation(program,'bowForm'),collar:gl.getUniformLocation(program,'bowCollar'),waist:gl.getUniformLocation(program,'bowWaist'),face:gl.getUniformLocation(program,'bowFaceTone')};
     var lightUniforms={surface:gl.getUniformLocation(program,'surfaceLight'),lamp:gl.getUniformLocation(program,'localLamp'),contour:gl.getUniformLocation(program,'cutContourMode')};
+    var paintUniforms={alpha:gl.getUniformLocation(program,'alphaCutoff'),size:gl.getUniformLocation(program,'paintSize'),pose:gl.getUniformLocation(program,'poseY'),hand:gl.getUniformLocation(program,'handMode'),cuts:[gl.getUniformLocation(program,'cutLeft'),gl.getUniformLocation(program,'cutRight')],planes:[gl.getUniformLocation(program,'handPlaneLeft'),gl.getUniformLocation(program,'handPlaneRight')]};
     gl.enable(gl.BLEND);gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.viewport(0,0,canvas.width,canvas.height);
     var position=gl.getAttribLocation(program,'position'),uv=gl.getAttribLocation(program,'uv'),buffer=gl.createBuffer(),indexBuffer=gl.createBuffer(),tex=gl.createTexture();
     gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.enableVertexAttribArray(position);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.enableVertexAttribArray(uv);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);
@@ -117,16 +118,16 @@
       gl.activeTexture(gl.TEXTURE0);
       tex=ensurePainting(c,image);current=image;
       gl.bindTexture(gl.TEXTURE_2D,tex);
-      gl.uniform1f(gl.getUniformLocation(program,'alphaCutoff'),c.alphaCutoff||0);
-      gl.uniform2f(gl.getUniformLocation(program,'paintSize'),c.sheet[0],c.sheet[1]);
-      gl.uniform2f(gl.getUniformLocation(program,'poseY'),rig.poseY?rig.poseY[0]:1,rig.poseY?rig.poseY[1]:0);
+      gl.uniform1f(paintUniforms.alpha,c.alphaCutoff||0);
+      gl.uniform2f(paintUniforms.size,c.sheet[0],c.sheet[1]);
+      gl.uniform2f(paintUniforms.pose,rig.poseY?rig.poseY[0]:1,rig.poseY?rig.poseY[1]:0);
       gl.uniform1f(lightUniforms.contour,c.sourceCuts?1:0);
       var litConfig=c;if(c.gaitFrame!==undefined&&rig.gaitBlend&&c.night){var g=rig.gaitBlend;litConfig=Object.assign({},c,{lamp:g.first.lamp.map(function(p,i){return p+(g.next.lamp[i]-p)*g.u;})});}var surface=keepCanvas?rig.layerSurface:(A.actorSurfaceLight?A.actorSurfaceLight(root,litConfig,bones,type):null);
       gl.uniform4fv(lightUniforms.surface,surface?surface.light:[0,0,1,0]);
       gl.uniform3fv(lightUniforms.lamp,surface?surface.lamp:[0,0,0]);
       var handPlanes=c.handBounds&&A.gestureHands?A.gestureHands.cutPlanes(c,c.handMask||{}):null;
-      gl.uniform1f(gl.getUniformLocation(program,'handMode'),handPlanes?1:0);
-      ['cutLeft','cutRight'].forEach(function(name,i){var side=i?'right':'left',cut=handPlanes?(c.handMask&&c.handMask[side]?c.handBounds[i]:null):(c.cutouts&&c.cutouts[i]);gl.uniform4fv(gl.getUniformLocation(program,name),cut?[cut[0]/c.sheet[0],cut[1]/c.sheet[1],cut[2]/c.sheet[0],cut[3]/c.sheet[1]]:[0,0,0,0]);gl.uniform4fv(gl.getUniformLocation(program,i?'handPlaneRight':'handPlaneLeft'),handPlanes?handPlanes[side]:[0,0,0,0]);});
+      gl.uniform1f(paintUniforms.hand,handPlanes?1:0);
+      ['left','right'].forEach(function(side,i){var cut=handPlanes?(c.handMask&&c.handMask[side]?c.handBounds[i]:null):(c.cutouts&&c.cutouts[i]);gl.uniform4fv(paintUniforms.cuts[i],cut?[cut[0]/c.sheet[0],cut[1]/c.sheet[1],cut[2]/c.sheet[0],cut[3]/c.sheet[1]]:[0,0,0,0]);gl.uniform4fv(paintUniforms.planes[i],handPlanes?handPlanes[side]:[0,0,0,0]);});
       if(A.bowDepth){var shade=A.bowDepth.shadingUniforms(rig.bowState,c,rig.poseY);gl.uniform4fv(bowUniforms.form,shade.form);gl.uniform4fv(bowUniforms.collar,shade.collar);gl.uniform4fv(bowUniforms.waist,shade.waist);gl.uniform1f(bowUniforms.face,A.bowDepth.faceToneUniform(c));}
       var masked=c.clipPath||c.clipPaths||c.excludePaths||c.clipColor||c.componentSeed;
       gl.uniform1f(maskUniforms.enabled,masked?1:0);
@@ -140,28 +141,28 @@
       if(dq)bones.forEach(function(m,i){var a=Math.atan2(m[1],m[0])/2,s=Math.sin(a),co=Math.cos(a),n=i*4,parent={2:1,4:3,6:5,7:6,9:8,10:9}[i]||0;if(i&&co*dq[parent*4]+s*dq[parent*4+1]<0){co=-co;s=-s;}dq[n]=co;dq[n+1]=s;dq[n+2]=(m[4]*co+m[5]*s)/2;dq[n+3]=(m[5]*co-m[4]*s)/2;});
       var stretch=dq&&rig.affine?(c.stretchData||(c.stretchData=new Float32Array(64))):null;
       if(stretch)bones.forEach(function(m,i){var n=i*4,co=dq[n]*dq[n]-dq[n+1]*dq[n+1],si=2*dq[n]*dq[n+1];stretch[n]=co*m[0]+si*m[1];stretch[n+1]=co*m[2]+si*m[3];stretch[n+2]=-si*m[0]+co*m[1];stretch[n+3]=-si*m[2]+co*m[3];});
-      // Adjacent triangles share vertices. Transform each shared point once,
-      // then copy the same Float32 coordinates without changing the mesh or UVs.
+      // Indexed triangles share points. Write those points directly to the
+      // upload buffer instead of copying through every triangle corner.
       var drawFrame=++c.frame;
-      if(!c.profileWalk)for(var i=0;i<c.vertices.length;i++){
-        var v=c.vertices[i],x=0,y=0,qc=0,qs=0,qx=0,qy=0,sx=0,sxy=0,syx=0,sy=0;
-        if(v.drawFrame===drawFrame){c.data[i*4]=c.data[v.dataOffset];c.data[i*4+1]=c.data[v.dataOffset+1];continue;}
+      var workVertices=c.indices?c.uniqueVertices:c.vertices,workData=c.indices?c.drawData:c.data;
+      if(!c.profileWalk)for(var i=0;i<workVertices.length;i++){
+        var v=workVertices[i],x=0,y=0,qc=0,qs=0,qx=0,qy=0,sx=0,sxy=0,syx=0,sy=0;
+        if(!c.indices&&v.drawFrame===drawFrame){workData[i*4]=workData[v.dataOffset];workData[i*4+1]=workData[v.dataOffset+1];continue;}
         v.drawFrame=drawFrame;
-        if(v.weights.length===1){var only=bones[v.weights[0][0]],offset=i*4,warp=c.gaitWarp,w=warp?v.drawIndex*2:0,vx=v.x+(warp?warp[w]:0),vy=v.y+(warp?warp[w+1]:0);c.data[offset]=only[0]*vx+only[2]*vy+only[4];c.data[offset+1]=only[1]*vx+only[3]*vy+only[5];if(rig.bowState&&rig.bowState.mix>0&&A.bowDepth){var bowPoint=A.bowDepth.projectVertex(rig.bowState,v.x,v.y,c.data[offset],c.data[offset+1],v.weights,rig._bowPoint||(rig._bowPoint=[0,0]));c.data[offset]=bowPoint[0];c.data[offset+1]=bowPoint[1];}continue;}
+        if(v.weights.length===1){var only=bones[v.weights[0][0]],offset=i*4,warp=c.gaitWarp,w=warp?v.drawIndex*2:0,vx=v.x+(warp?warp[w]:0),vy=v.y+(warp?warp[w+1]:0);workData[offset]=only[0]*vx+only[2]*vy+only[4];workData[offset+1]=only[1]*vx+only[3]*vy+only[5];if(rig.bowState&&rig.bowState.mix>0&&A.bowDepth){var bowPoint=A.bowDepth.projectVertex(rig.bowState,v.x,v.y,workData[offset],workData[offset+1],v.weights,rig._bowPoint||(rig._bowPoint=[0,0]));workData[offset]=bowPoint[0];workData[offset+1]=bowPoint[1];}continue;}
         for(var j=0;j<v.weights.length;j++){
           var w=v.weights[j],m=bones[w[0]];
           if(dq&&!v.linear){var d=w[0]*4;qc+=dq[d]*w[1];qs+=dq[d+1]*w[1];qx+=dq[d+2]*w[1];qy+=dq[d+3]*w[1];if(stretch){sx+=stretch[d]*w[1];sxy+=stretch[d+1]*w[1];syx+=stretch[d+2]*w[1];sy+=stretch[d+3]*w[1];}}
           else{x+=(m[0]*v.x+m[2]*v.y+m[4])*w[1];y+=(m[1]*v.x+m[3]*v.y+m[5])*w[1];}
         }
         if(dq&&!v.linear){var scale=1/Math.hypot(qc,qs);qc*=scale;qs*=scale;qx*=scale;qy*=scale;var co=qc*qc-qs*qs,si=2*qc*qs,px=stretch?sx*v.x+sxy*v.y:v.x,py=stretch?syx*v.x+sy*v.y:v.y;x=co*px-si*py+2*(qx*qc-qy*qs);y=si*px+co*py+2*(qx*qs+qy*qc);}
-        if(rig.bowState&&rig.bowState.mix>0&&A.bowDepth){var bowPoint=A.bowDepth.projectVertex(rig.bowState,v.x,v.y,x,y,v.weights,rig._bowPoint||(rig._bowPoint=[0,0]));x=bowPoint[0];y=bowPoint[1];}var n=i*4;c.data[n]=x;c.data[n+1]=y;
+        if(rig.bowState&&rig.bowState.mix>0&&A.bowDepth){var bowPoint=A.bowDepth.projectVertex(rig.bowState,v.x,v.y,x,y,v.weights,rig._bowPoint||(rig._bowPoint=[0,0]));x=bowPoint[0];y=bowPoint[1];}var n=i*4;workData[n]=x;workData[n+1]=y;
       }
       gl.uniform1f(skinUniforms.enabled,c.profileWalk?1:0);
       if(c.profileWalk){gl.uniform4fv(skinUniforms.dual,dq.subarray(0,48));gl.uniform2f(skinUniforms.wind,c.walkTime||0,c.night?1:0);if(!c.skinBuffer){c.skinBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);gl.bufferData(gl.ARRAY_BUFFER,c.skinData,gl.STATIC_DRAW);}else gl.bindBuffer(gl.ARRAY_BUFFER,c.skinBuffer);[skinAttributes.ids,skinAttributes.weights,skinAttributes.wind].forEach(function(a){gl.enableVertexAttribArray(a);});gl.vertexAttribPointer(skinAttributes.ids,4,gl.FLOAT,false,44,0);gl.vertexAttribPointer(skinAttributes.weights,4,gl.FLOAT,false,44,16);gl.vertexAttribPointer(skinAttributes.wind,3,gl.FLOAT,false,44,32);}
       else{[skinAttributes.ids,skinAttributes.weights,skinAttributes.wind].forEach(function(a){gl.disableVertexAttribArray(a);});}
       if(!keepCanvas)gl.clear(gl.COLOR_BUFFER_BIT);if(c.profileWalk){if(!c.positionBuffer){c.positionBuffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,c.positionBuffer);gl.bufferData(gl.ARRAY_BUFFER,c.drawData,gl.STATIC_DRAW);}else gl.bindBuffer(gl.ARRAY_BUFFER,c.positionBuffer);}else gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.vertexAttribPointer(position,2,gl.FLOAT,false,16,0);gl.vertexAttribPointer(uv,2,gl.FLOAT,false,16,8);
       if(c.indices){
-        if(!c.profileWalk)for(var i=0;i<c.uniqueVertices.length;i++){var v=c.uniqueVertices[i],n=i*4;c.drawData[n]=c.data[v.dataOffset];c.drawData[n+1]=c.data[v.dataOffset+1];}
         if(c.profileWalk){if(!c.indexBuffer){c.indexBuffer=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.indexBuffer);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,c.indices,gl.STATIC_DRAW);}else gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,c.indexBuffer);}else{gl.bufferData(gl.ARRAY_BUFFER,c.drawData,gl.DYNAMIC_DRAW);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,indexBuffer);if(currentMesh!==c){gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,c.indices,gl.STATIC_DRAW);currentMesh=c;}}
         gl.drawElements(gl.TRIANGLES,c.indices.length,gl.UNSIGNED_SHORT,0);
       }else{gl.bufferData(gl.ARRAY_BUFFER,c.data,gl.DYNAMIC_DRAW);gl.drawArrays(gl.TRIANGLES,0,c.vertices.length);}
@@ -396,7 +397,7 @@
       sl:[455,231],el:[480,443],wl:[523,577],handL:[536,620],sr:[455,231],er:[480,443],wr:[523,577],handR:[539,620],hl:[509,575],kl:[497,842],al:[492,1074],hr:[563,575],kr:[567,842],ar:[578,1074]
     });
     var p={mount:[0,0]};Object.keys(source).forEach(function(key){p[key]=pt(source[key]);});p.letter=p.handR;
-    var armPixels=null,armOutline=shelf?(night?[[1168,138],[1238,138],[1298,176],[1306,176],[1344,122],[1374,82],[1394,52],[1444,48],[1444,127],[1414,144],[1380,216],[1356,256],[1316,264],[1240,245],[1202,230],[1171,208],[1164,166]]:[[396,135],[460,138],[510,175],[542,178],[576,127],[595,69],[627,50],[672,54],[680,124],[645,173],[611,209],[566,258],[526,271],[459,254],[424,238],[403,207],[394,169]]):null;
+    var armPixels=null,armOutline=shelf?(night?[[1168,138],[1238,138],[1298,176],[1306,176],[1344,122],[1374,82],[1394,52],[1444,48],[1444,127],[1414,144],[1380,216],[1356,256],[1316,264],[1240,245],[1202,230],[1171,208],[1164,166]]:[[396,135],[460,138],[510,175],[528,169],[540,155],[558,143],[576,127],[595,69],[627,50],[672,54],[680,124],[645,173],[611,209],[566,258],[526,271],[459,254],[424,238],[403,207],[394,169]]):null;
     function prepareArmSkin(image){
       var sampling=document.createElement('canvas');sampling.width=1536;sampling.height=1024;
       var context=sampling.getContext('2d',{willReadFrequently:true});context.drawImage(image,0,0);
@@ -418,6 +419,14 @@
         // In this raised rear pose, the hand is above the shoulder. Its
         // attachment follows distance along the arm, never vertical image y.
         var shoulder=smooth(-8,35,((sx-upper[0])*ux+(sy-upper[1])*uy)/ul),dx=w[0]-e[0],dy=w[1]-e[1];
+        if(!night){
+          // Keep the coat's actual curved armhole on the torso. The raised
+          // sleeve, including its complete elbow edge, follows the arm rather
+          // than pulling a strip of the chest along the old axial boundary.
+          var seam=[[135,418],[148,425],[160,416],[177,411],[194,410],[211,411],[225,417],[233,425],[239,438],[246,456],[251,486],[255,525]],medial=seam[seam.length-1][1];
+          for(var q=1;q<seam.length;q++)if(sy<=seam[q][0]){var a=seam[q-1],z=seam[q],f=(sy-a[0])/(z[0]-a[0]);medial=a[1]+(z[1]-a[1])*f;break;}
+          shoulder=smooth(-2,4,sx-medial);
+        }
         if(night)shoulder=1;
         if(night&&sy>=154&&sy<=244){
           // The measured medial skin contour joins the silk armhole. Opaque
@@ -666,7 +675,10 @@
           }
         }
         var ret=motion.returned;ret=ret*ret*(3-2*ret);
-        var hold=rig.configs[22+(c.night?1:0)].heldBookCenter,dest=[target[0]+(hold[0]+7-target[0])*ret,target[1]+(hold[1]+3.8-target[1])*ret];
+        var hold=rig.configs[22+(c.night?1:0)].heldBookCenter;
+        // The rear-quarter reach has its own carrying grip. A frontal hold's
+        // grip would pull this view's elbow behind the torso as the book lowers.
+        var carry=c.night?[hold[0]+7,hold[1]+3.8]:[96,66],dest=[target[0]+(carry[0]-target[0])*ret,target[1]+(carry[1]-target[1])*ret];
         motion.angle=-10*(1-ret);motion.progress=ret;motion.holdCenter=hold;
         if(c.shelfReturnFrame===undefined){var goal=aimAngles(c,dest,true);b[3]=rotate(goal[0]*reach,p.sr[0],p.sr[1]);b[4]=multiply(b[3],rotate(goal[1]*reach,p.er[0],p.er[1]));}
       }

@@ -40,12 +40,12 @@
     return{upper:upper,lower:lower,angle:second-rest2,reachError:Math.max(0,distance-reach),kneeDegrees:Math.abs(second-first)*180/Math.PI};
   }
   function sample(c,options){
-    var o=options||{},phase=((o.phase||0)%1+1)%1,scale=Math.max(.1,o.scale||.875),p=c.pivots,rest=bind(c),period=stepWorld(c.night),travel=period/scale,stance=.53,swing=1-stance,span=travel*stance,prepared=[];
+    var o=options||{},phase=((o.phase||0)%1+1)%1,scale=Math.max(.1,o.scale||.875),p=c.pivots,rest=bind(c),period=stepWorld(c.night),travel=period/scale,stance=.53,swing=1-stance,span=travel*stance,prepared=[],heelEnd=c.night?.12:.16,toeStart=c.night?.86:.82,toeSpan=c.night?.14:.18;
     rest.legs.forEach(function(l){
       var u=(phase+(l.near?0:.5))%1,supported=u<stance,s=supported?u/stance:(u-stance)/swing,x,roll,lift=0;
       if(supported){
         x=(l.hip[0]+l.flatOffset[0])+span/2-travel*u;
-        roll=s<.12?-6*(1-smooth(s/.12)):s>.86?9*smooth((s-.86)/.14):0;
+        roll=s<heelEnd?-6*(1-smooth(s/heelEnd)):s>toeStart?9*smooth((s-toeStart)/toeSpan):0;
       }else{
         // Equal endpoint velocities match the translating planted sole. Both
         // acceleration and clearance start/end continuously at the ground.
@@ -54,12 +54,12 @@
         roll=9-15*smooth(s);
       }
       roll*=Math.PI/180;
-      var midX=x+Math.sign(roll)*l.half*(1-Math.cos(roll)),soft=supported?0:.006*Math.pow(Math.sin(Math.PI*s),2),midY=FLOOR-lift-l.half*Math.sqrt(Math.sin(roll)*Math.sin(roll)+soft*soft),angle=roll-l.pitch,co=Math.cos(angle),si=Math.sin(angle),target=[midX-co*l.offset[0]+si*l.offset[1],midY-si*l.offset[0]-co*l.offset[1]],dx=target[0]-l.hip[0],length=l.upper+l.lower-.05;
+      var midX=x+Math.sign(roll)*l.half*(1-Math.cos(roll)),soft=supported?0:.006*Math.pow(Math.sin(Math.PI*s),2),midY=FLOOR-lift-l.half*Math.sqrt(Math.sin(roll)*Math.sin(roll)+soft*soft),angle=roll-l.pitch,co=Math.cos(angle),si=Math.sin(angle),target=[midX-co*l.offset[0]+si*l.offset[1],midY-si*l.offset[0]-co*l.offset[1]],dx=target[0]-l.hip[0],length=l.upper+l.lower-(c.night?.05:.20);
       prepared.push({leg:l,phase:u,stance:supported,roll:roll,angle:angle,target:target,minBody:target[1]-l.hip[1]-Math.sqrt(Math.max(0,length*length-dx*dx)),lift:lift});
     });
     // One common hip height belongs to the complete body. It is derived from
     // the genuine lengths of both legs, without scaling or stretching them.
-    var a=prepared[0].minBody,b=prepared[1].minBody,bodyDown=(a+b+Math.sqrt((a-b)*(a-b)+.35*.35))/2+.12,body=[1,0,0,1,0,bodyDown],bones=Array.from({length:12},identity),feet=[],reach=[],knees=[];
+    var a=prepared[0].minBody,b=prepared[1].minBody,hipBlend=c.night?.35:1.5,bodyDown=(a+b+Math.sqrt((a-b)*(a-b)+hipBlend*hipBlend))/2+.12,body=[1,0,0,1,0,bodyDown],bones=Array.from({length:12},identity),feet=[],reach=[],knees=[];
     bones[0]=body;
     var theta=phase*TAU,nearSwing=c.night?(-5+5*Math.cos(theta)):(-15+15*Math.cos(theta)),farSwing=(c.night?12:14)*(1-Math.cos(theta));
     bones[1]=multiply(body,rotate(nearSwing*Math.PI/180,p.sl[0],p.sl[1]));bones[2]=multiply(bones[1],rotate((c.night?2:4)*Math.sin(theta)*Math.PI/180,p.el[0],p.el[1]));bones[3]=multiply(body,rotate(farSwing*Math.PI/180,p.sr[0],p.sr[1]));bones[4]=multiply(bones[3],rotate(-4*Math.sin(theta)*Math.PI/180,p.er[0],p.er[1]));

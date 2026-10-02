@@ -1752,7 +1752,7 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 .motion-rig { position: absolute; pointer-events: none; }
 [data-theme="dark"] .motion-rig-human, [data-theme="dark"] .motion-rig-cat,
 [data-theme="dark"] .painted-pet-rig { filter: brightness(.77) saturate(.8); }
-.motion-rig-human { width: 166.6667% !important; height: 110% !important; left: -33.3333%; top: -5%; }
+.motion-rig-human { width: 166.6667% !important; height: 125% !important; left: -33.3333%; top: -20%; }
 .painted-pet-rig { width: 166.6667%; height: 110%; left: -33.3333%; top: -5%; display: none; }
 .has-pet-paint.act-pet .painted-pet-rig { display: block; }
 .has-pet-paint.act-pet .c-crouch .painted-sprite { opacity: 0; }
