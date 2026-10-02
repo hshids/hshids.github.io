@@ -11,6 +11,8 @@ Tutorials and Blogs share the Writing section in both versions. The interactive 
 
 A visitor's choice is remembered in `localStorage` (`hj-view`), and `index.html?world` always opens the interactive version. The old `about.html`, `tutorials.html` and `blog.html` redirect to the matching section of `basic.html`.
 
+`index.html?world` is the single current interactive release. Old `v=` bookmarks normalize to the same address without restarting the world, and old motion review URLs redirect there. Screenshot and video review archives are not published. Mobile touch devices use pixel-identical lossless WebP copies of the two large wave donor paintings; desktop keeps the original PNG files.
+
 There is no build step. Every file is plain HTML, CSS and JavaScript. Use a static HTTP server for local previews so the painted animation textures can be read by the browser.
 
 ## Where things live

@@ -520,7 +520,7 @@
       return{image:image,sheet:sheet,crop:partCrop,box:[left,top,Math.max.apply(null,xs)-left,Math.max.apply(null,ys)-top],sourceAffine:m,weights:weights,profileWalk:true,gaitFrame:0,night:night,dual:true,step:1.8,windWeights:function(){return[0,0,0];}};
     }
     function along(a,b,x,y){var dx=b[0]-a[0],dy=b[1]-a[1];return((x-a[0])*dx+(y-a[1])*dy)/Math.hypot(dx,dy);}
-    function armWeight(near){return function(x,y){var shoulder=p[near?'sl':'sr'],elbow=p[near?'el':'er'],wrist=p[near?'wl':'wr'],top=near?1:3,fore=soft(-4,4,along(elbow,wrist,x,y));return[[top,1-fore],[top+1,fore]].filter(function(w){return w[1]>.00001;});};}
+    function armWeight(near){return function(x,y){var shoulder=p[near?'sl':'sr'],elbow=p[near?'el':'er'],wrist=p[near?'wl':'wr'],top=near?1:3,fore=soft(-4,4,along(elbow,wrist,x,y)),cap=near&&!night?soft(6,13,along(shoulder,elbow,x,y)):1;return[[0,1-cap],[top,cap*(1-fore)],[top+1,cap*fore]].filter(function(w){return w[1]>.00001;});};}
     function completeLeg(near){
       var originalHip=p[near?'hl':'hr'],originalKnee=p[near?'kl':'kr'],originalAnkle=p[near?'al':'ar'],oldSole=c.profileSoles[near?1:0].slice(),a,b,d,bounds;
       if(!night){a=near?[166,140]:[638,140];b=near?[300,485]:[559,488];d=near?[154,938]:[770,938];bounds=near?[63,18,328,952]:[491,14,403,959];}
@@ -546,22 +546,33 @@
     var backHair=night?[[122,103],[185,101],[199,121],[198,145],[175,144],[145,125]]:[[120,140],[205,140],[231,165],[226,200],[229,242],[120,242]];
     var frontHair=night?null:[[285,132],[306,133],[313,142],[318,150],[323,158],[332,169],[335,177],[341,185],[341,190],[336,194],[331,196],[326,198],[322,195],[319,192],[314,190],[308,187],[305,181],[300,176],[300,170],[303,165],[297,160],[296,155],[284,150],[284,143]];
     var headPaths=[head,backHair];if(frontHair)headPaths.push(frontHair);
+    if(!night)headPaths.push([[243,128],[294,128],[306,146],[303,160],[293,169],[279,174],[265,174],[253,168],[245,160]]);
     var headLayer=piece([].concat.apply([],headPaths),fixed);delete headLayer.clipPath;headLayer.clipPaths=headPaths;headLayer.visualRole='native-head-neck-collar';
+    // Hair painted across the near shoulder belongs to the fixed head/back,
+    // not to the swinging sleeve. Keep just one copy of those source pixels.
+    if(!night)nearArm.excludePaths=headPaths;
     c.profileSource.headClipPaths=headPaths;
     function clothWind(x,y){return[0,soft(110,150,y)*(1-soft(174,188,y))*soft(7,21,Math.abs(x-60)),!night?soft(83,93,y)*(1-soft(108,116,y))*soft(10,25,Math.abs(x-60)):0];}
     var layers=[];
     if(!night){
       function coatWeights(bone,maximum){return function(x,y){var follow=maximum*soft(p.hr[1]-3,p.hr[1]+61,y);return[[0,1-follow],[bone,follow]].filter(function(w){return w[1]>.00001;});};}
-      var garmentScale=.091,shoulder=[639,124],gm=[garmentScale,0,0,garmentScale,p.sl[0]-shoulder[0]*garmentScale,p.sl[1]-shoulder[1]*garmentScale],undercoat=nativePart('human-bind-v11-coat',[1076,1461],[0,26,1076,1408],gm,coatWeights(8,.18));
+      var garmentScale=.091,shoulder=[639,124],gm=[garmentScale,0,0,garmentScale,p.sl[0]-shoulder[0]*garmentScale,p.sl[1]-shoulder[1]*garmentScale],undercoat=nativePart('human-bind-v11-coat',[1076,1461],[0,26,1076,1435],gm,coatWeights(8,.20));
       undercoat.visualRole='hidden-complete-coat';undercoat.windWeights=clothWind;
       var coatMain=[[115,120],[385,120],[385,268],[338,268],[333,290],[325,310],[318,330],[308,350],[300,370],[289,390],[278,410],[265,430],[251,450],[244,470],[232,490],[218,510],[204,530],[191,550],[177,570],[169,580],[165,586],[138,588],[136,595],[132,604],[127,610],[100,609],[81,602],[67,588],[35,548],[20,530],[20,480],[130,370],[160,260],[115,220]];
       var frontPlacket=[[353,260],[368,260],[367,290],[366,326],[365,357],[358,365],[352,358],[352,326],[350,291]];
       var lining=[[311,475],[324,499],[334,523],[338,551],[337,580],[333,605],[329,624],[292,615],[287,593],[248,593],[258,568],[270,546],[282,525],[294,503]];
-      undercoat.clipPaths=[coatMain,frontPlacket,lining].map(function(path){return path.map(function(v){var q=pt(v);return[(q[0]-gm[4])/garmentScale,(q[1]-gm[5])/garmentScale];});});
+      var rearCoat=[[320,268],[338,268],[355,344],[334,523],[337,580],[329,624],[292,615],[287,593],[248,593],[222,490],[255,430],[279,390],[308,330],[323,290]];
+      var back=piece([[235,188],[280,182],[307,213],[332,246],[332,274],[313,327],[254,340],[260,322],[250,293],[238,265],[229,241],[235,224]],fixed);back.excludePaths=headPaths;back.visualRole='native-continuous-coat-back';
+      function concealedCoat(path){var clipped=[];path.forEach(function(b,i){var a=path[(i+path.length-1)%path.length],insideA=a[1]>=268,insideB=b[1]>=268;if(insideA!==insideB){var u=(268-a[1])/(b[1]-a[1]);clipped.push([a[0]+(b[0]-a[0])*u,268]);}if(insideB)clipped.push(b);});return clipped;}
+      // The replacement underpaint belongs below the waist. Its silhouette
+      // must not fill the original hair/neck's transparent negative space.
+      undercoat.clipPaths=[coatMain,frontPlacket,rearCoat].map(concealedCoat).map(function(path){return path.map(function(v){var q=pt(v);return[(q[0]-gm[4])/garmentScale,(q[1]-gm[5])/garmentScale];});});
       var garment=piece(coatMain.concat(frontPlacket),coatWeights(8,.20));delete garment.clipPath;garment.clipPaths=[coatMain,frontPlacket];garment.excludePaths=[source.nearArm];garment.visualRole='native-collar-blouse-visible-coat';garment.windWeights=clothWind;
-      var nativeLining=piece(lining,coatWeights(5,.18));nativeLining.visualRole='native-coat-lining';nativeLining.windWeights=clothWind;
+      var nativeLining=piece(lining,coatWeights(8,.20));nativeLining.visualRole='native-coat-lining';nativeLining.windWeights=clothWind;
       var waist=piece([[338,267],[352,266],[352,296],[354,321],[357,344],[351,357],[313,357],[307,350],[316,324],[326,302]],function(x,y){var follow=soft(p.hl[1]-6.5,p.hl[1]+3.5,y);return[[0,1-follow],[5,follow]].filter(function(w){return w[1]>.00001;});});waist.visualRole='native-trouser-waist-pelvis';
-      layers=[farArm,farHand,undercoat,waist].concat(farLeg,nearLeg,[nativeLining,garment,nearArm,headLayer]);
+      // This is the coat's far rear panel, seen behind the legs in the source.
+      // It shares the coat transform and must never cover a trouser leg.
+      layers=[farArm,farHand,undercoat,nativeLining,back,waist].concat(farLeg,nearLeg,[garment,nearArm,headLayer]);
     }else{
       // Visible silk, neckline and embroidery retain the original pose's UV.
       // The complete underpaint supplies material concealed by authored limbs;
