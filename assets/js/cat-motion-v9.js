@@ -74,6 +74,16 @@
     var originalWeights=base.weights;
     base.image='cats-upright-painted';base.crop=[764,2,742,584];base.box=[2,6+(2-33)*64/553,86,584*64/553];
     base.weights=function(x,y){if(inside(uprightTail,x,y)){var amount=smooth((42-y)/12);return amount?[[13,amount],[0,1-amount]].filter(function(w){return w[1]>0;}):[[0,1]];}return originalWeights(x,y);};
+    // Only the high tail material changes: the little hook now curls toward
+    // her head. The original body, face, four paws and stem stay at their UVs.
+    // Its native lower edge shares the original stem's source y202 section;
+    // both sides of that join follow the same existing tail bone.
+    var walkBody=Object.assign({},base,{excludePaths:[[[870,2],[1120,2],[1120,150],[1040,150],[1040,202],[870,202]]]});
+    var highTail={image:'jinbingbing-upright-tail-v12',sheet:[250,200],crop:[0,0,250,200],
+      box:[2+(870-764)*86/742,6+(2-33)*64/553,250*86/742,200*64/553],
+      clipPath:[[0,0],[250,0],[250,148],[170,148],[170,200],[0,200]],
+      step:1.2,weights:function(){return [[13,1]];}};
+    base.layers=[highTail,walkBody];
     // The original long chest ruff continues down over the upper forelegs.
     // It is native fur, at its original UVs, rather than a new shoulder cap.
     var originalHead=[[40,6],[79,6],[79,41],[73,47],[67,53.8],
