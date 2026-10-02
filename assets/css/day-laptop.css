@@ -1,0 +1,11 @@
+/* The shared c-flip mirrors hand and notebook together when walking left. */
+.native-day-laptop { display: none; pointer-events: none; }
+html:not([data-theme="dark"]) .day-laptop-carry.native-profile-view.native-gait-frames:not(.has-book):not(.has-letter):not(.is-waving):not(.is-bowing):not(.is-jumping) .native-day-laptop { display: inline; }
+.motion-rig-lost .native-day-laptop,
+.act-read .native-day-laptop,
+.act-write .native-day-laptop,
+.act-pet .native-day-laptop,
+.act-mail .native-day-laptop,
+.act-reach .native-day-laptop,
+.native-shelf-view .native-day-laptop,
+.native-hold-view .native-day-laptop { display: none !important; }

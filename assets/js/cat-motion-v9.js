@@ -42,6 +42,30 @@
     var face=smooth((39-y)/10);
     return face===1?[[14,1]]:face===0?[[15,1]]:[[14,face],[15,1-face]];
   }
+  function idleHead(rig,t,suspended){
+    if(reduced){rig.catIdleHeadMotion=null;return 0;}
+    var look=rig.catIdleHeadMotion;
+    if(!look)look=rig.catIdleHeadMotion={start:t+1300,cycle:0,angle:0,suspended:false};
+    if(suspended){
+      if(!look.suspended){look.suspended=true;look.stop=t;look.returnAngle=look.angle;}
+      look.angle=look.returnAngle*(1-smooth((t-look.stop)/280));
+      return look.angle;
+    }
+    if(look.suspended){look.suspended=false;look.start=t+1300;look.angle=0;}
+    var seconds=(t-look.start)/1000,amplitude=2.2+(look.cycle*.41421356237%1)*.6;
+    var near=amplitude*(look.cycle%2?-1:1),far=-near*.64;
+    if(seconds<0)look.angle=0;
+    else if(seconds<.95)look.angle=near*smooth(seconds/.95);
+    else if(seconds<1.65)look.angle=near;
+    else if(seconds<3.15)look.angle=near+(far-near)*smooth((seconds-1.65)/1.5);
+    else if(seconds<3.9)look.angle=far;
+    else if(seconds<5.05)look.angle=far*(1-smooth((seconds-3.9)/1.15));
+    else{
+      look.angle=0;look.cycle++;
+      look.start=t+3300+(look.cycle*.61803398875%1)*5100;
+    }
+    return look.angle;
+  }
   function limbWeights(leg,x,y){
     var dx=leg.e[0]-leg.k[0],dy=leg.e[1]-leg.k[1],length=Math.hypot(dx,dy);
     var along=((x-leg.k[0])*dx+(y-leg.k[1])*dy)/length;
@@ -127,7 +151,7 @@
   A.catV9Frame=function(rig){
     var root=rig.root;
     if(root.id==='cat'&&!root.classList.contains('is-walking')&&!root.classList.contains('is-settling'))return rig.configs[1];
-    root._rigCatPounceFrame=null;return rig.configs[0];
+    rig.catIdleHeadMotion=null;root._rigCatPounceFrame=null;return rig.configs[0];
   };
   A.catV10Bones=function(rig,c,t){
     var root=rig.root,pouncing=!reduced&&root.classList.contains('is-pouncing'),motion=rig.catPlayMotion,elapsed=0;
@@ -141,7 +165,9 @@
     var torso=rotate(-15*pose.rear,40,56);torso[5]-=.9*pose.rear;b[15]=torso;
     var greeting=!reduced&&(root.classList.contains('is-tail-playing')||root.classList.contains('is-happy')),greet=0;
     if(greeting){if(rig.catGreetingStart===undefined)rig.catGreetingStart=t;var seconds=(t-rig.catGreetingStart)/1000;greet=Math.sin(seconds*5)*Math.max(0,1-seconds/1.8);}else delete rig.catGreetingStart;
-    var headAngle=reduced?0:greet*1.8+Math.sin(t/2350)*.18-pose.rear*6;
+    // A few curious looks, with unequal quiet pauses, use the existing head
+    // bone. Its weights fade down the original ruff into the stationary chest.
+    var headAngle=reduced?0:greet*1.8+idleHead(rig,t,pouncing||greeting)+(pouncing||greeting?Math.sin(t/2350)*.18:0)-pose.rear*6;
     b[14]=multiply(torso,rotate(headAngle,60,28));
     var tailDy=reduced?0:Math.sin(t/1100)*1.45+Math.sin(t/2220)*.35+greet*1.1;
     b[13]=rotate(reduced?0:Math.sin(t/1490)*.75,31,58);b[13][5]+=tailDy;
@@ -159,7 +185,7 @@
   // A loading texture cannot consume play time or start the butterfly's exit.
   A.catV10Drawn=function(rig,c,t){
     if(rig.root.id==='cat')rig.root.classList.toggle('cat-continuous-sit',!!c.sitFeline);
-    if(!c.sitFeline){rig.catPlayMotion=null;rig.root._rigCatPounceFrame=null;}
+    if(!c.sitFeline){rig.catPlayMotion=null;rig.catIdleHeadMotion=null;rig.root._rigCatPounceFrame=null;}
     if(!c.sitFeline||!rig.root.classList.contains('is-pouncing')||!rig.catPlayMotion)return;
     var root=rig.root,motion=rig.catPlayMotion,shown=motion.elapsed;
     if(typeof root._onKittyPlayFrame==='function')root._onKittyPlayFrame(Math.min(3.8,shown));
