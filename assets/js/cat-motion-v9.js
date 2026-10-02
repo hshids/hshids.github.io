@@ -172,5 +172,5 @@
   A.catPlayUsesRenderedClock=true;
   // A whole raised tail needs a readable sweep at the cat's 66px world size.
   // Its slower second rhythm stays independent of the four-paw cadence.
-  A.catV9TailAngle=function(t){return reduced?0:Math.sin(t/760)*11.5+Math.sin(t/1730)*2.2;};
+  A.catV9TailAngle=function(t){return reduced?0:Math.sin(t/760)*14.5+Math.sin(t/1730)*2.6;};
 })();

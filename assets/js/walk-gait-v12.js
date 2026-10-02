@@ -61,7 +61,7 @@
     // the genuine lengths of both legs, without scaling or stretching them.
     var a=prepared[0].minBody,b=prepared[1].minBody,bodyDown=(a+b+Math.sqrt((a-b)*(a-b)+.35*.35))/2+.12,body=[1,0,0,1,0,bodyDown],bones=Array.from({length:12},identity),feet=[],reach=[],knees=[];
     bones[0]=body;
-    var theta=phase*TAU,nearSwing=c.night?(-5+5*Math.cos(theta)):(-18+18*Math.cos(theta)),farSwing=(c.night?12:16)*(1-Math.cos(theta));
+    var theta=phase*TAU,nearSwing=c.night?(-5+5*Math.cos(theta)):(-15+15*Math.cos(theta)),farSwing=(c.night?12:14)*(1-Math.cos(theta));
     bones[1]=multiply(body,rotate(nearSwing*Math.PI/180,p.sl[0],p.sl[1]));bones[2]=multiply(bones[1],rotate((c.night?2:4)*Math.sin(theta)*Math.PI/180,p.el[0],p.el[1]));bones[3]=multiply(body,rotate(farSwing*Math.PI/180,p.sr[0],p.sr[1]));bones[4]=multiply(bones[3],rotate(-4*Math.sin(theta)*Math.PI/180,p.er[0],p.er[1]));
     prepared.forEach(function(v){
       var l=v.leg,ik=twoLink(l,[v.target[0],v.target[1]-bodyDown]),top=l.top;

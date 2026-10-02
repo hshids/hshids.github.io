@@ -11,7 +11,7 @@
   var SITE_LANG = "en";             // Page content stays English independently of the conversation.
   var W = 7500;                     // world width in units
   var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
-  var WALK_SPEED = 165, HUMAN_STEP = 110;
+  var WALK_SPEED = 165, DAY_WALK_SPEED = 180, HUMAN_STEP = 110;
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
 
   // Each subtle stone inlay marks the position of its original scene action.
@@ -252,6 +252,10 @@
     catEl.style.setProperty("--cat-body-lift", moving ? (Math.sin(state.catStride * Math.PI * 4) * .35).toFixed(2) + "px" : "0px");
   }
 
+  function currentWalkSpeed() {
+    return state.vmax * (document.documentElement.dataset.theme === "dark" ? 1 : DAY_WALK_SPEED / WALK_SPEED);
+  }
+
   function start() { if (!state.raf) { state.last = 0; state.raf = requestAnimationFrame(tick); } }
 
   function tick(t) {
@@ -272,7 +276,7 @@
     var humanPreviousX = state.x, dx = state.target - state.x;
     if (Math.abs(dx) > 0.5 || Math.abs(state.vel) > 1) {
       busy = true;
-      var desired = Math.sign(dx) * Math.min(state.vmax, Math.sqrt(2 * 2600 * Math.abs(dx)));
+      var desired = Math.sign(dx) * Math.min(currentWalkSpeed(), Math.sqrt(2 * 2600 * Math.abs(dx)));
       state.vel += clamp(desired - state.vel, -3200 * dt, 3200 * dt);
       state.x += state.vel * dt;
       if ((dx > 0 && state.x >= state.target) || (dx < 0 && state.x <= state.target)) { state.x = state.target; state.vel = 0; }

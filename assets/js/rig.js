@@ -602,7 +602,7 @@
     var gait=A.walkGaitV12?A.walkGaitV12.sample(c,{phase:phase,t:t,scale:root._rigHumanWorldScale||.875,reduced:reduced}):null;
     var nearSwing,farSwing,feet=[],reach=[];
     if(gait){b=gait.bones;bodyDown=gait.bodyDown;body=b[0];nearSwing=gait.nearArm;farSwing=gait.farArm;feet=gait.feet;reach=gait.reachError;}else{
-    nearSwing=c.night?(-5+5*Math.cos(theta)):(-18+18*Math.cos(theta));farSwing=(c.night?12:16)*(1-Math.cos(theta));
+    nearSwing=c.night?(-5+5*Math.cos(theta)):(-15+15*Math.cos(theta));farSwing=(c.night?12:14)*(1-Math.cos(theta));
     b[1]=multiply(body,rotate(nearSwing,p.sl[0],p.sl[1]));b[2]=multiply(b[1],rotate((c.night?2:4)*Math.sin(theta),p.el[0],p.el[1]));b[3]=multiply(body,rotate(farSwing,p.sr[0],p.sr[1]));b[4]=multiply(b[3],rotate(-4*Math.sin(theta),p.er[0],p.er[1]));
     var scale=root._rigHumanWorldScale||.875,span=(c.night?45:55)/scale,center=c.night?70:64;
     function leg(near){
