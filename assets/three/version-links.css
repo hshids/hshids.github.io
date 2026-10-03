@@ -1,0 +1,7 @@
+.version-links { display: flex; flex: none; gap: 8px; }
+
+@media (max-width: 640px) {
+    header { flex-wrap: wrap; }
+    header > nav { flex-basis: 100%; }
+    .version-links { margin-left: auto; }
+}

@@ -1,0 +1,95 @@
+@font-face {font-family:Fraunces;src:url(fonts/fraunces-400.woff2) format("woff2");font-weight:400;font-display:swap;}
+@font-face {font-family:Inter;src:url(fonts/inter-400.woff2) format("woff2");font-weight:400;font-display:swap;}
+@font-face {font-family:Inter;src:url(fonts/inter-600.woff2) format("woff2");font-weight:600;font-display:swap;}
+@font-face {font-family:Caveat;src:url(fonts/caveat-600.woff2) format("woff2");font-weight:600;font-display:swap;}
+/* The garden's interface borrows its brass, paper and engraved stone motifs. */
+.garden-body { overflow:hidden; }
+.garden-body .places.is-open .nav { display:flex; }
+.world-3d { position:fixed; inset:var(--bar-h) 0 0; overflow:hidden; background:#eee8da; }
+.world-3d canvas { position:absolute; inset:0; display:block; width:100%; height:100%; touch-action:none; outline:none; }
+.world-3d canvas:focus-visible { box-shadow:inset 0 0 0 2px var(--focus); }
+.world-loading { position:absolute; inset:0; display:grid; place-content:center; justify-items:center; background:var(--bg); z-index:15; transition:opacity .55s; }
+.world-loading.is-ready { opacity:0; pointer-events:none; }
+.world-loading p { font:24px var(--font-display); margin:20px 0 8px; }
+.world-loading small { color:var(--muted); }
+.loading-seal { display:grid; place-items:center; width:48px;height:48px;background:#a3372e;color:#fcf0d7;font:bold 24px Georgia; border-radius:8px 3px 8px 3px; transform:rotate(-4deg);box-shadow:inset 0 0 0 3px #c96951; }
+.chapter-caption { position:absolute;top:26px;left:34px;pointer-events:none;max-width:min(350px,50vw);text-shadow:0 1px 10px var(--bg); }
+.chapter-eyebrow { font:10px var(--font-body);font-weight:600;letter-spacing:.2em;color:var(--muted);margin:0 0 5px; }
+.chapter-caption h1 { font:400 clamp(23px,3vw,38px) var(--font-display);margin:0 0 5px;color:var(--ink); }
+.chapter-caption #chapter-sub { font-size:12px;color:var(--ink-2);margin:0;line-height:1.5; }
+.world-prompt { position:absolute;left:50%;bottom:99px;transform:translateX(-50%);display:flex;align-items:center;gap:11px;min-height:42px;white-space:nowrap;border:0;border-top:1px solid #ab9359;border-bottom:1px solid #ab9359;border-radius:2px;background:rgba(var(--card-rgb),.9);color:var(--ink);padding:9px 16px;font-size:12px;box-shadow:0 4px 20px #00000012; }
+.world-prompt:hover { background:var(--card); }
+.prompt-diamond { color:#af8a38;font-size:23px;line-height:.8; }
+.world-prompt kbd { border:1px solid var(--line-2);padding:1px 4px;border-radius:2px;color:var(--muted);font-size:10px; }
+.garden-journal { position:absolute;bottom:35px;left:50%;transform:translateX(-50%);width:min(590px,56vw);display:flex;justify-content:space-between;gap:8px; }
+.journal-line { position:absolute;height:1px;background:rgba(125,121,94,.35);left:4%;right:4%;top:7px; }
+.journal-stop { position:relative;display:grid;place-items:center;gap:8px;min-width:48px;font-size:10px;color:var(--muted);background:none;border:0;padding:0; }
+.journal-dot { position:relative;width:15px;height:15px;background:var(--bg);border:1px solid #a19679;border-radius:50%;transition:.3s; }
+.journal-stop[aria-current=true] { color:var(--ink);font-weight:600; }
+.journal-stop[aria-current=true] .journal-dot { border:3px solid #b89750;box-shadow:0 0 0 3px #c9ac6530; }
+.journal-stop.visited .journal-dot::after { content:"";position:absolute;inset:4px;border-radius:50%;background:#b58d42; }
+.world-controls { position:absolute;bottom:6px;left:50%;transform:translateX(-50%);white-space:nowrap;color:var(--muted);font-size:10px;pointer-events:none; }
+.world-controls span { margin:0 8px; }
+.garden-tools { position:absolute;right:22px;bottom:26px;display:flex;gap:8px; }
+.garden-tools button { width:36px;height:36px;border:1px solid var(--line-2);border-radius:6px;background:rgba(var(--card-rgb),.8);color:var(--ink);font:18px Georgia; }
+.garden-tools button[aria-pressed=true] { color:#ad8332;border-color:#b59753; }
+.world-speech { position:absolute;max-width:250px;transform:translate(-50%,-100%);background:var(--card);color:var(--ink);padding:10px 13px;box-shadow:0 3px 18px #0002;border:1px solid var(--line);border-radius:5px;font-size:12px;line-height:1.6;pointer-events:none; }
+.world-speech::after { content:"";position:absolute;bottom:-6px;left:50%;width:10px;height:10px;background:var(--card);border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg); }
+.object-tip { position:absolute;background:var(--card);color:var(--ink);font-size:11px;padding:6px 10px;pointer-events:none;border:1px solid var(--line-2);border-radius:3px; }
+.world-error { position:absolute;inset:0;z-index:30;background:var(--bg);display:grid;place-content:center;padding:30px;text-align:center; }
+.world-error p { max-width:430px;line-height:1.7;color:var(--muted); }
+.world-error button,.world-error a { padding:12px; }
+.touch-walk { display:none; }
+.guide-fab { bottom:28px;left:22px; }
+.guide-fab-face img,.guide-portrait img { width:100%;height:100%;object-fit:cover;object-position:50% 40%;border-radius:50%; }
+.guide { bottom:24px;left:22px;max-height:min(570px,calc(100dvh - 100px)); }
+.panel { max-width:560px;background:rgba(var(--card-rgb),.97); }
+.panel-body h2 { font-weight:400; }
+.panel-body .p-card,.panel-body .p-paper { box-shadow:none; }
+.modal { z-index:60; }
+.three-theater { width:100%; }
+.three-screen { aspect-ratio:16/9;position:relative;background:#121c20;border:8px solid #49382b;box-shadow:0 5px 0 #2a251f,inset 0 0 0 1px #bf9c57; }
+.three-screen>img { width:100%;height:100%;object-fit:contain; }
+.three-screen>button { position:absolute;left:50%;top:50%;transform:translate(-50%,-50%); }
+.three-screen>iframe,.three-screen>video { width:100%;height:100%;border:0; }
+.theater-venue { font-size:12px;color:var(--muted); }
+.three-program { display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:24px; }
+.three-program button { border:0;border-top:2px solid var(--line-2);text-align:left;padding:12px 0;background:none;color:var(--ink);font-size:12px;line-height:1.6; }
+.three-program button span { display:block;color:var(--muted);font-size:10px; }
+.three-program button[aria-current=true] { border-color:#b18d4b; }
+.garden-help { line-height:1.7; }
+.garden-help dl { display:grid;grid-template-columns:110px 1fr;gap:10px; }
+.garden-help dt { font-weight:600; }.garden-help dd { margin:0; }
+body.panel-open .chapter-caption { max-width:220px; }
+@media(max-width:900px) {
+ .garden-journal { width:56vw;gap:3px; }.journal-stop{min-width:36px;font-size:9px;}
+ .garden-tools{gap:5px;right:12px;}.world-controls{font-size:9px;}
+ .guide-fab{left:12px;}
+}
+@media(max-width:600px) {
+ .garden-body .topbar { padding:0 8px;gap:6px; }
+ .garden-body .brand { gap:6px;flex-shrink:0; }
+ .garden-body .brand-name { font-size:14px;white-space:nowrap; }
+ .garden-body .places { flex-shrink:0; }
+ .garden-body .top-actions { gap:6px;flex-shrink:0; }
+ .garden-body .view-switch { padding:0 8px; }
+ .garden-body .view-switch span { font-size:12px; }
+ .garden-body .view-switch[data-view="basic"] { width:36px;padding:0;justify-content:center; }
+ .garden-body .view-switch[data-view="basic"] span { position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0; }
+ .world-3d { bottom:0; }
+ .chapter-caption{top:19px;left:20px;max-width:250px;}.chapter-eyebrow{font-size:9px;}.chapter-caption h1{font-size:25px;}.chapter-caption #chapter-sub{font-size:11px;max-width:250px;}
+ .world-prompt{bottom:calc(115px + env(safe-area-inset-bottom));font-size:11px;padding:9px 11px;gap:7px;max-width:90vw;white-space:normal;min-width:160px;justify-content:center;}
+ .world-prompt kbd { display:none; }
+ .garden-journal{width:calc(100% - 40px);bottom:calc(64px + env(safe-area-inset-bottom));}.journal-stop{min-width:32px;font-size:9px;gap:7px;}.journal-dot{width:13px;height:13px;}.journal-line{top:6px;}
+ .world-controls{display:none;}
+ .garden-tools{bottom:calc(18px + env(safe-area-inset-bottom));right:16px;}.garden-tools button{width:34px;height:34px;}
+ .guide-fab{bottom:calc(17px + env(safe-area-inset-bottom));left:16px;min-height:40px;padding:4px 12px 4px 4px;}.guide-fab-face{width:30px;height:30px;}
+ .touch-walk{display:flex;position:absolute;right:16px;top:78px;gap:8px;}.touch-walk button{width:42px;height:42px;border:1px solid var(--line-2);background:rgba(var(--card-rgb),.8);border-radius:5px;color:var(--ink);font-size:19px;touch-action:none;}
+ .panel{top:var(--bar-h);bottom:0;width:100%;max-width:none;z-index:40;}.panel-body{padding:26px 22px 65px;}
+ .guide{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:auto;max-height:calc(100dvh - var(--bar-h) - 35px);z-index:45;}
+ .guide-name{font-size:13px;}.guide-note{font-size:9px;}
+ .three-program{grid-template-columns:1fr;}.three-program button{padding:10px;}
+ .world-speech{font-size:11px;max-width:200px;}.garden-help dl{grid-template-columns:85px 1fr;}
+}
+@media(max-width:360px) { .garden-body .brand-text { display:none; } }
+@media(prefers-reduced-motion:reduce) {.world-loading,.journal-dot { transition:none; }}

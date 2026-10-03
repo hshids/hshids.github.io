@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Hanjing Shi · Interactive 3D garden</title>
+    <meta name="description"
+        content="Hanjing Shi, HCI &amp; AI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona. Walk through an interactive world with her mini-avatar, or read the basic version.">
+    <meta property="og:title" content="Hanjing Shi · Welcome to my world">
+    <meta property="og:description"
+        content="HCI &amp; AI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.">
+    <meta property="og:image" content="https://hshids.github.io/images/profile-qipao.jpg">
+    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:width" content="480">
+    <meta property="og:image:height" content="480">
+    <meta property="og:image:alt" content="Hanjing Shi in a black qipao with gold bamboo embroidery">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hshids.github.io/3d.html">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:image" content="https://hshids.github.io/images/profile-qipao.jpg">
+    <meta name="twitter:image:alt" content="Hanjing Shi in a black qipao with gold bamboo embroidery">
+    <meta name="theme-color" content="#f3efe6">
+    <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+    <link rel="alternate" href="basic.html" title="Basic version">
+    <link rel="canonical" href="https://hshids.github.io/3d.html">
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('hj-theme');
+                if (theme) document.documentElement.setAttribute('data-theme', theme);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="stylesheet" href="assets/css/world.css">
+    <link rel="stylesheet" href="assets/three/world3d.css">
+</head>
+<body class="garden-body">
+    <header class="topbar">
+        <button type="button" class="brand" data-go="home" aria-label="Hanjing Shi, back to the welcome gate">
+            <span class="seal" aria-hidden="true">HS</span>
+            <span class="brand-text"><span class="brand-name">Hanjing Shi</span><span class="brand-sub">HCI &amp; AI Researcher</span></span>
+        </button>
+        <div class="places" id="places">
+            <button type="button" class="icon-btn places-btn" id="places-btn" aria-label="Explore places" aria-expanded="false" aria-controls="nav">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <span>Places</span>
+            </button>
+            <nav class="nav" id="nav" aria-label="Places in the world">
+                <button type="button" class="nav-btn" data-go="home"><span class="nav-num">1</span>Welcome</button>
+                <button type="button" class="nav-btn" data-go="research"><span class="nav-num">2</span>Research</button>
+                <button type="button" class="nav-btn" data-go="talks"><span class="nav-num">3</span>Talks</button>
+                <button type="button" class="nav-btn" data-go="education"><span class="nav-num">4</span>Education</button>
+                <button type="button" class="nav-btn" data-go="writing"><span class="nav-num">5</span>Writing</button>
+                <button type="button" class="nav-btn" data-go="life"><span class="nav-num">6</span>Life</button>
+                <button type="button" class="nav-btn" data-go="contact"><span class="nav-num">7</span>Contact</button>
+            </nav>
+        </div>
+        <div class="top-actions">
+            <button type="button" class="icon-btn" id="theme-btn" aria-pressed="false" aria-label="Switch to night">
+                <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" /></svg>
+                <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" /></svg>
+            </button>
+            <a class="view-switch" href="index.html?world" data-view="world"><span>Interactive 2D</span></a>
+            <a class="view-switch" href="basic.html" data-view="basic">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h9l3 3v13H6zM9 10h6M9 14h6M9 18h4" /></svg>
+                <span>Basic version</span>
+            </a>
+        </div>
+    </header>
+
+    <main id="world" class="world world-3d" aria-label="Hanjing’s riverside garden. Walk with arrow keys or WASD. Drag to look around. Scroll or use the zoom buttons to move closer. Click objects to explore.">
+      <canvas id="world-canvas" tabindex="0" aria-label="Interactive 3D riverside garden"></canvas>
+      <div id="loading" class="world-loading" role="status"><span class="loading-seal">HS</span><p>Opening the garden…</p><small>Research, stories, and six cats.</small></div>
+      <div class="chapter-caption" aria-live="polite"><p class="chapter-eyebrow">A RIVERSIDE GARDEN</p><h1 id="chapter-title">Welcome</h1><p id="chapter-sub">A little world to wander through.</p></div>
+      <button id="world-prompt" class="world-prompt" type="button"><span class="prompt-diamond" aria-hidden="true">◇</span><span id="prompt-label">Enter the courtyard</span><kbd>E</kbd></button>
+      <div id="object-tip" class="object-tip" hidden></div>
+      <div id="speech" class="world-speech" role="status" hidden></div>
+      <nav class="garden-journal" aria-label="Garden chapters"><div class="journal-line"></div><button type="button" class="journal-stop" data-go="home" aria-label="Visit Welcome"><span class="journal-dot"></span><span>Welcome</span></button><button type="button" class="journal-stop" data-go="research" aria-label="Visit Research"><span class="journal-dot"></span><span>Research</span></button><button type="button" class="journal-stop" data-go="talks" aria-label="Visit Talks"><span class="journal-dot"></span><span>Talks</span></button><button type="button" class="journal-stop" data-go="education" aria-label="Visit Education"><span class="journal-dot"></span><span>Education</span></button><button type="button" class="journal-stop" data-go="writing" aria-label="Visit Writing"><span class="journal-dot"></span><span>Writing</span></button><button type="button" class="journal-stop" data-go="life" aria-label="Visit Life"><span class="journal-dot"></span><span>Life</span></button><button type="button" class="journal-stop" data-go="contact" aria-label="Visit Contact"><span class="journal-dot"></span><span>Contact</span></button></nav>
+      <p class="world-controls">← → walk <span>·</span> drag to look <span>·</span> click to discover</p>
+      <div class="garden-tools"><button id="zoom-in-btn" type="button" aria-label="Move the camera closer" title="Move closer">+</button><button id="zoom-out-btn" type="button" aria-label="Move the camera farther away" title="Move farther away">−</button><button id="sound-btn" type="button" aria-label="Enable garden sounds" aria-pressed="false" title="Garden sounds">♪</button><button id="view-btn" type="button" aria-label="Reset the camera" title="Reset the view">⌖</button><button id="help-btn" type="button" aria-label="Controls and accessibility" title="How to explore">?</button></div>
+      <div class="touch-walk" aria-label="Touch walking controls"><button type="button" data-walk="-1" aria-label="Walk left">←</button><button type="button" data-walk="1" aria-label="Walk right">→</button></div>
+      <div id="world-error" class="world-error" hidden role="alert"><h2>The garden is taking a rest.</h2><p>Your browser paused its 3D display. You can try again, or read everything in the basic version.</p><button type="button" id="recover-btn">Reopen the garden</button><a href="basic.html">Basic version →</a></div>
+    </main>
+    <aside class="panel" id="panel" hidden aria-label="Place details">
+        <button type="button" class="icon-btn panel-close" id="panel-close" aria-label="Close">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+        <div class="panel-body" id="panel-body"></div>
+    </aside>
+
+    <section class="guide" id="guide" aria-label="Chat with Mini-Hanjing">
+        <header class="guide-head">
+            <div class="guide-portrait" id="guide-portrait" aria-hidden="true"></div>
+            <div class="guide-who">
+                <p class="guide-name">Mini-Hanjing</p>
+                <p class="guide-note">Scripted guide · answers cite my papers · nothing you type leaves your browser</p>
+            </div>
+            <button type="button" class="icon-btn guide-toggle" id="guide-toggle"
+                aria-label="Fold the conversation away" title="Fold away">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+            </button>
+        </header>
+        <div class="guide-log" id="guide-log" role="log" aria-live="polite"></div>
+        <div class="guide-chips" id="guide-chips"></div>
+        <form class="guide-form" id="guide-form" autocomplete="off">
+            <label class="sr-only" for="guide-input">Ask Mini-Hanjing a question</label>
+            <input id="guide-input" type="text" maxlength="200" enterkeyhint="send"
+                placeholder="Ask me about research, papers, education…">
+            <button type="submit" class="send" aria-label="Ask">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+        </form>
+    </section>
+    <button type="button" class="guide-fab" id="guide-fab" aria-controls="guide" aria-expanded="false" hidden>
+        <span class="guide-fab-face" id="guide-fab-face" aria-hidden="true"></span>
+        <span class="guide-fab-label">Ask me</span>
+        <span class="guide-fab-dot" aria-hidden="true"></span>
+        <span class="sr-only">, open the conversation with Mini-Hanjing</span>
+    </button>
+
+    <div class="modal" id="video-modal" hidden role="dialog" aria-modal="true" aria-labelledby="video-title">
+        <div class="modal-card">
+            <div class="modal-head">
+                <h2 id="video-title">Video</h2>
+                <button type="button" class="icon-btn" id="video-close" aria-label="Close video">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+                </button>
+            </div>
+            <div class="modal-body" id="video-body"></div>
+        </div>
+    </div>
+
+    <noscript>
+        <div class="noscript">This interactive page needs JavaScript. <a href="basic.html">Open the basic version →</a></div>
+    </noscript>
+
+    <script src="assets/js/data.js?v=family-stories-v6"></script>
+    <script src="assets/js/rituals.js?v=material-v3"></script>
+    <script src="assets/js/guide.js?v=family-stories-v6"></script>
+    <script src="assets/js/art.js?v=motion-world-v12"></script>
+    <script type="module" src="assets/three/dist/faithful-world.js"></script>
+</body>
+</html>
