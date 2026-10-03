@@ -1,115 +1,60 @@
 import * as THREE from 'three';
 
-// Every part is a closed, independently shaped solid. Original SVG x/y is
-// used solely for UV projection; z is physical scene depth, in metres.
 export const UNIT=1/85;
 export const px=x=>x*UNIT;
 export const py=y=>(560-y)*UNIT;
-export function createPainter(resources, texture, sourceSize, crop, display, name, role={}) {
-  const [sw,sh]=sourceSize,[l,t,r,b]=crop,[dx,dy,dw,dh]=display;
-  const uv=(x,y)=>[(l+(x/UNIT-dx)/dw*(r-l))/sw,1-(t+((560-y/UNIT)-dy)/dh*(b-t))/sh];
-  const original=(sx,sy)=>[px(dx+(sx-l)/(r-l)*dw),py(dy+(sy-t)/(b-t)*dh)];
-  const front=new THREE.MeshBasicMaterial({map:texture,alphaTest:.18,toneMapped:false});front.name=name+'-original-painted-front';
-  const side=new THREE.MeshStandardMaterial({map:texture,color:role.color||'#c9c3b8',roughness:role.roughness??.83,metalness:role.metalness??0,alphaTest:.18});side.name=name+'-sampled-physical-side';
-  resources.add(front);resources.add(side);
-  return {texture,front,side,uv,original,sourceSize,crop,display,name};
+
+// Complete small props. Only supported paper, art and photos use print maps.
+export function createHWLProps({root,resources,materialForRole=null}={}) {
+  const materials=new Map(),colours={wood:'#926344',darkWood:'#5d4031',plaster:'#eadbc0',stone:'#a6a8a1',floor:'#baaa88',roof:'#52616b',red:'#a64c40',brass:'#c5a66b',ivory:'#eee3cb',blue:'#6e919c',green:'#8ca77a',cloth:'#a88970',ink:'#222c27',paper:'#f3e8cd'};
+  function material(role='wood',options={}) {
+    if(role?.isMaterial)return role;
+    const shared=materialForRole?.(role);if(shared&&!Object.keys(options).length)return shared;
+    const key=role+JSON.stringify(options);if(materials.has(key))return materials.get(key);
+    const m=new THREE.MeshStandardMaterial({color:colours[role]||role,roughness:role==='brass'?.46:role==='ink'?.31:.73,metalness:role==='brass'?.23:0,...options});m.name='HWL-complete-solid-'+role;materials.set(key,m);resources.add(m);return m;
+  }
+  function mesh(name,geometry,mat,position=[0,0,0],parent=root) {
+    const object=new THREE.Mesh(geometry,typeof mat==='string'?material(mat):mat);object.name=name;object.position.fromArray(position);object.castShadow=true;object.receiveShadow=true;object.userData.roomSolid=true;parent.add(object);resources.add(geometry);return object;
+  }
+  function sphere(name,size,position,role='cloth',parent=root) {
+    const object=mesh(name,new THREE.SphereGeometry(1,16,10),material(role),position,parent);object.scale.fromArray(size);return object;
+  }
+  function cylinder(name,radius,height,position,role='wood',parent=root,segments=12,radiusTop=radius) {
+    return mesh(name,new THREE.CylinderGeometry(radiusTop,radius,height,segments,1,false),material(role),position,parent);
+  }
+  function tube(name,from,to,radius,role='wood',parent=root,segments=8,radiusTop=radius) {
+    const a=new THREE.Vector3(...from),b=new THREE.Vector3(...to),delta=b.clone().sub(a),object=cylinder(name,radius,delta.length(),a.clone().add(b).multiplyScalar(.5).toArray(),role,parent,segments,radiusTop);object.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize());return object;
+  }
+  function lathe(name,profile,position,role='wood',parent=root,segments=16) {
+    return mesh(name,new THREE.LatheGeometry(profile.map(p=>new THREE.Vector2(...p)),segments),material(role),position,parent);
+  }
+  function prism(name,points,depth,position,role='ivory',parent=root) {
+    const shape=new THREE.Shape(points.map(p=>new THREE.Vector2(...p))),geometry=new THREE.ExtrudeGeometry(shape,{depth,steps:1,bevelEnabled:true,bevelSegments:1,bevelSize:.006,bevelThickness:.006});geometry.translate(0,0,-depth/2);return mesh(name,geometry,material(role),position,parent);
+  }
+  function print(name,texture,width,height,position,parent=root,{horizontal=false}={}) {
+    const mat=new THREE.MeshStandardMaterial({map:texture,roughness:.87,metalness:0});mat.name='HWL-supported-printed-decoration-'+name;resources.add(mat);const object=mesh(name,new THREE.PlaneGeometry(width,height),mat,position,parent);object.castShadow=false;object.userData.roomSolid=false;if(horizontal)object.rotation.x=-Math.PI/2;return object;
+  }
+  function torus(name,radius,tubeRadius,position,role='brass',parent=root) {
+    const object=mesh(name,new THREE.TorusGeometry(radius,tubeRadius,6,48),material(role),position,parent);object.rotation.x=-Math.PI/2;return object;
+  }
+  return {material,mesh,sphere,cylinder,tube,lathe,prism,print,torus};
 }
-export function createSolidBuilder(root,resources,parts) {
-  const batches=new Map();
-  const normal=new THREE.Vector3(),a=new THREE.Vector3(),b=new THREE.Vector3();
-  function tri(mat,p,q,r,u,v,w,normals=null){
-    a.set(q[0]-p[0],q[1]-p[1],q[2]-p[2]);b.set(r[0]-p[0],r[1]-p[1],r[2]-p[2]);normal.crossVectors(a,b);if(normal.lengthSq()<1e-16)return;normal.normalize();
-    let batch=batches.get(mat);if(!batch){batch={p:[],n:[],uv:[]};batches.set(mat,batch);}
-    batch.p.push(...p,...q,...r);batch.n.push(...(normals?normals.flat():[...normal.toArray(),...normal.toArray(),...normal.toArray()]));batch.uv.push(...u,...v,...w);
+
+// Preserve the authored Hello World! glyph paths and progressive brush timing.
+export function createWritingInk({root,resources,deskTop,deskZ,onTip}) {
+  const paperCorners=[[-97.61,515.29],[103.88,515.29],[91.91,500.55],[-93.62,500.55]],corners=paperCorners.map(([x],i)=>[px(x),deskTop+.016,deskZ+(i<2?.16:-.22)]);
+  const canvas=document.createElement('canvas');canvas.width=768;canvas.height=96;const context=canvas.getContext('2d'),texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;resources.add(texture);
+  const material=new THREE.MeshStandardMaterial({map:texture,roughness:.91,metalness:0});material.name='HWL-real-paper-progressive-handwritten-ink';resources.add(material);
+  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute([...corners[0],...corners[1],...corners[2],...corners[0],...corners[2],...corners[3]],3));geometry.setAttribute('uv',new THREE.Float32BufferAttribute([0,0,1,0,1,1,0,0,1,1,0,1],2));geometry.computeVertexNormals();resources.add(geometry);const mesh=new THREE.Mesh(geometry,material);mesh.name='true-desk-paper-handwritten-Hello-World';mesh.receiveShadow=true;root.add(mesh);
+  const glyphPaths=['M1 10L1 1M1 5.4L6.6 5.1M7 1L6.7 10','M10 6.6Q14.8 6.9 14 4.9Q12.1 3.5 10.1 5.7Q8.6 9.9 14.4 9.3','M17.5 1L16.8 9.6Q17.3 10 18.4 9.5','M21.1 1L20.4 9.6Q20.9 10 22 9.5','M26.4 4.7C22.7 4.2 22.9 10.4 26.7 9.8C29.8 9.3 29.4 4.1 26.4 4.7','M35.4 1.1L36.7 10L40.7 3.1L41.8 10L46.2 1.2','M51.1 4.7C47.4 4.2 47.6 10.4 51.4 9.8C54.5 9.3 54.1 4.1 51.1 4.7','M56.7 9.8L57.1 4.8M57 6.7Q60 3.7 61 5.6','M63.9 1L63.2 9.6Q63.7 10 64.8 9.5','M69.2 4.9C65.6 4.2 65.3 10.4 69 9.8Q71.2 9.5 71.5 6.6M72.2 1L71.1 9.7','M76 1.1L75.2 7.3M75 9.7L75.02 9.9'];
+  const glyphs=glyphPaths.map(d=>{const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);return{path,length:path.getTotalLength()};});
+  let active=false,elapsed=0,lastStep=-1,tip=null;
+  function paint(progress) {
+    const index=Math.min(10,Math.floor(progress)),fraction=THREE.MathUtils.clamp(progress-index,0,1),glyph=glyphs[index],point=glyph.path.getPointAtLength(glyph.length*fraction),gx=point.x-(index>=5?34.4:0),sx=.50*gx+.06*point.y+(index<5?49:47),sy=.008*gx+.46*point.y+(index<5?501.5:506.4),u=THREE.MathUtils.clamp((sx+97.61)/201.49,0,1),v=THREE.MathUtils.clamp(1-(sy-500.55)/14.74,0,1),[a,b,c,d]=corners;
+    const position=a.map((_,j)=>u>=v?a[j]*(1-u)+b[j]*(u-v)+c[j]*v:a[j]*(1-v)+c[j]*u+d[j]*(v-u));position[1]+=.010;tip={position,normal:[0,1,0],glyph:index,fraction,active:active&&progress<glyphs.length};onTip?.(tip);
+    const step=Math.floor(progress*60);if(step===lastStep)return;lastStep=step;context.fillStyle='#f3e8cd';context.fillRect(0,0,768,96);context.save();context.scale(768/201.49,96/14.74);context.translate(97.61,-500.55);context.strokeStyle='#382c24';context.lineWidth=1.02;context.lineCap='round';context.lineJoin='round';
+    glyphs.forEach(({path,length},index)=>{const fraction=THREE.MathUtils.clamp(progress-index,0,1);if(!fraction)return;context.save();context.transform(.50,.008,.06,.46,index<5?49:47,index<5?501.5:506.4);if(index>=5)context.translate(-34.4,0);context.beginPath();const p0=path.getPointAtLength(0);context.moveTo(p0.x,p0.y);const count=Math.max(2,Math.ceil(length*7*fraction));for(let j=1;j<=count;j++){const p=path.getPointAtLength(j/count*length*fraction),previous=path.getPointAtLength((j-1)/count*length*fraction);if(Math.hypot(p.x-previous.x,p.y-previous.y)>.5)context.moveTo(p.x,p.y);else context.lineTo(p.x,p.y);}context.stroke();context.restore();});context.restore();texture.needsUpdate=true;
   }
-  function quad(mat,p,uv,normals=null){tri(mat,p[0],p[1],p[2],uv[0],uv[1],uv[2],normals&&[normals[0],normals[1],normals[2]]);tri(mat,p[0],p[2],p[3],uv[0],uv[2],uv[3],normals&&[normals[0],normals[2],normals[3]]);}
-  const patchUV=(paint,patch)=>{const [l,t,r,b]=patch,[sw,sh]=paint.sourceSize;return [[l/sw,1-b/sh],[r/sw,1-b/sh],[r/sw,1-t/sh],[l/sw,1-t/sh]];};
-  const discUV=(paint,patch,angle)=>{const[l,t,r,b]=patch||paint.crop,[sw,sh]=paint.sourceSize;return [(l+r+(r-l)*Math.sin(angle))/2/sw,1-(t+b+(b-t)*Math.cos(angle))/2/sh];};
-  const discCentreUV=(paint,patch)=>{const[l,t,r,b]=patch||paint.crop,[sw,sh]=paint.sourceSize;return[(l+r)/2/sw,1-(t+b)/2/sh];};
-  function face(paint,p,patch,front=false){
-    if(front){quad(paint.front,p,p.map(v=>paint.uv(v[0],v[1])));return;}
-    // Tessellate physical sides at the source sample's scale rather than
-    // stretch a twelve-pixel edge across the whole inferred room depth.
-    const sample=patch||paint.crop,uv=patchUV(paint,sample),distance=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
-    const scaleX=Math.abs(paint.display[2]/(paint.crop[2]-paint.crop[0]))*UNIT,scaleY=Math.abs(paint.display[3]/(paint.crop[3]-paint.crop[1]))*UNIT;
-    const nx=Math.max(1,Math.min(12,Math.ceil(distance(p[0],p[1])/Math.max(.45,(sample[2]-sample[0])*scaleX)))),ny=Math.max(1,Math.min(12,Math.ceil(distance(p[0],p[3])/Math.max(.45,(sample[3]-sample[1])*scaleY))));
-    const at=(u,v)=>p[0].map((_,i)=>(1-v)*((1-u)*p[0][i]+u*p[1][i])+v*((1-u)*p[3][i]+u*p[2][i]));
-    for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){let tex=uv.map(v=>v.slice());if(i%2)tex=[tex[1],tex[0],tex[3],tex[2]];if(j%2)tex=[tex[3],tex[2],tex[1],tex[0]];quad(paint.side,[at(i/nx,j/ny),at((i+1)/nx,j/ny),at((i+1)/nx,(j+1)/ny),at(i/nx,(j+1)/ny)],tex);}
-  }
-  function box(name,paint,rect,z,depth,patch) {
-    const [l,t,r,b]=rect;const x1=px(l),x2=px(r),y1=py(b),y2=py(t),back=z-depth;
-    face(paint,[[x1,y1,z],[x2,y1,z],[x2,y2,z],[x1,y2,z]],patch,true);
-    face(paint,[[x2,y1,back],[x1,y1,back],[x1,y2,back],[x2,y2,back]],patch);
-    face(paint,[[x1,y1,back],[x1,y1,z],[x1,y2,z],[x1,y2,back]],patch);
-    face(paint,[[x2,y1,z],[x2,y1,back],[x2,y2,back],[x2,y2,z]],patch);
-    face(paint,[[x1,y2,z],[x2,y2,z],[x2,y2,back],[x1,y2,back]],patch);
-    face(paint,[[x1,y1,back],[x2,y1,back],[x2,y1,z],[x1,y1,z]],patch);
-    parts.push({name,kind:'closed-solid',rect,z,depth});
-  }
-  function sourceBox(name,paint,rect,z,depth,patch){const p=paint.original(rect[0],rect[1]),q=paint.original(rect[2],rect[3]);box(name,paint,[Math.min(p[0],q[0])/UNIT,560-Math.max(p[1],q[1])/UNIT,Math.max(p[0],q[0])/UNIT,560-Math.min(p[1],q[1])/UNIT],z,depth,patch);}
-  function polygon(name,paint,svgPoints,z,depth,patch) {
-    let pts=svgPoints.map(([x,y])=>new THREE.Vector2(px(x),py(y)));if(THREE.ShapeUtils.isClockWise(pts))pts.reverse();
-    for(const ix of THREE.ShapeUtils.triangulateShape(pts,[])){
-      const front=ix.map(i=>[pts[i].x,pts[i].y,z]);tri(paint.front,...front,...front.map(p=>paint.uv(p[0],p[1])));
-      const rear=ix.reverse().map(i=>[pts[i].x,pts[i].y,z-depth]);tri(paint.side,...rear,...patchUV(paint,patch||paint.crop).slice(0,3));
-    }
-    for(let i=0;i<pts.length;i++){const p=pts[i],q=pts[(i+1)%pts.length];face(paint,[[p.x,p.y,z],[p.x,p.y,z-depth],[q.x,q.y,z-depth],[q.x,q.y,z]],patch);}
-    parts.push({name,kind:'closed-contoured-solid',depth});
-  }
-  function sourcePolygon(name,paint,pts,z,depth,patch){polygon(name,paint,pts.map(p=>{const v=paint.original(...p);return[v[0]/UNIT,560-v[1]/UNIT];}),z,depth,patch);}
-  function round(name,paint,cx,z,profile,patch,segments=36,options={}) {
-    const heightScale=options.heightScale??1,heightBase=options.heightBase??py(profile[0][0]);
-    const height=y=>heightBase+(py(y)-heightBase)*heightScale;
-    const sourceHeight=y=>heightBase+(y-heightBase)/heightScale;
-    const ringNormal=(j,angle)=>{const a=profile[Math.max(0,j-1)],b=profile[Math.min(profile.length-1,j+1)],slope=(b[1]-a[1])/(height(b[0])-height(a[0]));return new THREE.Vector3(Math.sin(angle),-slope,Math.cos(angle)).normalize().toArray();};
-    for(let j=0;j<profile.length-1;j++)for(let i=0;i<segments;i++){
-      const aa=i/segments*Math.PI*2,bb=(i+1)/segments*Math.PI*2,[ya,ra]=profile[j],[yb,rb]=profile[j+1];
-      const p=[[px(cx)+Math.sin(aa)*ra,height(ya),z+Math.cos(aa)*ra],[px(cx)+Math.sin(bb)*ra,height(ya),z+Math.cos(bb)*ra],[px(cx)+Math.sin(bb)*rb,height(yb),z+Math.cos(bb)*rb],[px(cx)+Math.sin(aa)*rb,height(yb),z+Math.cos(aa)*rb]];
-      if(options.continuousProjection){const mat=Math.cos((aa+bb)/2)>0?paint.front:paint.side;quad(mat,p,p.map(v=>paint.uv(v[0],sourceHeight(v[1]))),options.smoothNormals?[ringNormal(j,aa),ringNormal(j,bb),ringNormal(j+1,bb),ringNormal(j+1,aa)]:null);}else face(paint,p,patch,Math.cos((aa+bb)/2)>0);
-    }
-    for(const [index,dir] of (options.continuousProjection?[[0,-1],[profile.length-1,1]]:[[0,1],[profile.length-1,-1]])){const[y,r]=profile[index];for(let i=0;i<segments;i++){
-      const aa=i/segments*Math.PI*2,bb=(i+1)/segments*Math.PI*2,p=[[px(cx),height(y),z],[px(cx)+Math.sin(aa)*r,height(y),z+Math.cos(aa)*r],[px(cx)+Math.sin(bb)*r,height(y),z+Math.cos(bb)*r]],uv=[discCentreUV(paint,patch),discUV(paint,patch,aa),discUV(paint,patch,bb)];if(dir<0){p.reverse();uv.reverse();}tri(paint.side,...p,...uv);
-    }}parts.push({name,kind:'closed-profiled-round-solid',z,profile,heightScale,heightBase});
-  }
-  function sourceRound(name,paint,cx,z,profile,patch,segments=36){const p=paint.original(cx,0);round(name,paint,p[0]/UNIT,z,profile.map(([y,r])=>{const q=paint.original(cx,y);return[560-q[1]/UNIT,r*Math.abs(paint.display[2]/(paint.crop[2]-paint.crop[0]))*UNIT];}),patch,segments);}
-  function roof(name,paint,profile,zFront,depth,patch,options={}) {
-    // The ridge is shorter than the eave. End bays turn into real curved hip
-    // slopes instead of extruding the raised front corners through the room.
-    const back=zFront-depth,[hipL,hipR]=options.hip||[profile[0][0],profile.at(-1)[0]],left=profile[0][0],right=profile.at(-1)[0];
-    const rearX=v=>v[0]+(v[0]<hipL?1:v[0]>hipR?-1:0)*(options.rearInset||0)*(1-amount(v[0]));
-    const amount=x=>Math.min(1,hipL===left?1:Math.max(0,(x-left)/(hipL-left)),hipR===right?1:Math.max(0,(right-x)/(right-hipR)));
-    const upper=(v,u)=>{const[x,t,b]=v,f=amount(x),z0=zFront-depth*.48*f,z1=back+depth*.52*f;
-      // Continue the source's raised corner around a curved side eave. A
-      // straight front-to-back interpolation reads as a rectangular wing.
-      const corner=THREE.MathUtils.lerp(py(b)+.10,py(t),.60),rearTop=THREE.MathUtils.lerp(corner,py(t),f),sag=(1-f)*Math.min(.22,Math.max(.12,(py(t)-py(b))*.46));
-      return[px(THREE.MathUtils.lerp(x,rearX(v),u)),THREE.MathUtils.lerp(py(t),rearTop,u)-Math.sin(Math.PI*u)*sag,THREE.MathUtils.lerp(z0,z1,u)];};
-    for(let i=0;i<profile.length-1;i++){
-      const v0=profile[i],v1=profile[i+1],[x0,t0,b0]=v0,[x1,t1,b1]=v1;
-      const f=[[px(x0),py(b0),zFront],[px(x1),py(b1),zFront],upper(v1,0),upper(v0,0)];face(paint,f,patch,true);face(paint,f.map(p=>[p[0],p[1]-.085,p[2]]).reverse(),patch);
-      const rear=[[px(rearX(v1)),py(b1),back],[px(rearX(v0)),py(b0),back],upper(v0,1),upper(v1,1)];face(paint,rear,patch);face(paint,rear.map(p=>[p[0],p[1]-.085,p[2]]).reverse(),patch);
-      if(amount(x0)<1||amount(x1)<1)for(let j=0;j<6;j++){const u=j/6,v=(j+1)/6,q=[upper(v0,u),upper(v1,u),upper(v1,v),upper(v0,v)];face(paint,q,patch);face(paint,q.map(p=>[p[0],p[1]-.085,p[2]]).reverse(),patch);}
-      face(paint,[[px(rearX(v1)),py(b1),back],[px(rearX(v1)),py(b1)-.085,back],[px(rearX(v0)),py(b0)-.085,back],[px(rearX(v0)),py(b0),back]],patch);
-      face(paint,[[px(x0),py(b0),zFront],[px(x0),py(b0)-.085,zFront],[px(x1),py(b1)-.085,zFront],[px(x1),py(b1),zFront]],patch,true);
-    }
-    for(const [v,reverse]of [[profile[0],false],[profile.at(-1),true]]){
-      const[x,t,b]=v,edge=[[px(x),py(b)-.085,zFront],...Array.from({length:7},(_,j)=>upper(v,j/6)),[px(rearX(v)),py(b)-.085,back]],outline=edge.map(p=>new THREE.Vector2(p[2],p[1]));
-      for(const ids of THREE.ShapeUtils.triangulateShape(outline,[])){if(reverse)ids.reverse();const q=ids.map(i=>edge[i]);tri(paint.side,...q,...patchUV(paint,patch||paint.crop).slice(0,3));}
-    }
-    if(options.hip)for(const [i,v]of [profile[0],profile.at(-1)].entries()){const path=Array.from({length:5},(_,j)=>{const q=upper(v,j/4);return[q[0]/UNIT,560-(q[1]-.018)/UNIT,q[2]];});tube(name+'-rounded-curved-hip-edge-'+i,{...paint,front:paint.side},path,[.018,.018,.018,.018,.018],patch,10);}
-    parts.push({name,kind:'closed-curved-hip-roof',depth,hip:[hipL,hipR],rearInset:options.rearInset||0});
-  }
-  function sourceRoof(name,paint,profile,z,depth,patch,options={}){const hip=options.hip?.map(x=>paint.original(x,0)[0]/UNIT),rearInset=(options.rearInset||0)*Math.abs(paint.display[2]/(paint.crop[2]-paint.crop[0]));roof(name,paint,profile.map(([x,t,b])=>{const p=paint.original(x,t),q=paint.original(x,b);return[p[0]/UNIT,560-p[1]/UNIT,560-q[1]/UNIT];}),z,depth,patch,{...options,rearInset,...(hip?{hip}:{})});}
-  function tube(name,paint,path,radii,patch,segments=14){
-    // A continuous swept limb/branch, with front UV following its real x/y.
-    const points=path.map(p=>new THREE.Vector3(px(p[0]),py(p[1]),p[2]));
-    const curve=new THREE.CatmullRomCurve3(points);const steps=Math.max(10,(points.length-1)*10),frames=curve.computeFrenetFrames(steps,false);let previous=null;
-    for(let j=0;j<=steps;j++){
-      const u=j/steps,pos=curve.getPointAt(u),at=u*(radii.length-1),k=Math.min(radii.length-2,Math.floor(at)),r=THREE.MathUtils.lerp(radii[k],radii[k+1],at-k);const ring=[];
-      for(let i=0;i<segments;i++){const aa=i/segments*Math.PI*2;ring.push(pos.clone().addScaledVector(frames.normals[j],Math.cos(aa)*r).addScaledVector(frames.binormals[j],Math.sin(aa)*r).toArray());}
-      if(previous)for(let i=0;i<segments;i++){const q=[previous[i],previous[(i+1)%segments],ring[(i+1)%segments],ring[i]];face(paint,q,patch,(q.reduce((n,p)=>n+p[2],0)/4)>pos.z);}
-      if(j===0||j===steps)for(let i=0;i<segments;i++){const q=j===0?[pos.toArray(),ring[(i+1)%segments],ring[i]]:[pos.toArray(),ring[i],ring[(i+1)%segments]],uv=[discCentreUV(paint,patch),discUV(paint,patch,(j===0?i+1:i)/segments*Math.PI*2),discUV(paint,patch,(j===0?i:i+1)/segments*Math.PI*2)];tri(paint.side,...q,...uv);}previous=ring;
-    }parts.push({name,kind:'solid-swept-curved-form',radii});
-  }
-  function flush(){for(const[mat,batch]of batches){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(batch.p,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(batch.n,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(batch.uv,2));g.computeBoundingBox();g.computeBoundingSphere();const mesh=new THREE.Mesh(g,mat);mesh.name=mat.name+'-closed-surface-batch';mesh.castShadow=true;mesh.receiveShadow=true;root.add(mesh);resources.add(g);}return{triangles:[...batches.values()].reduce((n,b)=>n+b.p.length/9,0),drawCalls:batches.size};}
-  return {box,sourceBox,polygon,sourcePolygon,round,sourceRound,roof,sourceRoof,tube,face,tri,quad,patchUV,flush};
+  paint(0);
+  return {corners,mesh,getTip:()=>tip,setActive(value){if(value&&!active){elapsed=0;lastStep=-1;}active=!!value;paint(elapsed/.64);},update(dt){if(active){elapsed=Math.min(glyphs.length*.64,elapsed+dt);paint(elapsed/.64);}},paper:{corners,normal:[0,1,0],centre:[px(3),deskTop+.016,deskZ-.03],helloStart:[px(49),deskTop+.026,deskZ-.195],helloRows:[{start:[px(49),deskTop+.026,deskZ-.195],scale:[.50,.008,.06,.46]},{start:[px(47),deskTop+.026,deskZ-.069],scale:[.50,.008,.06,.46]}]}};
 }

@@ -1,145 +1,143 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
-/** A small, fully closed Packer Chapel keepsake, rather than a thick facade.
- * The simplified stone nave, rose window and circular apse retain the campus
- * identity. Roof, cornice and radial windows share the apse's physical axis.
- */
-export function createLehighCampus({ source: s, quality = 'high' }) {
-  const root = new THREE.Group(); root.name = 'lehigh-complete-chapel';
-  const resources = new Set(), parts = [], buckets = new Map();
-  const radial = quality === 'low' ? 24 : 48;
-  function material(name, options) {
-    const m = new THREE.MeshStandardMaterial({ roughness: .88, ...options });
-    m.name = `lehigh-${name}`; resources.add(m); return m;
+/** Small solid Packer Chapel keepsake. Window surrounds intersect their own
+ * wall plane; each recess is a real opening with glass set inside it. */
+export function createLehighCampus({source:s,quality='high'}) {
+  const root=new THREE.Group();root.name='lehigh-complete-chapel';
+  const resources=new Set(),parts=[],buckets=new Map(),attachments=[];
+  const radial=quality==='low'?12:24,curves=quality==='low'?3:6;
+  const mat=(name,color,extra={})=>{const m=new THREE.MeshStandardMaterial({color,roughness:.8,...extra});m.name=`lehigh-${name}`;resources.add(m);return m;};
+  const stone=mat('warm-sandstone','#b69c75'),trim=mat('carved-limestone','#d0b88c'),base=mat('grounded-stone-plinth','#958a73');
+  const roof=mat('soft-slate-roof','#485664',{roughness:.67}),lead=mat('window-lead-and-door-hardware','#45474b',{metalness:.25});
+  const wood=mat('recessed-oak-door','#665139'),glass=mat('stained-glass','#667d83',{roughness:.42,emissive:'#ffc46d',emissiveIntensity:0});
+  const roseGlass=mat('rose-amber-glass','#c19e73',{roughness:.45,emissive:'#ffd091',emissiveIntensity:0}),greenery=mat('rounded-campus-planting','#71815c');
+  const x=n=>s.X(n),y=n=>s.Y(n);
+  function add(name,g,m,p=[0,0,0],rotation=[0,0,0],extra={}) {
+    g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(1,1,1)));
+    g.computeBoundingBox();parts.push({name,scene:'education',min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray(),construction:'closed polygonal chapel component',...extra});
+    if(!g.getAttribute('uv'))g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+    if(!buckets.has(m))buckets.set(m,[]);buckets.get(m).push(g);return g;
   }
-  const stone = material('warm-sandstone', { color: '#b69c75' });
-  const trim = material('carved-limestone', { color: '#d0b88c' });
-  const base = material('grounded-stone-plinth', { color: '#958a73' });
-  const roof = material('soft-slate-roof', { color: '#485664', roughness: .78 });
-  const lead = material('window-lead-and-door-hardware', { color: '#45474b', metalness: .28 });
-  const wood = material('recessed-oak-door', { color: '#665139' });
-  const glass = material('stained-glass', { color: '#59696f', roughness: .46, emissive: '#ffc46d', emissiveIntensity: 0 });
-  const roseGlass = material('rose-amber-glass', { color: '#d3a276', roughness: .5, emissive: '#ffd091', emissiveIntensity: 0 });
-  const greenery = material('rounded-campus-planting', { color: '#647363' });
-  const x = n => s.X(n), y = n => s.Y(n);
-
-  function add(name, g, mat, position = [0, 0, 0], rotation = [0, 0, 0], extra = {}) {
-    const matrix = new THREE.Matrix4().compose(new THREE.Vector3(...position),
-      new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)), new THREE.Vector3(1, 1, 1));
-    g.applyMatrix4(matrix); g.computeBoundingBox();
-    parts.push({ name, scene: 'education', min: g.boundingBox.min.toArray(), max: g.boundingBox.max.toArray(),
-      construction: 'closed spatial chapel component', ...extra });
-    if (!g.getAttribute('uv')) g.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(g.getAttribute('position').count * 2), 2));
-    if (!buckets.has(mat)) buckets.set(mat, []); buckets.get(mat).push(g); return g;
+  const box=(name,min,max,m=stone)=>add(name,new THREE.BoxGeometry(...max.map((v,i)=>v-min[i])),m,min.map((v,i)=>(v+max[i])/2));
+  const cyl=(name,rt,rb,h,p,m,segments=radial,rot=[0,0,0])=>add(name,new THREE.CylinderGeometry(rt,rb,h,segments),m,p,rot);
+  function arch(w,h,cx=0,bottom=0) {
+    const q=new THREE.Shape();q.moveTo(cx-w/2,bottom);q.lineTo(cx+w/2,bottom);q.lineTo(cx+w/2,bottom+h-w/2);
+    q.absarc(cx,bottom+h-w/2,w/2,0,Math.PI,false);q.lineTo(cx-w/2,bottom);return q;
   }
-  function box(name, min, max, mat = stone, extra) {
-    const a = new THREE.Vector3(...min), b = new THREE.Vector3(...max);
-    return add(name, new THREE.BoxGeometry(...b.clone().sub(a).toArray()), mat, a.add(b).multiplyScalar(.5).toArray(), undefined, extra);
+  const pathOf=shape=>new THREE.Path(shape.getPoints(curves));
+  function brickCourses(name,outline,holes,thickness,p,angle) {
+    const minX=Math.min(...outline.map(v=>v[0])),maxX=Math.max(...outline.map(v=>v[0])),minY=Math.min(...outline.map(v=>v[1])),maxY=Math.max(...outline.map(v=>v[1]));
+    const blocked=holes.map(h=>h.getPoints(curves)).map(q=>({l:Math.min(...q.map(v=>v.x))-.018,r:Math.max(...q.map(v=>v.x))+.018,b:Math.min(...q.map(v=>v.y))-.012,t:Math.max(...q.map(v=>v.y))+.012}));
+    const inside=(xx,yy)=>{let ok=false;for(let i=0,j=outline.length-1;i<outline.length;j=i++){const a=outline[i],b=outline[j];if((a[1]>yy)!==(b[1]>yy)&&xx<(b[0]-a[0])*(yy-a[1])/(b[1]-a[1])+a[0])ok=!ok;}return ok;};
+    const bw=quality==='low'?.17:.135,bh=quality==='low'?.10:.082,pose=new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,angle,0)),new THREE.Vector3(1,1,1));
+    for(let row=0,yy=minY+.005;yy+bh<maxY;row++,yy+=bh)for(let xx=minX-(row%2)*bw/2;xx<maxX;xx+=bw) {
+      const l=Math.max(minX+.004,xx+.004),r=Math.min(maxX-.004,xx+bw-.004),b=yy,t=yy+bh-.007;
+      if(r-l<.028||![[l,b],[r,b],[l,t],[r,t]].every(q=>inside(...q))||blocked.some(q=>l<q.r&&r>q.l&&b<q.t&&t>q.b))continue;
+      const g=new THREE.BoxGeometry(r-l,t-b,.009);g.translate((l+r)/2,(b+t)/2,thickness+.0015);g.applyMatrix4(pose);add(`${name}-stone-block-${row}-${Math.round(xx*1000)}`,g,stone);
+    }
   }
-  function prism(name, outline, front, depth, mat) {
-    const shape = new THREE.Shape(outline.map(p => new THREE.Vector2(...p)));
-    const g = new THREE.ExtrudeGeometry(shape, { depth, bevelEnabled: false, steps: 1, curveSegments: radial });
-    return add(name, g, mat, [0, 0, front - depth]);
+  function slab(name,outline,holes,thickness,p,angle,m=stone) {
+    const q=new THREE.Shape(outline.map(v=>new THREE.Vector2(...v)));q.holes=holes.map(h=>pathOf(h));
+    const g=add(name,new THREE.ExtrudeGeometry(q,{depth:thickness,bevelEnabled:false,curveSegments:curves}),m,p,[0,angle,0]);
+    if(m===stone)brickCourses(name,outline,holes,thickness,p,angle);return g;
   }
-  function cylinder(name, rTop, rBottom, h, p, mat) {
-    return add(name, new THREE.CylinderGeometry(rTop, rBottom, h, radial), mat, p);
+  // All decorative frames have one section inside the wall, never hovering.
+  function panel(name,w,h,bottom,cx,plane,angle,isDoor=false) {
+    const pose=new THREE.Matrix4().compose(new THREE.Vector3(cx,bottom,plane),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,angle,0)),new THREE.Vector3(1,1,1));
+    const placed=(suffix,g,m,offset)=>{g.translate(...offset);g.applyMatrix4(pose);return add(`${name}-${suffix}`,g,m);};
+    const rim=arch(w+.028,h+.018,-0,-.009);rim.holes=[pathOf(arch(w,h))];
+    placed('attached-stone-frame',new THREE.ExtrudeGeometry(rim,{depth:.026,bevelEnabled:false,curveSegments:curves}),trim,[0,0,-.012]);
+    placed('recessed-pane',new THREE.ExtrudeGeometry(arch(w-.006,h-.009),{depth:.012,bevelEnabled:false,curveSegments:curves}),isDoor?wood:glass,[0,.003,-.023]);
+    placed('centre-lead',new THREE.BoxGeometry(.006,h-w*.3,.008),lead,[0,(h-w*.3)/2,-.004]);
+    if(!isDoor)for(const f of [.35,.66])placed(`cross-lead-${f}`,new THREE.BoxGeometry(w-.008,.006,.008),lead,[0,h*f,-.004]);
+    else placed('door-knob',new THREE.SphereGeometry(.007,8,4),lead,[w*.2,h*.43,.01]);
+    attachments.push({name,wallPlane:plane,angle,frameBack:-.012,frameFront:.014,paneFront:-.011});
   }
-  function pitched(name, left, right, bottom, eave, peak, front, back) {
-    const cx = (left + right) / 2, half = (right - left) / 2;
-    box(`${name}-walls`, [left, bottom, back], [right, eave, front]);
-    prism(`${name}-stone-gable`, [[left,eave],[right,eave],[cx,peak]], front, front - back, stone);
-    const rise = peak - eave, span = Math.hypot(half + .035, rise);
-    const angle = Math.atan2(rise, half + .035);
-    for (const side of [-1, 1]) add(`${name}-pitched-slate-${side}`,
-      new THREE.BoxGeometry(span, .026, front - back + .095), roof,
-      [cx + side * (half + .035) / 2, (eave + peak) / 2 + .018, (front + back) / 2], [0, 0, -side * angle]);
-    // Closed ridge cap covers the meeting seam without protruding through a wall.
-    add(`${name}-slate-ridge`,new THREE.CylinderGeometry(.016,.016,front-back+.095,radial),roof,
-      [cx,peak+.025,(front+back)/2],[Math.PI/2,0,0]);
+  function nave(name,l,r,eave,peak,front,back,windows) {
+    const middle=(l+r)/2,outline=[[l,.105],[r,.105],[r,eave],[middle,peak],[l,eave]];
+    for(const [side,z,a]of [['front',front,0],['back',back,Math.PI]]) {
+      const mirror=a===Math.PI?-1:1;
+      const localOutline=outline.map(([xx,yy])=>[mirror*xx,yy]);
+      const holes=windows.map(w=>w.circle?new THREE.Shape().absarc(mirror*w.x,w.y,w.r,0,Math.PI*2,false):arch(w.w,w.h,mirror*w.x,w.y));
+      slab(`${name}-${side}-recessed-wall`,localOutline,holes,.04,[0,0,z-.04*mirror],a,stone);
+      for(const w of windows)if(!w.circle)panel(`${name}-${side}-${w.name}`,w.w,w.h,w.y,w.x,z,a,w.door);
+      else {
+        add(`${name}-${side}-rose-attached-frame`,new THREE.TorusGeometry(w.r+.009,.014,6,radial),trim,[w.x,w.y,z],undefined);
+        cyl(`${name}-${side}-rose-inset-glass`,w.r-.008,w.r-.008,.014,[w.x,w.y,z-.016*mirror],roseGlass,radial,[Math.PI/2,0,0]);
+        for(let j=0;j<8;j++)add(`${name}-${side}-rose-tracery-${j}`,new THREE.BoxGeometry(.009,w.r*1.85,.009),trim,[w.x,w.y,z-.003*mirror],[0,0,j*Math.PI/8]);
+      }
+    }
+    const depth=front-back;
+    // End walls are physically cut around their windows as well.
+    for(const [side,xx,a]of [['left',l,-Math.PI/2],['right',r,Math.PI/2]]) {
+      const width=depth,centreZ=(front+back)/2,bottom=.29,h=.28,w=.10;
+      slab(`${name}-${side}-end-wall`,[[-width/2,.105],[width/2,.105],[width/2,eave],[-width/2,eave]],[arch(w,h,0,bottom)],.04,[xx-.04*Math.sin(a),0,centreZ],a);
+      const pose=new THREE.Matrix4().compose(new THREE.Vector3(xx,bottom,centreZ),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,a,0)),new THREE.Vector3(1,1,1));
+      const rim=arch(w+.028,h+.018,0,-.009);rim.holes=[pathOf(arch(w,h))];
+      const g=new THREE.ExtrudeGeometry(rim,{depth:.026,bevelEnabled:false,curveSegments:curves});g.translate(0,0,-.012);g.applyMatrix4(pose);add(`${name}-${side}-window-attached-frame`,g,trim);
+      const pane=new THREE.ExtrudeGeometry(arch(w-.006,h-.009),{depth:.012,bevelEnabled:false,curveSegments:curves});pane.translate(0,.003,-.023);pane.applyMatrix4(pose);add(`${name}-${side}-window-recessed-pane`,pane,glass);
+    }
+    box(`${name}-floor`,[l,.105,back],[r,.125,front],base);
+    const half=(r-l)/2,rise=peak-eave,angle=Math.atan2(rise,half),span=(half+.035)/Math.cos(angle);
+    for(const side of [-1,1]) {
+      const p=[middle+side*(half+.035)/2,peak-rise*(half+.035)/(2*half)+.018/Math.cos(angle),(front+back)/2],rot=[0,0,-side*angle];
+      add(`${name}-slate-roof-${side}`,new THREE.BoxGeometry(span,.036,depth+.10),roof,p,rot);
+      const pose=new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rot)),new THREE.Vector3(1,1,1));
+      const rows=Math.max(2,Math.ceil(span/(quality==='low'?.15:.105))),columns=Math.ceil((depth+.10)/(quality==='low'?.20:.145));
+      for(let a=0;a<rows;a++)for(let b=0;b<columns;b++) {
+        const g=new THREE.BoxGeometry(span/rows-.004,.012,(depth+.10)/columns-.006);g.translate(-span/2+(a+.5)*span/rows,.021,-(depth+.10)/2+(b+.5)*(depth+.10)/columns);g.applyMatrix4(pose);add(`${name}-lapped-slate-${side}-${a}-${b}`,g,roof);
+      }
+    }
+    cyl(`${name}-closed-ridge`,.018,.018,depth+.10,[middle,peak+.025,(front+back)/2],roof,8,[Math.PI/2,0,0]);
   }
-  // The base contacts y=0; every wall/buttress terminates on its top at .105.
-  box('lehigh-grounded-foundation', [x(25),0,-1.02], [x(723),.105,.145], base);
-  const floor = .105, front = .025, back = -.905;
-  pitched('lehigh-main-nave', x(215), x(427), floor, y(132), y(23), front, back);
-  pitched('lehigh-left-wing', x(48), x(215), floor, y(183), y(109), -.007, -.80);
-  pitched('lehigh-right-link', x(427), x(489), floor, y(183), y(145), -.034, -.72);
-
-  // One shared XYZ centre for the circular wall, cornices and conical roof.
-  const centre = [x(574), (floor + y(160)) / 2, -.44], radius = x(693) - x(574), wallTop = y(160);
-  cylinder('lehigh-round-apse-wall', radius, radius, wallTop - floor, centre, stone);
-  cylinder('lehigh-apse-foot-course', radius + .018, radius + .018, .075, [centre[0],floor + .0375,centre[2]], base);
-  cylinder('lehigh-apse-cornice', radius + .027, radius + .027, .045, [centre[0],wallTop,centre[2]], trim);
-  const apex = y(53), roofBase = wallTop + .022;
-  cylinder('lehigh-shared-axis-conical-roof', 0, radius + .04, apex - roofBase,
-    [centre[0], (apex + roofBase) / 2, centre[2]], roof);
-  cylinder('lehigh-apse-attached-finial', .008, .012, .12, [centre[0],apex + .059,centre[2]], trim);
-
-  function archShape(w, h) {
-    const q = new THREE.Shape(); q.moveTo(-w/2, 0); q.lineTo(w/2,0); q.lineTo(w/2,h-w/2);
-    q.absarc(0,h-w/2,w/2,0,Math.PI,false); q.lineTo(-w/2,0); return q;
-  }
-  function panel(name, w, h, position, angle = 0, isDoor = false) {
-    // Surface mount is .012 in front of its wall, then a shallower inset pane.
-    // At the apse, all axes point radially outward; rear panes have real backs.
-    const q = new THREE.Group(); q.position.set(...position); q.rotation.y = angle;
-    const pose = (offset, g, mat, suffix) => {
-      const matrix = q.matrix.compose(q.position, q.quaternion, q.scale);
-      g.translate(...offset); g.applyMatrix4(matrix);
-      return add(`${name}-${suffix}`,g,mat);
-    };
-    pose([0,0,-.009],new THREE.ExtrudeGeometry(archShape(w+.031,h+.018),{depth:.02,bevelEnabled:false,curveSegments:radial}),trim,'stone-frame');
-    pose([0,.013,.012],new THREE.ExtrudeGeometry(archShape(w,h-.022),{depth:.009,bevelEnabled:false,curveSegments:radial}),isDoor?wood:glass,'inset');
-    const mid = new THREE.BoxGeometry(.008,h-w*.3,.012);
-    pose([0,(h-w*.3)/2+.013,.026],mid,lead,'centre-mullion');
-    if(!isDoor) for(const f of [.35,.66]) pose([0,h*f,.026],new THREE.BoxGeometry(w,.008,.012),lead,`cross-lead-${f}`);
-    else pose([w*.2,h*.43,.034],new THREE.SphereGeometry(.008,8,6),lead,'door-knob');
-  }
-  for(const z of [front+.005,back-.005]) {
-    const a = z>-.5?0:Math.PI;
-    for(const nativeX of [91,132,174]) for(const nativeY of [257,347])
-      panel(`lehigh-left-window-${z}-${nativeX}-${nativeY}`, .066, .202, [x(nativeX),y(nativeY),z], a);
-    panel(`lehigh-nave-door-${z}`, .18, .40, [x(323),floor,z],a,true);
-    for(const nativeX of [246,397]) panel(`lehigh-nave-lancet-${z}-${nativeX}`, .067, .265, [x(nativeX),y(347),z],a);
-    const roseR = .215;
-    add(`lehigh-rose-stone-surround-${z}`,new THREE.TorusGeometry(roseR,.02,8,radial),trim,[x(323),y(177),z+.024*Math.cos(a)]);
-    add(`lehigh-rose-glass-${z}`,new THREE.CylinderGeometry(roseR-.021,roseR-.021,.018,radial),roseGlass,[x(323),y(177),z+.019*Math.cos(a)],[Math.PI/2,0,0]);
-    for(let j=0;j<8;j++) add(`lehigh-rose-carved-ray-${z}-${j}`,new THREE.BoxGeometry(.011,(roseR-.022)*2,.014),trim,
-      [x(323),y(177),z+.031*Math.cos(a)],[0,0,j*Math.PI/8]);
-    add(`lehigh-rose-centre-${z}`,new THREE.SphereGeometry(.027,12,8),trim,[x(323),y(177),z+.035*Math.cos(a)]);
-  }
+  const floor=.105,front=.025,back=-.905;
+  box('lehigh-grounded-foundation',[x(25),0,-1.02],[x(723),floor,.145],base);
+  nave('lehigh-main-nave',x(215),x(427),y(132),y(23),front,back,[
+    {name:'door',x:x(323),y:floor,w:.18,h:.40,door:true},
+    ...[246,397].map(n=>({name:`lancet-${n}`,x:x(n),y:y(347),w:.067,h:.265})),
+    {name:'rose',x:x(323),y:y(177),r:.215,circle:true}]);
+  nave('lehigh-left-wing',x(48),x(215),y(183),y(109),-.007,-.80,
+    [91,132,174].flatMap(n=>[257,347].map(v=>({name:`window-${n}-${v}`,x:x(n),y:y(v),w:.066,h:.202}))));
+  nave('lehigh-right-link',x(427),x(489),y(183),y(145),-.034,-.72,
+    [{name:'window',x:(x(427)+x(489))/2,y:.36,w:.07,h:.23}]);
+  // A faceted cylindrical apse, its cornice and conical roof use ONE axis.
+  const centre=[x(574),0,-.44],radius=x(693)-x(574),wallTop=y(160),apothem=radius*Math.cos(Math.PI/8),width=2*radius*Math.sin(Math.PI/8);
   for(let j=0;j<8;j++) {
-    const a=j/8*Math.PI*2, sin=Math.sin(a), cos=Math.cos(a);
-    panel(`lehigh-apse-radial-window-${j}`, .09, .40,
-      [centre[0]+(radius+.004)*sin,.27,centre[2]+(radius+.004)*cos],a);
-    const b=a+Math.PI/8;
-    cylinder(`lehigh-apse-attached-pilaster-${j}`,.012,.015,wallTop-floor-.035,
-      [centre[0]+radius*Math.sin(b),(floor+wallTop)/2,centre[2]+radius*Math.cos(b)],trim);
+    const a=j*Math.PI/4,xx=centre[0]+apothem*Math.sin(a),zz=centre[2]+apothem*Math.cos(a),hasWindow=j!==6;
+    slab(`lehigh-apse-wall-${j}`,[[-width/2,floor],[width/2,floor],[width/2,wallTop],[-width/2,wallTop]],hasWindow?[arch(.09,.40,0,.27)]:[],.04,[xx-.04*Math.sin(a),0,zz-.04*Math.cos(a)],a);
+    if(hasWindow) {
+      const pose=new THREE.Matrix4().compose(new THREE.Vector3(xx,.27,zz),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,a,0)),new THREE.Vector3(1,1,1));
+      const rim=arch(.118,.418,0,-.009);rim.holes=[pathOf(arch(.09,.40))];
+      const g=new THREE.ExtrudeGeometry(rim,{depth:.026,bevelEnabled:false,curveSegments:curves});g.translate(0,0,-.012);g.applyMatrix4(pose);add(`lehigh-apse-window-${j}-attached-frame`,g,trim);
+      const pane=new THREE.ExtrudeGeometry(arch(.084,.391),{depth:.012,bevelEnabled:false,curveSegments:curves});pane.translate(0,.003,-.023);pane.applyMatrix4(pose);add(`lehigh-apse-window-${j}-recessed-pane`,pane,glass);
+    }
   }
-  for(const nativeX of [48,215,427]) {
-    const xx=x(nativeX),top=nativeX===48?y(187):y(146);
-    box(`lehigh-front-buttress-${nativeX}`,[xx-.025,floor,front-.015],[xx+.025,top,front+.045],trim);
-    box(`lehigh-rear-buttress-${nativeX}`,[xx-.025,floor,back-.035],[xx+.025,top,back+.015],trim);
+  cyl('lehigh-apse-foot-course',radius+.018,radius+.018,.075,[centre[0],floor+.0375,centre[2]],base,8);
+  cyl('lehigh-apse-floor',radius,radius,.022,[centre[0],floor+.011,centre[2]],base,8);
+  cyl('lehigh-apse-cornice',radius+.027,radius+.027,.045,[centre[0],wallTop,centre[2]],trim,8);
+  const apex=y(53),roofBase=wallTop+.022;
+  cyl('lehigh-shared-axis-conical-roof',0,radius+.04,apex-roofBase,[centre[0],(apex+roofBase)/2,centre[2]],roof,8);
+  cyl('lehigh-apse-attached-finial',.008,.012,.12,[centre[0],apex+.059,centre[2]],trim,8);
+  for(let j=1;j<=4;j++) {
+    const yy=roofBase+(apex-roofBase)*j/5,r=(radius+.04)*(1-j/5);
+    cyl(`lehigh-apse-layered-slate-course-${j}`,r-.008,r+.011,.027,[centre[0],yy,centre[2]],roof,8);
   }
-  for(let i=0;i<4;i++) box(`lehigh-door-step-${i}`,
-    [x(323)-.16-i*.018,0,front+.04+i*.04], [x(323)+.16+i*.018,.10-i*.023,front+.08+i*.04],base);
-  for(let j=0;j<5;j++) {
-    const xx=x(55+j*22),r=.05+j%2*.012;
-    add(`lehigh-rounded-low-shrub-${j}`,new THREE.SphereGeometry(r,12,8),greenery,[xx,floor+r*.6,.083]);
+  for(let j=0;j<12;j++)box(`lehigh-foundation-front-block-${j}`,[x(25)+(x(723)-x(25))*j/12+.004,.009,.139],[x(25)+(x(723)-x(25))*(j+1)/12-.004,.095,.151],base);
+  // Buttresses are embedded in the ACTUAL local wing wall plane.
+  for(const [n,f,b,top]of [[48,-.007,-.80,y(187)],[215,front,back,y(146)],[427,front,back,y(146)]]) {
+    box(`lehigh-front-buttress-${n}`,[x(n)-.025,floor,f-.015],[x(n)+.025,top,f+.035],trim);
+    box(`lehigh-rear-buttress-${n}`,[x(n)-.025,floor,b-.035],[x(n)+.025,top,b+.015],trim);
   }
-  const doorLight=new THREE.PointLight('#ffd29a',0,.9,2);doorLight.name='lehigh-real-entry-warm-light';
-  doorLight.position.set(x(323),.56,.15);root.add(doorLight);
-  // Merge static pieces by material. Shape and lighting remain identical on low tier.
+  for(let i=0;i<4;i++)box(`lehigh-door-step-${i}`,[x(323)-.16-i*.018,0,front+.04+i*.04],[x(323)+.16+i*.018,.105-i*.026,front+.08+i*.04],base);
+  for(let j=0;j<5;j++)add(`lehigh-low-shrub-${j}`,new THREE.DodecahedronGeometry(.06),greenery,[x(55+j*22),floor+.047,.083]);
+  const doorLight=new THREE.PointLight('#ffd29a',0,.65,2);doorLight.name='lehigh-real-entry-warm-light';doorLight.position.set(x(323),.56,.16);root.add(doorLight);
   let triangles=0;
-  for(const [mat,gs] of buckets) {
-    const converted=gs.map(g=>g.index?g.toNonIndexed():g), merged=mergeGeometries(converted,false);
-    if(!merged)throw new Error(`Cannot merge Lehigh ${mat.name}`);
-    for(const g of new Set([...gs,...converted]))g.dispose();
-    merged.computeBoundingBox();merged.computeBoundingSphere();resources.add(merged);
-    const mesh=new THREE.Mesh(merged,mat);mesh.name=`lehigh-merged-${mat.name}`;mesh.castShadow=true;mesh.receiveShadow=true;
-    triangles+=merged.attributes.position.count/3;root.add(mesh);
+  for(const [m,gs]of buckets) {
+    const converted=gs.map(g=>g.index?g.toNonIndexed():g),g=mergeGeometries(converted,false);
+    if(!g)throw new Error(`Cannot merge ${m.name}`);for(const old of new Set([...gs,...converted]))old.dispose();
+    g.computeBoundingSphere();resources.add(g);const mesh=new THREE.Mesh(g,m);mesh.name=`lehigh-merged-${m.name}`;mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);triangles+=g.attributes.position.count/3;
   }
-  const setTheme=dark=>{glass.emissiveIntensity=dark?1.05:0;roseGlass.emissiveIntensity=dark?.9:0;doorLight.intensity=dark?.12:0;};
-  setTheme(false);
-  return {root,resources,parts,setTheme,diagnostics:{triangles,drawCalls:buckets.size,groundY:0,apseAxis:[centre[0],centre[2]],style:'warm simplified fully spatial chapel'}};
+  const setTheme=dark=>{glass.emissiveIntensity=dark?.95:0;roseGlass.emissiveIntensity=dark?.8:0;doorLight.intensity=dark?.14:0;};setTheme(false);
+  return {root,resources,parts,setTheme,diagnostics:{triangles,drawCalls:buckets.size,groundY:0,apseAxis:[centre[0],centre[2]],attachments,style:'warm polygonal complete chapel with true window recesses'}};
 }

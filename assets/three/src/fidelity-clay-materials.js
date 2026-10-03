@@ -1,13 +1,13 @@
 import * as THREE from 'three';
 
-// Surface finish only: the model's closed sculpted shape supplies its volume,
-// fur silhouette and likeness. This never projects a photo or changes a rig.
+// Soft toy finish only: preserve the reviewed closed shape, face, clothing,
+// fur silhouette and rig while fitting the layered construction-block world.
 const PROFILES={
-  skin:{roughness:.94,bumpScale:.00018},
-  cloth:{roughness:.97,bumpScale:.00050},
-  silk:{roughness:.88,bumpScale:.00022},
-  hair:{roughness:.94,bumpScale:.00030},
-  fur:{roughness:.98,bumpScale:.00042}
+  skin:{roughness:.60,bumpScale:.000025},
+  cloth:{roughness:.70,bumpScale:.00006},
+  silk:{roughness:.58,bumpScale:.000025},
+  hair:{roughness:.65,bumpScale:.00003},
+  fur:{roughness:.74,bumpScale:.00005}
 };
 const TILE_METRES=.040;
 
@@ -86,7 +86,7 @@ export function createClayMaterialTreatment({quality='high'}={}){
             // tuxedo vertex palette with grey/white to compensate for lighting.
             if(!material.vertexColors){material.color.multiplyScalar(1.02);material.color.r=Math.min(1,material.color.r);material.color.g=Math.min(1,material.color.g);material.color.b=Math.min(1,material.color.b);}
             if(role==='skin'){material.emissive.set(0);material.emissiveIntensity=0;material.emissiveMap=null;}
-            material.userData.clay_finish={surface:role,grain:'shared procedural',tileMetres:TILE_METRES};
+            material.userData.clay_finish={surface:role,finish:'soft construction-toy plastic',grain:'shared procedural',tileMetres:TILE_METRES};
             material.needsUpdate=true;
           }
         }
@@ -98,5 +98,5 @@ export function createClayMaterialTreatment({quality='high'}={}){
   return{apply,resources:[grain],get diagnostics(){return{textureSize:grain.image.width,sharedTextureCount:1,
     estimatedTextureMiB:grain.image.data.byteLength*4/3/1048576,roles:{...stats.roles},proceduralUVGeometries:stats.proceduralUVGeometries,
     colourChange:'At most 2% linear lift on non-vertex palettes; no albedo texture, no saturation increase',skinEmission:0,
-    scope:'Micro surface finish only; sculpted silhouette, likeness and actual renderer lighting require independent visual review.'};}};
+    scope:'Toy surface finish only; reviewed shapes, original pigmentation and all skeleton/clip data are preserved.'};}};
 }

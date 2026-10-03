@@ -14,6 +14,7 @@
 .world-loading small { color:var(--muted); }
 .loading-seal { display:grid; place-items:center; width:48px;height:48px;background:#a3372e;color:#fcf0d7;font:bold 24px Georgia; border-radius:8px 3px 8px 3px; transform:rotate(-4deg);box-shadow:inset 0 0 0 3px #c96951; }
 .chapter-caption { position:absolute;top:26px;left:34px;pointer-events:none;max-width:min(350px,50vw);text-shadow:0 1px 10px var(--bg); }
+.world-3d.is-inside-room .chapter-caption { padding:10px 12px;background:rgba(var(--card-rgb),.93);border:1px solid var(--line);border-radius:4px;text-shadow:none; }
 .chapter-eyebrow { font:10px var(--font-body);font-weight:600;letter-spacing:.2em;color:var(--muted);margin:0 0 5px; }
 .chapter-caption h1 { font:400 clamp(23px,3vw,38px) var(--font-display);margin:0 0 5px;color:var(--ink); }
 .chapter-caption #chapter-sub { font-size:12px;color:var(--ink-2);margin:0;line-height:1.5; }
@@ -36,6 +37,9 @@
 .world-speech { position:absolute;max-width:250px;transform:translate(-50%,-100%);background:var(--card);color:var(--ink);padding:10px 13px;box-shadow:0 3px 18px #0002;border:1px solid var(--line);border-radius:5px;font-size:12px;line-height:1.6;pointer-events:none; }
 .world-speech::after { content:"";position:absolute;bottom:-6px;left:50%;width:10px;height:10px;background:var(--card);border-right:1px solid var(--line);border-bottom:1px solid var(--line);transform:rotate(45deg); }
 .object-tip { position:absolute;background:var(--card);color:var(--ink);font-size:11px;padding:6px 10px;pointer-events:none;border:1px solid var(--line-2);border-radius:3px; }
+.room-button { position:absolute;top:130px;left:34px;min-height:40px;padding:8px 13px;border:1px solid #aa915e;border-radius:5px;background:rgba(var(--card-rgb),.93);color:var(--ink);font-size:12px; }
+.room-button[hidden] { display:none; }
+.room-button:hover { border-color:var(--accent); }
 .world-error { position:absolute;inset:0;z-index:30;background:var(--bg);display:grid;place-content:center;padding:30px;text-align:center; }
 .world-error p { max-width:430px;line-height:1.7;color:var(--muted); }
 .world-error button,.world-error a { padding:12px; }
@@ -84,7 +88,8 @@ body.panel-open .chapter-caption { max-width:220px; }
  .world-controls{display:none;}
  .garden-tools{bottom:calc(18px + env(safe-area-inset-bottom));right:16px;}.garden-tools button{width:34px;height:34px;}
  .guide-fab{bottom:calc(17px + env(safe-area-inset-bottom));left:16px;min-height:40px;padding:4px 12px 4px 4px;}.guide-fab-face{width:30px;height:30px;}
- .touch-walk{display:flex;position:absolute;right:16px;top:78px;gap:8px;}.touch-walk button{width:42px;height:42px;border:1px solid var(--line-2);background:rgba(var(--card-rgb),.8);border-radius:5px;color:var(--ink);font-size:19px;touch-action:none;}
+ .touch-walk{display:grid;grid-template-columns:42px 42px;position:absolute;right:16px;top:145px;gap:8px;}.touch-walk button{width:42px;height:42px;border:1px solid var(--line-2);background:rgba(var(--card-rgb),.8);border-radius:5px;color:var(--ink);font-size:19px;touch-action:none;}
+ .room-button { top:120px;left:20px;font-size:11px; }
  .panel{top:var(--bar-h);bottom:0;width:100%;max-width:none;z-index:40;}.panel-body{padding:26px 22px 65px;}
  .guide{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:auto;max-height:calc(100dvh - var(--bar-h) - 35px);z-index:45;}
  .guide-name{font-size:13px;}.guide-note{font-size:9px;}
