@@ -62,12 +62,15 @@ landscape and garden exist. It builds
 * the night sky, stars, floating candles, flying books, fireflies and lantern glow;
 * the hidden whale in the lower half of the ball (click the sea to reveal it);
 * the snowy owl on the Contact mailbox;
-* the chinoiserie dress, after the Trianon de Porcelaine and the Porcelain Tower
-  of Nanjing: porcelain tile roofs (`patchPorcelainRoof`), cobalt and white
-  brackets, gilt ridge ornaments, finials and eave bells (`FUSION`, measured per
-  building in station units), a Chinese Chippendale railing on the promenade,
-  wallpaper with a fretwork dado inside every room (`patchWallpaper`, limited to
-  the inner wall faces by the room bounds), and the porcelain pagoda (`PAGODA`).
+* a different branch of chinoiserie for each building (`FUSION`, measured per
+  building in station units, and `FUSION_STYLES`): blue-and-white porcelain for
+  Home, porcelain with a lit glass dome for Research, a Chinese timber hall with
+  jade tiles for Talks, a Huizhou studio with ink tiles and horse-head walls for
+  Writing, and amber tiles with a cats' tower for Life. Roof glazes come from
+  `ROOF_STYLES` (`patchGlazedRoof`);
+* hand-painted wallpaper over a wooden wainscot inside every room (`INTERIORS`,
+  `patchWallpaper`, limited to the inner wall faces by the room bounds);
+* a Chinese Chippendale railing on the promenade and the porcelain pagoda (`PAGODA`).
 
 `src/magic-keepsakes.js` builds the two detailed keepsakes that live inside
 rooms: the Dalian and San Francisco box with the 2013 flight, and the map of the

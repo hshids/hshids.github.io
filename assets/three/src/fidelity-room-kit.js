@@ -119,10 +119,12 @@ export function createRoomKit({root=new THREE.Group(),name='room',quality='high'
           for(let half=0;half<2;half++){
             const pivot=new THREE.Group();pivot.name=openingID+'-hinge-'+half;pivot.position.fromArray(p(half?hole.r:hole.l,hole.b));if(!across)pivot.rotation.y=-Math.PI/2;root.add(pivot);
             const sign=half?-1:1,leaf=box(openingID+'-closed-leaf-'+half,[width/2-.025,height-.045,.075],[sign*(width/4),height/2,0],'red',pivot);leaf.userData.keepMesh=true;
-            // a framed lattice panel (rails at both ends and the middle), so no bar pair ever reads as a cross
-            for(const f of[.44,.66,.88])box(openingID+'-leaf-frame-'+half+'-'+f,[width/2-.08,.05,.105],[sign*width/4,height*f,.012],'wood',pivot);
-            for(let i=1;i<4;i++)box(openingID+'-leaf-lattice-'+half+'-'+i,[.028,height*.44,.10],[sign*(width*i/8),height*.66,0],'wood',pivot);
-            for(const x of[.04,width/2-.04])box(openingID+'-leaf-stile-'+half+'-'+x,[.035,height*.46,.105],[sign*x,height*.66,.012],'wood',pivot);
+            // a framed lattice panel (rails at both ends and the middle, stiles at the sides), merged into one mesh per leaf
+            const bars=[];const bar=(size,at)=>{const g=new THREE.BoxGeometry(...size);g.translate(...at);bars.push(g);};
+            for(const f of[.44,.66,.88])bar([width/2-.08,.05,.105],[sign*width/4,height*f,.012]);
+            for(let i=1;i<4;i++)bar([.028,height*.44,.10],[sign*(width*i/8),height*.66,0]);
+            for(const x of[.04,width/2-.04])bar([.035,height*.46,.105],[sign*x,height*.66,.012]);
+            const lattice=mergeGeometries(bars,false);bars.forEach(g=>g.dispose());mesh(openingID+'-leaf-lattice-panel-'+half,lattice,'wood',[0,0,0],pivot);
             round(openingID+'-bronze-pull-'+half,.035,.035,[sign*(width/2-.10),height*.46,.065],'brass',pivot,8).rotation.x=Math.PI/2;
             const collider={id:openingID+'-moving-leaf-'+half,min:[0,0,0],max:[0,0,0]};room.colliders.push(collider);
             const record={pivot,leaf,collider,base:pivot.rotation.y,sign,progress:hole.open===false?0:1,target:hole.open===false?0:1};doors.push(record);pair.push(record);

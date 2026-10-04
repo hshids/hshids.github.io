@@ -3,11 +3,10 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {createCraftMaterials,applyCraftSurface} from './fidelity-surface-materials.js';
 
-/** Small solid Lehigh campus hall keepsake: a warm stone hall with a clock
- * gable and a domed rotunda (no religious symbols). Window surrounds intersect
- * their own wall plane; each recess is a real opening with glass set inside it. */
+/** Small solid Packer Chapel keepsake. Window surrounds intersect their own
+ * wall plane; each recess is a real opening with glass set inside it. */
 export function createLehighCampus({source:s,quality='high'}) {
-  const root=new THREE.Group();root.name='lehigh-complete-campus-hall';
+  const root=new THREE.Group();root.name='lehigh-complete-chapel';
   const resources=new Set(),parts=[],buckets=new Map(),attachments=[];
   const surfaces=createCraftMaterials({name:'lehigh-campus',quality,resources});
   const radial=quality==='low'?18:32,curves=quality==='low'?4:8;
@@ -21,7 +20,7 @@ export function createLehighCampus({source:s,quality='high'}) {
   const x=n=>s.X(n),y=n=>s.Y(n);
   function add(name,g,m,p=[0,0,0],rotation=[0,0,0],extra={}) {
     g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(1,1,1)));
-    g.computeBoundingBox();parts.push({name,scene:'education',min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray(),construction:'closed polygonal campus hall component',...extra});
+    g.computeBoundingBox();parts.push({name,scene:'education',min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray(),construction:'closed polygonal chapel component',...extra});
     if(!g.getAttribute('uv'))g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
     if(!buckets.has(m))buckets.set(m,[]);buckets.get(m).push(g);return g;
   }
@@ -76,12 +75,9 @@ export function createLehighCampus({source:s,quality='high'}) {
       slab(`${name}-${side}-recessed-wall`,localOutline,holes,.04,[0,0,z-.04*mirror],a,stone);
       for(const w of windows)if(!w.circle)panel(`${name}-${side}-${w.name}`,w.w,w.h,w.y,w.x,z,a,w.door);
       else {
-        // a campus clock: lit face, twelve hour marks and two hands
-        add(`${name}-${side}-clock-attached-frame`,new THREE.TorusGeometry(w.r+.009,.014,6,radial),trim,[w.x,w.y,z],undefined);
-        cyl(`${name}-${side}-clock-lit-face`,w.r-.008,w.r-.008,.014,[w.x,w.y,z-.016*mirror],roseGlass,radial,[Math.PI/2,0,0]);
-        for(let j=0;j<12;j++){const a=j*Math.PI/6,len=j%3?.03:.05;add(`${name}-${side}-clock-hour-${j}`,new THREE.BoxGeometry(.012,len,.008),lead,[w.x+Math.sin(a)*(w.r-.045),w.y+Math.cos(a)*(w.r-.045),z-.003*mirror],[0,0,-a]);}
-        add(`${name}-${side}-clock-hour-hand`,new THREE.BoxGeometry(.014,w.r*.5,.008),lead,[w.x+Math.sin(.9)*w.r*.25*mirror,w.y+Math.cos(.9)*w.r*.25,z+.002*mirror],[0,0,-.9*mirror]);
-        add(`${name}-${side}-clock-minute-hand`,new THREE.BoxGeometry(.01,w.r*.78,.008),lead,[w.x-Math.sin(.35)*w.r*.39*mirror,w.y+Math.cos(.35)*w.r*.39,z+.002*mirror],[0,0,.35*mirror]);
+        add(`${name}-${side}-rose-attached-frame`,new THREE.TorusGeometry(w.r+.009,.014,6,radial),trim,[w.x,w.y,z],undefined);
+        cyl(`${name}-${side}-rose-inset-glass`,w.r-.008,w.r-.008,.014,[w.x,w.y,z-.016*mirror],roseGlass,radial,[Math.PI/2,0,0]);
+        for(let j=0;j<8;j++)add(`${name}-${side}-rose-tracery-${j}`,new THREE.BoxGeometry(.009,w.r*1.85,.009),trim,[w.x,w.y,z-.003*mirror],[0,0,j*Math.PI/8]);
       }
     }
     const depth=front-back;
@@ -132,16 +128,13 @@ export function createLehighCampus({source:s,quality='high'}) {
   cyl('lehigh-apse-foot-course',radius+.018,radius+.018,.075,[centre[0],floor+.0375,centre[2]],base,8);
   cyl('lehigh-apse-floor',radius,radius,.022,[centre[0],floor+.011,centre[2]],base,8);
   cyl('lehigh-apse-cornice',radius+.027,radius+.027,.045,[centre[0],wallTop,centre[2]],trim,8);
-  // the rotunda: a ribbed dome with a small lit lantern on top
-  const roofBase=wallTop+.022,domeR=radius+.04;
-  const dome=new THREE.SphereGeometry(domeR,radial,curves*2,0,Math.PI*2,0,Math.PI/2);dome.scale(1,.62,1);
-  add('lehigh-rotunda-dome',dome,roof,[centre[0],roofBase,centre[2]]);
-  for(let j=0;j<8;j++){const a=Math.PI/8+j*Math.PI/4,rib=new THREE.TorusGeometry(domeR+.006,.008,4,curves*2,Math.PI/2);rib.scale(1,.62,1);add(`lehigh-rotunda-dome-rib-${j}`,rib,trim,[centre[0],roofBase,centre[2]],[0,a+Math.PI/2,0]);}
-  const domeTop=roofBase+domeR*.62;
-  cyl('lehigh-rotunda-lantern-base',.05,.06,.03,[centre[0],domeTop+.005,centre[2]],trim,8);
-  cyl('lehigh-rotunda-lantern-glass',.04,.04,.07,[centre[0],domeTop+.055,centre[2]],roseGlass,8);
-  cyl('lehigh-rotunda-lantern-cap',.0,.055,.05,[centre[0],domeTop+.115,centre[2]],roof,8);
-  add('lehigh-rotunda-lantern-ball',new THREE.SphereGeometry(.014,8,6),trim,[centre[0],domeTop+.15,centre[2]]);
+  const apex=y(53),roofBase=wallTop+.022;
+  cyl('lehigh-shared-axis-conical-roof',0,radius+.04,apex-roofBase,[centre[0],(apex+roofBase)/2,centre[2]],roof,8);
+  cyl('lehigh-apse-attached-finial',.008,.012,.12,[centre[0],apex+.059,centre[2]],trim,8);
+  for(let j=1;j<=4;j++) {
+    const yy=roofBase+(apex-roofBase)*j/5,r=(radius+.04)*(1-j/5);
+    cyl(`lehigh-apse-layered-slate-course-${j}`,r-.008,r+.011,.027,[centre[0],yy,centre[2]],roof,8);
+  }
   for(let j=0;j<12;j++)box(`lehigh-foundation-front-block-${j}`,[x(25)+(x(723)-x(25))*j/12+.004,.009,.139],[x(25)+(x(723)-x(25))*(j+1)/12-.004,.095,.151],base);
   // Buttresses are embedded in the ACTUAL local wing wall plane.
   for(const [n,f,b,top]of [[48,-.007,-.80,y(187)],[215,front,back,y(146)],[427,front,back,y(146)]]) {
@@ -158,5 +151,5 @@ export function createLehighCampus({source:s,quality='high'}) {
     g.computeBoundingSphere();resources.add(g);const mesh=new THREE.Mesh(g,m);mesh.name=`lehigh-merged-${m.name}`;mesh.castShadow=mesh.receiveShadow=true;root.add(mesh);triangles+=g.attributes.position.count/3;
   }
   const setTheme=dark=>{glass.emissiveIntensity=dark?.95:0;roseGlass.emissiveIntensity=dark?.8:0;doorLight.intensity=dark?.14:0;};setTheme(false);
-  return {root,resources,parts,setTheme,diagnostics:{triangles,drawCalls:buckets.size,groundY:0,apseAxis:[centre[0],centre[2]],attachments,style:'warm polygonal campus hall with a clock gable, a domed rotunda and true window recesses'}};
+  return {root,resources,parts,setTheme,diagnostics:{triangles,drawCalls:buckets.size,groundY:0,apseAxis:[centre[0],centre[2]],attachments,style:'warm polygonal complete chapel with true window recesses'}};
 }
