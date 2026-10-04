@@ -83,9 +83,26 @@ glowing hand (`src/magic-diary.js`, `magic-diary.css`). The invitation letter
 carries a whale stamp, a Dalian to San Francisco postmark, an owl feather and a
 P.S. that points to the casebook.
 
-`src/magic-keepsakes.js` builds the two detailed keepsakes that live inside
-rooms: the Dalian and San Francisco box with the 2013 flight, and the map of the
-cats' two drives across America. `magic-stories.js` opens them.
+`src/magic-keepsakes.js` builds the detailed keepsakes that live inside rooms:
+the Dalian and San Francisco box with the 2013 flight, the map of the cats' two
+drives across America, and the crossroads before the PhD (the UN or a wider
+view, and the way back). `magic-stories.js` opens them.
+
+More small things to find: entering knocks three times (`src/magic-knock.js`,
+Web Audio, a nod to The Big Bang Theory), an iceberg whose hidden mass glows
+when clicked, letters spiralling in the Welcome hall, a whiteboard in the
+library, books that slide out when clicked (`animateParts` in
+`fidelity-room-kit.js`), a teaser wand for XiaoHei, a butterfly and a head rub
+for JinBingBing (`magic-cats.js`), and a refined projector in Life.
+
+The Lantern Theatre note sends straight to the site's email address through
+FormSubmit (`sendReflection` in `magic-guestbook.js`). The very first note
+triggers a one-time activation email to that inbox; until the link in it is
+clicked, notes are held and visitors are offered their email app instead.
+
+`magic-storybook.css` gives the overlays a storybook look: a parchment page for
+the side panel, a handwritten scroll for speech, a ribbon banner for the
+prompt, bookmark ribbons for the tools and brass coins for the camera buttons.
 
 If a building is rebuilt, update its `FUSION` entry (walls, roof ridge and eave
 corners). The whale path, the pagoda position and the sea level are constants

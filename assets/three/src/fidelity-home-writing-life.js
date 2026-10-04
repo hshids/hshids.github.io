@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {acquirePaintTexture,releasePaintTexture,worldAssetURL} from './fidelity-assets.js';
 import {createRoomKit} from './fidelity-room-kit.js';
 import {px,createHWLProps,createWritingInk} from './fidelity-hwl-geometry.js';
@@ -297,9 +298,20 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     const dustMat=new THREE.PointsMaterial({color:'#fff0c8',size:.012,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});s.kit.resources.add(dustMat);
     const motes=new THREE.Points(dustGeo,dustMat);motes.position.y=1.0;motes.raycast=()=>{};pj.add(motes);
     animated.push(t=>{lensFace.emissiveIntensity=dark?.6:.07;const flick=.85+.15*Math.sin(t*23)*Math.sin(t*7.3);beamMat.opacity=dark?.09*flick:.02;dustMat.opacity=dark?.55:.15;motes.rotation.z=t*.05;});
+    // merge the projector into a few meshes: one per material for the still body, and the same for each turning reel
+    const mergeByMaterial=(group,skip=[])=>{group.updateMatrixWorld(true);const inv=group.matrixWorld.clone().invert(),bins=new Map(),done=[];
+      group.traverse(o=>{if(!o.isMesh||o===group||skip.some(k=>{for(let q=o;q;q=q.parent)if(q===k)return true;return false;}))return;
+        const g=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(inv.clone().multiply(o.matrixWorld));if(!g.attributes.uv)g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+        if(!bins.has(o.material))bins.set(o.material,[]);bins.get(o.material).push(g);done.push(o);});
+      done.forEach(o=>o.removeFromParent());
+      for(const [m,list]of bins){const g=mergeGeometries(list.map(x=>{for(const k of Object.keys(x.attributes))if(!['position','normal','uv'].includes(k))x.deleteAttribute(k);return x;}),false);list.forEach(x=>x.dispose());if(!g)continue;s.kit.resources.add(g);const mesh=new THREE.Mesh(g,m);mesh.name=group.name+'-merged-'+m.name;mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.roomSolid=true;group.add(mesh);}
+    };
+    reels.forEach(r=>mergeByMaterial(r));
+
     // the tripod: three legs on a brass collar, a centre column, rubber feet
     P.cylinder('life-projector-tripod-collar',.05,.04,[0,.88,0],plate,pj,16);P.cylinder('life-projector-tripod-column',.018,.5,[0,.62,0],chrome,pj,10);
     for(let i=0;i<3;i++){const a=i*Math.PI*2/3;P.tube('life-projector-complete-bearing-tripod-'+i,[0,.86,0],[Math.cos(a)*.30,.025,Math.sin(a)*.30],.018,'wood',pj);P.tube('life-projector-tripod-brace-'+i,[0,.45,0],[Math.cos(a)*.16,.47,Math.sin(a)*.16],.007,chrome,pj);P.sphere('life-projector-grounded-tripod-foot-'+i,[.034,.02,.034],[Math.cos(a)*.30,.02,Math.sin(a)*.30],black,pj);}
+    mergeByMaterial(pj,[...reels,beam,motes,glass]);
     s.kit.lamp([1.72,floorY+1.03,-2.03],.28,1.25);obstacle(s,'life-projector-tripod',[.66,1.43,.66],[1.72,floorY+.715,-2.03]);
     pick(s,'life-kitchen-stove','food',[sx,floorY+.69,sz+.40],[.82,1.08,.30],'Cooking',{life:'food'},[sx,floorY,-.76]).onInteract=s.root.userData.setCooking;
     pick(s,'life-xiaohei-cushion','pet',[cx,floorY+.37,cz],[1.13,.62,1.0],'Pet XiaoHei',{life:'cats'},s.actionStand.pet.point);
