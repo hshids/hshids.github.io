@@ -4,6 +4,7 @@ import {acquirePaintTexture,releasePaintTexture,worldAssetURL} from './fidelity-
 import {createRoomKit} from './fidelity-room-kit.js';
 import {px,createHWLProps,createWritingInk} from './fidelity-hwl-geometry.js';
 import {createCatCinema} from './life-cinema.js';
+import {createTravelCase} from './life-luggage.js';
 
 /** Complete gatehall, study and three-bay home. Original chapter/content IDs
  * survive; only supported art and family photos are two-dimensional prints. */
@@ -238,12 +239,10 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     s.root.userData.catSeat={position:[cx,floorY+.20,cz],front:[cx,floorY,cz+.68],radius:.65,name:'XiaoHei',pose:'sleep'};
     s.kit.sign('life-family-photo-small-caption','SIX CATS',[1.17,.18,.08],[0,floorY+2.14,-3.865],'wood');
     lantern(s,'life-cat-room-warm-lantern',[.87,2.43,-3.45],1.45);
-    // Travel case: complete body with separate straps, brass feet and handle.
+    // Travel case: an upright vintage leather suitcase with straps, latches, a handle, stickers and a name tag.
     const tx=2.56,tz=-1.35;
-    solid(s,'life-complete-leather-travel-case',[.86,.66,.34],[tx,floorY+.35,tz],'cloth');
-    for(const dx of[-.25,.25]){solid(s,'life-case-complete-leather-strap-'+dx,[.058,.68,.367],[tx+dx,floorY+.35,tz],'darkWood');solid(s,'life-case-brass-buckle-'+dx,[.09,.10,.022],[tx+dx,floorY+.43,tz+.194],'brass');}
-    for(const dx of[-.35,.35])for(const dz of[-.12,.12])solid(s,'life-case-brass-grounded-foot-'+dx+'-'+dz,[.12,.04,.095],[tx+dx,floorY+.02,tz+dz],'brass');
-    s.props.tube('life-case-carry-handle-left',[tx-.14,floorY+.68,tz],[tx-.14,floorY+.79,tz],.024,'darkWood');s.props.tube('life-case-carry-handle-top',[tx-.14,floorY+.79,tz],[tx+.14,floorY+.79,tz],.024,'darkWood');s.props.tube('life-case-carry-handle-right',[tx+.14,floorY+.79,tz],[tx+.14,floorY+.68,tz],.024,'darkWood');obstacle(s,'life-travel-case-solid',[.91,.82,.39],[tx,floorY+.41,tz]);
+    const travelCase=createTravelCase({root:s.root,resources:s.kit.resources,floorY,x:tx,z:tz,low:quality==='low'});
+    travelCase.obstacles.forEach(o=>obstacle(s,o.id,o.size,o.position));
     // The six-cat picture house: stage, masked screen, velvet curtains, pelmet, marquee and a front row.
     const gx=2.90,gz=-3.10,gy=floorY+1.08;
     const cinema=createCatCinema({root:s.root,resources:s.kit.resources,floorY,x:gx,z:gz,screenY:1.08,low:quality==='low'});

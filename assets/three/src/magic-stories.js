@@ -247,7 +247,40 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     const w=.62,d=.43;
     for(const x of[-.23,.23])for(const z of[-.14,.14])box(s.id+'-ground-bearing-foot-'+x+'-'+z,[.06,.035,.06],[x,.0175,z],mats.brass,s.fixed,.004);
     const c=chest(s,{width:w,depth:d,height:.34,bottom:.035});
-    label(s.id+'-chest-title','TRAVEL',.40,.09,[0,.294,c.front+.014],s.fixed);
+    label(s.id+'-chest-title','TRAVEL',.30,.066,[0,.318,c.front+.014],s.fixed);
+    // a steamer-trunk finish: brass corners, side handles, a hasp, a framed title, enamel flags, and a map in the lid
+    box(s.id+'-title-brass-frame',[.33,.088,.008],[0,.318,c.front+.006],mats.brass,s.fixed,.003);
+    for(const x of[-1,1])for(const y of[.035,.375])for(const z of[-1,1])box(s.id+'-brass-corner-'+x+'-'+y+'-'+z,[.05,.05,.05],[x*(w/2-.018),y+(y<.1?.018:-.018),z*(d/2-.018)],mats.brass,s.fixed,.006);
+    for(const x of[-1,1]){const h=mesh(s.id+'-side-carry-handle-'+x,new THREE.TorusGeometry(.04,.007,6,16,Math.PI),mats.brass,[x*(w/2+.006),.27,0],s.fixed);h.rotation.set(0,Math.PI/2,Math.PI);
+      box(s.id+'-side-handle-plate-'+x,[.006,.03,.11],[x*(w/2+.003),.27,0],mats.brass,s.fixed,.002);}
+    for(const x of[-.2,.2])box(s.id+'-front-leather-band-'+x,[.035,.34,.006],[x,.205,c.front+.002],mats.darkWood,s.fixed,.002);
+    const flagCanvas=document.createElement('canvas');flagCanvas.width=384;flagCanvas.height=96;const fx=flagCanvas.getContext('2d');
+    // Korea: the taegeuk and four trigrams; Sweden and Denmark: Nordic crosses
+    fx.fillStyle='#ffffff';fx.fillRect(0,0,128,96);fx.save();fx.translate(64,48);fx.rotate(-.59);
+    fx.fillStyle='#cd2e3a';fx.beginPath();fx.arc(0,0,22,Math.PI,0);fx.fill();fx.fillStyle='#0047a0';fx.beginPath();fx.arc(0,0,22,0,Math.PI);fx.fill();
+    fx.fillStyle='#cd2e3a';fx.beginPath();fx.arc(-11,0,11,0,Math.PI*2);fx.fill();fx.fillStyle='#0047a0';fx.beginPath();fx.arc(11,0,11,0,Math.PI*2);fx.fill();fx.restore();
+    fx.fillStyle='#111';for(const [cx,cy,a] of[[26,20,.98],[102,76,.98],[102,20,-.98],[26,76,-.98]]){fx.save();fx.translate(cx,cy);fx.rotate(a);for(let k=-1;k<=1;k++)fx.fillRect(-12,k*6-2,24,4);fx.restore();}
+    fx.fillStyle='#006aa7';fx.fillRect(128,0,128,96);fx.fillStyle='#fecc02';fx.fillRect(128+40,0,16,96);fx.fillRect(128,40,128,16);
+    fx.fillStyle='#c8102e';fx.fillRect(256,0,128,96);fx.fillStyle='#ffffff';fx.fillRect(256+40,0,14,96);fx.fillRect(256,41,128,14);
+    const flagTex=new THREE.CanvasTexture(flagCanvas);flagTex.colorSpace=THREE.SRGBColorSpace;resources.add(flagTex);
+    const flagMat=new THREE.MeshStandardMaterial({name:'hidden-story-enamel-flags',map:flagTex,roughness:.35,metalness:.05});resources.add(flagMat);
+    for(let i=0;i<3;i++){const fg=new THREE.PlaneGeometry(.056,.042),uv=fg.attributes.uv;for(let k=0;k<uv.count;k++)uv.setX(k,(i+uv.getX(k))/3);
+      box(s.id+'-flag-brass-setting-'+i,[.064,.05,.01],[(i-1)*.205,.243,c.front+.006],mats.brass,s.fixed,.002);
+      mesh(s.id+'-enamel-flag-'+i,fg,flagMat,[(i-1)*.205,.243,c.front+.0115],s.fixed).castShadow=false;}
+    const hasp=group(s.id+'-lid-brass-hasp',[0,0,0],c.hinge);
+    box(s.id+'-hasp-plate',[.05,.07,.006],[0,-.012,d+.008],mats.brass,hasp,.003);
+    disc(s.id+'-hasp-lock',.014,.008,[0,-.04,d+.012],mats.brass,hasp).rotation.x=Math.PI/2;
+    for(const x of[-1,1])for(const z of[0,1])box(s.id+'-lid-brass-corner-'+x+'-'+z,[.05,.034,.05],[x*(w/2-.012),.0135,z?d-.012:.022],mats.brass,c.hinge,.006);
+    const mapCanvas=document.createElement('canvas');mapCanvas.width=512;mapCanvas.height=360;const mx=mapCanvas.getContext('2d');
+    mx.fillStyle='#ecdcb4';mx.fillRect(0,0,512,360);mx.strokeStyle='#b8955a66';mx.lineWidth=2;
+    for(let k=1;k<8;k++){mx.beginPath();mx.moveTo(k*64,0);mx.lineTo(k*64,360);mx.stroke();}for(let k=1;k<6;k++){mx.beginPath();mx.moveTo(0,k*60);mx.lineTo(512,k*60);mx.stroke();}
+    mx.save();mx.translate(256,180);mx.fillStyle='#8a3f2a';for(let k=0;k<8;k++){mx.rotate(Math.PI/4);mx.beginPath();mx.moveTo(0,-(k%2?52:96));mx.lineTo(10,0);mx.lineTo(-10,0);mx.closePath();mx.fill();}
+    mx.fillStyle='#ecdcb4';mx.beginPath();mx.arc(0,0,9,0,Math.PI*2);mx.fill();mx.restore();
+    mx.fillStyle='#4a3420';mx.font='italic 600 30px Georgia, serif';mx.textAlign='center';mx.fillText('Korea',400,74);mx.fillText('Sweden',110,96);mx.fillText('Denmark',150,300);
+    mx.font='700 26px Georgia, serif';mx.fillText('N',256,58);mx.strokeStyle='#6b4a2e';mx.lineWidth=10;mx.strokeRect(5,5,502,350);
+    const mapTex=new THREE.CanvasTexture(mapCanvas);mapTex.colorSpace=THREE.SRGBColorSpace;resources.add(mapTex);
+    const lining=mesh(s.id+'-lid-lining-travel-map',new THREE.PlaneGeometry(w-.03,d-.03),new THREE.MeshStandardMaterial({name:'hidden-story-lid-map',map:mapTex,roughness:.9}),[0,-.0006,d/2],c.hinge);
+    lining.rotation.x=Math.PI/2;lining.castShadow=false;resources.add(lining.material);
     const page=group(s.id+'-chest-seated-paper-pages',[0,0,0],s.fixed);
     box(s.id+'-true-inner-paper-block',[w-.076,.027,d-.074],[0,c.insideY+.0135,0],mats.paper,page,.003);
     inkLines(s,page,c.insideY+.028,-.095,.35);
