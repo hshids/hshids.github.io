@@ -27,7 +27,7 @@ export function createReflectionMailto({email,topic,text}={}){
   if(!/^[^\s@<>?&#:]+@[^\s@<>?&#:]+\.[^\s@<>?&#:]+$/.test(address)||!message)return null;
   const title=literalInk(topic?.title||'A question',350).replace(/[\r\n]+/g,' ');
   const subject='Reflection on '+title;
-  const body='Hello Hanjing,\n\n'+message+'\n\nAbout: '+(topic?.kind||'Question')+' — '+title+'\n\nFrom your Lantern Theatre.';
+  const body='Hello Hanjing,\n\n'+message+'\n\nAbout: '+(topic?.kind||'Question')+', '+title+'\n\nFrom your Lantern Theatre.';
   const recipient=address.split('@').map(encodeURIComponent).join('@');
   return'mailto:'+recipient+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
 }

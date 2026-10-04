@@ -23,7 +23,7 @@ const STORIES = Object.freeze([
     controls:[['voice','Voice'],['memory','Memory'],['choice','Choice']]},
   {id:'brick-star-key',station:'writing',title:'A star, brick by brick',
     clue:'Match the numbered diagram: 1 Blue, 2 Green, 3 Rose.',
-    note:'I like LEGO and a little magic. Three small bricks become a star key — a playful reminder that ideas can be built piece by piece.',
+    note:'I like LEGO and a little magic. Three small bricks become a star key, a playful reminder that ideas can be built piece by piece.',
     anchor:[2.68,.12,-1.24],room:'writing-study',indoor:true,focus:{section:'writing-tutorials'},
     support:'Writing study bearing floor; a separate little workbench beside the desk, clear of the tutorial archive.',
     controls:[['blue','1 · Blue'],['green','2 · Green'],['rose','3 · Rose']]},
@@ -52,15 +52,15 @@ const STORIES = Object.freeze([
       boarding:'That flight led to my first time living at school, at a boarding school in upstate New York near Albany. I was far from home, surrounded by new friends, and it was a really happy time.',
       thread:'I never met my maternal grandfather. Nearly a century ago he came to San Francisco, long before I did. Watch the little ship cross the box. It is a small connection I still find moving.'}},
   {id:'wider-compass',station:'education',title:'The compass that says wider',mode:'souvenir',
-    clue:'Turn a small compass through four personal chapters. It is a collection of feelings, not a second résumé.',
+    clue:'Turn a small compass through four places: Upstate New York, Davis, DC and Bethlehem. It is a collection of feelings, not a second résumé.',
     note:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.',
     anchor:[-3.98,.006,.18],indoor:false,
     support:'The original Education physical stone forecourt, clear of the Davis miniature and its bicycle.',
-    controls:[['newyork','Upstate New York'],['davis','Davis'],['dc','DC'],['wider','Wider']],
+    controls:[['newyork','Upstate New York'],['davis','Davis'],['dc','DC'],['wider','Bethlehem']],
     pages:{newyork:'My first boarding-school chapter was in upstate New York, near Albany, and it was a happy one. I thought New York City would be close; it was actually about three and a half hours away.',
-      davis:'I arrived expecting Davis to be by the sea. It was not — but the quiet campus life and friendships became their own kind of home.',
+      davis:'I arrived expecting Davis to be by the sea. It was not, but the quiet campus life and friendships became their own kind of home.',
       dc:'Georgetown brought a city chapter, with travel and stories I enjoyed sharing. People liked those little glimpses of life.',
-      wider:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.'}},
+      wider:'Lehigh lives in Bethlehem, Pennsylvania, an old steel town along the Lehigh River. At my interview there, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.'}},
   {id:'cats-across-america',station:'life',title:'Two crossings, with cats',mode:'souvenir',
     clue:'A little map on the kitchen worktop. Pick a year and watch the car drive across America, cats and all.',
     note:'The cats came along for two crossings, from San Francisco to DC in 2021 on the northern route through Chicago, and back in 2025 on the southern route through Texas.',
@@ -387,7 +387,7 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     };
     s.select=key=>{
       if(key==='seal'){
-        if(s.progress.length<2)return feedback(s,'Choose any two ingredients before sealing the letter. Food, Ideas, or Something new — there is no wrong combination.');
+        if(s.progress.length<2)return feedback(s,'Choose any two ingredients before sealing the letter. Food, Ideas or Something new. There is no wrong combination.');
         return finish(s);
       }
       if(!INGREDIENTS[key])return feedback(s,s.spec.clue);

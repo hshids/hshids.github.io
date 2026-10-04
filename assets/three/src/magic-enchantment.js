@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {mergeGeometries, mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // The enchantment layer: a magical night sky, LEGO-like studs and brick
 // courses, floating candles, fireflies, lantern glow, the crystal ball and its
@@ -547,69 +547,175 @@ function buildBridge({x, z0, z1, towerColor, cableColor, deckColor, name, label,
 function buildWhale({low}) {
   const root = new THREE.Group(); root.name = 'enchantment-hidden-whale';
   const disposables = [];
-  const swim = {uPhase: {value: 0}, uGlow: {value: 0}};
-  const prof = [[0, 0.1], [0.6, 0.32], [2, 0.6], [4, 1.12], [6, 1.55], [7.5, 1.72], [9, 1.66], [10.5, 1.42], [11.8, 1.02], [12.6, 0.55], [13, 0.0]];
-  const bodyGeo = new THREE.LatheGeometry(prof.map(([y, r]) => new THREE.Vector2(r, y)), low ? 28 : 48, 0, Math.PI * 2);
+  const swim = {uPhase: {value: 0}, uGlow: {value: 0}, uTime: {value: 0}};
+  // a humpback profile: a long flat rostrum, a deep chest and a slim tail stock
+  const prof = [[0, 0.08], [0.4, 0.26], [1.2, 0.46], [2.2, 0.68], [3.4, 0.98], [4.6, 1.3], [5.8, 1.56], [7.0, 1.72], [8.2, 1.74], [9.2, 1.62], [10.2, 1.4], [11.0, 1.12], [11.7, 0.82], [12.3, 0.5], [12.75, 0.24], [13, 0.0]];
+  const bodyGeo = new THREE.LatheGeometry(prof.map(([y, r]) => new THREE.Vector2(r, y)), low ? 32 : 72, 0, Math.PI * 2);
   bodyGeo.rotateZ(-Math.PI / 2); bodyGeo.translate(-6.5, 0, 0); bodyGeo.scale(1, 0.84, 1);
-  bodyGeo.computeVertexNormals();
-  const pos = bodyGeo.attributes.position, col = new Float32Array(pos.count * 3), dark = new THREE.Color('#2b3b4c'), pale = new THREE.Color('#cdd7de'), c = new THREE.Color();
+  const pos = bodyGeo.attributes.position;
+  // throat pleats cut into the belly from the chin to the navel
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), r = Math.hypot(y, z) || 1, a = Math.atan2(z, -y);
-    c.copy(pale).lerp(dark, THREE.MathUtils.smoothstep(y / r, -0.35, 0.25));
-    if (x > 1.2 && y < -0.35 && Math.sin(a * 38) > 0.55) c.multiplyScalar(0.72);          // throat grooves
+    const belly = THREE.MathUtils.smoothstep(-y / r, 0.15, 0.55) * THREE.MathUtils.smoothstep(x, -1.8, 0.6) * (1 - THREE.MathUtils.smoothstep(x, 5.6, 6.4));
+    const pleat = belly * 0.05 * Math.pow(Math.abs(Math.sin(a * 22)), 6);
+    pos.setXYZ(i, x, y - (y / r) * pleat, z - (z / r) * pleat);
+  }
+  bodyGeo.computeVertexNormals();
+  const col = new Float32Array(pos.count * 3), dark = new THREE.Color('#25333f'), slate = new THREE.Color('#3b4d5c'), pale = new THREE.Color('#d6dee3'), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), r = Math.hypot(y, z) || 1;
+    c.copy(pale).lerp(dark, THREE.MathUtils.smoothstep(y / r, -0.42, 0.22));
+    if (y / r > 0.2) c.lerp(slate, 0.35 * (0.5 + 0.5 * Math.sin(x * 2.1 + z * 3.3)));
     col.set([c.r, c.g, c.b], i * 3);
   }
   bodyGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  const skin = new THREE.MeshStandardMaterial({name: 'whale-skin', vertexColors: true, roughness: 0.48, metalness: 0.05, emissive: '#2a8fb0', emissiveIntensity: 0});
+  const skin = new THREE.MeshStandardMaterial({name: 'whale-skin', vertexColors: true, roughness: 0.42, metalness: 0.05, emissive: '#2a8fb0', emissiveIntensity: 0});
   skin.onBeforeCompile = sh => {
-    sh.uniforms.uPhase = swim.uPhase;
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uPhase;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nfloat tailW = smoothstep(2.5, -6.5, transformed.x);\ntransformed.y += 0.55 * tailW * sin(uPhase - transformed.x * 0.45);');
+    Object.assign(sh.uniforms, {uPhase: swim.uPhase, uGlow: swim.uGlow, uTime: swim.uTime});
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uPhase;\nvarying vec3 vWhaleL;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWhaleL = transformed;\nfloat tailW = smoothstep(2.5, -6.5, transformed.x);\ntransformed.y += 0.55 * tailW * sin(uPhase - transformed.x * 0.45) + 0.06 * smoothstep(3.0, 6.5, transformed.x) * sin(uPhase + 1.2);');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\nuniform float uGlow, uTime;\nvarying vec3 vWhaleL;\n${NOISE_GLSL}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        {
+          // mottled skin, pale scars and barnacle freckles on the back and the chin
+          float mott = enchFbm(vWhaleL * vec3(1.6, 2.4, 2.4));
+          diffuseColor.rgb *= 0.86 + 0.24 * mott;
+          float barn = step(0.965, enchNoise(vWhaleL * 9.0)) * smoothstep(4.2, 6.2, vWhaleL.x);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.74, 0.79, 0.82), barn * 0.6);
+        }`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        {
+          // sunlight caustics rippling over the back, and a soft rim when the whale is revealed
+          float up = clamp(normal.y, 0.0, 1.0);
+          float ca = enchNoise(vec3(vWhaleL.xz * 1.6, uTime * 0.6)) * enchNoise(vec3(vWhaleL.xz * 2.7 + 4.0, uTime * 0.45));
+          float rim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.5);
+          totalEmissiveRadiance += vec3(0.35, 0.75, 0.9) * (smoothstep(0.18, 0.45, ca) * up * 0.5 + rim * 0.55) * uGlow;
+        }`);
   };
-  skin.customProgramCacheKey = () => 'enchantment-whale-swim-v1';
+  skin.customProgramCacheKey = () => 'enchantment-whale-swim-v4';
   const body = new THREE.Mesh(bodyGeo, skin); body.name = 'whale-body'; root.add(body); disposables.push(bodyGeo, skin);
   const darkMat = new THREE.MeshStandardMaterial({name: 'whale-dark-details', color: '#1c2733', roughness: 0.5});
-  const finMat = new THREE.MeshStandardMaterial({name: 'whale-pale-fins', color: '#d9e1e6', roughness: 0.55, emissive: '#2a8fb0', emissiveIntensity: 0});
+  const finMat = new THREE.MeshStandardMaterial({name: 'whale-pale-fins', color: '#ffffff', vertexColors: true, roughness: 0.5, emissive: '#2a8fb0', emissiveIntensity: 0});
   disposables.push(darkMat, finMat);
   const details = [];
-  for (let i = 0; i < 9; i++) { const t = new THREE.SphereGeometry(0.13, 8, 6); t.translate(4.6 + i * 0.22, 1.05 - i * 0.07, (i % 2 ? 0.25 : -0.25)); details.push(t); }
-  for (const s of [-1, 1]) {
-    const eye = new THREE.SphereGeometry(0.12, 10, 8); eye.translate(4.4, -0.32, s * 1.22); details.push(eye);
-    const mouth = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(6.4, -0.05, s * 0.3), new THREE.Vector3(5.6, -0.3, s * 0.95), new THREE.Vector3(4.6, -0.42, s * 1.2)]), 16, 0.035, 5, false); details.push(mouth);
+  // knobbly tubercles in rows along the rostrum and the lower jaw
+  for (const [row, yy, zz] of [[0, 0.62, 0], [1, 0.5, 0.32], [1, 0.5, -0.32], [2, -0.2, 0.62], [2, -0.2, -0.62]]) {
+    for (let i = 0; i < (row === 2 ? 6 : 8); i++) {
+      const x = 6.25 - i * 0.32, t = new THREE.SphereGeometry(0.075 + (i % 3) * 0.012, 8, 6);
+      t.scale(1, 0.7, 1); t.translate(x, (yy - i * 0.045) * (row === 2 ? 1 : 1), zz * (1 + i * 0.07)); details.push(t);
+    }
   }
-  const dorsal = new THREE.Shape(); dorsal.moveTo(-0.9, 0); dorsal.quadraticCurveTo(-0.2, 0.15, 0.25, 0.55); dorsal.lineTo(0.6, 0); dorsal.closePath();
-  const dg = new THREE.ExtrudeGeometry(dorsal, {depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2}); dg.translate(-2.6, 0.95, -0.07); details.push(dg);
-  const detailGeo = mergeGeometries(details.map(g => g.index ? g.toNonIndexed() : g), false); details.forEach(g => g.dispose());
-  const detailMesh = new THREE.Mesh(detailGeo, darkMat); detailMesh.name = 'whale-head-eyes-mouth-dorsal'; root.add(detailMesh); disposables.push(detailGeo);
-  // long pectoral fins with a scalloped leading edge
-  const fin = new THREE.Shape(); fin.moveTo(0, 0);
-  for (let i = 1; i <= 8; i++) fin.lineTo(i * 0.5, 0.32 - i * 0.025 + (i % 2 ? 0.07 : 0));
-  fin.lineTo(4.25, 0.05); fin.quadraticCurveTo(2.5, -0.35, 0.2, -0.3); fin.closePath();
-  const fins = [];
+  // chin knob, blowholes, eyes with a ridge above
+  const chin = new THREE.SphereGeometry(0.18, 10, 8); chin.scale(1.3, 0.8, 1); chin.translate(6.05, -0.42, 0); details.push(chin);
   for (const s of [-1, 1]) {
+    const hole = new THREE.SphereGeometry(0.09, 10, 6); hole.scale(1.8, 0.35, 0.7); hole.translate(3.95, 1.06, s * 0.1); details.push(hole);
+    const eye = new THREE.SphereGeometry(0.12, 12, 10); eye.translate(4.4, -0.32, s * 1.22); details.push(eye);
+    const brow = new THREE.TorusGeometry(0.17, 0.035, 6, 14, Math.PI); brow.rotateY(s > 0 ? 0 : Math.PI); brow.translate(4.4, -0.3, s * 1.2); details.push(brow);
+    const mouth = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(6.45, -0.05, s * 0.3), new THREE.Vector3(5.6, -0.3, s * 0.95), new THREE.Vector3(4.6, -0.42, s * 1.2), new THREE.Vector3(4.2, -0.55, s * 1.22)]), 20, 0.035, 5, false); details.push(mouth);
+  }
+  // a small dorsal fin on a hump, as humpbacks have
+  const hump = new THREE.SphereGeometry(0.38, 12, 8); hump.scale(1.8, 0.5, 0.8); hump.translate(-2.2, 0.98, 0); details.push(hump);
+  const dorsal = new THREE.Shape(); dorsal.moveTo(-0.9, 0); dorsal.quadraticCurveTo(-0.2, 0.15, 0.25, 0.55); dorsal.lineTo(0.6, 0); dorsal.closePath();
+  const dg = new THREE.ExtrudeGeometry(dorsal, {depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2}); dg.translate(-2.6, 1.05, -0.07); details.push(dg);
+  const detailGeo = mergeGeometries(details.map(g => g.index ? g.toNonIndexed() : g), false); details.forEach(g => g.dispose());
+  const detailMesh = new THREE.Mesh(detailGeo, darkMat); detailMesh.name = 'whale-head-tubercles-eyes-mouth-dorsal'; root.add(detailMesh); disposables.push(detailGeo);
+  // long white pectoral fins with knobs on the leading edge and dark tips on top
+  const fin = new THREE.Shape(); fin.moveTo(0, 0);
+  for (let i = 1; i <= 10; i++) fin.lineTo(i * 0.42, 0.34 - i * 0.022 + (i % 2 ? 0.07 : 0));
+  fin.lineTo(4.45, 0.04); fin.quadraticCurveTo(2.6, -0.36, 0.2, -0.3); fin.closePath();
+  const fins = [];
+  for (const sd of [-1, 1]) {
     const g = new THREE.ExtrudeGeometry(fin, {depth: 0.1, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2, curveSegments: 6});
-    g.rotateX(Math.PI / 2); g.translate(0, 0, 0);
-    const pivot = new THREE.Group(); pivot.position.set(3.4, -0.75, s * 1.35); pivot.rotation.set(0, s * 2.35, s * 0.45); root.add(pivot);
+    g.rotateX(Math.PI / 2);
+    const p = g.attributes.position, fc = new Float32Array(p.count * 3), cc = new THREE.Color();
+    for (let i = 0; i < p.count; i++) { cc.set('#e2e9ed').lerp(new THREE.Color('#2b3a47'), THREE.MathUtils.smoothstep(p.getX(i), 2.6, 4.4) * (p.getY(i) > 0 ? 0.85 : 0.3)); fc.set([cc.r, cc.g, cc.b], i * 3); }
+    g.setAttribute('color', new THREE.BufferAttribute(fc, 3));
+    const pivot = new THREE.Group(); pivot.position.set(3.4, -0.75, sd * 1.35); pivot.rotation.set(0, sd * 2.35, sd * 0.45); root.add(pivot);
     const m = new THREE.Mesh(g, finMat); m.name = 'whale-pectoral-fin'; pivot.add(m); fins.push(pivot); disposables.push(g);
   }
-  // notched flukes on a pivot that follows the tail
-  const fl = new THREE.Shape(); fl.moveTo(0, 0); fl.quadraticCurveTo(-0.5, 1.0, -1.15, 2.0); fl.lineTo(-0.95, 1.6); fl.lineTo(-0.85, 1.25); fl.lineTo(-0.7, 0.85); fl.quadraticCurveTo(-0.45, 0.35, -0.35, 0.1); fl.lineTo(-0.5, 0.0);
-  fl.lineTo(-0.35, -0.1); fl.quadraticCurveTo(-0.45, -0.35, -0.7, -0.85); fl.lineTo(-0.85, -1.25); fl.lineTo(-0.95, -1.6); fl.lineTo(-1.15, -2.0); fl.quadraticCurveTo(-0.5, -1.0, 0, 0);
+  // notched flukes with a serrated trailing edge, dark above and pale below
+  const fl = new THREE.Shape(); fl.moveTo(0, 0); fl.quadraticCurveTo(-0.5, 1.0, -1.15, 2.05);
+  for (let i = 0; i < 7; i++) fl.lineTo(-1.0 + i * 0.05 + (i % 2 ? -0.08 : 0), 1.85 - i * 0.27);
+  fl.quadraticCurveTo(-0.45, 0.3, -0.35, 0.1); fl.lineTo(-0.52, 0.0); fl.lineTo(-0.35, -0.1);
+  for (let i = 6; i >= 0; i--) fl.lineTo(-1.0 + i * 0.05 + (i % 2 ? -0.08 : 0), -(1.85 - i * 0.27));
+  fl.lineTo(-1.15, -2.05); fl.quadraticCurveTo(-0.5, -1.0, 0, 0);
   const flGeo = new THREE.ExtrudeGeometry(fl, {depth: 0.09, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.035, bevelSegments: 2, curveSegments: 8});
   flGeo.rotateX(Math.PI / 2); flGeo.translate(0, 0.045, 0);
+  { const p = flGeo.attributes.position, fc = new Float32Array(p.count * 3), cc = new THREE.Color(); for (let i = 0; i < p.count; i++) { cc.set(p.getY(i) > 0.045 ? '#26333f' : '#d9e1e6'); if (p.getY(i) <= 0.045 && Math.sin(p.getZ(i) * 7) > 0.6) cc.set('#3a4855'); fc.set([cc.r, cc.g, cc.b], i * 3); } flGeo.setAttribute('color', new THREE.BufferAttribute(fc, 3)); }
   const flukePivot = new THREE.Group(); flukePivot.position.set(-6.45, 0, 0); root.add(flukePivot);
-  const flukes = new THREE.Mesh(flGeo, darkMat); flukes.name = 'whale-flukes'; flukePivot.add(flukes); disposables.push(flGeo);
+  const flukes = new THREE.Mesh(flGeo, finMat); flukes.name = 'whale-flukes'; flukes.scale.set(1.25, 1, 1.3); flukePivot.add(flukes); disposables.push(flGeo);
   root.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
   return {
     root, disposables, meshes: [body, detailMesh, flukes, ...fins.map(f => f.children[0])],
     update(t, glow, reduced) {
-      const phase = reduced ? 0 : t * 1.25; swim.uPhase.value = phase;
+      const phase = reduced ? 0 : t * 1.25; swim.uPhase.value = phase; swim.uTime.value = reduced ? 0 : t; swim.uGlow.value = glow;
       flukePivot.position.y = 0.55 * Math.sin(phase + 6.45 * 0.45);
       flukePivot.rotation.z = -0.45 * Math.cos(phase + 6.45 * 0.45);
       fins.forEach((f, i) => { f.rotation.x = reduced ? 0 : Math.sin(t * 0.7 + i * Math.PI) * 0.12; });
-      skin.emissiveIntensity = glow * 0.28; finMat.emissiveIntensity = glow * 0.25;
+      skin.emissiveIntensity = glow * 0.22; finMat.emissiveIntensity = glow * 0.25;
     }
   };
+}
+
+// An iceberg in the open sea: a small bright tip above the water, and a far
+// larger mass below it that shows only faintly until it is clicked. Even after
+// a PhD, Hanjing has seen only the tip of what there is to explore.
+const ICEBERG = {x: -6, z: 9};
+function craggy(radius, detail, scale, amount, seed) {
+  const g = mergeVertices(new THREE.IcosahedronGeometry(radius, detail));
+  const p = g.attributes.position, v = new THREE.Vector3(), r = rng(seed);
+  const bumps = Array.from({length: 7}, () => [new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).normalize(), 0.12 + r() * 0.2]);
+  for (let i = 0; i < p.count; i++) {
+    v.fromBufferAttribute(p, i); const n = v.clone().normalize();
+    let k = 1 + amount * (Math.sin(n.x * 7.3 + seed) * Math.sin(n.y * 5.1) * Math.sin(n.z * 6.7 + seed * 0.3));
+    for (const [d, a] of bumps) k += a * Math.pow(Math.max(0, n.dot(d)), 6);
+    v.multiplyScalar(k).multiply(scale); p.setXYZ(i, v.x, v.y, v.z);
+  }
+  g.computeVertexNormals(); return g;
+}
+function buildIceberg({low}) {
+  const root = new THREE.Group(); root.name = 'enchantment-iceberg'; root.position.set(ICEBERG.x, SEA.level, ICEBERG.z);
+  const disposables = [], glow = {value: 0};
+  // hidden ice stays dim until the deep is revealed; the tip is always bright
+  const rimPatch = (m, key, hidden = false) => {
+    m.onBeforeCompile = sh => {
+      sh.uniforms.uIceGlow = glow;
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uIceGlow;')
+        .replace('#include <color_fragment>', hidden ? '#include <color_fragment>\n diffuseColor.rgb *= mix(0.3, 1.0, uIceGlow);' : '#include <color_fragment>')
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+          float iceRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.2);
+          totalEmissiveRadiance += vec3(0.45, 0.85, 1.0) * iceRim * (${hidden ? '0.06' : '0.18'} + uIceGlow * 0.9);`);
+    };
+    m.customProgramCacheKey = () => key;
+  };
+  // the tip: two crags above the waterline, snow on the top faces
+  const tipParts = [craggy(1.9, low ? 1 : 2, new THREE.Vector3(1.25, 1.5, 1.0), 0.16, 3), craggy(1.0, 1, new THREE.Vector3(0.9, 2.0, 0.9), 0.2, 7)];
+  tipParts[1].translate(0.9, 0.9, -0.3);
+  for (const g of tipParts) { const p = g.attributes.position; for (let i = 0; i < p.count; i++) if (p.getY(i) < 0) p.setY(i, p.getY(i) * 0.08 - 0.05); g.computeVertexNormals(); }
+  const tipGeo = mergeGeometries(tipParts.map(g => g.toNonIndexed()), false); tipParts.forEach(g => g.dispose()); tipGeo.computeVertexNormals();
+  { const p = tipGeo.attributes.position, nrm = tipGeo.attributes.normal, c = new Float32Array(p.count * 3), col = new THREE.Color();
+    for (let i = 0; i < p.count; i++) { col.set('#a9d6ea').lerp(new THREE.Color('#f6fbfe'), THREE.MathUtils.smoothstep(nrm.getY(i), 0.1, 0.7)); col.lerp(new THREE.Color('#7fb8d4'), 1 - THREE.MathUtils.smoothstep(p.getY(i), 0.0, 0.5)); c.set([col.r, col.g, col.b], i * 3); }
+    tipGeo.setAttribute('color', new THREE.BufferAttribute(c, 3)); }
+  const tipMat = new THREE.MeshStandardMaterial({name: 'iceberg-tip', color: '#ffffff', vertexColors: true, roughness: 0.3, metalness: 0.0, flatShading: true, emissive: '#000000'});
+  rimPatch(tipMat, 'enchantment-iceberg-tip-v1');
+  const tip = new THREE.Mesh(tipGeo, tipMat); tip.name = 'iceberg-tip-above-water'; tip.castShadow = true; root.add(tip); disposables.push(tipGeo, tipMat);
+  // the hidden mass: many times larger, reaching deep into the ball
+  const massGeo = craggy(5.2, low ? 2 : 3, new THREE.Vector3(1.1, 1.35, 0.95), 0.14, 11);
+  { const p = massGeo.attributes.position, c = new Float32Array(p.count * 3), col = new THREE.Color();
+    for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (y > 0) p.setY(i, -0.08 - y * 0.02); }
+    massGeo.translate(0.6, -5.6, 0.2);
+    for (let i = 0; i < p.count; i++) { col.set('#9fd3e8').lerp(new THREE.Color('#2f6f93'), THREE.MathUtils.smoothstep(-p.getY(i), 1, 14)); c.set([col.r, col.g, col.b], i * 3); }
+    massGeo.setAttribute('color', new THREE.BufferAttribute(c, 3)); massGeo.computeVertexNormals(); }
+  const massMat = new THREE.MeshStandardMaterial({name: 'iceberg-hidden-mass', color: '#ffffff', vertexColors: true, roughness: 0.45, flatShading: true});
+  rimPatch(massMat, 'enchantment-iceberg-mass-v2', true);
+  const mass = new THREE.Mesh(massGeo, massMat); mass.name = 'iceberg-hidden-mass-below-water'; root.add(mass); disposables.push(massGeo, massMat);
+  // a ring of foam where the ice meets the waves
+  const foamMat = new THREE.MeshBasicMaterial({name: 'iceberg-foam', color: '#e8f6fb', transparent: true, opacity: 0.32, depthWrite: false});
+  const foamGeo = new THREE.RingGeometry(2.3, 3.0, 40, 1); foamGeo.rotateX(-Math.PI / 2); foamGeo.scale(1.25, 1, 1);
+  { const p = foamGeo.attributes.position; for (let i = 0; i < p.count; i++) { const a = Math.atan2(p.getZ(i), p.getX(i)); const k = 1 + 0.12 * Math.sin(a * 5) + 0.06 * Math.sin(a * 13); p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k); } }
+  const foam = new THREE.Mesh(foamGeo, foamMat); foam.name = 'iceberg-foam-ring'; foam.position.y = 0.06; foam.renderOrder = 12; root.add(foam); disposables.push(foamGeo, foamMat);
+  return {root, disposables, meshes: [tip, mass], point: [ICEBERG.x, SEA.level + 2, ICEBERG.z],
+    update(t, reveal, reduced) { glow.value = reveal; if (!reduced) { foam.scale.setScalar(1 + 0.04 * Math.sin(t * 1.3)); foam.rotation.y = t * 0.02; tip.rotation.z = Math.sin(t * 0.4) * 0.008; mass.rotation.z = tip.rotation.z; root.position.y = SEA.level + Math.sin(t * 0.5) * 0.06; } }};
 }
 
 /** Merge the still meshes under a group by material, leaving excluded subtrees alone. */
@@ -1320,7 +1426,7 @@ function createPorcelainPagoda({low, ground = 0}) {
   return {group, disposables, glowPoints, meshes, top: [PAGODA.x, top, PAGODA.z]};
 }
 
-export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda} = {}) {
+export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda, onIceberg} = {}) {
   const low = quality === 'low', root = new THREE.Group(); root.name = 'Enchantment layer — sky, candles, fireflies, bricks and keepsakes';
   const disposables = new Set(), interactables = [], glowMaterials = [];
   const rand = rng(2024);
@@ -1471,7 +1577,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   // 5b. The hidden whale: Hanjing sounds a little like 鲸 (jing), whale.
   const whale = buildWhale({low});
   root.add(whale.root); whale.disposables.forEach(r => disposables.add(r));
-  const whalePath = {cx: GLOBE.cx, cz: 12.5, y: -7.5, ax: 13, az: 2.5, period: 120};
+  const whalePath = {cx: GLOBE.cx + 4.5, cz: 12.5, y: -7.5, ax: 11, az: 2.5, period: 120};
   let reveal = 0, revealTarget = 0, revealUntil = 0;
   const bubbleEntries = [];
   for (let i = 0; i < (low ? 18 : 40); i++) bubbleEntries.push({p: [0, -100, 0], c: '#cfefff', s: 0.12 + rand() * 0.18, ph: rand()});
@@ -1479,12 +1585,20 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   const bubbles = new THREE.Points(pointsGeometry(bubbleEntries), bubbleMat); bubbles.name = 'enchantment-whale-bubbles'; bubbles.frustumCulled = false; root.add(bubbles);
   disposables.add(bubbles.geometry); disposables.add(bubbleMat);
   const bubbleAge = bubbleEntries.map((_, i) => i / bubbleEntries.length * 6), bubbleOrigin = bubbleEntries.map(() => new THREE.Vector3());
-  function toggleWhale() {
-    revealTarget = revealTarget > 0.5 ? 0 : 1; revealUntil = time + 45;
-    if (revealTarget) onWhale?.();
+  let revealedBy = null;
+  function revealDeep(source) {
+    const hide = revealTarget > 0.5 && revealedBy === source;
+    revealTarget = hide ? 0 : 1; revealUntil = time + 45; revealedBy = hide ? null : source;
+    if (!hide) (source === 'iceberg' ? onIceberg : onWhale)?.();
     return revealTarget;
   }
+  const toggleWhale = () => revealDeep('whale');
   interactables.push({id: 'enchantment-hidden-whale', type: 'enchant', title: 'Something moves in the deep', objects: [...whale.meshes, sea.water], point: [GLOBE.cx, -12, GLOBE.cz], onInteract: toggleWhale});
+
+  // 5a. The iceberg: the tip of everything there is still to learn
+  const iceberg = buildIceberg({low});
+  root.add(iceberg.root); iceberg.disposables.forEach(r => disposables.add(r));
+  interactables.push({id: 'enchantment-iceberg', type: 'enchant', title: 'An iceberg', objects: iceberg.meshes, point: iceberg.point, onInteract: () => revealDeep('iceberg')});
 
   // 5c. The porcelain pagoda rings its bells when visited
   interactables.push({id: 'enchantment-porcelain-pagoda', type: 'enchant', title: 'The porcelain pagoda', objects: pagoda.meshes, point: pagoda.top, onInteract: () => { burst(pagoda.top); onPagoda?.(); }});
@@ -1588,6 +1702,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     whale.root.position.set(whalePath.cx + Math.sin(ang) * whalePath.ax, whalePath.y + (reduced ? 0 : Math.sin(t * 0.21) * 1.2), whalePath.cz + Math.sin(2 * ang) * whalePath.az);
     whale.root.rotation.set(0, -Math.atan2(vz, vx), reduced ? 0 : Math.sin(t * 0.21 + 1.2) * 0.06);
     whale.update(t, reveal, reduced);
+    iceberg.update(t, reveal, reduced);
     const bp = bubbles.geometry.attributes.position;
     for (let i = 0; i < bubbleAge.length; i++) {
       bubbleAge[i] += (dt || 0);
