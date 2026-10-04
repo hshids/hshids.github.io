@@ -53,6 +53,8 @@
       '<radialGradient id="gbCloud" cx=".5" cy=".6" r=".6"><stop offset="0" stop-color="#fffaf0"/><stop offset="1" stop-color="#f3e7d2" stop-opacity=".65"/></radialGradient>' +
       '<linearGradient id="gbTower" x1="0" x2="1"><stop offset="0" stop-color="#fbf8f0"/><stop offset=".55" stop-color="#ece6d8"/><stop offset="1" stop-color="#c9c2b2"/></linearGradient>' +
       '<radialGradient id="tailSilk" cx=".5" cy=".45" r=".6"><stop offset="0" stop-color="#f7efdc" stop-opacity=".7"/><stop offset=".75" stop-color="#f3e8cf" stop-opacity=".35"/><stop offset="1" stop-color="#f3e8cf" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="scrollContact"><stop offset="0" stop-color="#2a2016" stop-opacity=".3"/><stop offset=".6" stop-color="#2a2016" stop-opacity=".12"/><stop offset="1" stop-color="#2a2016" stop-opacity="0"/></radialGradient>' +
+      '<radialGradient id="scrollMist" cx=".5" cy=".55" r=".5"><stop offset="0" stop-color="#fbf7ee" stop-opacity=".7"/><stop offset=".6" stop-color="#f4eee2" stop-opacity=".28"/><stop offset="1" stop-color="#f4eee2" stop-opacity="0"/></radialGradient>' +
       '<radialGradient id="scrollLamp"><stop offset="0" stop-color="#fff1c4"/><stop offset=".4" stop-color="#ffd27a" stop-opacity=".55"/><stop offset="1" stop-color="#ffb648" stop-opacity="0"/></radialGradient>' +
       // watercolour on paper: edges wander a little and the paper grain shows through the washes
       '<filter id="gbPaint" x="-2%" y="-4%" width="104%" height="108%" color-interpolation-filters="sRGB"><feTurbulence type="fractalNoise" baseFrequency=".045" numOctaves="3" seed="3" result="warp"/><feDisplacementMap in="SourceGraphic" in2="warp" scale="2.4" xChannelSelector="R" yChannelSelector="G" result="d"/><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="11" result="grain"/><feColorMatrix in="grain" type="matrix" values="0 0 0 0 .42  0 0 0 0 .36  0 0 0 0 .3  0 0 0 -.9 .34" result="g2"/><feComposite in="g2" in2="d" operator="in" result="gi"/><feBlend in="gi" in2="d" mode="multiply"/></filter>' +
@@ -135,8 +137,7 @@
       '<path class="gb-line" d="M' + (lx - 16) + ' ' + (base - 6) + 'L' + (lx - 10) + ' ' + (base - H) + 'M' + (lx + 16) + ' ' + (base - 6) + 'L' + (lx + 10) + ' ' + (base - H) + '"/>';
     base = base - H + 118 - 0; // keep the glow anchored to the lantern room below
     out += sprite("grass", cx + 96, GY - 22, 22, 20) + sprite("grass", cx + 220, GY - 18, 18, 16);
-    out += gull(cx - 120, 330, 1, 0) + gull(cx - 60, 360, .7, -1.2) + gull(cx + 30, 300, .85, -2.1) + gull(cx + 240, 342, .6, -.6);
-    out += '</g><g class="scroll-glow-group"><circle class="scroll-glow" cx="' + lx + '" cy="' + (base - 133) + '" r="46" fill="url(#scrollLamp)"/><path class="scroll-beam" d="M' + lx + ' ' + (base - 133) + 'L' + (lx - 260) + ' ' + (base - 160) + 'L' + (lx - 260) + ' ' + (base - 108) + 'z"/></g>';
+    out += '</g><g class="scroll-live">' + gull(cx - 120, 330, 1, 0) + gull(cx - 60, 360, .7, -1.2) + gull(cx + 30, 300, .85, -2.1) + gull(cx + 240, 342, .6, -.6) + '</g><g class="scroll-glow-group"><circle class="scroll-glow" cx="' + lx + '" cy="' + (base - 133) + '" r="46" fill="url(#scrollLamp)"/><path class="scroll-beam" d="M' + lx + ' ' + (base - 133) + 'L' + (lx - 260) + ' ' + (base - 160) + 'L' + (lx - 260) + ' ' + (base - 108) + 'z"/></g>';
     return out;
   }
 
@@ -151,10 +152,10 @@
     var out = '<g class="scroll-piece piece-crossing">' + seaBand(cx - 400, cx + 400, 440);
     out += '<g class="scroll-steamer" transform="translate(' + (cx - 240) + ' 452) scale(.9)"><path class="steamer-hull" d="M-40 0h80l-8 9h-64z"/><rect class="steamer-house" x="-22" y="-10" width="40" height="10"/><rect class="steamer-stack" x="-6" y="-24" width="8" height="14"/><path class="steamer-smoke" d="M-2 -26q-10 -10 -2 -18q-10 -8 0 -16"/></g>';
     out += cloud(cx - 190, 236, 1.1) + cloud(cx + 300, 190, .9) + cloud(cx + 90, 350, .7);
+    out += '<path class="crane-wake" d="M' + (cx - 40) + ' 352q90 -30 170 -26"/></g>';
     // the crane flies east, toward the other shore
-    out += '<g transform="translate(' + (cx + 190) + ' 300) scale(-1 1)"><g class="scroll-crane-flight">' + sprite("crane", -75, -59, 150, 118, "scroll-crane") + '</g></g>';
-    out += '<path class="crane-wake" d="M' + (cx - 40) + ' 352q90 -30 170 -26"/>';
-    return out + "</g>";
+    out += '<g class="scroll-live" transform="translate(' + (cx + 190) + ' 300) scale(-1 1)"><g class="scroll-crane-flight">' + sprite("crane", -75, -59, 150, 118, "scroll-crane") + '</g></g>';
+    return out;
   }
 
   // Tibbits Hall at Hoosac School: ashlar stone, steep slate roofs, two towers, a pointed window,
@@ -210,10 +211,11 @@
     out += '<path class="gb-stone" d="M' + (x0 + 92) + ' ' + g + 'V' + (g - 34) + 'Q' + (x0 + 106) + ' ' + (g - 54) + ' ' + (x0 + 120) + ' ' + (g - 34) + 'V' + g + 'z"/><path class="gb-door" d="M' + (x0 + 98) + ' ' + g + 'V' + (g - 30) + 'Q' + (x0 + 106) + ' ' + (g - 44) + ' ' + (x0 + 114) + ' ' + (g - 30) + 'V' + g + 'z"/><path class="gb-line" d="M' + (x0 + 92) + ' ' + g + 'V' + (g - 34) + 'Q' + (x0 + 106) + ' ' + (g - 54) + ' ' + (x0 + 120) + ' ' + (g - 34) + 'V' + g + '"/>';
     // chimneys and the pennant
     out += '<rect class="gb-stone" x="' + (x0 + 40) + '" y="' + (g - 152) + '" width="9" height="34"/><rect class="gb-stone" x="' + (x0 + 160) + '" y="' + (g - 146) + '" width="8" height="28"/>';
-    out += '<path class="gb-line" d="M' + (x0 - 11) + ' ' + (g - 176) + 'V' + (g - 204) + '"/><g class="scroll-pennant" transform="translate(' + (x0 - 11) + ' ' + (g - 203) + ')"><path class="pennant-red" d="M0 0L34 4L0 8z"/><path class="pennant-purple" d="M0 4L34 4L0 8z"/></g>';
+    out += '<path class="gb-line" d="M' + (x0 - 11) + ' ' + (g - 176) + 'V' + (g - 204) + '"/>';
+    var pennant = '<g class="scroll-live"><g transform="translate(' + (x0 - 11) + ' ' + (g - 203) + ')"><g class="scroll-pennant"><path class="pennant-red" d="M0 0L34 4L0 8z"/><path class="pennant-purple" d="M0 4L34 4L0 8z"/></g></g></g>';
     // a little plaque under it
     out += '<g class="scroll-plaque" transform="translate(' + (cx - 46) + ' ' + (g + 14) + ')"><rect width="92" height="16" rx="2"/><text x="46" y="11.5" text-anchor="middle">HOOSAC · NEW YORK</text></g>';
-    return out + "</g>";
+    return out + "</g>" + pennant;
   }
 
   // The tail: a pale stretch of silk where collectors have stamped their seals over the years.
@@ -228,6 +230,8 @@
   // Everything the scroll adds to the walking layer, in world coordinates.
   function pieces(width, stations) {
     var out = '<g class="scroll-layer">';
+    // soft contact shadows, so each painted station sits on the stone instead of floating above it
+    stations.forEach(function (st) { out += '<ellipse class="scroll-contact" cx="' + st.x + '" cy="' + (GY + 3) + '" rx="' + f1(st.half * .92) + '" ry="16" fill="url(#scrollContact)"/>'; });
     out += prologue(1060) + crossing(2790) + hoosac(3445) + tail(10060);
     CHAPTERS.forEach(function (ch) {
       var st = stationX(ch.id, stations), x = ch.at != null ? ch.at : st.x - st.half - 70;
@@ -247,7 +251,35 @@
   }
 
   // the rollers sit above the water and reeds, so they belong to the front layer
-  function ends(width) { return '<g class="scroll-ends">' + roller(30, -1) + roller(width - 30, 1) + "</g>"; }
+  function ends(width) {
+    // low mist lying over the stone path, in front of the stations' feet: static, so the layer never repaints
+    var r = rng(91), mist = "";
+    for (var x = 160; x < width - 160; x += 380 + r() * 360) mist += '<ellipse class="scroll-ground-mist" cx="' + f1(x) + '" cy="' + f1(GY - 4 + r() * 10) + '" rx="' + f1(160 + r() * 160) + '" ry="' + f1(16 + r() * 12) + '" fill="url(#scrollMist)"/>';
+    return '<g class="scroll-ends">' + mist + roller(30, -1) + roller(width - 30, 1) + "</g>";
+  }
 
-  ART.scroll = { width: SCROLL_W, layout: LAYOUT, chapters: CHAPTERS, zones: ZONES, defs: defs, pieces: pieces, ends: ends, mapMarkup: mapMarkup };
+  // The air of the scroll, above the painting and below the interface: rice-paper fibres, the
+  // mounting edges, soft rays from the sun, slow mist, and lantern motes rising at night. Only
+  // opacity and transform animate, so it all stays on the compositor.
+  function atmosphere(world) {
+    if (!world || world.querySelector(".scroll-atmos")) return;
+    var el = document.createElement("div"); el.className = "scroll-atmos"; el.setAttribute("aria-hidden", "true");
+    var motes = ""; for (var i = 0; i < 14; i++) motes += '<i style="left:' + (4 + i * 6.9).toFixed(1) + '%;animation-delay:-' + (i * 2.3).toFixed(1) + 's;animation-duration:' + (17 + (i % 5) * 3) + 's"></i>';
+    el.innerHTML = '<div class="scroll-paper"></div><div class="scroll-rays"><b></b><b></b><b></b></div><div class="scroll-drift"><span></span><span></span><span></span></div><div class="scroll-motes">' + motes + '</div><div class="scroll-edge scroll-edge-top"></div><div class="scroll-edge scroll-edge-bottom"></div>';
+    world.appendChild(el);
+    try {
+      var c = document.createElement("canvas"); c.width = c.height = 384; var x = c.getContext("2d"), rr = rng(5);
+      for (var k = 0; k < 520; k++) {
+        var px = rr() * 384, py = rr() * 384, len = 6 + rr() * 34, a = rr() * Math.PI;
+        x.strokeStyle = "rgba(90, 70, 44, " + (.05 + rr() * .07).toFixed(3) + ")"; x.lineWidth = .4 + rr() * .7;
+        x.beginPath(); x.moveTo(px, py); x.quadraticCurveTo(px + Math.cos(a) * len * .5 + (rr() - .5) * 6, py + Math.sin(a) * len * .5 + (rr() - .5) * 6, px + Math.cos(a) * len, py + Math.sin(a) * len); x.stroke();
+      }
+      for (var d = 0; d < 900; d++) { x.fillStyle = "rgba(110, 86, 52, " + (rr() * .06).toFixed(3) + ")"; x.fillRect(rr() * 384, rr() * 384, 1, 1); }
+      var paper = "url(" + c.toDataURL("image/png") + ")";
+      el.querySelector(".scroll-paper").style.backgroundImage = paper;
+      document.documentElement.style.setProperty("--scroll-paper", paper);
+    } catch (e) {}
+  }
+
+  ART.scroll = { width: SCROLL_W, layout: LAYOUT, chapters: CHAPTERS, zones: ZONES, defs: defs, pieces: pieces, ends: ends, atmosphere: atmosphere, mapMarkup: mapMarkup };
 })();

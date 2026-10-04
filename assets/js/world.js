@@ -179,6 +179,7 @@
     });
     waterLightEl = $("#water-light");
     if (ART.scroll) {
+      ART.scroll.atmosphere(worldEl);
       scrollMapEl = document.createElement("nav");
       scrollMapEl.className = "scroll-map"; scrollMapEl.setAttribute("aria-label", "The scroll, chapter by chapter");
       scrollMapEl.innerHTML = ART.scroll.mapMarkup(STATIONS);
@@ -937,6 +938,7 @@
       stopRoadTrip();
       panelBody.innerHTML = RENDER[id]();
       panel.setAttribute("aria-label", byId[id].label);
+      panel.dataset.chapter = id;
       panelBody.scrollTop = 0;
     }
     if (!state.panel) lastFocus = document.activeElement;
