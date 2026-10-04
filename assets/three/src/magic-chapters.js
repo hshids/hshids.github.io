@@ -219,22 +219,23 @@ export function createMagicChapters({stations=[],data={},quality='high',reduced=
 
   function buildTheatre(s){
     const y=plinth(s,1.04,.62,.16),arch=group('lantern-theatre-bolted-shadow-frame',[0,y,0],s.root);
-    const outline=[[-.43,0],[.43,0],[.43,.72],[.28,1.12],[0,1.43],[-.28,1.12],[-.43,.72]],
-      aperture=[[-.31,.055],[.31,.055],[.31,.69],[.20,1.035],[0,1.27],[-.20,1.035],[-.31,.69]];
-    const shape=new THREE.Shape(outline.map(p=>new THREE.Vector2(...p)));shape.holes=[new THREE.Path(aperture.map(p=>new THREE.Vector2(...p)))];
-    mesh('theatre-complete-pointed-arch-shadow-vault',new THREE.ExtrudeGeometry(shape,{depth:.11,bevelEnabled:false}),s.kit.materials.darkWood,[0,0,-.055],arch);
-    for(const side of[-1,1]){
-      strut('theatre-brass-arch-inlay-lower-'+side,[side*.37,.71,.067],[side*.24,1.07,.067],.016,mats.brass,arch);
-      strut('theatre-brass-arch-inlay-upper-'+side,[side*.24,1.07,.067],[0,1.35,.067],.016,mats.brass,arch);
-    }
-    strut('theatre-lantern-real-hemp-cord',[0,1.30,0],[0,1.09,0],.012,mats.ink,arch);
+    // A round-topped lacquer frame (a Chinese garden arch), not a pointed vault.
+    const roundTop=(w,cy,bottom)=>{const p=[[-w,bottom],[w,bottom]];for(let i=0;i<=16;i++){const a=i/16*Math.PI;p.push([Math.cos(a)*w,cy+Math.sin(a)*w]);}return p;};
+    const shape=new THREE.Shape(roundTop(.45,.82,0).map(p=>new THREE.Vector2(...p)));shape.holes=[new THREE.Path(roundTop(.33,.82,.055).map(p=>new THREE.Vector2(...p)))];
+    mesh('theatre-complete-round-lacquer-arch-frame',new THREE.ExtrudeGeometry(shape,{depth:.11,bevelEnabled:false}),s.kit.materials.darkWood,[0,0,-.055],arch);
+    ring('theatre-brass-round-arch-inlay',.39,.012,[0,.82,.067],mats.brass,arch);
+    strut('theatre-lantern-real-hemp-cord',[0,1.22,0],[0,1.09,0],.012,mats.ink,arch);
     const lamp=group('theatre-hinged-lantern',[0,.83,0],arch),paper=pulseMaterial('theatre-warm-paper','#e7c38b');
     rounded('theatre-lantern-paper-core',[.32,.44,.27],[0,0,0],paper,lamp);
     for(const x of[-.175,.175])for(const z of[-.15,.15])s.kit.box('theatre-lantern-corner-cage',[.022,.48,.022],[x,0,z],'brass',lamp);
     for(const yy of[-.24,.24])s.kit.box('theatre-lantern-connected-cap',[.39,.045,.34],[0,yy,0],'darkWood',lamp);
     const shutter=group('theatre-real-shutter-hinge',[-.19,0,.185],lamp);
-    s.kit.box('theatre-closed-shadow-shutter',[.36,.40,.035],[.18,0,0],'blue',shutter);
-    star('theatre-shadow-star-cut-inlay',.075,[.18,0,.021],shutter);
+    s.kit.box('theatre-closed-shadow-shutter',[.36,.40,.035],[.18,0,0],'red',shutter);
+    // a gilt speech bubble: this lantern belongs to the talks
+    const bubble=[];for(let i=0;i<=20;i++){const a=i/20*Math.PI*2;bubble.push([Math.cos(a)*.085,.015+Math.sin(a)*.06]);}
+    bubble.splice(14,0,[-.045,-.06],[-.07,-.085],[-.02,-.043]);
+    prism('theatre-shutter-gilt-speech-bubble',bubble,.012,mats.brass,[.18,0,.018],shutter);
+    for(const dx of[-.035,0,.035])rounded('theatre-speech-bubble-dot-'+dx,[.022,.022,.012],[.18+dx,.015,.032],mats.ink,shutter,.006);
     const lever=rounded('theatre-brass-shutter-key',[.11,.18,.09],[.34,y+.30,.19],mats.brass,s.root);
     strut('theatre-shutter-key-connected-shaft',[.34,y+.30,.043],[.34,y+.30,.15],.017,mats.brass,s.root);
     item(s,'magic-talks-lantern','Open the lantern shutter',[lever,lamp]);
@@ -357,8 +358,15 @@ export function createMagicChapters({stations=[],data={},quality='high',reduced=
       for(const y of[1.13,2.25,3.38,4.14])s.kit.box('book-tower-real-bound-book-course-'+y,[1.02,.085,1.02],[0,y,0],'wood',g);
       for(const x of[-.45,.45])for(const z of[-.45,.45])s.kit.box('book-tower-timber-corner-binding',[.07,3.89,.07],[x,2.18,z],'darkWood',g);
       const roof=mesh('book-tower-closed-copper-pointed-spire',new THREE.ConeGeometry(.84,1.60,4),mats.blue,[0,4.98,0],g);roof.rotation.y=Math.PI/4;
-      strut('book-tower-connected-spire-weather-needle',[0,5.78,0],[0,6.08,0],.020,mats.brass,g);
-      star('book-tower-attached-question-star',.13,[0,6.08,-.01],g);
+      // the spire is crowned by a gilt orb with a ring and a question mark: this is the Question Library
+      strut('book-tower-connected-spire-weather-needle',[0,5.76,0],[0,5.92,0],.018,mats.brass,g);
+      mesh('book-tower-gilt-orb',new THREE.SphereGeometry(.075,18,12),mats.brass,[0,5.98,0],g);
+      ring('book-tower-gilt-orb-ring',.105,.008,[0,5.98,0],mats.brass,g,[Math.PI/2.4,0,.3]);
+      strut('book-tower-question-stem',[0,6.05,0],[0,6.12,0],.012,mats.brass,g);
+      mesh('book-tower-question-dot',new THREE.SphereGeometry(.024,10,8),mats.brass,[0,6.15,0],g);
+      strut('book-tower-question-back-rod',[0,6.15,-.03],[0,6.36,-.03],.005,mats.brass,g);
+      strut('book-tower-question-neck',[0,6.23,0],[0,6.28,0],.018,mats.brass,g);
+      const hook=mesh('book-tower-gilt-question-hook',new THREE.TorusGeometry(.085,.019,8,24,Math.PI*1.5),mats.brass,[0,6.365,0],g);hook.rotation.z=-Math.PI/2;
       for(const y of[.65,1.82,2.96]){
         pointedWindow(s,'book-tower-front-arch-'+y,.38,.62,[0,y,.473],g);
         const rear=group('book-tower-real-rear-window-'+y,[0,y,-.473],g);rear.rotation.y=Math.PI;pointedWindow(s,'book-tower-rear-arch-'+y,.38,.62,[0,0,0],rear);
@@ -371,23 +379,42 @@ export function createMagicChapters({stations=[],data={},quality='high',reduced=
       obstacle(s,'magic-book-tower-ground-solid',[3.04,0,-2.66],[4.84,4.13,-1.54]);
     }
     if(s.id==='talks'){
-      const g=landmark(s,'lantern-theatre-full-pointed-entry-gallery',[-.95,0,2.72]);
+      // A Chinese timber porch gate in front of the hall: dark lacquer posts on
+      // stone feet, one deep beam with a hanging fretwork frieze (guale) below
+      // it, and a flared tiled roof on brackets. Roofed, so it never reads as
+      // a two-beam shrine gate.
+      const g=landmark(s,'lantern-theatre-timber-porch-gate',[-.95,0,2.72]);
+      const lacquer=material('theatre-gate-brown-red-lacquer','#94392a',.42,.04),beamLacquer=material('theatre-gate-dark-red-beam','#6e2a22',.5,.02),jade=material('theatre-gate-jade-glazed-tiles','#3f8f70',.36,.05);
       for(const side of[-1,1]){
         s.kit.brickWall('theatre-entry-buttress-grounded-'+side,[.36,.25,.53],[side*1.25,.125,0],'stone',g);
-        s.kit.box('theatre-entry-buttress-connected-shaft-'+side,[.21,2.45,.20],[side*1.25,1.475,0],'darkWood',g);
-        // The pointed portal stands in front of the original hipped eave;
-        // real side beams join it to the wall without piercing that roof.
+        s.kit.box('theatre-entry-lacquer-post-'+side,[.2,3.2,.2],[side*1.25,1.85,0],lacquer,g);
+        s.kit.box('theatre-entry-post-gilt-base-'+side,[.24,.07,.24],[side*1.25,.285,0],'brass',g);
         s.kit.box('theatre-entry-gallery-real-wall-tie-'+side,[.12,.12,.92],[side*1.25,2.57,-.36],'darkWood',g);
         obstacle(s,'magic-theatre-door-side-buttress-'+side,[-.95+side*1.25-.20,0,2.44],[-.95+side*1.25+.20,2.8,3.00]);
       }
-      const outer=[[-1.355,2.66],[-1.355,2.30],[-1.12,2.74],[0,3.68],[1.12,2.74],[1.355,2.30],[1.355,2.66],[0,3.93]],
-        shape=new THREE.Shape(outer.map(p=>new THREE.Vector2(...p)));
-      mesh('theatre-entry-complete-closed-pointed-arch',new THREE.ExtrudeGeometry(shape,{depth:.20,bevelEnabled:false}),s.kit.materials.wood,[0,0,-.10],g);
-      for(const side of[-1,1])strut('theatre-entry-copper-vault-inlay-'+side,[side*1.17,2.74,.105],[0,3.74,.105],.026,mats.brass,g);
-      // Three lanterns hang from that arch; their glow remains in the source,
+      s.kit.box('theatre-entry-deep-beam',[2.7,.2,.22],[0,3.45,0],beamLacquer,g);
+      s.kit.box('theatre-entry-beam-gilt-line',[2.72,.025,.225],[0,3.40,0],'brass',g);
+      // the hanging fretwork frieze between the posts
+      const fy0=3.2,fy1=3.35,fx=1.13;
+      const fret=[],bar=(size,at)=>{const b=new THREE.BoxGeometry(...size);b.translate(...at);fret.push(b);};
+      bar([fx*2,.035,.05],[0,fy0,0]);
+      for(let i=0;i<=8;i++)bar([.03,fy1-fy0,.05],[-fx+i*fx/4,(fy0+fy1)/2,0]);
+      for(let i=0;i<8;i++)bar([fx/4-.03,.03,.05],[-fx+(i+.5)*fx/4,(fy0+fy1)/2+(i%2?.03:-.03),0]);
+      const fretGeometry=mergeGeometries(fret,false);fret.forEach(b=>b.dispose());
+      mesh('theatre-entry-guale-fretwork-frieze',fretGeometry,s.kit.materials.ivory,[0,0,0],g);
+      for(const side of[-1,1])s.kit.box('theatre-entry-guale-corner-'+side,[.13,.13,.05],[side*(fx-.08),fy0+.07,0],'brass',g).rotation.z=Math.PI/4;
+      for(const x of[-1.25,-.62,0,.62,1.25])s.kit.box('theatre-entry-roof-bracket-'+x,[.14,.12,.42],[x,3.61,0],'brass',g);
+      const capGeometry=new THREE.CylinderGeometry(.62,1.05,.34,4);capGeometry.rotateY(Math.PI/4);
+      const cap=mesh('theatre-entry-flared-tiled-roof',capGeometry,jade,[0,3.84,0],g);cap.scale.set(2.05,1,.78);
+      for(const side of[-1,1])for(const z of[-.5,.5]){
+        const tip=mesh('theatre-entry-upturned-roof-corner-'+side+'-'+z,new THREE.ConeGeometry(.05,.3,6),jade,[side*1.48,3.76,z],g);tip.rotation.z=-side*.95;tip.rotation.x=z>0?.5:-.5;
+      }
+      s.kit.box('theatre-entry-roof-ridge',[1.85,.09,.12],[0,4.04,0],'darkWood',g);
+      for(const side of[-1,1])s.kit.box('theatre-entry-ridge-end-'+side,[.1,.1,.13],[side*.95,4.06,0],'brass',g);
+      // Two lanterns hang from the frieze, clear of the TALKS sign; their glow remains in the source,
       // while the one small practical below belongs to the detailed fixture.
-      for(const [i,x]of[-.82,0,.82].entries()){
-        const top=3.74-Math.abs(x)*.855,bottom=top-.25,paper=pulseMaterial('theatre-gallery-lantern-'+i,'#e2bc83');paper.emissiveIntensity=.50;s.emitterMaterials.push(paper);
+      for(const [i,x]of[-.82,.82].entries()){
+        const top=3.18,bottom=top-.16,paper=pulseMaterial('theatre-gallery-lantern-'+i,'#e2bc83');paper.emissiveIntensity=.50;s.emitterMaterials.push(paper);
         strut('theatre-entry-lantern-real-hemp-'+i,[x,top,.105],[x,bottom,.105],.012,mats.ink,g);
         rounded('theatre-entry-lantern-paper-'+i,[.20,.30,.20],[x,bottom-.15,.105],paper,g,.035);
         for(const yy of[bottom+.014,bottom-.312])s.kit.box('theatre-entry-lantern-attached-cap-'+i,[.26,.028,.24],[x,yy,.105],'brass',g);

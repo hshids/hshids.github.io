@@ -3,6 +3,7 @@ import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createCraftMaterials} from './fidelity-surface-materials.js';
 import './magic-stories.css';
+import {buildTwoShores,buildRoadTrips} from './magic-keepsakes.js';
 
 // These are optional, replayable illustrations. They never gate a publication,
 // original chapter, link, or dialogue. The travel pages intentionally contain
@@ -40,14 +41,16 @@ const STORIES = Object.freeze([
     controls:[['opportunity','The opportunity'],['choice','The choice']],
     pages:{opportunity:'Before my PhD, I had an opportunity to continue working at the UN. It was a real choice to think through, not an easy next step.',
       choice:'I chose academia because I wanted a broader view of knowledge and a chance to contribute to a wider world. I wanted to grow beyond being a data worker.'}},
-  {id:'two-familiar-seas',station:'home',title:'Two seas, a familiar feeling',mode:'souvenir',
-    clue:'Two little shores share one thread. Dalian and San Francisco feel connected to me.',
-    note:'Dalian is my seaside hometown, with seafood close to my heart; San Francisco has a familiar feeling. I never met my maternal grandfather, yet he had been to San Francisco nearly a century before me.',
+  {id:'two-familiar-seas',station:'home',title:'Two shores, one journey',mode:'souvenir',
+    clue:'An open keepsake box on the bench. Two shores, a flight route across the sea, and a little ship below it.',
+    note:'Dalian is my seaside hometown, and San Francisco, where I live now, feels a little like it. In 2013 I flew across the Pacific for high school, and my grandfather made the same crossing nearly a century before me.',
     anchor:[-2.66,.71,-2.78],room:'welcome-gatehall',indoor:true,
     support:'The original Welcome interior bench seat: floor .30 plus seat centre .36 and half-thickness .05.',
-    controls:[['shores','The two shores'],['thread','An older thread']],
-    pages:{shores:'Dalian is my seaside hometown, and I love its seafood. San Francisco feels a little like home to me.',
-      thread:'I never met my maternal grandfather. He had been to San Francisco nearly a century before me — a small connection I still find moving.'}},
+    controls:[['shores','The two shores'],['flight','2013 · A first flight'],['boarding','A first boarding school'],['thread','An older thread']],
+    pages:{shores:'Dalian is my seaside hometown, and I love its seafood. San Francisco, where I live now, has hills that run down to the sea, and it feels a little like home.',
+      flight:'In 2013 I took the flight that brought me to the US for high school. Since then I have flown back and forth between China and the US many times. This little plane stands for the bond I carry between my two homes.',
+      boarding:'That flight led to my first time living at school, at a boarding school in upstate New York near Albany. I was far from home, surrounded by new friends, and it was a really happy time.',
+      thread:'I never met my maternal grandfather. Nearly a century ago he came to San Francisco, long before I did. Watch the little ship cross the box. It is a small connection I still find moving.'}},
   {id:'wider-compass',station:'education',title:'The compass that says wider',mode:'souvenir',
     clue:'Turn a small compass through four personal chapters. It is a collection of feelings, not a second résumé.',
     note:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.',
@@ -59,13 +62,13 @@ const STORIES = Object.freeze([
       dc:'Georgetown brought a city chapter, with travel and stories I enjoyed sharing. People liked those little glimpses of life.',
       wider:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.'}},
   {id:'cats-across-america',station:'life',title:'Two crossings, with cats',mode:'souvenir',
-    clue:'Follow the two paw trails. The lines are a small schematic, not a driving map.',
-    note:'The cats came along for two crossings: 2021 from San Francisco to DC via Chicago on the northern route, then 2025 from DC to San Francisco via Texas on the southern route.',
+    clue:'A little map on the kitchen worktop. Pick a year and watch the car drive across America, cats and all.',
+    note:'The cats came along for two crossings, from San Francisco to DC in 2021 on the northern route through Chicago, and back in 2025 on the southern route through Texas.',
     anchor:[-2.92,1.11,-3.37],room:'life-three-bay-home',indoor:true,focus:{life:'travel'},
     support:'The original Life kitchen worktop, with clear space between this little route board and the UN keepsake.',
     controls:[['north','2021 · SF → DC'],['south','2025 · DC → SF']],
-    pages:{north:'In 2021, we crossed from San Francisco to DC with the cats, taking the northern route via Chicago. Tiny paw prints for a very big move.',
-      south:'In 2025, we crossed back from DC to San Francisco with the cats, taking the southern route via Texas. Different roads, the same little travel companions.'}},
+    pages:{north:'In 2021 we crossed from San Francisco to DC for my grad school, taking the northern route through Chicago. Four cats rode along, DaHuang, XiaoHei, XiaoHeiHei and TuanZi.',
+      south:'In 2025 we drove back from DC to San Francisco on the southern route through Texas. By then the car was full, with all six cats as very patient travel companions.'}},
 ]);
 
 const TRAVEL_PAGES = Object.freeze({
@@ -411,14 +414,8 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
         register(s,key[0],key[1],coin,()=>select(s.id,key[0]));
       }
     }else if(s.id==='two-familiar-seas'){
-      box(s.id+'-bench-seated-two-shore-tile',[.35,.020,.23],[0,.010,0],mats.blue,body,.005);
-      const shell=own(new THREE.LatheGeometry([[0,0],[.036,0],[.037,.012],[.025,.027],[0,.035]].map(p=>new THREE.Vector2(...p)),low?10:14));
-      for(const[step,key]of s.spec.controls.entries()){
-        const shore=mesh(s.id+'-'+key[0]+'-closed-little-shore',shell,mats.ivory,[(step-.5)*.22,.020,-.007],body);
-        register(s,key[0],key[1],shore,()=>select(s.id,key[0]));
-      }
-      rod(s.id+'-thread-between-supported-shores',[-.11,.043,-.007],[.11,.043,-.007],.0026,mats.brass,body);
-      label(s.id+'-two-shores-attached-name','DALIAN · SF',.30,.048,[0,.040,.119],body);
+      const k=buildTwoShores(body,{resources,reduced,low});s.keepsake=k;
+      for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
     }else if(s.id==='wider-compass'){
       box(s.id+'-forecourt-seated-compass-base',[.38,.025,.29],[0,.0125,0],mats.wood,body,.006);
       disc(s.id+'-complete-compass-bowl',.100,.020,[0,.035,0],mats.brass,body);
@@ -433,20 +430,8 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
         register(s,key,s.spec.controls[i][1],token,()=>select(s.id,key));
       }
     }else if(s.id==='cats-across-america'){
-      box(s.id+'-worktop-seated-route-board',[.50,.025,.30],[0,.0125,0],mats.wood,body,.005);
-      box(s.id+'-paper-inlaid-route-map',[.46,.003,.26],[0,.0265,0],mats.paper,body,.001);
-      const routes={north:[[-.185,.032,.017],[-.10,.032,-.068],[.01,.032,-.060],[.18,.032,.017]],
-        south:[[.18,.032,.017],[.105,.032,.075],[-.03,.032,.087],[-.185,.032,.017]]};
-      s.routes={};
-      for(const[key,points]of Object.entries(routes)){
-        const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p))),line=mesh(s.id+'-'+key+'-true-supported-route',new THREE.TubeGeometry(curve,low?12:20,.0035,low?4:6,false),key==='north'?mats.blue:mats.green,[0,0,0],body);
-        const paw=group(s.id+'-'+key+'-small-paw-marker',points[0],s.root);
-        disc(s.id+'-'+key+'-paw-pad',.014,.007,[0,.004,0],mats.brass,paw);
-        for(let i=0;i<3;i++)disc(s.id+'-'+key+'-paw-toe-'+i,.0048,.007,[(i-1)*.010,.004,-.017],mats.brass,paw);
-        s.routes[key]={curve,line,paw};register(s,key,s.spec.controls.find(v=>v[0]===key)[1],line,()=>select(s.id,key));
-      }
-      label(s.id+'-route-board-supported-years','2021 · 2025',.27,.045,[0,.035,.159],body);
-      s.routeElapsed=0;s.routePoint=new THREE.Vector3();
+      const k=buildRoadTrips(body,{resources,reduced,low});s.keepsake=k;
+      for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
     }
     register(s,'open','Unfold '+s.spec.title.toLowerCase(),body,()=>{open(s.id);return feedback(s,s.spec.clue);});
     s.select=key=>{
@@ -456,6 +441,7 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
       return feedback(s,note,{replay:true});
     };
     s.animate=(t,dt)=>{
+      s.keepsake?.animate(t,dt,s.progress.length?s.page:null);
       if(s.compass){const index=s.spec.controls.findIndex(v=>v[0]===s.page),target=Math.max(0,index)*Math.PI/2;
         s.compass.rotation.y=reduced?target:THREE.MathUtils.damp(s.compass.rotation.y,target,8,dt);}
       if(s.routes){
