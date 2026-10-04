@@ -55,18 +55,21 @@ export function createCaseClues({low = false, reduced = false, onFound} = {}) {
   const yellow = own(new THREE.MeshStandardMaterial({name: 'case-evidence-marker-yellow', color: '#f2c230', emissive: '#a87a10', emissiveIntensity: 0.35, roughness: 0.55}));
   const porcelain = own(new THREE.MeshStandardMaterial({name: 'case-teacup-porcelain', color: '#ffffff', vertexColors: true, roughness: 0.3, side: THREE.DoubleSide}));
   const goldHair = own(new THREE.MeshStandardMaterial({name: 'case-golden-hair', color: '#f0c873', emissive: '#7a5414', emissiveIntensity: 0.4, roughness: 0.4}));
-  const paper = own(new THREE.MeshStandardMaterial({name: 'case-note-paper', color: '#f4ead2', roughness: 0.9}));
+  const noteCanvas = document.createElement('canvas'); noteCanvas.width = 128; noteCanvas.height = 80;
+  { const c = noteCanvas.getContext('2d'); c.fillStyle = '#f4ead2'; c.fillRect(0, 0, 128, 80); c.strokeStyle = '#3a3330'; c.lineWidth = 3; c.lineCap = 'round';
+    for (const [y, w] of [[26, 92], [42, 70], [58, 84]]) { c.beginPath(); c.moveTo(18, y); for (let x = 18; x < 18 + w; x += 8) c.quadraticCurveTo(x + 4, y - 4, x + 8, y); c.stroke(); } }
+  const noteTexture = own(new THREE.CanvasTexture(noteCanvas)); noteTexture.colorSpace = THREE.SRGBColorSpace;
+  const paper = own(new THREE.MeshStandardMaterial({name: 'case-note-paper', map: noteTexture, roughness: 0.9}));
   const pickMat = own(new THREE.MeshBasicMaterial({visible: false}));
   const tint = (g, color) => { const c = new THREE.Color(color), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let i = 0; i < n; i++) a.set([c.r, c.g, c.b], i * 3); g.setAttribute('color', new THREE.BufferAttribute(a, 3)); return g.index ? g.toNonIndexed() : g; };
 
   // a folded evidence tent with its number on both faces
   function marker(n, at, yaw) {
     const g = new THREE.Group(); g.position.set(...at); g.rotation.y = yaw; g.name = 'case-evidence-marker-' + n;
+    // both faces of the tent in one mesh: the numbered card texture covers every face
     const label = own(new THREE.MeshStandardMaterial({name: 'case-evidence-number-' + n, map: own(numberTexture(n)), emissive: '#a87a10', emissiveIntensity: 0.35, roughness: 0.55}));
-    for (const side of [-1, 1]) {
-      const face = new THREE.Mesh(own(new THREE.BoxGeometry(0.11, 0.085, 0.004)), [yellow, yellow, yellow, yellow, side > 0 ? label : yellow, side < 0 ? label : yellow]);
-      face.position.set(0, 0.038, side * 0.02); face.rotation.x = side * -0.42; face.castShadow = true; g.add(face);
-    }
+    const faces = [-1, 1].map(side => { const b = new THREE.BoxGeometry(0.11, 0.085, 0.004); if (side < 0) b.rotateY(Math.PI); b.rotateX(side * -0.42); b.translate(0, 0.038, side * 0.02); return b; });
+    const tent = new THREE.Mesh(own(mergeGeometries(faces, false)), label); faces.forEach(b => b.dispose()); tent.name = 'case-evidence-tent-' + n; g.add(tent);
     root.add(g); markers.push({g, label}); return g;
   }
 
@@ -80,7 +83,7 @@ export function createCaseClues({low = false, reduced = false, onFound} = {}) {
   const shards = [[-0.11, 0.07, 0.5], [0.02, 0.12, 1.7], [-0.06, -0.1, 2.6]].map(([x, z, a]) => { const s = new THREE.CylinderGeometry(0.03, 0.03, 0.004, 3); s.scale(1, 1, 0.6); s.rotateY(a); s.translate(x, 0.002, z); return tint(s, '#f3f4f8'); });
   const shardInk = tint(new THREE.BoxGeometry(0.03, 0.005, 0.006), '#2a56b4'); shardInk.translate(-0.11, 0.004, 0.07);
   const teacup = new THREE.Mesh(own(mergeGeometries([tint(saucer, '#f6f7fb'), band, cup, rim, ...shards, shardInk].map(g => g.index ? g.toNonIndexed() : g), false)), porcelain);
-  teacup.name = 'case-broken-blue-and-white-teacup'; teacup.castShadow = true; saucerGroup.add(teacup);
+  teacup.name = 'case-broken-blue-and-white-teacup'; saucerGroup.add(teacup);
   const hairCurve = new THREE.CatmullRomCurve3([[-0.04, 0.009, -0.02], [-0.01, 0.011, 0.0], [0.02, 0.01, -0.005], [0.045, 0.012, 0.015]].map(p => new THREE.Vector3(...p)));
   const hair = new THREE.Mesh(own(new THREE.TubeGeometry(hairCurve, 16, 0.0015, 4)), goldHair); hair.name = 'case-shaded-hair'; saucerGroup.add(hair);
   root.add(saucerGroup);
@@ -92,8 +95,6 @@ export function createCaseClues({low = false, reduced = false, onFound} = {}) {
   // 3. a folded note tucked into the mailbox front
   const note = new THREE.Mesh(own(new THREE.BoxGeometry(0.1, 0.065, 0.003)), paper); note.name = 'case-folded-note';
   note.position.set(...SPOTS.note.item); note.rotation.z = 0.12; root.add(note);
-  const ink = new THREE.Mesh(own(new THREE.BoxGeometry(0.06, 0.004, 0.001)), own(new THREE.MeshBasicMaterial({color: '#3a3330'})));
-  ink.position.set(0, 0.008, 0.002); note.add(ink); const ink2 = ink.clone(); ink2.position.y = -0.008; ink2.scale.x = 0.7; note.add(ink2);
 
   const items = {saucer: [saucerGroup], inkstone: [inkHair], note: [note]};
   for (const clue of CASE.clues) {
