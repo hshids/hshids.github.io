@@ -41,3 +41,16 @@
  .garden-tools button { min-width:32px;width:32px; }
  .world-3d .guide-fab { max-width:103px;padding-right:10px; }
 }
+
+.world-3d .object-tip { position:absolute;pointer-events:none;z-index:8;max-width:240px;background:#142b36f5;color:#f1e7cb;border:1px solid #a5895570;border-radius:3px;padding:7px 11px;font:12px Inter,sans-serif;box-shadow:0 3px 15px #06121b55; }
+
+.keepsake-button { pointer-events:auto;min-height:44px;margin-top:4px;padding:6px 0;background:none;border:0;color:#dfc789;font:12px Inter,sans-serif;text-decoration:underline;text-underline-offset:4px;cursor:pointer; }
+.keepsake-button:focus-visible { outline:2px solid #cbaa65;outline-offset:4px; }
+.keepsake-button[hidden] { display:none; }
+.walk-next { display:flex;flex-wrap:wrap;gap:0 15px;pointer-events:auto; }
+.walk-next[hidden] { display:none; }
+.walk-next button { min-height:44px;background:none;border:0;color:#dfc789;text-decoration:underline;text-underline-offset:4px;cursor:pointer;padding:5px 0;font:12px Inter,sans-serif; }
+.walk-next button:focus-visible { outline:2px solid #cbaa65;outline-offset:3px; }
+.is-walking .chapter-caption { max-width:300px;background:#132935d9;border-color:#88917570; }
+.world-prompt:disabled { opacity:.65;cursor:default; }
+@media(max-width:700px) { .is-walking .chapter-caption { max-width:240px; } }

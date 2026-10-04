@@ -1,0 +1,24 @@
+/* A small theatre note, with the physical lectern still visible beside it. */
+.talk-note{position:fixed;inset:0;z-index:83;pointer-events:none;color:#493b2d;font:400 14px/1.45 Inter,sans-serif;}
+.talk-note[hidden],.talk-note [hidden]{display:none;}
+.talk-note *{box-sizing:border-box;}
+.talk-note-sheet{position:absolute;right:max(22px,env(safe-area-inset-right));top:90px;width:min(365px,38vw);max-height:calc(var(--talk-note-height,100dvh) - 112px);padding:22px 24px 19px;overflow-y:auto;overscroll-behavior:contain;pointer-events:auto;background:linear-gradient(100deg,#e9d7b720,transparent 8%,transparent 92%,#b89b5420),#f3e7cd;border:1px solid #d9c59d;border-radius:2px 4px 2px 1px;box-shadow:-7px 14px 28px #06111e66,inset 0 0 22px #ad8c4220;scrollbar-width:thin;scrollbar-color:#baa57c transparent;}
+.talk-note-sheet::after{content:"";position:absolute;top:0;right:0;width:19px;height:19px;background:linear-gradient(45deg,#d6bb8b 49%,#eddcbb 51%);pointer-events:none;}
+.talk-note-header{display:flex;gap:7px;justify-content:space-between;align-items:flex-start;}
+.talk-note-eyebrow{margin:0 0 5px;color:#7e694b;font-size:9px;letter-spacing:.12em;}
+.talk-note h2{margin:0;font:600 30px/1.08 "Magic Hand",cursive;}
+.talk-note-close{flex:none;width:44px;height:44px;margin:-11px -12px 0 0;padding:0;border:0;background:transparent;color:#604a34;font:300 29px/1 Georgia,serif;cursor:pointer;}
+.talk-note-intro{margin:13px 0 18px;font-size:12px;line-height:1.55;color:#766046;}
+.talk-note-form label{display:block;margin:12px 0 5px;font-size:12px;color:#604b34;}
+.talk-note select{display:block;width:100%;min-height:44px;padding:8px 24px 8px 4px;border:0;border-bottom:1px solid #ae9364;border-radius:0;background:#eee0c2;color:#493b2d;font:400 14px/1.4 Inter,sans-serif;}
+.talk-note textarea{display:block;width:100%;min-height:140px;max-height:220px;resize:vertical;padding:9px 0;border:0;border-bottom:1px solid #ae9364;border-radius:0;background:transparent;color:#3e3127;font:400 16px/1.5 Inter,sans-serif;}
+.talk-note textarea::placeholder{color:#988163;font-size:14px;}
+.talk-note-meta{display:flex;justify-content:space-between;gap:10px;margin-top:6px;color:#826d50;font-size:9px;}
+.talk-note-feedback{margin:9px 0 0;color:#7b5635;font-size:12px;line-height:1.4;}
+.talk-note-footer{margin-top:13px;border-top:1px solid #b6a07955;padding-top:8px;}
+.talk-note-email{display:flex;justify-content:space-between;align-items:center;min-height:44px;padding:5px 0;color:#5b4029;font-weight:600;text-decoration:none;cursor:pointer;}
+.talk-note-email span{font-size:21px;}.talk-note-email[aria-disabled=true]{opacity:.6;cursor:default;}
+.talk-note-footer p{margin:0;font-size:10px;line-height:1.5;color:#7b664d;}
+.talk-note :is(button,textarea,select,a):focus-visible{outline:2px solid #a28043;outline-offset:3px;}
+@media(max-width:700px){.talk-note-sheet{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));top:auto;bottom:calc(max(12px,env(safe-area-inset-bottom)) + var(--talk-note-lift,0px));width:auto;max-height:min(53svh,calc(var(--talk-note-height,100dvh) - 80px));padding:14px 18px 13px;}.talk-note-header{position:sticky;top:-14px;z-index:1;background:#f3e7cd;padding-top:6px;padding-bottom:6px;}.talk-note h2{font-size:27px;}.talk-note-eyebrow{font-size:8px;}.talk-note-intro{margin:7px 0 10px;}.talk-note-form label{margin-top:8px;}.talk-note textarea{min-height:100px;max-height:150px;}.talk-note-close{margin:-7px -10px 0 0;}.talk-note.has-keyboard .talk-note-sheet{max-height:calc(var(--talk-note-height,100dvh) - 22px);}.talk-note.has-keyboard .talk-note-eyebrow,.talk-note.has-keyboard .talk-note-intro,.talk-note.has-keyboard .talk-note-meta>span:last-child{display:none;}.talk-note.has-keyboard textarea{min-height:76px;max-height:120px;}.talk-note.has-keyboard .talk-note-footer{margin-top:7px;}}
+@media(prefers-reduced-motion:reduce){.talk-note *{scroll-behavior:auto;}}

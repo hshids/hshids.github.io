@@ -28,7 +28,10 @@
     <link rel="stylesheet" href="assets/three/version-links.css?v=complete-rooms-v2">
     <link rel="stylesheet" href="assets/three/world3d.css?v=crystal-letter-v1">
     <link rel="stylesheet" href="assets/three/magic-world.css?v=crystal-letter-v1">
-    <link rel="stylesheet" href="assets/three/magic-runtime.css?v=crystal-letter-v1">
+    <link rel="stylesheet" href="assets/three/magic-runtime.css?v=cosmic-diary-v1">
+    <link rel="stylesheet" href="assets/three/magic-diary.css?v=cosmic-diary-v1">
+    <link rel="stylesheet" href="assets/three/magic-guestbook.css?v=cosmic-diary-v1">
+    <link rel="stylesheet" href="assets/three/dist/hanjing-riverside-world.css?v=cosmic-diary-v1">
 </head>
 <body class="garden-body">
     <header class="topbar">
@@ -64,9 +67,9 @@
     </header>
 
     <main id="world" class="world world-3d" aria-label="Hanjing’s opened crystal world. Click a miniature to look closer. Drag to turn, pinch or scroll to zoom, and click objects to explore.">
-      <canvas id="world-canvas" tabindex="0" aria-label="Interactive crystal world. Arrow keys turn the view; plus and minus zoom; Escape returns to the whole world."></canvas>
+      <canvas id="world-canvas" tabindex="0" aria-label="Interactive crystal world. Click a stone path to walk. Arrow keys look around; E pauses walking; plus and minus zoom; Escape returns to the whole world."></canvas>
       <div id="loading" class="world-loading" role="status"><span class="loading-seal">HS</span><p>Opening a world within…</p><small>A little ink. A little starlight. Two curious cats.</small></div>
-      <div class="chapter-caption" aria-live="polite"><p id="chapter-eyebrow" class="chapter-eyebrow">HANJING’S OPENED CRYSTAL WORLD</p><h1 id="chapter-title">A world within</h1><p id="chapter-sub">A little ink. A little starlight.</p></div>
+      <div class="chapter-caption" aria-live="polite"><p id="chapter-eyebrow" class="chapter-eyebrow">HANJING’S OPENED CRYSTAL WORLD</p><h1 id="chapter-title">A world within</h1><p id="chapter-sub">A little ink. A little starlight.</p><button id="walk-start-btn" class="keepsake-button" type="button">Explore on foot</button><button id="keepsake-btn" class="keepsake-button" type="button" hidden>Find a keepsake</button><button id="walk-reverse-btn" class="keepsake-button" type="button" hidden>Turn back</button><div id="walk-next" class="walk-next" hidden></div></div>
       <button id="room-btn" class="room-button" type="button" hidden>Look inside</button>
       <button id="world-prompt" class="world-prompt" type="button"><span class="prompt-diamond" aria-hidden="true">◇</span><span id="prompt-label">Read the invitation</span><kbd>E</kbd></button>
       <div id="object-tip" class="object-tip" hidden></div>
@@ -133,6 +136,6 @@
     <script src="assets/js/rituals.js?v=material-v3"></script>
     <script src="assets/js/guide.js?v=family-stories-v6"></script>
     <script src="assets/js/art.js?v=motion-world-v12"></script>
-    <script type="module" src="assets/three/dist/faithful-world.js?v=crystal-letter-v1"></script>
+    <script type="module" src="assets/three/dist/faithful-world.js?v=cosmic-diary-v1"></script>
 </body>
 </html>

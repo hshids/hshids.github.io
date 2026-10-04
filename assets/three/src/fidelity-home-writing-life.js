@@ -110,6 +110,7 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     solid(s,'writing-paper-bearing-sheet',[2.38,.014,.40],[px(3),deskTop+.007,deskZ-.03],'ivory');
     const ink=createWritingInk({root:s.root,resources:s.kit.resources,deskTop,deskZ,onTip:tip=>{s.root.userData.writingTip=tip;}});
     s.root.userData.setWritingActive=active=>ink.setActive(active);s.root.userData.getWritingTip=ink.getTip;s.root.userData.paper=ink.paper;s.root.userData.brushTarget=[px(53),deskTop+.026,deskZ-.11];animated.push((t,dt)=>ink.update(dt));
+    s.root.userData.inkDiaryPaper=ink.mesh;
     for(const x of[-1.12,1.22])s.props.tube('writing-actual-rolled-scroll-end-'+x,[x,deskTop+.042,deskZ-.23],[x,deskTop+.042,deskZ+.18],.03,'ivory');
     s.props.lathe('writing-real-recessed-inkstone',[[0,0],[.14,0],[.16,.04],[.13,.062],[.105,.062],[.105,.035],[0,.035]],[1.61,deskTop,-1.65],'ink');
     s.props.cylinder('writing-jade-brush-pot',.085,.25,[-1.6,deskTop+.125,-1.71],'green');
