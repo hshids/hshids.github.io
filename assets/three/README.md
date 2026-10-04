@@ -45,7 +45,39 @@ opaque walls block clicks on hidden items. Paintings, family photographs,
 labels, and the Talks projection are supported by actual frames or boards.
 
 Reviewed character/cat shapes and animations stay intact, with a matte toy
-finish. Building colours retain warm wood, cream plaster, slate roofs and
-campus stone. Windows, lanterns and room practical lights illuminate the
+finish. Buildings keep warm wood, cream plaster and campus stone; their roofs
+are blue-and-white porcelain (see below). Windows, lanterns and room practical lights illuminate the
 night version. Desktop uses a display-copy FXAA pass; mobile uses the
 single-sample renderer to keep its memory budget lower.
+
+## The crystal ball, the sea and the chinoiserie layer
+
+`src/magic-enchantment.js` adds to the world without changing routes, rooms or
+colliders. `createEnchantment()` is called from `magic-world.js` after the
+landscape and garden exist. It builds
+
+* the crystal ball, its stand and nameplate, and the open sea in front of the
+  promenade (the old river, lotus and koi are hidden, and the island is clipped
+  at the quay line);
+* the night sky, stars, floating candles, flying books, fireflies and lantern glow;
+* the hidden whale in the lower half of the ball (click the sea to reveal it);
+* the snowy owl on the Contact mailbox;
+* the chinoiserie dress, after the Trianon de Porcelaine and the Porcelain Tower
+  of Nanjing: porcelain tile roofs (`patchPorcelainRoof`), cobalt and white
+  brackets, gilt ridge ornaments, finials and eave bells (`FUSION`, measured per
+  building in station units), a Chinese Chippendale railing on the promenade,
+  wallpaper with a fretwork dado inside every room (`patchWallpaper`, limited to
+  the inner wall faces by the room bounds), and the porcelain pagoda (`PAGODA`).
+
+`src/magic-keepsakes.js` builds the two detailed keepsakes that live inside
+rooms: the Dalian and San Francisco box with the 2013 flight, and the map of the
+cats' two drives across America. `magic-stories.js` opens them.
+
+If a building is rebuilt, update its `FUSION` entry (walls, roof ridge and eave
+corners). The whale path, the pagoda position and the sea level are constants
+near the top of their sections.
+
+With `?qa`, `window.__CRYSTAL_QA__` exposes `pause`, `renderOnce`,
+`finishCamera`, `scene`, `camera`, `renderer` and `enchant.diagnostics` for
+headless screenshots and renderer counts.
+

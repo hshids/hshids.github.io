@@ -2,22 +2,19 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // The enchantment layer: a magical night sky, LEGO-like studs and brick
-// courses, floating candles, fireflies, lantern glow, and two story keepsakes
-// (the Dalian and San Francisco bridges, and the Contact owl).
+// courses, floating candles, fireflies, lantern glow, the crystal ball and its
+// sea, the hidden whale, the snowy owl, and a chinoiserie dress for the
+// buildings (blue-and-white porcelain roofs, gilt bells and finials, Chinese
+// Chippendale fretwork and a porcelain pagoda).
 // It only adds to the existing world: no routes, rooms or colliders change.
 
 const ISLAND = {cx: 10.5, cz: -14, rx: 35, rz: 24};
 const RESEARCH = {x: -12, z: -12.25, roofTop: 6.1};
 const HOME = {x: 0, z: -0.5};
 
-// Four house-like roof colours plus a little magic purple for the welcome hall.
-const ROOF_TINTS = {
-  'research-roof-crafted-surface': '#6f8fd6',
-  'Talks-roof-crafted-surface': '#d0675d',
-  'HWL-writing-roof-crafted-surface': '#6fae7c',
-  'HWL-life-roof-crafted-surface': '#e2b85a',
-  'HWL-home-roof-crafted-surface': '#9a7cc8'
-};
+// Every station roof turns into blue-and-white faience, after the Trianon de
+// Porcelaine at Versailles and the Porcelain Tower of Nanjing that inspired it.
+const PORCELAIN_ROOFS = new Set(['research-roof-crafted-surface', 'Talks-roof-crafted-surface', 'HWL-writing-roof-crafted-surface', 'HWL-life-roof-crafted-surface', 'HWL-home-roof-crafted-surface']);
 
 const rng = seed => { let n = seed >>> 0; return () => { n = (1664525 * n + 1013904223) >>> 0; return n / 4294967296; }; };
 
@@ -166,6 +163,210 @@ function patchBricks(material, ell = ISLAND) {
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vec3(0.10, 0.42, 0.55) * enchGlowBrick * 0.55;');
   };
   material.customProgramCacheKey = () => 'enchantment-bricks-v2-' + (straight ? 'straight' : ell.rx);
+  material.needsUpdate = true;
+}
+
+const PORCELAIN_GLSL = /* glsl */`
+  uniform vec3 uPorcWhite, uPorcInk, uPorcDeep;
+  float porcAA(float d){ float w = fwidth(d) * 0.75 + 1e-4; return smoothstep(w, -w, d); }
+  // A white glazed tile: cobalt frame, quarter flowers where four tiles meet, and one of four centre motifs.
+  float porcMotif(vec2 p, float seed){
+    vec2 a = abs(p);
+    float ink = porcAA(abs(max(a.x, a.y) - 0.80) - 0.045);
+    ink = max(ink, porcAA(length(a - 1.0) - 0.30));
+    float r = length(p), th = atan(p.y, p.x);
+    if (seed < 0.42) {
+      float petal = r - 0.52 * (0.42 + 0.58 * abs(cos(2.0 * th)));
+      ink = max(ink, porcAA(petal) * (1.0 - porcAA(r - 0.12)));
+      ink = max(ink, porcAA(r - 0.055));
+    } else if (seed < 0.68) {
+      ink = max(ink, porcAA(abs(r - 0.48) - 0.05));
+      ink = max(ink, porcAA(r - 0.30) * (1.0 - porcAA(min(a.x, a.y) - 0.045)));
+    } else if (seed < 0.88) {
+      float dm = a.x + a.y;
+      ink = max(ink, porcAA(dm - 0.60) * (1.0 - porcAA(dm - 0.42)));
+      ink = max(ink, porcAA(dm - 0.18));
+    } else {
+      vec2 q = p * vec2(1.0, 1.3);
+      ink = max(ink, porcAA(min(abs(length(q - vec2(-0.18, 0.0)) - 0.22), abs(length(q - vec2(0.20, 0.06)) - 0.15)) - 0.05));
+    }
+    return ink;
+  }
+`;
+
+/**
+ * Blue-and-white faience roofs. Each toy tile lap is painted in its own frame
+ * with a cobalt motif chosen by its position; the slab, ridges, eaves and
+ * upturned corners under the tiles become deep cobalt glaze with fine white lines.
+ */
+function patchPorcelainRoof(material) {
+  material.color.set('#ffffff');
+  material.roughness = 0.36;
+  const uniforms = {uPorcWhite: {value: new THREE.Color('#f4f6fb')}, uPorcInk: {value: new THREE.Color('#2a56b4')}, uPorcDeep: {value: new THREE.Color('#1f4596')}};
+  material.onBeforeCompile = shader => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vPorcL, vPorcLN, vPorcW, vPorcN; varying float vPorcI;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vPorcL = transformed; vPorcLN = objectNormal; vPorcI = 0.0;
+        vec4 porcW = vec4(transformed, 1.0); vec3 porcN = objectNormal;
+        #ifdef USE_INSTANCING
+          porcW = instanceMatrix * porcW; porcN = mat3(instanceMatrix) * porcN;
+          vPorcI = 1.0 + fract(sin(dot(floor(instanceMatrix[3].xyz * 40.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+        #endif
+        vPorcW = (modelMatrix * porcW).xyz; vPorcN = normalize(mat3(modelMatrix) * porcN);`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\nvarying vec3 vPorcL, vPorcLN, vPorcW, vPorcN; varying float vPorcI;\n${PORCELAIN_GLSL}`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        {
+          vec3 porc;
+          if (vPorcI > 0.5) {
+            float seed = vPorcI - 1.0;
+            float ink = vPorcLN.y > 0.35 ? porcMotif(vPorcL.xz / vec2(0.12, 0.13), seed) : 0.9;
+            porc = mix(uPorcWhite * (0.95 + 0.06 * seed), uPorcInk, ink);
+          } else {
+            vec3 n = normalize(vPorcN);
+            float line = porcAA(0.035 - abs(fract(vPorcW.y * 6.0) - 0.5) + 0.43) * (1.0 - step(0.7, abs(n.y)));
+            porc = mix(uPorcDeep, uPorcWhite, line * 0.85);
+          }
+          diffuseColor.rgb *= porc;
+        }`);
+  };
+  material.customProgramCacheKey = () => 'enchantment-porcelain-roof-v1';
+  material.needsUpdate = true;
+}
+
+/** White glazed porcelain bricks for the pagoda, laid in courses around its axis, with a few painted cobalt bricks. */
+function patchPorcelainBricks(material, center) {
+  const uniforms = {uPorcWhite: {value: new THREE.Color('#f6f6f2')}, uPorcInk: {value: new THREE.Color('#3a63bd')}, uPorcDeep: {value: new THREE.Color('#9aa6b8')}};
+  material.onBeforeCompile = shader => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vPorcW;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvPorcW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>\nvarying vec3 vPorcW;\n${NOISE_GLSL}\n${PORCELAIN_GLSL}`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        {
+          vec2 d = vPorcW.xz - vec2(${center[0].toFixed(2)}, ${center[1].toFixed(2)});
+          float course = vPorcW.y / 0.11, row = floor(course), v = fract(course);
+          float along = atan(d.y, d.x) * length(d) / 0.22 + mod(row, 2.0) * 0.5, brick = floor(along), u = fract(along);
+          float joint = max(porcAA(0.06 - v), porcAA(0.035 - min(u, 1.0 - u)));
+          float pick = enchHash(vec3(brick, row, 5.3));
+          vec3 glaze = uPorcWhite * (0.94 + 0.08 * enchHash(vec3(brick, row, 1.7)));
+          glaze = pick > 0.93 ? mix(glaze, uPorcInk, 0.75) : glaze;
+          diffuseColor.rgb *= mix(glaze, uPorcDeep, joint) * (1.0 + 0.06 * smoothstep(0.7, 0.95, v));
+        }`);
+  };
+  material.customProgramCacheKey = () => 'enchantment-porcelain-bricks-v1';
+  material.needsUpdate = true;
+}
+
+/**
+ * A tileable chinoiserie wallpaper, after the painted salons of Champs-sur-Marne
+ * and Haroue: flowering prunus branches, leaves and two little birds in cobalt
+ * on an ivory ground. Every element is drawn nine times so the tile wraps.
+ */
+function wallpaperTexture(low) {
+  const S = low ? 256 : 512, k = S / 512, cv = document.createElement('canvas'); cv.width = cv.height = S;
+  const c = cv.getContext('2d'), r = rng(77), ink = '#2c4f9c', soft = '#8ea6d4';
+  c.fillStyle = '#f2eee2'; c.fillRect(0, 0, S, S);
+  const wrap = fn => { for (const dx of [-S, 0, S]) for (const dy of [-S, 0, S]) { c.save(); c.translate(dx, dy); c.scale(k, k); fn(); c.restore(); } };
+  const bez = (P, t) => { const u = 1 - t; return [0, 1].map(i => u * u * u * P[0][i] + 3 * u * u * t * P[1][i] + 3 * u * t * t * P[2][i] + t * t * t * P[3][i]); };
+  const branches = [[[30, 500], [130, 400], [70, 270], [210, 170]], [[290, 520], [270, 410], [390, 350], [480, 240]], [[230, 130], [300, 60], [410, 100], [505, 15]]];
+  const blossoms = [], leaves = [], twigs = [];
+  for (const P of branches) for (let t = 0.12; t < 1; t += 0.11 + r() * 0.06) {
+    const [x, y] = bez(P, t), a = r() * Math.PI * 2, len = 22 + r() * 26;
+    twigs.push([x, y, x + Math.cos(a) * len, y + Math.sin(a) * len]);
+    blossoms.push([x + Math.cos(a) * len, y + Math.sin(a) * len, 7 + r() * 4, r() * 6]);
+    if (r() < 0.7) blossoms.push([x + Math.cos(a + 0.9) * 12, y + Math.sin(a + 0.9) * 12, 5 + r() * 2, r() * 6]);
+    leaves.push([x + Math.cos(a - 1.4) * 14, y + Math.sin(a - 1.4) * 14, a - 1.4]);
+  }
+  const birds = [[150, 236, -0.25, 1], [395, 318, 0.2, -1]];
+  wrap(() => {
+    c.lineCap = 'round'; c.strokeStyle = ink;
+    for (const P of branches) for (const [w, a] of [[9, 0.55], [5, 1]]) {
+      c.lineWidth = w; c.globalAlpha = a; c.beginPath(); c.moveTo(...P[0]); c.bezierCurveTo(...P[1], ...P[2], ...P[3]); c.stroke();
+    }
+    c.globalAlpha = 1; c.lineWidth = 2.2;
+    for (const [x0, y0, x1, y1] of twigs) { c.beginPath(); c.moveTo(x0, y0); c.quadraticCurveTo((x0 + x1) / 2 + 6, (y0 + y1) / 2 - 6, x1, y1); c.stroke(); }
+    c.fillStyle = soft;
+    for (const [x, y, a] of leaves) { c.save(); c.translate(x, y); c.rotate(a); c.beginPath(); c.ellipse(0, 0, 11, 4.5, 0, 0, Math.PI * 2); c.fill(); c.restore(); }
+    for (const [x, y, R, rot] of blossoms) {
+      for (let i = 0; i < 5; i++) {
+        const a = rot + i * Math.PI * 2 / 5;
+        c.beginPath(); c.arc(x + Math.cos(a) * R * 0.62, y + Math.sin(a) * R * 0.62, R * 0.52, 0, Math.PI * 2);
+        c.fillStyle = '#fbfaf5'; c.fill(); c.lineWidth = 1.6; c.strokeStyle = ink; c.stroke();
+      }
+      c.beginPath(); c.arc(x, y, R * 0.22, 0, Math.PI * 2); c.fillStyle = ink; c.fill();
+    }
+    for (const [x, y, tilt, dir] of birds) {
+      c.save(); c.translate(x, y); c.rotate(tilt); c.scale(dir, 1); c.fillStyle = ink;
+      c.beginPath(); c.moveTo(-14, 2); c.lineTo(-46, 16); c.lineTo(-44, 8); c.lineTo(-12, -3); c.fill();          // long tail
+      c.beginPath(); c.ellipse(0, 0, 17, 9, -0.15, 0, Math.PI * 2); c.fill();                                     // body
+      c.beginPath(); c.arc(15, -7, 7, 0, Math.PI * 2); c.fill();                                                   // head
+      c.beginPath(); c.moveTo(21, -8); c.lineTo(29, -6); c.lineTo(21, -4); c.fill();                               // beak
+      c.fillStyle = '#fbfaf5'; c.beginPath(); c.ellipse(-2, 2, 9, 3.5, -0.2, 0, Math.PI * 2); c.fill();          // white wing bar
+      c.beginPath(); c.arc(17, -8, 1.6, 0, Math.PI * 2); c.fill();
+      c.restore();
+    }
+  });
+  const tex = new THREE.CanvasTexture(cv); tex.name = 'enchantment-chinoiserie-wallpaper';
+  tex.colorSpace = THREE.SRGBColorSpace; tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.anisotropy = 4;
+  return tex;
+}
+
+/**
+ * Paints the inner faces of every room wall with the wallpaper, above a
+ * cobalt fretwork dado and a gilt chair rail. Faces count as inner when they
+ * sit just inside a room's bounds and face its centre, so outside walls keep
+ * their limewash.
+ */
+function patchWallpaper(material, rooms, tex) {
+  const n = Math.min(rooms.length, 12);
+  const uniforms = {
+    uPaper: {value: tex}, uRoomCount: {value: n},
+    uRoomMin: {value: Array.from({length: 12}, (_, i) => rooms[i] ? rooms[i][0] : new THREE.Vector3())},
+    uRoomMax: {value: Array.from({length: 12}, (_, i) => rooms[i] ? rooms[i][1] : new THREE.Vector3())},
+    uPorcWhite: {value: new THREE.Color('#f4f6fb')}, uPorcInk: {value: new THREE.Color('#2a56b4')}, uPorcDeep: {value: new THREE.Color('#c8d5ee')}
+  };
+  material.onBeforeCompile = shader => {
+    Object.assign(shader.uniforms, uniforms);
+    shader.vertexShader = shader.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vPaperW, vPaperN;')
+      .replace('#include <begin_vertex>', `#include <begin_vertex>
+        vec4 paperW = vec4(transformed, 1.0); vec3 paperN = objectNormal;
+        #ifdef USE_INSTANCING
+          paperW = instanceMatrix * paperW; paperN = mat3(instanceMatrix) * paperN;
+        #endif
+        vPaperW = (modelMatrix * paperW).xyz; vPaperN = normalize(mat3(modelMatrix) * paperN);`);
+    shader.fragmentShader = shader.fragmentShader
+      .replace('#include <common>', `#include <common>
+        varying vec3 vPaperW, vPaperN; uniform sampler2D uPaper; uniform int uRoomCount; uniform vec3 uRoomMin[12], uRoomMax[12];
+        ${PORCELAIN_GLSL}`)
+      .replace('#include <map_fragment>', `#include <map_fragment>
+        {
+          vec3 n = normalize(vPaperN);
+          for (int i = 0; i < 12; i++) {
+            if (i >= uRoomCount || abs(n.y) > 0.3) break;
+            vec3 mn = uRoomMin[i], mx = uRoomMax[i], p = vPaperW;
+            if (p.x < mn.x || p.x > mx.x || p.z < mn.z || p.z > mx.z || p.y < mn.y - 0.05 || p.y > mx.y + 0.05) continue;
+            float edge = min(min(p.x - mn.x, mx.x - p.x), min(p.z - mn.z, mx.z - p.z));
+            if (edge > 0.14 || dot(n.xz, (mn.xz + mx.xz) * 0.5 - p.xz) <= 0.0) continue;
+            float u = abs(n.z) > abs(n.x) ? p.x : p.z, h = p.y - mn.y;
+            vec3 paper = texture2D(uPaper, vec2(u, h) / 1.15).rgb;
+            // a cobalt fretwork dado with a gilt chair rail and a deep blue skirting
+            float lattice = porcAA(0.03 - abs(fract((u + h) * 3.2) - 0.5) + 0.44) + porcAA(0.03 - abs(fract((u - h) * 3.2) - 0.5) + 0.44);
+            vec3 dado = mix(uPorcDeep, uPorcWhite, clamp(lattice, 0.0, 1.0));
+            dado = mix(dado, uPorcInk, porcAA(h - 0.09));
+            vec3 wall = h < 0.62 ? dado : paper;
+            wall = mix(wall, vec3(0.80, 0.56, 0.20), porcAA(abs(h - 0.64) - 0.022));
+            diffuseColor.rgb = wall;
+            break;
+          }
+        }`);
+  };
+  material.customProgramCacheKey = () => 'enchantment-chinoiserie-wallpaper-v1';
   material.needsUpdate = true;
 }
 
@@ -547,7 +748,7 @@ function createGlobeAndSea({reduced, low}) {
     }};
 }
 
-/** The seaside promenade: a brick quay where the island meets the open sea, with a white balustrade and lamps. */
+/** The seaside promenade: a brick quay where the island meets the open sea, with a Chinese Chippendale railing and lamps. */
 function createPromenade({low}) {
   const group = new THREE.Group(); group.name = 'enchantment-seaside-promenade';
   const disposables = [];
@@ -560,20 +761,46 @@ function createPromenade({low}) {
   const copeGeo = new THREE.BoxGeometry(len, 0.14, 0.95); copeGeo.translate(midX, 0.06, FRONT_Z - 0.42);
   const cope = new THREE.Mesh(copeGeo, copeMat); cope.name = 'enchantment-quay-coping'; cope.receiveShadow = true; cope.castShadow = true; group.add(cope);
   disposables.push(wallMat, wallGeo, copeMat, copeGeo);
-  // a white classical balustrade: rail, plinth and turned balusters
-  const railMat = new THREE.MeshStandardMaterial({name: 'enchantment-balustrade-marble', color: '#f1ece2', roughness: 0.55});
-  const pieces = [];
-  const rail = new THREE.BoxGeometry(len, 0.08, 0.16); rail.translate(midX, 0.78, FRONT_Z - 0.18); pieces.push(rail);
-  const plinth = new THREE.BoxGeometry(len, 0.08, 0.2); plinth.translate(midX, 0.17, FRONT_Z - 0.18); pieces.push(plinth);
-  const baluster = new THREE.LatheGeometry([[0.0, 0], [0.055, 0], [0.06, 0.05], [0.035, 0.12], [0.065, 0.28], [0.04, 0.45], [0.05, 0.5], [0.0, 0.52]].map(([r, y]) => new THREE.Vector2(r, y)), 8);
-  const step = low ? 0.42 : 0.3;
-  for (let x = QUAY_X[0] + 0.3, i = 0; x < QUAY_X[1] - 0.2; x += step, i++) {
-    if (i % 12 === 0) { const post = new THREE.BoxGeometry(0.2, 0.68, 0.22); post.translate(x, 0.53, FRONT_Z - 0.18); pieces.push(post); continue; }
-    const b = baluster.clone(); b.translate(x, 0.21, FRONT_Z - 0.18); pieces.push(b);
-  }
-  const railGeo = mergeGeometries(pieces.map(g => g.index ? g.toNonIndexed() : g), false);
-  pieces.forEach(g => g.dispose()); baluster.dispose();
-  const railing = new THREE.Mesh(railGeo, railMat); railing.name = 'enchantment-white-balustrade'; railing.castShadow = true; railing.receiveShadow = true; group.add(railing);
+  // a Chinese Chippendale railing: white fretwork panels between posts with
+  // cobalt bands and gilt ball finials, all in one vertex-coloured mesh
+  const railMat = new THREE.MeshStandardMaterial({name: 'enchantment-chippendale-fretwork', color: '#ffffff', vertexColors: true, roughness: 0.5, metalness: 0.08});
+  const pieces = [], zr = FRONT_Z - 0.18;
+  const paint = (g, color, p, rz = 0) => {
+    const geo = g.index ? g.toNonIndexed() : g; if (geo !== g) g.dispose();
+    if (rz) geo.rotateZ(rz); geo.translate(...p);
+    const c = new THREE.Color(color), n = geo.attributes.position.count, col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3)); pieces.push(geo);
+  };
+  const white = '#f3f1ea', blue = '#2b55ad', gold = '#d8b25c';
+  // a bar from (xa, ya) to (xb, yb) in the railing plane
+  const bar = (xa, ya, xb, yb, t = 0.026) => { const dx = xb - xa, dy = yb - ya; paint(new THREE.BoxGeometry(Math.hypot(dx, dy) + t, t, 0.045), white, [(xa + xb) / 2, (ya + yb) / 2, zr], Math.atan2(dy, dx)); };
+  paint(new THREE.BoxGeometry(len, 0.07, 0.17), white, [midX, 0.80, zr]);
+  paint(new THREE.BoxGeometry(len, 0.02, 0.172), blue, [midX, 0.755, zr]);
+  paint(new THREE.BoxGeometry(len, 0.08, 0.2), white, [midX, 0.17, zr]);
+  const span = low ? 2.4 : 1.8, ya = 0.25, yb = 0.72;
+  const posts = [];
+  for (let x = QUAY_X[0] + 0.2; x < QUAY_X[1] - 0.1; x += span) posts.push(x);
+  if (QUAY_X[1] - 0.2 - posts[posts.length - 1] > 0.5) posts.push(QUAY_X[1] - 0.2);
+  posts.forEach((x, i) => {
+    paint(new THREE.BoxGeometry(0.16, 0.74, 0.2), white, [x, 0.53, zr]);
+    paint(new THREE.BoxGeometry(0.17, 0.05, 0.21), blue, [x, 0.33, zr]);
+    paint(new THREE.BoxGeometry(0.2, 0.04, 0.24), white, [x, 0.92, zr]);
+    paint(new THREE.SphereGeometry(0.065, low ? 8 : 12, low ? 6 : 8), gold, [x, 1.0, zr]);
+    const next = posts[i + 1]; if (next === undefined) return;
+    // one panel: an inner frame, then cells of crossing diagonals around a small open square
+    const xa = x + 0.08, xb = next - 0.08, cells = Math.max(1, Math.round((xb - xa) / 0.55)), cw = (xb - xa) / cells;
+    bar(xa, ya, xb, ya); bar(xa, yb, xb, yb);
+    for (let k = 0; k <= cells; k++) bar(xa + k * cw, ya, xa + k * cw, yb);
+    for (let k = 0; k < cells; k++) {
+      const c0 = xa + k * cw, c1 = c0 + cw, cm = (c0 + c1) / 2, ym = (ya + yb) / 2, hs = 0.075, hw = Math.min(0.1, cw * 0.2);
+      bar(c0, ya, cm - hw, ym - hs); bar(c1, ya, cm + hw, ym - hs); bar(c0, yb, cm - hw, ym + hs); bar(c1, yb, cm + hw, ym + hs);
+      bar(cm - hw, ym - hs, cm + hw, ym - hs); bar(cm - hw, ym + hs, cm + hw, ym + hs); bar(cm - hw, ym - hs, cm - hw, ym + hs); bar(cm + hw, ym - hs, cm + hw, ym + hs);
+    }
+  });
+  const railGeo = mergeGeometries(pieces, false);
+  pieces.forEach(g => g.dispose());
+  const railing = new THREE.Mesh(railGeo, railMat); railing.name = 'enchantment-chippendale-railing'; railing.castShadow = true; railing.receiveShadow = true; group.add(railing);
   disposables.push(railMat, railGeo);
   // seafront lamps with warm glass
   const lampPoints = [];
@@ -594,57 +821,74 @@ function createPromenade({low}) {
   return {group, disposables, lampPoints};
 }
 
-// Tang and European classical details, fitted to each building's measured
-// walls (station-local units, front faces +z). If a building is rebuilt, update
-// its entry here.
+// Chinoiserie details, fitted to each building's measured walls and eaves
+// (station-local units, front faces +z): a European cornice and pilasters
+// dressed with cobalt and white porcelain brackets, gilt ridge dragons, a gilt
+// finial where the ridge is free, porcelain lanterns and little bells under
+// every eave corner.
+// If a building is rebuilt, update its entry here.
 const FUSION = {
-  'complete-home': {x: [-3.65, 1.83], z: [-3.60, 0.10], base: 0.30, top: 2.95, roof: 3.92},
-  'research-complete-two-storey-library': {x: [-3.19, 3.19], z: [-4.19, -0.31], base: 0.12, top: 2.48, roof: 6.07, ridgeScale: 0.62},
-  'talks-complete-timber-lecture-hall': {x: [-3.98, 2.08], z: [-4.33, 2.08], base: 0.12, top: 3.35, roof: 4.36},
-  'complete-writing': {x: [-3.73, 5.43], z: [-4.33, 0.68], base: 0.12, top: 2.95, roof: 3.99},
-  'complete-life': {x: [-4.19, 4.19], z: [-4.09, -0.01], base: 0.24, top: 2.95, roof: 3.91}
+  'complete-home': {x: [-3.65, 1.83], z: [-3.60, 0.10], base: 0.30, top: 2.95, roof: 3.92, finial: false, eaves: [{x: [-4.02, 2.20], z: [-3.955, 0.46], y: 3.06}]},
+  'research-complete-two-storey-library': {x: [-3.19, 3.19], z: [-4.19, -0.31], base: 0.12, top: 2.48, roof: 6.07, ridgeScale: 0.62,
+    eaves: [{x: [-3.69, 3.69], z: [-4.70, 0.20], y: 2.56}, {x: [-2.91, 2.91], z: [-4.19, -0.73], y: 5.16}]},
+  'talks-complete-timber-lecture-hall': {x: [-3.98, 2.08], z: [-4.33, 2.08], base: 0.12, top: 3.35, roof: 4.36, eaves: [{x: [-4.21, 2.31], z: [-4.45, 2.20], y: 3.55}]},
+  'complete-writing': {x: [-3.73, 5.43], z: [-4.33, 0.68], base: 0.12, top: 2.95, roof: 3.99, finial: false, eaves: [{x: [-4.07, 5.77], z: [-4.655, 1.01], y: 3.06}]},
+  'complete-life': {x: [-4.19, 4.19], z: [-4.09, -0.01], base: 0.24, top: 2.95, roof: 3.91, finial: false, eaves: [{x: [-4.55, 4.55], z: [-4.435, 0.34], y: 3.06}]}
 };
+
+// A small temple bell (lathe profile, mouth down), shared by the buildings and the pagoda.
+const BELL_PROFILE = [[0.0, 0.0], [0.040, 0.0], [0.044, 0.010], [0.036, 0.030], [0.030, 0.062], [0.026, 0.084], [0.014, 0.096], [0.0, 0.098]];
+function hangBell(add, gilt, at, {cord = 0.06, s = 1, lowSeg = false} = {}) {
+  const [x, y, z] = at;
+  add(new THREE.CylinderGeometry(0.004 * s, 0.004 * s, cord * s, 4), gilt, [x, y - cord * s / 2, z]);
+  const bell = new THREE.LatheGeometry(BELL_PROFILE.map(([r, h]) => new THREE.Vector2(r * s, h * s)), lowSeg ? 6 : 10);
+  add(bell, gilt, [x, y - cord * s - 0.098 * s, z]);
+  // the wind plate that makes it ring
+  add(new THREE.BoxGeometry(0.036 * s, 0.036 * s, 0.003 * s), gilt, [x, y - cord * s - 0.15 * s, z], [0, 0, Math.PI / 4]);
+}
 
 function createFusionDetails({garden, low}) {
   const disposables = [], lanternPoints = [];
-  const M = (name, color, o = {}) => { const m = new THREE.MeshStandardMaterial({name: 'fusion-' + name, color, roughness: 0.6, ...o}); disposables.push(m); return m; };
-  const stone = M('classical-cream-stone', '#efe6d2', {roughness: 0.7}), groove = M('pilaster-flute-shadow', '#c9bea6');
-  const vermilion = M('tang-vermilion', '#b4472e'), malachite = M('tang-malachite', '#2f7a68'), azurite = M('tang-azurite', '#3b5f9a');
-  const gilt = M('tang-gilt', '#d2aa55', {metalness: 0.65, roughness: 0.35}), glaze = M('ridge-glazed-tile', '#3c5554', {roughness: 0.45, metalness: 0.1});
-  const lanternRed = M('red-silk-lantern', '#d23a2a', {emissive: '#b8281a', emissiveIntensity: 0.9, roughness: 0.5});
+  const M = (name, color, o = {}) => { const m = new THREE.MeshStandardMaterial({name: 'chinoiserie-' + name, color, roughness: 0.6, ...o}); disposables.push(m); return m; };
+  const stone = M('classical-cream-stone', '#efe6d2', {roughness: 0.7}), groove = M('pilaster-cobalt-flute', '#7f98cc');
+  const cobalt = M('cobalt-glaze', '#2b55ad'), porcelain = M('porcelain-white', '#f1f3f8'), sky = M('pale-cobalt', '#6e93d6');
+  const gilt = M('gilt', '#e8c46a'), deep = M('deep-cobalt-ridge', '#22468f');
+  const silk = M('porcelain-lantern', '#fff1d6', {emissive: '#ffb45c', emissiveIntensity: 0.95, roughness: 0.5});
   const cord = M('lantern-cord', '#3a2418');
-  const painted = M('painted-stone-and-brackets', '#ffffff', {vertexColors: true, roughness: 0.58, metalness: 0.05});
+  // painted parts share one vertex-coloured material; gilt keeps its own metal so it can catch the light
+  const painted = M('painted-stone-and-brackets', '#ffffff', {vertexColors: true, roughness: 0.5, metalness: 0.04});
+  // there is no environment map at night, so the gilt stays only half metallic to keep its colour
+  const giltMetal = M('gilt-metal', '#ffffff', {vertexColors: true, roughness: 0.36, metalness: 0.42});
   for (const station of garden?.root.children || []) {
     const spec = FUSION[station.name]; if (!spec) continue;
-    // every painted part shares one vertex-coloured material; only the glowing lanterns keep their own
     const parts = new Map(), add = (g, m, p, r) => {
       const geo = g.index ? g.toNonIndexed() : g; if (geo !== g) g.dispose();
       if (r) geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...r))); geo.translate(...p);
       if (!geo.attributes.uv) geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2));
-      const key = m === lanternRed ? lanternRed : painted, c = m.color, n = geo.attributes.position.count, col = new Float32Array(n * 3);
+      const key = m === silk ? silk : m === gilt ? giltMetal : painted, c = m.color, n = geo.attributes.position.count, col = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
       geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
       if (!parts.has(key)) parts.set(key, []); parts.get(key).push(geo);
     };
     const [x0, x1] = spec.x, [z0, z1] = spec.z, top = spec.top, base = spec.base, w = x1 - x0, d = z1 - z0;
-    // classical cornice: two stepped mouldings around the wall top
-    for (const [y, h, out] of [[top - 0.27, 0.07, 0.05], [top - 0.205, 0.045, 0.085]]) {
-      add(new THREE.BoxGeometry(w + out * 2, h, 0.06), stone, [(x0 + x1) / 2, y, z1 + out - 0.03]);
-      add(new THREE.BoxGeometry(w + out * 2, h, 0.06), stone, [(x0 + x1) / 2, y, z0 - out + 0.03]);
-      add(new THREE.BoxGeometry(0.06, h, d + out * 2), stone, [x0 - out + 0.03, y, (z0 + z1) / 2]);
-      add(new THREE.BoxGeometry(0.06, h, d + out * 2), stone, [x1 + out - 0.03, y, (z0 + z1) / 2]);
+    // classical cornice: two stepped mouldings around the wall top, the upper one in cobalt glaze
+    for (const [y, h, out, m] of [[top - 0.27, 0.07, 0.05, stone], [top - 0.205, 0.045, 0.085, cobalt]]) {
+      add(new THREE.BoxGeometry(w + out * 2, h, 0.06), m, [(x0 + x1) / 2, y, z1 + out - 0.03]);
+      add(new THREE.BoxGeometry(w + out * 2, h, 0.06), m, [(x0 + x1) / 2, y, z0 - out + 0.03]);
+      add(new THREE.BoxGeometry(0.06, h, d + out * 2), m, [x0 - out + 0.03, y, (z0 + z1) / 2]);
+      add(new THREE.BoxGeometry(0.06, h, d + out * 2), m, [x1 + out - 0.03, y, (z0 + z1) / 2]);
     }
-    // Tang dougong brackets along the frieze, front and back
+    // porcelain brackets along the frieze, front and back
     const bracket = (x, z, dir) => {
-      add(new THREE.BoxGeometry(0.11, 0.055, 0.11), vermilion, [x, top - 0.15, z + dir * 0.06]);
-      add(new THREE.BoxGeometry(0.30, 0.042, 0.07), malachite, [x, top - 0.105, z + dir * 0.06]);
-      add(new THREE.BoxGeometry(0.07, 0.042, 0.2), azurite, [x, top - 0.105, z + dir * 0.1]);
-      add(new THREE.BoxGeometry(0.12, 0.045, 0.12), vermilion, [x, top - 0.06, z + dir * 0.07]);
+      add(new THREE.BoxGeometry(0.11, 0.055, 0.11), cobalt, [x, top - 0.15, z + dir * 0.06]);
+      add(new THREE.BoxGeometry(0.30, 0.042, 0.07), porcelain, [x, top - 0.105, z + dir * 0.06]);
+      add(new THREE.BoxGeometry(0.07, 0.042, 0.2), sky, [x, top - 0.105, z + dir * 0.1]);
+      add(new THREE.BoxGeometry(0.12, 0.045, 0.12), cobalt, [x, top - 0.06, z + dir * 0.07]);
       add(new THREE.BoxGeometry(0.06, 0.012, 0.06), gilt, [x, top - 0.032, z + dir * 0.07]);
     };
     const step = low ? 1.3 : 0.9;
     for (let x = x0 + 0.45; x <= x1 - 0.4; x += step) { if (Math.abs(x - (x0 + x1) / 2) > 0.85) bracket(x, z1, 1); bracket(x, z0, -1); }
-    // classical pilasters at the four corners, with bases, flutes and scroll capitals
+    // classical pilasters at the four corners, with bases, cobalt flutes and scroll capitals
     const shaftH = top - 0.32 - (base + 0.14);
     for (const [cx, cz] of [[x0 - 0.03, z1 + 0.03], [x1 + 0.03, z1 + 0.03], [x0 - 0.03, z0 - 0.03], [x1 + 0.03, z0 - 0.03]]) {
       add(new THREE.BoxGeometry(0.24, 0.14, 0.24), stone, [cx, base + 0.07, cz]);
@@ -654,7 +898,7 @@ function createFusionDetails({garden, low}) {
       add(new THREE.BoxGeometry(0.26, 0.016, 0.26), gilt, [cx, top - 0.29, cz]);
       for (const sx of [-1, 1]) add(new THREE.CylinderGeometry(0.035, 0.035, 0.26, 12), stone, [cx + sx * 0.1, top - 0.36, cz], [Math.PI / 2, 0, 0]);
     }
-    // chiwei ridge ornaments and a glazed ridge cap
+    // gilt ridge dragons (chiwei) and a cobalt ridge cap
     const along = w >= d ? 'x' : 'z', L = Math.max(w, d), W = Math.min(w, d), half = Math.max(0.35, (L - W) / 2 * (spec.ridgeScale ?? 0.9));
     const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
     const fin = new THREE.Shape(); fin.moveTo(-0.13, 0); fin.lineTo(-0.13, 0.24); fin.quadraticCurveTo(-0.11, 0.44, 0.05, 0.47); fin.quadraticCurveTo(0.13, 0.44, 0.09, 0.35); fin.quadraticCurveTo(0.03, 0.36, 0.04, 0.25); fin.lineTo(0.12, 0); fin.closePath();
@@ -662,29 +906,142 @@ function createFusionDetails({garden, low}) {
       const g = new THREE.ExtrudeGeometry(fin, {depth: 0.07, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 2, curveSegments: 10}); g.translate(0, 0, -0.035);
       const yaw = along === 'x' ? (sgn < 0 ? 0 : Math.PI) : (sgn < 0 ? -Math.PI / 2 : Math.PI / 2);
       const px = along === 'x' ? cx + sgn * half : cx, pz = along === 'x' ? cz : cz + sgn * half;
-      add(g, glaze, [px, spec.roof - 0.06, pz], [0, yaw, 0]);
-      add(new THREE.SphereGeometry(0.035, 12, 8), gilt, [px + (along === 'x' ? -sgn * 0.05 : 0), spec.roof + 0.42, pz + (along === 'z' ? -sgn * 0.05 : 0)]);
+      add(g, gilt, [px, spec.roof - 0.06, pz], [0, yaw, 0]);
+      add(new THREE.SphereGeometry(0.035, 12, 8), porcelain, [px + (along === 'x' ? -sgn * 0.05 : 0), spec.roof + 0.42, pz + (along === 'z' ? -sgn * 0.05 : 0)]);
     }
     const ridge = new THREE.CylinderGeometry(0.055, 0.055, half * 2, 12);
-    add(ridge, glaze, [cx, spec.roof - 0.02, cz], along === 'x' ? [0, 0, Math.PI / 2] : [Math.PI / 2, 0, 0]);
-    // a pair of red silk lanterns under the front eaves
+    add(ridge, deep, [cx, spec.roof - 0.02, cz], along === 'x' ? [0, 0, Math.PI / 2] : [Math.PI / 2, 0, 0]);
+    // a gilt finial at the middle of the ridge: lotus cup, porcelain gourd, pearl and spike
+    // (skipped where the ridge already carries a story landmark: the letter, the crane, the cat ears)
+    const fy = spec.roof + 0.02;
+    if (spec.finial !== false) {
+    add(new THREE.CylinderGeometry(0.06, 0.075, 0.05, 12), gilt, [cx, fy + 0.025, cz]);
+    const cup = new THREE.SphereGeometry(0.075, 14, 8, 0, Math.PI * 2, Math.PI / 2, Math.PI / 2); cup.rotateX(Math.PI); add(cup, gilt, [cx, fy + 0.13, cz]);
+    add(new THREE.SphereGeometry(0.085, 16, 12), porcelain, [cx, fy + 0.2, cz]);
+    add(new THREE.TorusGeometry(0.086, 0.012, 6, 20), cobalt, [cx, fy + 0.2, cz], [Math.PI / 2, 0, 0]);
+    add(new THREE.CylinderGeometry(0.022, 0.03, 0.06, 10), gilt, [cx, fy + 0.31, cz]);
+    add(new THREE.SphereGeometry(0.048, 14, 10), gilt, [cx, fy + 0.37, cz]);
+    add(new THREE.ConeGeometry(0.018, 0.2, 8), gilt, [cx, fy + 0.5, cz]);
+    }
+    // little bells under every eave corner
+    for (const e of spec.eaves || []) for (const ex of e.x) for (const ez of e.z) hangBell(add, gilt, [ex, e.y, ez], {lowSeg: low});
+    // a pair of glowing porcelain lanterns under the front eaves
     for (const lx of [x0 + 0.3, x1 - 0.3]) {
       const ly = top - 0.42, lz = z1 + 0.3;
       add(new THREE.CylinderGeometry(0.006, 0.006, 0.36, 5), cord, [lx, top - 0.12, lz]);
-      const body = new THREE.SphereGeometry(0.14, 16, 12); body.scale(1, 0.82, 1); add(body, lanternRed, [lx, ly, lz]);
+      const body = new THREE.SphereGeometry(0.14, 16, 12); body.scale(1, 0.82, 1); add(body, silk, [lx, ly, lz]);
+      for (const by of [-0.06, 0.06]) add(new THREE.TorusGeometry(0.128, 0.008, 6, 24), cobalt, [lx, ly + by, lz], [Math.PI / 2, 0, 0]);
       add(new THREE.CylinderGeometry(0.075, 0.09, 0.04, 12), gilt, [lx, ly + 0.12, lz]);
       add(new THREE.CylinderGeometry(0.09, 0.075, 0.04, 12), gilt, [lx, ly - 0.12, lz]);
-      add(new THREE.CylinderGeometry(0.012, 0.02, 0.14, 6), lanternRed, [lx, ly - 0.21, lz]);
+      add(new THREE.CylinderGeometry(0.012, 0.02, 0.14, 6), cobalt, [lx, ly - 0.21, lz]);
       const world = station.localToWorld(new THREE.Vector3(lx, ly, lz)); lanternPoints.push(world.toArray());
     }
-    const group = new THREE.Group(); group.name = 'enchantment-tang-classical-details';
-    for (const [m, list] of parts) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = 'fusion-' + station.name + '-' + m.name; mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); disposables.push(g); }
+    const group = new THREE.Group(); group.name = 'enchantment-chinoiserie-details';
+    for (const [m, list] of parts) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = 'chinoiserie-' + station.name + '-' + m.name; mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); disposables.push(g); }
     station.add(group);
   }
   return {disposables, lanternPoints};
 }
 
-export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale} = {}) {
+// A porcelain pagoda at the back of the island, a nod to the Porcelain Tower
+// of Nanjing (the tower behind the Trianon de Porcelaine) and the Kew pagoda:
+// nine octagonal storeys of white glazed brick, cobalt eaves with gilt bells,
+// lit arched doors and a gilt spire.
+const PAGODA = {x: 25, z: -30, storeys: 9};
+function createPorcelainPagoda({low, ground = 0}) {
+  const group = new THREE.Group(); group.name = 'enchantment-porcelain-pagoda';
+  group.position.set(PAGODA.x, ground, PAGODA.z);
+  const disposables = [], glowPoints = [];
+  const bodyMat = new THREE.MeshStandardMaterial({name: 'pagoda-porcelain-bricks', color: '#ffffff', roughness: 0.34});
+  patchPorcelainBricks(bodyMat, [PAGODA.x, PAGODA.z]);
+  const paintMat = new THREE.MeshStandardMaterial({name: 'pagoda-cobalt-and-white-glaze', color: '#ffffff', vertexColors: true, roughness: 0.38, metalness: 0.04});
+  const giltMat = new THREE.MeshStandardMaterial({name: 'pagoda-gilt', color: '#ffffff', vertexColors: true, roughness: 0.36, metalness: 0.42});
+  const doorMat = new THREE.MeshStandardMaterial({name: 'pagoda-lit-doors', color: '#ffe2a8', emissive: '#ffb75e', emissiveIntensity: 1.25, roughness: 0.6});
+  disposables.push(bodyMat, paintMat, giltMat, doorMat);
+  const lists = new Map([[bodyMat, []], [paintMat, []], [giltMat, []], [doorMat, []]]);
+  const colors = {cobalt: '#2b55ad', deep: '#1f4596', white: '#f4f5f8', marble: '#e9e6de', gold: '#e8c46a', door: '#ffffff'};
+  const put = (g, mat, color, p = [0, 0, 0], r) => {
+    const geo = g.index ? g.toNonIndexed() : g; if (geo !== g) g.dispose();
+    if (r) geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...r))); geo.translate(...p);
+    if (!geo.attributes.uv) geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2));
+    const c = new THREE.Color(color), n = geo.attributes.position.count, col = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    lists.get(mat).push(geo);
+  };
+  const oct = (rt, rb, h, open = false) => { const g = new THREE.CylinderGeometry(rt, rb, h, 8, 1, open); g.rotateY(Math.PI / 8); return g; };
+  const giltAdd = (g, m, p, r) => put(g, giltMat, colors.gold, p, r);
+  // a two-step marble plinth with a cobalt band
+  put(oct(2.0, 2.1, 0.26), paintMat, colors.marble, [0, 0.13, 0]);
+  put(oct(2.02, 2.02, 0.05), paintMat, colors.cobalt, [0, 0.235, 0]);
+  put(oct(1.68, 1.74, 0.24), paintMat, colors.marble, [0, 0.38, 0]);
+  for (let k = 0; k < 4; k++) {   // steps up to the four doors
+    const a = k * Math.PI / 2, st = new THREE.BoxGeometry(0.62, 0.12, 0.34);
+    put(st, paintMat, colors.marble, [Math.sin(a) * 2.15, 0.06, Math.cos(a) * 2.15], [0, a, 0]);
+  }
+  // an arched doorway shape: rectangle with a round top
+  const arch = (w, h) => { const sh = new THREE.Shape(), r = w / 2; sh.moveTo(-r, 0); sh.lineTo(r, 0); sh.lineTo(r, h - r); sh.absarc(0, h - r, r, 0, Math.PI, false); sh.lineTo(-r, 0); return new THREE.ShapeGeometry(sh, low ? 6 : 10); };
+  let y = 0.5;
+  for (let i = 0; i < PAGODA.storeys; i++) {
+    const r = 1.32 - i * 0.085, h = 0.98 - i * 0.035, ap = r * Math.cos(Math.PI / 8);
+    put(oct(r * 0.985, r, h, true), bodyMat, '#ffffff', [0, y + h / 2, 0]);
+    // corner columns in cobalt, a white frieze and a gilt line under the eaves
+    for (let k = 0; k < 8; k++) {
+      const a = Math.PI / 8 + k * Math.PI / 4;
+      put(new THREE.CylinderGeometry(0.035, 0.04, h - 0.1, 6), paintMat, colors.cobalt, [Math.sin(a) * r * 0.99, y + h / 2 - 0.02, Math.cos(a) * r * 0.99]);
+    }
+    put(oct(r + 0.03, r + 0.03, 0.08, true), paintMat, colors.white, [0, y + h - 0.08, 0]);
+    put(oct(r + 0.035, r + 0.035, 0.018, true), giltMat, colors.gold, [0, y + h - 0.125, 0]);
+    // lit arched doors on the four main faces, blind cobalt arches on the diagonals
+    const dw = 0.3 - i * 0.012, dh = Math.min(0.56, h * 0.58);
+    for (let k = 0; k < 8; k++) {
+      const a = k * Math.PI / 4, main = k % 2 === 0;
+      const surround = arch(dw + 0.08, dh + 0.05); surround.rotateY(a);
+      put(surround, paintMat, colors.cobalt, [Math.sin(a) * (ap + 0.006), y + 0.08, Math.cos(a) * (ap + 0.006)]);
+      const door = arch(dw, dh); door.rotateY(a);
+      put(door, main ? doorMat : paintMat, main ? colors.door : colors.white, [Math.sin(a) * (ap + 0.012), y + 0.1, Math.cos(a) * (ap + 0.012)]);
+      if (main && k !== 4) glowPoints.push([PAGODA.x + Math.sin(a) * (ap + 0.05), ground + y + 0.1 + dh * 0.5, PAGODA.z + Math.cos(a) * (ap + 0.05)]);
+    }
+    // the eave: a cobalt glazed skirt with a white rim, gilt hips, upturned corners and bells
+    const er = r + 0.46, et = r * 0.8, eh = 0.27, ey = y + h - 0.02;
+    put(oct(et, er, eh), paintMat, colors.cobalt, [0, ey + eh / 2, 0]);
+    put(oct(er + 0.012, er + 0.012, 0.055, true), paintMat, colors.white, [0, ey + 0.02, 0]);
+    for (let k = 0; k < 8; k++) {
+      // corners sit between the faces
+      const a = k * Math.PI / 4 + Math.PI / 8, cxk = Math.sin(a), czk = Math.cos(a);
+      const slope = Math.hypot(er - et, eh), tilt = Math.atan2(eh, er - et);
+      const hip = new THREE.BoxGeometry(0.035, 0.035, slope); hip.rotateX(tilt); hip.translate(0, 0, (er + et) / 2); hip.rotateY(a);
+      put(hip, giltMat, colors.gold, [0, ey + eh / 2 + 0.02, 0]);
+      const tip = new THREE.ConeGeometry(0.035, 0.2, 6); tip.rotateX(Math.PI / 2 - 0.75); tip.translate(0, 0.04, er + 0.05); tip.rotateY(a);
+      put(tip, paintMat, colors.cobalt, [0, ey, 0]);
+      hangBell(giltAdd, null, [cxk * (er - 0.02), ey - 0.01, czk * (er - 0.02)], {s: 1.25, cord: 0.05, lowSeg: low});
+    }
+    y += h + eh * 0.55;
+  }
+  // the crown: a cobalt cap, gilt rings and pearls, and a tall gilt spire
+  const rt = 1.32 - (PAGODA.storeys - 1) * 0.085;
+  put(oct(0.14, rt * 0.8, 0.55), paintMat, colors.cobalt, [0, y + 0.06, 0]);
+  const spireY = y + 0.32;
+  put(new THREE.CylinderGeometry(0.11, 0.14, 0.12, 12), giltMat, colors.gold, [0, spireY + 0.06, 0]);
+  put(new THREE.SphereGeometry(0.16, 16, 12), paintMat, colors.white, [0, spireY + 0.27, 0]);
+  put(new THREE.TorusGeometry(0.161, 0.018, 6, 24), paintMat, colors.cobalt, [0, spireY + 0.27, 0], [Math.PI / 2, 0, 0]);
+  put(new THREE.CylinderGeometry(0.03, 0.05, 1.1, 10), giltMat, colors.gold, [0, spireY + 0.95, 0]);
+  for (let k = 0; k < (low ? 5 : 7); k++) put(new THREE.TorusGeometry(0.12 - k * 0.012, 0.016, 6, 20), giltMat, colors.gold, [0, spireY + 0.55 + k * 0.1, 0], [Math.PI / 2, 0, 0]);
+  put(new THREE.SphereGeometry(0.1, 16, 12), giltMat, colors.gold, [0, spireY + 1.36, 0]);
+  put(new THREE.ConeGeometry(0.03, 0.42, 8), giltMat, colors.gold, [0, spireY + 1.65, 0]);
+  const top = ground + spireY + 1.36;
+  glowPoints.push([PAGODA.x, top, PAGODA.z]);
+  const meshes = [];
+  for (const [mat, list] of lists) {
+    if (!list.length) continue;
+    const g = mergeGeometries(list, false); list.forEach(x => x.dispose());
+    const mesh = new THREE.Mesh(g, mat); mesh.name = 'enchantment-porcelain-pagoda-' + mat.name; mesh.castShadow = mat !== doorMat; mesh.receiveShadow = true;
+    group.add(mesh); meshes.push(mesh); disposables.push(g);
+  }
+  return {group, disposables, glowPoints, meshes, top: [PAGODA.x, top, PAGODA.z]};
+}
+
+export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda} = {}) {
   const low = quality === 'low', root = new THREE.Group(); root.name = 'Enchantment layer — sky, candles, fireflies, bricks and keepsakes';
   const disposables = new Set(), interactables = [], glowMaterials = [];
   const rand = rng(2024);
@@ -716,7 +1073,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   garden?.root.traverse(o => {
     if (!o.isMesh) return;
     for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
-      if (m && ROOF_TINTS[m.name] && !patched.has(m)) { m.color.set(ROOF_TINTS[m.name]); patched.add(m); tinted.push(m.name); }
+      if (m && PORCELAIN_ROOFS.has(m.name) && !patched.has(m)) { patchPorcelainRoof(m); patched.add(m); tinted.push(m.name); }
     }
   });
 
@@ -724,12 +1081,35 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   const fusion = createFusionDetails({garden, low});
   fusion.disposables.forEach(r => disposables.add(r));
 
+  // 2a. Chinoiserie wallpaper on the inner walls of every room
+  const rooms = [];
+  for (const st of garden?.stations || []) {
+    st.root?.updateWorldMatrix(true, false);
+    for (const room of st.source?.rooms || []) {
+      const b = room.bounds; if (!b || !st.root) continue;
+      const a = new THREE.Vector3(...b.min).applyMatrix4(st.root.matrixWorld), z = new THREE.Vector3(...b.max).applyMatrix4(st.root.matrixWorld);
+      rooms.push([a.clone().min(z), a.max(z)]);
+    }
+  }
+  const papered = new Set();
+  if (rooms.length) {
+    const paper = wallpaperTexture(low); disposables.add(paper);
+    garden?.root.traverse(o => {
+      if (!o.isMesh) return;
+      for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
+        if (m && /-plaster-crafted-surface$/.test(m.name) && !papered.has(m)) { patchWallpaper(m, rooms, paper); papered.add(m); }
+      }
+    });
+  }
+
   // 2b. The crystal ball and the open sea. The old river, its lotus and koi,
   // and the partial glass shell give way to a seaside promenade.
   const sea = createGlobeAndSea({reduced, low});
   root.add(sea.group); sea.disposables.forEach(r => disposables.add(r));
   const promenade = createPromenade({low});
   root.add(promenade.group); promenade.disposables.forEach(r => disposables.add(r));
+  const pagoda = createPorcelainPagoda({low, ground: landscape?.terrainHeight?.(PAGODA.x, PAGODA.z) ?? 0});
+  root.add(pagoda.group); pagoda.disposables.forEach(r => disposables.add(r));
   if (renderer) renderer.localClippingEnabled = true;
   const frontClip = new THREE.Plane(new THREE.Vector3(0, 0, -1), FRONT_Z);
   const underClip = new THREE.Plane(new THREE.Vector3(0, 1, 0), 3.4);   // keeps y >= -3.4: the deep sea belongs to the whale
@@ -785,7 +1165,8 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     }
   });
   promenade.lampPoints.forEach((p, i) => lanternGlows.push({p, c: '#ffbe6a', s: 1.7, ph: 0.2 + i * 0.31}));
-  fusion.lanternPoints.forEach((p, i) => lanternGlows.push({p, c: '#ff6a3c', s: 1.2, ph: 0.5 + i * 0.23}));
+  fusion.lanternPoints.forEach((p, i) => lanternGlows.push({p, c: '#ffb45a', s: 1.2, ph: 0.5 + i * 0.23}));
+  pagoda.glowPoints.forEach((p, i, all) => lanternGlows.push({p, c: i === all.length - 1 ? '#ffe3a0' : '#ffb75e', s: i === all.length - 1 ? 1.6 : 0.9, ph: 0.1 + i * 0.29}));
   const halo = candleSpots.map((p, i) => ({p: [p[0], p[1] + 0.36, p[2]], c: '#ffc96e', s: 0.7, ph: i * 0.13})).concat(lanternGlows);
   const haloMat = glowMaterial({twinkle: 0.12, reduced}); glowMaterials.push(haloMat);
   const haloPoints = new THREE.Points(pointsGeometry(halo), haloMat); haloPoints.name = 'enchantment-candle-and-lantern-glow'; haloPoints.frustumCulled = false; root.add(haloPoints);
@@ -821,6 +1202,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     return revealTarget;
   }
   interactables.push({id: 'enchantment-hidden-whale', type: 'enchant', title: 'Something moves in the deep', objects: [...whale.meshes, sea.water], point: [GLOBE.cx, -12, GLOBE.cz], onInteract: toggleWhale});
+
+  // 5c. The porcelain pagoda rings its bells when visited
+  interactables.push({id: 'enchantment-porcelain-pagoda', type: 'enchant', title: 'The porcelain pagoda', objects: pagoda.meshes, point: pagoda.top, onInteract: () => { burst(pagoda.top); onPagoda?.(); }});
 
   // 6. The owl on the letter tree
   const owl = buildOwl();
@@ -943,7 +1327,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   return {
     root, interactables, burst, update, toggleWhale, overviewBounds: sea.bounds,
     get diagnostics() {
-      return {hiddenRiverAndShellParts: hidden, clippedMaterials: clipped.size, litGlass: litGlass.size, books: nBooks, stars: stars.length, candles: candleSpots.length, glows: halo.length, fireflies: flies.length, lanternGlows: lanternGlows.length, tintedRoofs: tinted, drawCalls: 'sky 1, stars 1, candles 2, glow 1, fireflies 1, bridges 8, thread 1, owl ~20 small meshes, bursts 3 (only while active)'};
+      return {hiddenRiverAndShellParts: hidden, clippedMaterials: clipped.size, litGlass: litGlass.size, books: nBooks, stars: stars.length, candles: candleSpots.length, glows: halo.length, fireflies: flies.length, lanternGlows: lanternGlows.length, porcelainRoofs: tinted, wallpaperRooms: rooms.length, wallpaperMaterials: [...papered].map(m => m.name), drawCalls: 'sky 1, stars 1, candles 2, glow 1, fireflies 1, bridges 8, thread 1, owl ~20 small meshes, bursts 3 (only while active)'};
     },
     dispose() { scene.remove(sky.mesh, starPoints); root.removeFromParent(); for (const r of disposables) r.dispose?.(); disposables.clear(); }
   };
