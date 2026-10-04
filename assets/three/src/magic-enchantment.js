@@ -1473,7 +1473,69 @@ function createPorcelainPagoda({low, ground = 0}) {
   return {group, disposables, glowPoints, meshes, top: [PAGODA.x, top, PAGODA.z]};
 }
 
-export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda, onIceberg, onLetters} = {}) {
+// A rolling whiteboard in the Question Library: a nod to The Big Bang Theory,
+// Hanjing's first glimpse of research life. Equations, a research to-do list,
+// a whale and a cat in the margin, and a sticky note that knocks three times.
+function drawWhiteboard(c, W, H) {
+  c.fillStyle = '#f7f8f6'; c.fillRect(0, 0, W, H);
+  for (let i = 0; i < 9; i++) { const g = c.createRadialGradient(Math.random() * W, Math.random() * H, 10, Math.random() * W, Math.random() * H, 140); g.addColorStop(0, 'rgba(120,130,150,0.06)'); g.addColorStop(1, 'rgba(120,130,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+  const hand = size => `600 ${size}px "Magic Hand", "Segoe Print", cursive`;
+  c.textBaseline = 'alphabetic'; c.lineCap = 'round'; c.lineJoin = 'round';
+  c.fillStyle = '#1f3f8f'; c.font = hand(64); c.fillText('E = mc²', 60, 110);
+  c.font = hand(50); c.fillText('iħ ∂ψ/∂t = Ĥψ', 60, 190);
+  c.fillStyle = '#b8352c'; c.font = hand(40); c.fillText('∑ curiosity → ∞', 60, 262);
+  // a little Feynman-style diagram
+  c.strokeStyle = '#222'; c.lineWidth = 4; c.beginPath(); c.moveTo(470, 80); c.lineTo(560, 150); c.lineTo(470, 220); c.moveTo(560, 150); c.stroke();
+  c.beginPath(); for (let x = 560; x <= 700; x += 2) c.lineTo(x, 150 + Math.sin((x - 560) / 7) * 12); c.stroke();
+  c.beginPath(); c.moveTo(700, 150); c.lineTo(790, 80); c.moveTo(700, 150); c.lineTo(790, 220); c.stroke();
+  // an atom
+  c.strokeStyle = '#1f3f8f'; c.lineWidth = 3; for (let k = 0; k < 3; k++) { c.save(); c.translate(900, 150); c.rotate(k * Math.PI / 3); c.beginPath(); c.ellipse(0, 0, 70, 24, 0, 0, Math.PI * 2); c.stroke(); c.restore(); }
+  c.fillStyle = '#b8352c'; c.beginPath(); c.arc(900, 150, 9, 0, Math.PI * 2); c.fill();
+  // the research list
+  c.fillStyle = '#222'; c.font = hand(44); c.fillText('Questions worth a PhD', 60, 360);
+  c.strokeStyle = '#222'; c.lineWidth = 3; c.beginPath(); c.moveTo(60, 372); c.lineTo(470, 368); c.stroke();
+  c.font = hand(36);
+  ['1. Who stays in charge of the AI?', '2. What does a persona promise?', '3. Wider or deeper?  wider!'].forEach((t, i) => c.fillText(t, 70, 420 + i * 50));
+  c.strokeStyle = '#2f8a4e'; c.lineWidth = 5; c.beginPath(); c.moveTo(395, 515); c.lineTo(408, 528); c.lineTo(436, 495); c.stroke();
+  // a whale and a cat in the margin
+  c.strokeStyle = '#1f3f8f'; c.lineWidth = 4; c.beginPath(); c.moveTo(560, 470); c.quadraticCurveTo(640, 400, 740, 455); c.quadraticCurveTo(770, 470, 790, 440); c.quadraticCurveTo(785, 470, 800, 490); c.quadraticCurveTo(770, 478, 740, 480); c.quadraticCurveTo(640, 520, 560, 470); c.stroke();
+  c.beginPath(); c.arc(590, 462, 4, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(610, 430); c.quadraticCurveTo(600, 400, 615, 390); c.moveTo(610, 430); c.quadraticCurveTo(625, 400, 640, 405); c.stroke();
+  c.strokeStyle = '#222'; c.beginPath(); c.arc(880, 470, 34, 0, Math.PI * 2); c.moveTo(856, 446); c.lineTo(852, 410); c.lineTo(874, 437); c.moveTo(904, 446); c.lineTo(908, 410); c.lineTo(886, 437); c.stroke();
+  c.beginPath(); c.arc(868, 466, 3, 0, Math.PI * 2); c.arc(892, 466, 3, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(880, 478); c.lineTo(876, 484); c.moveTo(880, 478); c.lineTo(884, 484); c.stroke();
+  // a yellow sticky note in the corner
+  c.save(); c.translate(W - 210, H - 200); c.rotate(-0.06); c.fillStyle = '#ffe680'; c.fillRect(0, 0, 170, 150); c.fillStyle = 'rgba(0,0,0,0.08)'; c.fillRect(0, 0, 170, 14);
+  c.fillStyle = '#5a3d1a'; c.font = hand(30); c.fillText('Knock, knock,', 14, 58); c.fillText('knock.', 14, 92); c.fillText('Hanjing!', 14, 128); c.restore();
+}
+function createWhiteboard({garden, low}) {
+  const station = garden?.root.children.find(o => o.name === 'research-complete-two-storey-library'); if (!station) return null;
+  const disposables = [], group = new THREE.Group(); group.name = 'enchantment-research-whiteboard';
+  group.position.set(2.62, 0.116, -1.05); group.rotation.y = -Math.PI / 2 + 0.45; station.add(group);
+  const W = low ? 768 : 1024, H = Math.round(W * 0.65), cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d'); ctx.scale(W / 1024, W / 1024); drawWhiteboard(ctx, 1024, 666);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  document.fonts?.load('600 40px "Magic Hand"').then(() => { ctx.setTransform(W / 1024, 0, 0, W / 1024, 0, 0); drawWhiteboard(ctx, 1024, 666); tex.needsUpdate = true; }).catch(() => {});
+  const boardMat = new THREE.MeshStandardMaterial({name: 'whiteboard-surface', map: tex, roughness: 0.28, metalness: 0.02});
+  const frameMat = new THREE.MeshStandardMaterial({name: 'whiteboard-aluminium', color: '#c9ced3', roughness: 0.3, metalness: 0.7});
+  const darkMat = new THREE.MeshStandardMaterial({name: 'whiteboard-casters', color: '#2a2c30', roughness: 0.6});
+  disposables.push(tex, boardMat, frameMat, darkMat);
+  const bw = 1.0, bh = 0.65, cy = 1.28;
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(bw, bh), boardMat); board.position.set(0, cy, 0.012); board.name = 'whiteboard-writing-surface'; group.add(board); disposables.push(board.geometry);
+  const parts = [];
+  const add = (g, p) => { g.translate(...p); parts.push(g); };
+  add(new THREE.BoxGeometry(bw + 0.05, bh + 0.05, 0.02), [0, cy, 0]);
+  add(new THREE.BoxGeometry(0.6, 0.02, 0.06), [0, cy - bh / 2 - 0.03, 0.04]);
+  for (const sx of [-1, 1]) { add(new THREE.BoxGeometry(0.035, 1.6, 0.035), [sx * (bw / 2 + 0.05), 0.82, 0]); add(new THREE.BoxGeometry(0.035, 0.035, 0.5), [sx * (bw / 2 + 0.05), 0.05, 0]); }
+  add(new THREE.BoxGeometry(bw + 0.1, 0.03, 0.03), [0, 0.3, 0]);
+  const frame = new THREE.Mesh(mergeGeometries(parts.map(g => g.toNonIndexed()), false), frameMat); parts.forEach(g => g.dispose()); frame.castShadow = true; frame.name = 'whiteboard-stand'; group.add(frame); disposables.push(frame.geometry);
+  const casters = []; for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = new THREE.CylinderGeometry(0.025, 0.025, 0.02, 12); w.rotateZ(Math.PI / 2); w.translate(sx * (bw / 2 + 0.05), 0.025 - 0.0, sz * 0.22); casters.push(w); }
+  // markers on the tray
+  for (const [k, col] of ['#1f3f8f', '#b8352c', '#222'].entries()) { const m = new THREE.CylinderGeometry(0.008, 0.008, 0.11, 8); m.rotateZ(Math.PI / 2); m.translate(-0.15 + k * 0.12, cy - bh / 2 - 0.012, 0.045); const mat = new THREE.MeshStandardMaterial({name: 'whiteboard-marker-' + k, color: col, roughness: 0.4}); disposables.push(mat, m); group.add(new THREE.Mesh(m, mat)); }
+  const wheels = new THREE.Mesh(mergeGeometries(casters.map(g => g.toNonIndexed()), false), darkMat); casters.forEach(g => g.dispose()); group.add(wheels); disposables.push(wheels.geometry);
+  station.updateMatrixWorld(true);
+  return {group, disposables, meshes: [board, frame], point: board.getWorldPosition(new THREE.Vector3()).toArray()};
+}
+
+export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda, onIceberg, onLetters, onWhiteboard} = {}) {
   const low = quality === 'low', root = new THREE.Group(); root.name = 'Enchantment layer — sky, candles, fireflies, bricks and keepsakes';
   const disposables = new Set(), interactables = [], glowMaterials = [];
   const rand = rng(2024);
@@ -1512,6 +1574,10 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   garden?.root.updateMatrixWorld(true);
   const fusion = createFusionDetails({garden, low});
   fusion.disposables.forEach(r => disposables.add(r));
+
+  // 2a0. The whiteboard in the Question Library
+  const whiteboard = createWhiteboard({garden, low});
+  if (whiteboard) { whiteboard.disposables.forEach(r => disposables.add(r)); interactables.push({id: 'enchantment-research-whiteboard', type: 'enchant', station: 'research', title: 'A whiteboard', objects: whiteboard.meshes, point: whiteboard.point, onInteract: () => onWhiteboard?.()}); }
 
   // 2a. Chinoiserie wallpaper on the inner walls of every room
   const rooms = [];

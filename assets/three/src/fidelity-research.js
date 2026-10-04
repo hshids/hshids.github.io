@@ -166,6 +166,8 @@ export async function createFaithfulResearch({data,quality='high'}={}){
     const uv=[(i%8)*cellW/atlas.width,1-(Math.floor(i/8)+1)*cellH/atlas.height,(i%8+1)*cellW/atlas.width,1-Math.floor(i/8)*cellH/atlas.height],x0=x-w*.32,x1=x+w*.32,y0=y+h*.40,y1=y+h*.64,zz=z+.0173;
     labelPositions.push(x0,y0,zz,x1,y0,zz,x1,y1,zz,x0,y0,zz,x1,y1,zz,x0,y1,zz);labelUV.push(uv[0],uv[1],uv[2],uv[1],uv[2],uv[3],uv[0],uv[1],uv[2],uv[3],uv[0],uv[3]);
     const pg=new THREE.BoxGeometry(w+.06,h+.05,.32);resources.add(pg);const pick=new THREE.Mesh(pg,proxyMat);pick.name='pick-'+paperID;pick.position.set(x,y+h/2,z-.12);pick.userData={interaction:true,id:paperID,type:'book',paper:paperID,title:paper.title};root.add(pick);
+    // clicked, the book slides half out of the shelf, tips toward you, wobbles and settles back
+    pick.userData.wiggle=()=>kit.animateParts('publication-'+paperID+'-',{duration:1.7,pose:p=>{const out=Math.sin(Math.PI*Math.min(1,p*1.15)),wob=Math.sin(p*26)*(1-p)*.06;return new THREE.Matrix4().compose(new THREE.Vector3(0,.012*out,.13*out),new THREE.Quaternion().setFromEuler(new THREE.Euler(.32*out,0,wob)),new THREE.Vector3(1,1,1));}});
     const bookStand=[THREE.MathUtils.clamp(x,-2.65,2.65),floorY,-2.75],item={id:paperID,object:pick,type:'book',point:[x,y+h/2,z+.017],title:paper.title,focus:{paper:paper.id},paper,stand:bookStand,room:library.id,
       approach:[[0,0,.78],library.entry,[0,floorY,-1.45],[0,floorY,-2.35],[bookStand[0],floorY,-2.35],bookStand],insideApproach:[[0,floorY,-2.75],bookStand],facing:0,contactPoint:[x,y+h/2,z+.017],hand:'right'};
     interactables.push(item);bookManifest.push({paper,id:paperID,position:item.point,size:[w,h,.29],stand:bookStand});

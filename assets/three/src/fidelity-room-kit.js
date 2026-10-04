@@ -7,7 +7,7 @@ import {craftBoxChamfer,createCraftBoxGeometry,createCraftRoofTileGeometry,creat
 // same lit material; doors and windows are holes through real walls.
 export function createRoomKit({root=new THREE.Group(),name='room',quality='high'}={}){
   const resources=new Set(),materials=createCraftMaterials({name,quality,resources}),staticMeshes=[],doors=[],rooms=[],lights=[],boxGeometries=new Map();
-  let dark=false,disposed=false;
+  let dark=false,disposed=false;const mergedMeshes=[],motions=[];
   function resolve(role){return typeof role==='string'?(materials[role]||materials.wood):role;}
   function mesh(name,geometry,material,position,parent=root){
     const m=new THREE.Mesh(geometry,resolve(material));m.name=name;m.position.fromArray(position);m.castShadow=!m.material.transparent;m.receiveShadow=true;
@@ -149,12 +149,42 @@ export function createRoomKit({root=new THREE.Group(),name='room',quality='high'
       if(!m.parent||m.parent!==root||m.userData.keepMesh||m.userData.interaction||m.material.transparent||m.material.visible===false)continue;
       m.updateMatrix();const clone=m.geometry.clone(),g=clone.index?clone.toNonIndexed():clone;if(g!==clone)clone.dispose();g.applyMatrix4(m.matrix);resources.add(g);if(!groups.has(m.material))groups.set(m.material,[]);groups.get(m.material).push({m,g});
     }
-    for(const [mat,list]of groups){const g=mergeGeometries(list.map(v=>v.g),false);if(!g)continue;resources.add(g);const m=new THREE.Mesh(g,mat);m.name=name+'-complete-static-'+mat.name;m.castShadow=true;m.receiveShadow=true;m.userData.roomSolid=true;root.add(m);list.forEach(v=>{v.m.removeFromParent();v.g.dispose();resources.delete(v.g);});}
+    for(const [mat,list]of groups){const g=mergeGeometries(list.map(v=>v.g),false);if(!g)continue;resources.add(g);const m=new THREE.Mesh(g,mat);m.name=name+'-complete-static-'+mat.name;m.castShadow=true;m.receiveShadow=true;m.userData.roomSolid=true;
+      // remember which vertices came from which named part, so a part can still move after the merge
+      let start=0;m.userData.partRanges=list.map(v=>{const count=v.g.attributes.position.count,range={name:v.m.name,start,count};start+=count;return range;});
+      root.add(m);mergedMeshes.push(m);list.forEach(v=>{v.m.removeFromParent();v.g.dispose();resources.delete(v.g);});}
     staticMeshes.length=0;
     return{rooms:rooms.map(r=>({id:r.id,bounds:r.bounds,doors:r.doors.map(d=>d.id),floorY:r.bounds.min[1],ceilingY:r.bounds.max[1]}))};
   }
+  // Move every merged part whose name starts with prefix: pose(progress) returns a matrix about the
+  // parts' own pivot (bottom front centre). Rest positions come back when the motion ends.
+  function animateParts(prefix,{duration=1.6,pose}={}){
+    if(motions.some(m=>m.prefix===prefix))return false;
+    const entries=[],box=new THREE.Box3(),v=new THREE.Vector3();
+    for(const mesh of mergedMeshes){const ranges=(mesh.userData.partRanges||[]).filter(r=>r.name.startsWith(prefix));if(!ranges.length)continue;
+      const pos=mesh.geometry.attributes.position,nor=mesh.geometry.attributes.normal;
+      for(const r of ranges){const rest=new Float32Array(pos.array.slice(r.start*3,(r.start+r.count)*3)),restN=nor?new Float32Array(nor.array.slice(r.start*3,(r.start+r.count)*3)):null;entries.push({mesh,r,rest,restN});
+        for(let i=0;i<r.count;i++)box.expandByPoint(v.fromArray(rest,i*3));}}
+    if(!entries.length)return false;
+    const pivot=new THREE.Vector3((box.min.x+box.max.x)/2,box.min.y,box.max.z);
+    motions.push({prefix,entries,pivot,elapsed:0,duration,pose});return true;
+  }
+  function stepMotions(dt){
+    if(!motions.length)return;const m4=new THREE.Matrix4(),toPivot=new THREE.Matrix4(),back=new THREE.Matrix4(),nm=new THREE.Matrix3(),v=new THREE.Vector3();
+    for(const mo of motions.slice()){
+      mo.elapsed+=dt;const done=mo.elapsed>=mo.duration,p=Math.min(1,mo.elapsed/mo.duration);
+      toPivot.makeTranslation(-mo.pivot.x,-mo.pivot.y,-mo.pivot.z);back.makeTranslation(mo.pivot.x,mo.pivot.y,mo.pivot.z);
+      m4.copy(back).multiply(done?new THREE.Matrix4():mo.pose(p)).multiply(toPivot);nm.getNormalMatrix(m4);
+      const touched=new Set();
+      for(const e of mo.entries){const pos=e.mesh.geometry.attributes.position,nor=e.mesh.geometry.attributes.normal;
+        for(let i=0;i<e.r.count;i++){v.fromArray(e.rest,i*3).applyMatrix4(m4);pos.setXYZ(e.r.start+i,v.x,v.y,v.z);if(nor&&e.restN){v.fromArray(e.restN,i*3).applyMatrix3(nm).normalize();nor.setXYZ(e.r.start+i,v.x,v.y,v.z);}}
+        touched.add(e.mesh);}
+      touched.forEach(mesh=>{mesh.geometry.attributes.position.needsUpdate=true;if(mesh.geometry.attributes.normal)mesh.geometry.attributes.normal.needsUpdate=true;});
+      if(done)motions.splice(motions.indexOf(mo),1);
+    }
+  }
   function update(time,dt){
-    if(disposed)return;for(const d of doors){d.progress=THREE.MathUtils.damp(d.progress,d.target,9,Math.max(0,dt));d.pivot.rotation.y=d.base-d.sign*d.progress*Math.PI*.48;d.pivot.updateMatrixWorld(true);
+    if(disposed)return;stepMotions(Math.max(0,Math.min(.1,dt||0)));for(const d of doors){d.progress=THREE.MathUtils.damp(d.progress,d.target,9,Math.max(0,dt));d.pivot.rotation.y=d.base-d.sign*d.progress*Math.PI*.48;d.pivot.updateMatrixWorld(true);
       // Collider coordinates remain local to this chapter even after the
       // chapter is positioned in the world; never bake its world transform.
       d.pivot.updateMatrix();d.leaf.updateMatrix();const local=d.pivot.matrix.clone().multiply(d.leaf.matrix),b=new THREE.Box3().setFromBufferAttribute(d.leaf.geometry.attributes.position).applyMatrix4(local);d.collider.min=b.min.toArray();d.collider.max=b.max.toArray();
@@ -169,5 +199,5 @@ export function createRoomKit({root=new THREE.Group(),name='room',quality='high'
     const light=new THREE.PointLight('#ffbf74',dark?intensity:0,Math.max(.12,Math.min(distance,safe*.92)),2);light.position.fromArray(position);light.userData.nightIntensity=intensity;root.add(light);lights.push(light);return light;
   }
   function dispose(){if(disposed)return;disposed=true;root.traverse(o=>{if(o.isInstancedMesh)o.dispose();});resources.forEach(r=>r.dispose?.());root.clear();}
-  return{root,materials,resources,box,round,brickWall,sign,roof,enclose,flush,setTheme,update,dispose,lamp,rooms};
+  return{root,materials,resources,box,round,brickWall,sign,roof,enclose,flush,setTheme,update,dispose,lamp,rooms,animateParts};
 }
