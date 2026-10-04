@@ -3,7 +3,7 @@ import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createCraftMaterials} from './fidelity-surface-materials.js';
 import './magic-stories.css';
-import {buildTwoShores,buildRoadTrips} from './magic-keepsakes.js';
+import {buildTwoShores,buildRoadTrips,buildUNCrossroads} from './magic-keepsakes.js';
 
 // These are optional, replayable illustrations. They never gate a publication,
 // original chapter, link, or dialogue. The travel pages intentionally contain
@@ -34,13 +34,14 @@ const STORIES = Object.freeze([
     support:'Contact physical stone forecourt; between the mailbox and the link post.',
     controls:[['food','Food'],['ideas','Ideas'],['surprise','Something new'],['seal','Seal the letter']]},
   {id:'un-academic-fork',station:'life',title:'A fork before the PhD',mode:'souvenir',
-    clue:'A tiny UN keepsake on the kitchen worktop. Turn the note over for the choice behind it.',
+    clue:'A little crossroads on the kitchen worktop. One path leads to the UN, the other to an open book. Pick a path.',
     note:'Before my PhD, I had an opportunity to keep working at the UN. After some real hesitation, I chose academia for a wider field of knowledge and a chance to contribute beyond the data work I knew.',
     anchor:[-2.03,1.11,-3.38],room:'life-three-bay-home',indoor:true,
     support:'The original Life kitchen worktop, whose real bearing top is y=1.11.',
-    controls:[['opportunity','The opportunity'],['choice','The choice']],
-    pages:{opportunity:'Before my PhD, I had an opportunity to continue working at the UN. It was a real choice to think through, not an easy next step.',
-      choice:'I chose academia because I wanted a broader view of knowledge and a chance to contribute to a wider world. I wanted to grow beyond being a data worker.'}},
+    controls:[['opportunity','The opportunity'],['choice','The choice'],['back','The way back']],
+    pages:{opportunity:'Before my PhD, I had the chance to keep working at the UN. It was a real choice to think through, not an easy next step.',
+      choice:'I chose academia because I wanted a broader view of knowledge and a chance to contribute to a wider world. I wanted to grow beyond being someone who writes data.',
+      back:'The door stayed open. During the PhD I came back to UN work, with UNODC in 2024 and UN Peacekeeping in 2025, this time carrying wider questions with me.'}},
   {id:'two-familiar-seas',station:'home',title:'Two shores, one journey',mode:'souvenir',
     clue:'An open keepsake box on the bench. Two shores, a flight route across the sea, and a little ship below it.',
     note:'Dalian is my seaside hometown, and San Francisco, where I live now, feels a little like it. In 2013 I flew across the Pacific for high school, and my grandfather made the same crossing nearly a century before me.',
@@ -401,18 +402,8 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     const body=group(s.id+'-supported-souvenir',[0,0,0],s.root);
     s.page=s.spec.controls[0][0];
     if(s.id==='un-academic-fork'){
-      box(s.id+'-closed-keepsake-base',[.27,.028,.21],[0,.014,0],mats.wood,body,.005);
-      rod(s.id+'-globe-bearing-stem',[0,.026,-.026],[0,.175,-.026],.010,mats.brass,body);
-      mesh(s.id+'-complete-miniature-globe',new THREE.SphereGeometry(.071,low?12:16,low?8:12),mats.blue,[0,.175,-.026],body);
-      for(const y of[-.034,0,.034]){
-        const ring=mesh(s.id+'-raised-globe-latitude-'+y,new THREE.TorusGeometry(Math.sqrt(.071**2-y*y)+.001,.0018,4,low?12:16),mats.brass,[0,.175+y,-.026],body);
-        ring.rotation.x=Math.PI/2;
-      }
-      label(s.id+'-worktop-seated-UN-name','UN',.095,.065,[0,.0605,.106],body);
-      for(const[step,key]of s.spec.controls.entries()){
-        const coin=disc(s.id+'-'+key[0]+'-real-turning-token',.032,.012,[(step-.5)*.14,.034,.048],step?mats.green:mats.brass,body);
-        register(s,key[0],key[1],coin,()=>select(s.id,key[0]));
-      }
+      const k=buildUNCrossroads(body,{resources,reduced,low});s.keepsake=k;
+      for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
     }else if(s.id==='two-familiar-seas'){
       const k=buildTwoShores(body,{resources,reduced,low});s.keepsake=k;
       for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
