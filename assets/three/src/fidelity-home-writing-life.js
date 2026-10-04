@@ -5,6 +5,7 @@ import {createRoomKit} from './fidelity-room-kit.js';
 import {px,createHWLProps,createWritingInk} from './fidelity-hwl-geometry.js';
 import {createCatCinema} from './life-cinema.js';
 import {createTravelCase} from './life-luggage.js';
+import {createSeafoodPlatter} from './life-seafood.js';
 
 /** Complete gatehall, study and three-bay home. Original chapter/content IDs
  * survive; only supported art and family photos are two-dimensional prints. */
@@ -215,7 +216,17 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     const steam=[];for(let i=0;i<2;i++){
       const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(sx+(i-.5)*.09,floorY+.97,sz),new THREE.Vector3(sx-.035+(i-.5)*.09,floorY+1.12,sz),new THREE.Vector3(sx+.02+(i-.5)*.09,floorY+1.29,sz)]),m=new THREE.MeshStandardMaterial({color:'#eee9de',roughness:1,transparent:true,opacity:.08,depthWrite:false}),object=s.props.mesh('life-subtle-actual-pot-steam-'+i,new THREE.TubeGeometry(curve,14,.008,5,false),m);object.castShadow=false;object.userData.roomSolid=false;s.kit.resources.add(m);steam.push(object);
     }
-    let cookingUntil=0;s.root.userData.setCooking=()=>{cookingUntil=performance.now()/1000+3.5;};animated.push(t=>{const active=performance.now()/1000<cookingUntil;lid.position.y=floorY+.845+(active?.045+.008*Math.sin(t*4):0);lid.rotation.z=active?.018*Math.sin(t*4):0;coals.emissiveIntensity=dark?.35:.10;steam.forEach((v,i)=>{v.material.opacity=active?.17:dark?.09:.045;v.position.y=.025*Math.sin(t*.8+i);});});
+    // Lifting the lid serves a steamed platter from home: the lid floats up and tips back, a bamboo steamer
+    // rises out of the pot with mantis shrimp, a swimming crab, clams, sea snails and shrimp.
+    const platter=createSeafoodPlatter({root:s.root,resources:s.kit.resources,position:[sx,floorY+.65,sz],low:quality==='low'});
+    let cookingUntil=0,served=0,lift=0;
+    s.root.userData.setCooking=()=>{const now=performance.now()/1000,fresh=now>=cookingUntil;cookingUntil=now+14;return fresh?'served':'again';};
+    animated.push((t,dt)=>{const active=performance.now()/1000<cookingUntil,k=Math.min(.1,dt||0);
+      lift=dt?THREE.MathUtils.damp(lift,active?1:0,3.2,k):(active?1:0);served=dt?THREE.MathUtils.damp(served,active&&lift>.55?1:0,2.6,k):(active?1:0);
+      const e=lift*lift*(3-2*lift);
+      lid.position.set(sx-.04*e,floorY+.845+.44*e+(active?.008*Math.sin(t*2.2):0),sz-.30*e);lid.rotation.set(-.95*e,0,active?.02*Math.sin(t*1.7):0);
+      platter.group.position.y=floorY+.65+.27*served;platter.update(t,served);
+      coals.emissiveIntensity=dark?.35+(active?.15:0):.10+(active?.12:0);steam.forEach((v,i)=>{v.material.opacity=active?.17:dark?.09:.045;v.position.y=.025*Math.sin(t*.8+i);});});
     obstacle(s,'life-stove-bearing-volume',[.88,1.06,.90],[sx,floorY+.53,sz]);
     // XiaoHei's pad is inside the middle bay, on the same bearing floor.
     const cx=0,cz=-2.00,padY=floorY+.10;
@@ -310,7 +321,8 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     for(let i=0;i<3;i++){const a=i*Math.PI*2/3;P.tube('life-projector-complete-bearing-tripod-'+i,[0,.86,0],[Math.cos(a)*.30,.025,Math.sin(a)*.30],.018,'wood',pj);P.tube('life-projector-tripod-brace-'+i,[0,.45,0],[Math.cos(a)*.16,.47,Math.sin(a)*.16],.007,chrome,pj);P.sphere('life-projector-grounded-tripod-foot-'+i,[.034,.02,.034],[Math.cos(a)*.30,.02,Math.sin(a)*.30],black,pj);}
     mergeByMaterial(pj,[...reels,beam,motes,glass]);
     s.kit.lamp([1.72,floorY+1.03,-2.03],.28,1.25);obstacle(s,'life-projector-tripod',[.66,1.43,.66],[1.72,floorY+.715,-2.03]);
-    pick(s,'life-kitchen-stove','food',[sx,floorY+.69,sz+.40],[.82,1.08,.30],'Cooking',{life:'food'},[sx,floorY,-.76]).onInteract=s.root.userData.setCooking;
+    pick(s,'life-kitchen-stove','food',[sx,floorY+.69,sz+.40],[.82,1.08,.30],'Lift the lid',{life:'food'},[sx,floorY,-.76]);
+    pick(s,'life-kitchen-pot-lid','food',[sx,floorY+.88,sz],[.74,.2,.74],'Lift the lid',{life:'food'},[sx,floorY,-.76]);
     pick(s,'life-xiaohei-cushion','pet',[cx,floorY+.37,cz],[1.13,.62,1.0],'Pet XiaoHei',{life:'cats'},s.actionStand.pet.point);
     pick(s,'life-travel-suitcase','travel',[tx,floorY+.35,tz+.19],[.89,.72,.20],'Road trips',{life:'travel'},[tx,floorY,-.67]);
     pick(s,'life-six-cat-gallery','gallery',[gx,gy,gz+.11],[1.14,1.44,.15],'Six cats',{life:'cats'},[gx,floorY,-2.18]);

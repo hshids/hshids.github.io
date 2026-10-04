@@ -117,6 +117,8 @@ function interact(item){if(!item)return;
   if(item.story){const entry=stories.metadata.entries.find(e=>(e.discoveryId||e.id)===item.story);if(state.mode==='overview'||state.near!==item.station)go(item.station);if(entry?.indoor&&state.mode!=='interior')enterRoom(item.station);if(entry)focusStory(entry);stories.open(item.story);}
   if(item.type==='magic'){const result=item.onInteract?.();if(item.story){if(result?.complete!==false)record(result);audio.play('bell');return;}if(result?.complete===false)say(result.note);else if(result){clearTimeout(speechTimer);$('#speech').hidden=true;record(result);}if(item.station==='home'){invitation.open({replay:true,trigger:$('#letter-btn')});}audio.play('bell');return;}
   if(item.type==='cat'){const result=cats.interact(item.catId,{point:item.point,camera:camera.position,action:item.action});audio.play('cat');say(result?.line||(item.catId==='xiaohei'?'XiaoHei, our oldest brother. Still acting like a baby.':'JinBingBing, the youngest. Of course she runs the place.'));return;}
+  if(item.type==='food'){const served=station('life').root.userData.setCooking?.();audio.play('wood');if(served==='again'){content.openPanel(item.station||state.near,item.focus);return;}
+    say('Steamed seafood, the taste of home in Dalian. Mantis shrimp, a swimming crab (we call it a flying crab), clams, sea snails and shrimp. Still my favourite food.');return;}
   item.onInteract?.();const id=item.station||state.near;
   if(item.type==='door'){if(state.mode==='interior')leaveRoom();else{if(state.mode==='overview')go(id);enterRoom(id);}return;}
   if(['river','lotus'].includes(item.type)){landscape.stir?.(item.point,state.time);audio.play('water');return;}
