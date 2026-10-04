@@ -651,3 +651,187 @@ export function buildRoadTrips(parent, {resources, reduced = false, low = false}
   return {root, objects: {north: [routes.north.tube], south: [routes.south.tube]}, animate};
 }
 
+
+// planar UVs so a tiling texture keeps its scale on every face of a box or slope
+function planarUV(g, k) {
+  const p = g.attributes.position, n = g.attributes.normal, uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), az = Math.abs(n.getZ(i));
+    const [u, v] = ay > ax && ay > az ? [p.getX(i), p.getZ(i)] : ax > az ? [p.getZ(i), p.getY(i)] : [p.getX(i), p.getY(i)];
+    uv[i * 2] = u * k; uv[i * 2 + 1] = v * k;
+  }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); return g;
+}
+function tileTexture(resources, draw, size = 256) {
+  const c = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; resources?.add(t); return t;
+}
+
+/**
+ * Hoosac School, upstate New York: a miniature of Tibbits Hall, the Gothic Revival stone house at the
+ * heart of the campus (ashlar sandstone, steep fishscale slate gables, two towers, a bay window, a
+ * porch and tall chimneys), with autumn maples, a red and purple pennant, a stone owl for the school
+ * mascot, two students on the drive, and a painted backdrop where the city sits far down the road.
+ */
+export function buildHoosacNY(parent, {resources, reduced = false, low = false} = {}) {
+  const root = new THREE.Group(); root.name = 'keepsake-hoosac-tibbits'; parent.add(root);
+  const L = makeLabels(resources);
+  const walnut = material(resources, 'ny-walnut', '#5a3822', {roughness: 0.55});
+  const brass = material(resources, 'ny-brass', '#c9a24f', {metalness: 0.7, roughness: 0.32});
+  const lawn = material(resources, 'ny-autumn-lawn', '#7d8c4c', {roughness: 0.95});
+  const gravel = material(resources, 'ny-drive', '#cdbf9f', {roughness: 0.95});
+  const ashlarTex = tileTexture(resources, (x, s) => {
+    x.fillStyle = '#8f8068'; x.fillRect(0, 0, s, s);
+    const rows = 8, h = s / rows;
+    for (let r = 0; r < rows; r++) { let u = (r % 2) * -h * 0.8; while (u < s) { const w = h * (1.3 + ((r * 7 + Math.floor(u)) % 5) * 0.18); const l = 0.62 + (((r * 13 + Math.floor(u * 3)) % 9) / 9) * 0.16; x.fillStyle = `rgb(${Math.round(176 * l + 40)},${Math.round(160 * l + 34)},${Math.round(132 * l + 26)})`; x.fillRect(u + 2, r * h + 2, w - 4, h - 4); u += w; } }
+  });
+  const slateTex = tileTexture(resources, (x, s) => {
+    x.fillStyle = '#2f323a'; x.fillRect(0, 0, s, s);
+    const rows = 10, h = s / rows, w = s / 8;
+    for (let r = 0; r < rows; r++) for (let k = -1; k <= 8; k++) {
+      const cx = k * w + (r % 2) * w / 2, y0 = r * h, shade = 70 + ((r * 5 + k * 3) % 7) * 6, purple = r % 4 === 1 ? 12 : 0;
+      x.fillStyle = `rgb(${shade + purple},${shade + 2},${shade + 12 + purple})`;
+      x.beginPath(); if (r % 4 === 1 || r % 4 === 2) { x.moveTo(cx - w / 2 + 1, y0); x.lineTo(cx + w / 2 - 1, y0); x.lineTo(cx + w / 2 - 1, y0 + h * 0.6); x.arc(cx, y0 + h * 0.6, w / 2 - 1, 0, Math.PI); } else x.rect(cx - w / 2 + 1, y0, w - 2, h - 1.5);
+      x.fill();
+    }
+  });
+  const stone = material(resources, 'ny-ashlar-sandstone', '#ffffff', {map: ashlarTex, roughness: 0.85});
+  const slate = material(resources, 'ny-fishscale-slate', '#ffffff', {map: slateTex, roughness: 0.6});
+  const trim = material(resources, 'ny-stone-trim', '#c9bca2', {roughness: 0.8});
+  const glass = material(resources, 'ny-lit-windows', '#ffdf9e', {emissive: '#ffb554', emissiveIntensity: 0.35, roughness: 0.3});
+  const door = material(resources, 'ny-oak-door', '#4a2f1d', {roughness: 0.6});
+  const hall = makeKit('keepsake-hoosac-tibbits-hall', resources), kit = makeKit('keepsake-hoosac-tibbits-grounds', resources);
+  const friendsKit = makeKit('keepsake-hoosac-tibbits-friends', resources), cityKit = makeKit('keepsake-hoosac-tibbits-city', resources);
+  const top = 0.026;
+  // the base, the lawn and the drive up to the porch
+  kit.add(new THREE.BoxGeometry(0.46, top, 0.3), walnut, {p: [0, top / 2, 0]});
+  for (const sz of [-1, 1]) kit.add(new THREE.BoxGeometry(0.462, 0.006, 0.006), brass, {p: [0, top + 0.001, sz * 0.148]});
+  for (const sx of [-1, 1]) kit.add(new THREE.BoxGeometry(0.006, 0.006, 0.302), brass, {p: [sx * 0.228, top + 0.001, 0]});
+  kit.add(new THREE.BoxGeometry(0.448, 0.004, 0.288), lawn, {p: [0, top + 0.002, 0]});
+  const drive = new THREE.Shape(); drive.moveTo(-0.045, -0.145); drive.bezierCurveTo(-0.02, -0.09, -0.06, -0.07, -0.04, -0.03); drive.lineTo(-0.018, -0.03); drive.bezierCurveTo(-0.035, -0.07, 0.0, -0.09, -0.015, -0.145); drive.closePath();
+  const dg = new THREE.ShapeGeometry(drive, 8); dg.rotateX(-Math.PI / 2); kit.add(dg, gravel, {p: [0, top + 0.0045, 0], s: [1, 1, 1]});
+  kit.add(L.geometry(L.plate('TIBBITS HALL', {size: 30, sub: 'Hoosac School · New York'}), 0.14, 0.028), L.mat, {p: [0, 0.013, 0.1505]});
+  const ground = top + 0.004, H = -0.025, HZ = -0.035;
+  const wall = (w, h, d, x, y, z) => hall.add(planarUV(new THREE.BoxGeometry(w, h, d), 40), stone, {p: [x, y + h / 2, z]});
+  // a steep gable roof with fishscale slate on both slopes, stone gable ends and a ridge
+  const gable = (len, span, rise, x, y, z, alongZ = false) => {
+    const sh = new THREE.Shape(); sh.moveTo(-span / 2 - 0.004, 0); sh.lineTo(span / 2 + 0.004, 0); sh.lineTo(0, rise); sh.closePath();
+    const g = new THREE.ExtrudeGeometry(sh, {depth: len, bevelEnabled: false}); g.translate(0, 0, -len / 2); g.rotateY(Math.PI / 2); if (alongZ) g.rotateY(Math.PI / 2);
+    g.computeVertexNormals(); planarUV(g, 35);
+    const uv = g.attributes.uv, p = g.attributes.position, n = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) if (Math.abs(n.getY(i)) > 0.2) uv.setXY(i, (alongZ ? p.getZ(i) : p.getX(i)) * 35, (p.getY(i) * 1.3 + (alongZ ? Math.abs(p.getX(i)) : Math.abs(p.getZ(i)))) * 35);
+    hall.add(g, slate, {p: [x, y, z]});
+    if (!alongZ) hall.add(new THREE.BoxGeometry(len + 0.004, 0.004, 0.004), trim, {p: [x, y + rise, z]});
+  };
+  const win = (x, y, z, w = 0.011, h = 0.018, face = 1, pointed = false, side = false) => {
+    let g;
+    if (pointed) { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(w / 2, h * 0.6); sh.quadraticCurveTo(w / 2, h * 0.9, 0, h); sh.quadraticCurveTo(-w / 2, h * 0.9, -w / 2, h * 0.6); sh.closePath(); g = new THREE.ShapeGeometry(sh, 4); }
+    else { g = new THREE.PlaneGeometry(w, h); g.translate(0, h / 2, 0); }
+    if (side) g.rotateY(face * Math.PI / 2); else if (face < 0) g.rotateY(Math.PI);
+    hall.add(g, glass, {p: [x, y, z]});
+    const lintel = new THREE.BoxGeometry(side ? 0.004 : w + 0.005, 0.0035, side ? w + 0.005 : 0.004);
+    if (!pointed) hall.add(lintel, trim, {p: [x, y + h + 0.002, z]});
+    hall.add(new THREE.BoxGeometry(side ? 0.004 : w + 0.004, 0.003, side ? w + 0.004 : 0.005), trim, {p: [x, y - 0.0015, z]});
+  };
+  const cx = -0.01;
+  // the main block: one and a half storeys of ashlar under a steep roof
+  wall(0.2, 0.062, 0.088, cx, ground, HZ); gable(0.214, 0.096, 0.072, cx, ground + 0.062, HZ);
+  hall.add(new THREE.BoxGeometry(0.206, 0.006, 0.094), trim, {p: [cx, ground + 0.003, HZ]});
+  for (const x of [-0.075, 0.07]) { win(cx + x, ground + 0.012, HZ + 0.0445); win(cx + x, ground + 0.04, HZ + 0.0445, 0.01, 0.014); }
+  // the front gable wing with a tall pointed window
+  wall(0.072, 0.062, 0.034, cx + 0.045, ground, HZ + 0.06); gable(0.04, 0.076, 0.064, cx + 0.045, ground + 0.062, HZ + 0.065, true);
+  win(cx + 0.045, ground + 0.012, HZ + 0.0775, 0.024, 0.022); win(cx + 0.045, ground + 0.067, HZ + 0.0775, 0.014, 0.03, 1, true);
+  // a polygonal bay window on the main front
+  const bay = new THREE.CylinderGeometry(0.02, 0.02, 0.032, 6, 1, false, -Math.PI / 2, Math.PI); planarUV(bay, 40); hall.add(bay, stone, {p: [cx - 0.035, ground + 0.016, HZ + 0.044]});
+  hall.add(new THREE.ConeGeometry(0.023, 0.014, 6, 1, false, -Math.PI / 2, Math.PI), slate, {p: [cx - 0.035, ground + 0.039, HZ + 0.044]});
+  for (const a of [-0.9, 0, 0.9]) { const g = new THREE.PlaneGeometry(0.009, 0.018); g.translate(0, 0.009, 0); g.rotateY(a); hall.add(g, glass, {p: [cx - 0.035 + Math.sin(a) * 0.0185, ground + 0.007, HZ + 0.044 + Math.cos(a) * 0.0185]}); }
+  // the arched porch over the front door, with steps
+  wall(0.036, 0.04, 0.026, cx + 0.0, ground, HZ + 0.057); gable(0.03, 0.04, 0.03, cx, ground + 0.04, HZ + 0.06, true);
+  const arch = new THREE.Shape(); arch.moveTo(-0.009, 0); arch.lineTo(0.009, 0); arch.lineTo(0.009, 0.018); arch.quadraticCurveTo(0.009, 0.027, 0, 0.031); arch.quadraticCurveTo(-0.009, 0.027, -0.009, 0.018); arch.closePath();
+  hall.add(new THREE.ShapeGeometry(arch, 4), door, {p: [cx, ground, HZ + 0.0705]});
+  hall.add(new THREE.CircleGeometry(0.004, 10, 0, Math.PI), glass, {p: [cx, ground + 0.022, HZ + 0.0708]});
+  for (let k = 0; k < 2; k++) hall.add(new THREE.BoxGeometry(0.03 - k * 0.006, 0.004, 0.012 - k * 0.004), trim, {p: [cx, ground + 0.002 + k * 0.004, HZ + 0.077 - k * 0.002]});
+  // the square tower with a steep pyramid roof, and the round tower with a cone
+  wall(0.04, 0.118, 0.04, cx - 0.098, ground, HZ + 0.03);
+  hall.add(new THREE.ConeGeometry(0.034, 0.07, 4, 1), slate, {p: [cx - 0.098, ground + 0.153, HZ + 0.03], r: [0, Math.PI / 4, 0]});
+  for (const y of [0.014, 0.05, 0.088]) win(cx - 0.098, ground + y, HZ + 0.0505, 0.01, y > 0.08 ? 0.018 : 0.016, 1, y > 0.08);
+  hall.add(new THREE.BoxGeometry(0.044, 0.004, 0.044), trim, {p: [cx - 0.098, ground + 0.118, HZ + 0.03]});
+  const round = new THREE.CylinderGeometry(0.022, 0.022, 0.104, 14); planarUV(round, 40); hall.add(round, stone, {p: [cx + 0.098, ground + 0.052, HZ - 0.03]});
+  hall.add(new THREE.ConeGeometry(0.027, 0.06, 14), slate, {p: [cx + 0.098, ground + 0.134, HZ - 0.03]});
+  hall.add(new THREE.CylinderGeometry(0.0012, 0.0012, 0.018, 5), brass, {p: [cx + 0.098, ground + 0.172, HZ - 0.03]});
+  for (const a of [0.3, 1.2]) { const g = new THREE.PlaneGeometry(0.009, 0.015); g.translate(0, 0.0075, 0); g.rotateY(a); hall.add(g, glass, {p: [cx + 0.098 + Math.sin(a) * 0.0222, ground + 0.06, HZ - 0.03 + Math.cos(a) * 0.0222]}); }
+  // a dormer and tall stone chimneys with caps
+  wall(0.02, 0.018, 0.02, cx - 0.06, ground + 0.07, HZ + 0.022); gable(0.026, 0.024, 0.016, cx - 0.06, ground + 0.088, HZ + 0.026, true);
+  win(cx - 0.06, ground + 0.073, HZ + 0.0325, 0.009, 0.011);
+  for (const [x, z, h] of [[-0.04, HZ - 0.01, 0.065], [0.075, HZ, 0.06], [0.045, HZ + 0.06, 0.052]]) { wall(0.012, h, 0.014, cx + x, ground + 0.07, z); hall.add(new THREE.BoxGeometry(0.016, 0.004, 0.018), trim, {p: [cx + x, ground + 0.072 + h, z]}); }
+  // autumn maples and fallen leaves
+  const leafMats = [['#c4462a', 'ny-maple-red'], ['#e08a2e', 'ny-maple-orange'], ['#e8b83a', 'ny-maple-gold']].map(([c, n]) => material(resources, n, c, {roughness: 0.85}));
+  const bark = material(resources, 'ny-bark', '#4a3526', {roughness: 0.9});
+  for (const [x, z, s, m] of [[-0.175, -0.07, 1.1, 0], [0.18, 0.04, 1.0, 1], [-0.16, 0.085, 0.8, 2], [0.165, -0.095, 0.9, 0]]) {
+    kit.add(new THREE.CylinderGeometry(0.0035 * s, 0.005 * s, 0.06 * s, 6), bark, {p: [x, ground + 0.03 * s, z]});
+    for (let k = 0; k < 6; k++) { const a = k * 1.1 + x * 10; kit.add(new THREE.IcosahedronGeometry(0.022 * s * (0.8 + (k % 3) * 0.15), 1), leafMats[(m + (k % 2)) % 3], {p: [x + Math.cos(a) * 0.017 * s, ground + (0.07 + (k % 3) * 0.016) * s, z + Math.sin(a) * 0.017 * s]}); }
+  }
+  for (let k = 0; k < (low ? 20 : 40); k++) { const a = k * 2.39996, r = 0.06 + (k % 9) * 0.017; const px = Math.cos(a) * r * 1.5, pz = Math.sin(a) * r; if (Math.abs(px) < 0.12 && pz < 0.03 && pz > -0.1) continue; kit.add(new THREE.CircleGeometry(0.0035, 5), leafMats[k % 3], {p: [px, ground + 0.0008, pz], r: [-Math.PI / 2, 0, a]}); }
+  // the pennant, red and purple, on a brass pole
+  kit.add(new THREE.CylinderGeometry(0.0011, 0.0011, 0.05, 6), brass, {p: [cx - 0.098, ground + 0.205, HZ + 0.03]});
+  const penUV = L.custom((c, w, h) => { c.fillStyle = '#9b1f2e'; c.fillRect(0, 0, w, h / 2); c.fillStyle = '#5b2a86'; c.fillRect(0, h / 2, w, h / 2); c.fillStyle = '#fbeedb'; c.font = '700 44px Georgia, serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('HOOSAC', w * 0.42, h / 2); });
+  const penGeo = L.geometry(penUV, 0.06, 0.026); { const p = penGeo.attributes.position; for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + 0.03) / 0.06; p.setY(i, p.getY(i) * (1 - u * 0.92)); } } penGeo.translate(0.03, 0, 0);
+  resources?.add(penGeo);
+  const pennant = new THREE.Mesh(penGeo, L.mat); pennant.position.set(cx - 0.098, ground + 0.218, HZ + 0.03); pennant.scale.setScalar(0.7); pennant.castShadow = true; root.add(pennant);
+  // a stone owl on a little plinth by the drive, for the school mascot
+  const owlStone = material(resources, 'ny-owl-stone', '#9a958c', {roughness: 0.8});
+  friendsKit.add(planarUV(new THREE.BoxGeometry(0.022, 0.024, 0.022), 40), stone, {p: [-0.072, ground + 0.012, 0.1]});
+  const owlLight = material(resources, 'ny-owl-face', '#c8c2b6', {roughness: 0.8}), owlEye = material(resources, 'ny-owl-eye', '#e7c46a', {emissive: '#7a5a10', emissiveIntensity: 0.4}), owlDark = material(resources, 'ny-owl-pupil', '#2a2622', {roughness: 0.5});
+  const ox = -0.072, oz = 0.1, oy = ground + 0.024;
+  friendsKit.add(new THREE.SphereGeometry(0.0105, 14, 10), owlStone, {p: [ox, oy + 0.014, oz], s: [1, 1.35, 0.9]});
+  friendsKit.add(new THREE.SphereGeometry(0.0092, 14, 10), owlStone, {p: [ox, oy + 0.031, oz], s: [1.08, 0.9, 0.95]});
+  for (const e of [-1, 1]) {
+    friendsKit.add(new THREE.SphereGeometry(0.0085, 10, 8), owlStone, {p: [ox + e * 0.0085, oy + 0.014, oz - 0.001], s: [0.45, 1.25, 0.9], r: [0, 0, e * 0.15]});
+    friendsKit.add(new THREE.CircleGeometry(0.0046, 14), owlLight, {p: [ox + e * 0.0043, oy + 0.032, oz + 0.0086]});
+    friendsKit.add(new THREE.CircleGeometry(0.0026, 12), owlEye, {p: [ox + e * 0.0043, oy + 0.032, oz + 0.0089]});
+    friendsKit.add(new THREE.CircleGeometry(0.0012, 8), owlDark, {p: [ox + e * 0.0043, oy + 0.032, oz + 0.0091]});
+    friendsKit.add(new THREE.ConeGeometry(0.0016, 0.0045, 4), owlStone, {p: [ox + e * 0.0062, oy + 0.0395, oz + 0.002], r: [0, 0, -e * 0.5]});
+    friendsKit.add(new THREE.ConeGeometry(0.0012, 0.004, 4), owlStone, {p: [ox + e * 0.003, oy + 0.0015, oz + 0.008], r: [Math.PI / 2, 0, 0]});
+  }
+  friendsKit.add(new THREE.ConeGeometry(0.0014, 0.0045, 5), owlDark, {p: [ox, oy + 0.0285, oz + 0.009], r: [Math.PI * 0.62, 0, 0]});
+  // two students walking up the drive, one with books
+  const skin = material(resources, 'ny-skin', '#efd2b6', {roughness: 0.7}), hair = material(resources, 'ny-hair', '#2a1d16', {roughness: 0.7});
+  const figures = [];
+  for (const [x, z, coat, books] of [[-0.03, 0.105, '#7a2433', false], [-0.012, 0.118, '#4f3478', true]]) {
+    const f = makeKit('keepsake-hoosac-student', resources), g = new THREE.Group(); g.position.set(x, ground, z); root.add(g);
+    const c = material(resources, 'ny-blazer-' + coat, coat, {roughness: 0.7});
+    f.add(new THREE.CylinderGeometry(0.0022, 0.0022, 0.012, 6), material(resources, 'ny-trousers', '#2c2f3a'), {p: [-0.0022, 0.006, 0]}); f.add(new THREE.CylinderGeometry(0.0022, 0.0022, 0.012, 6), material(resources, 'ny-trousers', '#2c2f3a'), {p: [0.0022, 0.006, 0]});
+    f.add(new THREE.CapsuleGeometry(0.0052, 0.011, 3, 8), c, {p: [0, 0.019, 0]});
+    f.add(new THREE.SphereGeometry(0.0048, 10, 8), skin, {p: [0, 0.033, 0]}); f.add(new THREE.SphereGeometry(0.005, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), hair, {p: [0, 0.0338, -0.0006]});
+    if (books) f.add(new THREE.BoxGeometry(0.008, 0.002, 0.006), material(resources, 'ny-books', '#c9a24f'), {p: [0.006, 0.02, 0.003]});
+    figures.push(g, ...f.build(g));
+  }
+  // the far city: a painted backdrop of the hills and the road, the skyline small on the horizon, and a road sign
+  const backUV = L.custom((c, w, h) => {
+    const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#2c3a64'); sky.addColorStop(0.55, '#c98d8a'); sky.addColorStop(1, '#f1c38e'); c.fillStyle = sky; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#ffe9b0'; for (let k = 0; k < 14; k++) c.fillRect((k * 37) % w, (k * 11) % (h * 0.35), 1.5, 1.5);
+    c.fillStyle = '#1c2340'; const sx = w * 0.78, base = h * 0.66;
+    [[0, 16, 30], [12, 10, 44], [20, 12, 60], [31, 9, 38], [38, 11, 50], [48, 8, 34], [-10, 9, 26]].forEach(([dx, bw, bh]) => c.fillRect(sx + dx, base - bh * 0.5, bw * 0.6, bh * 0.5));
+    c.fillRect(sx + 24, base - 40, 4, 10); c.fillRect(sx + 25.2, base - 47, 1.6, 8);
+    c.fillStyle = '#ffd98a'; for (let k = 0; k < 22; k++) c.fillRect(sx - 6 + (k * 7) % 58, base - 4 - (k * 5) % 22, 1.2, 1.2);
+    c.fillStyle = '#56603e'; c.beginPath(); c.moveTo(0, h * 0.62); for (let x = 0; x <= w; x += 8) c.lineTo(x, h * 0.66 - Math.sin(x / 40) * 10 - Math.sin(x / 17) * 4); c.lineTo(w, h); c.lineTo(0, h); c.fill();
+    c.fillStyle = '#3f4a2c'; c.beginPath(); c.moveTo(0, h * 0.78); for (let x = 0; x <= w; x += 8) c.lineTo(x, h * 0.8 - Math.sin(x / 55 + 1) * 8); c.lineTo(w, h); c.lineTo(0, h); c.fill();
+    c.fillStyle = '#8a7f6a'; c.beginPath(); c.moveTo(w * 0.42, h); c.quadraticCurveTo(w * 0.55, h * 0.78, sx + 6, base + 2); c.lineTo(sx + 9, base + 2); c.quadraticCurveTo(w * 0.6, h * 0.8, w * 0.52, h); c.fill();
+  });
+  cityKit.add(L.geometry(backUV, 0.44, 0.12), L.mat, {p: [0, ground + 0.06, -0.146]});
+  cityKit.add(new THREE.BoxGeometry(0.448, 0.008, 0.008), walnut, {p: [0, ground + 0.124, -0.148]});
+  for (const sx of [-1, 1]) cityKit.add(new THREE.BoxGeometry(0.008, 0.124, 0.008), walnut, {p: [sx * 0.222, ground + 0.062, -0.148]});
+  const signUV = L.custom((c, w, h) => { c.fillStyle = '#1f6b3d'; c.fillRect(0, 0, w, h); c.strokeStyle = '#ffffff'; c.lineWidth = 5; c.strokeRect(6, 6, w - 12, h - 12); c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '700 30px Arial, sans-serif'; c.fillText('NEW YORK CITY', w / 2, h * 0.36); c.font = '700 40px Arial, sans-serif'; c.fillText('3½ h  →', w / 2, h * 0.72); });
+  cityKit.add(new THREE.CylinderGeometry(0.0016, 0.0016, 0.06, 6), material(resources, 'ny-sign-post', '#b9bec4', {metalness: 0.6, roughness: 0.35}), {p: [0.15, ground + 0.03, 0.11]});
+  cityKit.add(L.geometry(signUV, 0.05, 0.025), L.mat, {p: [0.15, ground + 0.06, 0.1112], r: [0, -0.25, 0]});
+  cityKit.add(new THREE.BoxGeometry(0.052, 0.027, 0.002), material(resources, 'ny-sign-back', '#1a5732'), {p: [0.15, ground + 0.06, 0.1098], r: [0, -0.25, 0]});
+  kit.build(root); const hallMeshes = hall.build(root), friendMeshes = friendsKit.build(root), cityMeshes = cityKit.build(root);
+  function animate(t, dt, page) {
+    const pulse = reduced ? 1 : 0.7 + 0.3 * Math.sin(t * 2.4);
+    glass.emissiveIntensity = page === 'tibbits' ? 1.1 * pulse : 0.35;
+    if (!reduced) { const p = penGeo.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / 0.06; p.setZ(i, Math.sin(t * 5 - u * 5) * 0.004 * u); } p.needsUpdate = true; }
+    figures.forEach((f, i) => { if (f.isGroup && !reduced) f.position.y = ground + Math.abs(Math.sin(t * 4 + i)) * (page === 'friends' ? 0.0025 : 0.0008); });
+  }
+  animate(0, 0, null);
+  return {root, objects: {tibbits: hallMeshes, friends: [...friendMeshes, pennant, ...figures.filter(f => f.isMesh)], city: cityMeshes}, animate};
+}

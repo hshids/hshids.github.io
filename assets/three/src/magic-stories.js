@@ -3,7 +3,7 @@ import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createCraftMaterials} from './fidelity-surface-materials.js';
 import './magic-stories.css';
-import {buildTwoShores,buildRoadTrips,buildUNCrossroads} from './magic-keepsakes.js';
+import {buildTwoShores,buildRoadTrips,buildUNCrossroads,buildHoosacNY} from './magic-keepsakes.js';
 
 // These are optional, replayable illustrations. They never gate a publication,
 // original chapter, link, or dialogue. The travel pages intentionally contain
@@ -52,6 +52,15 @@ const STORIES = Object.freeze([
       flight:'In 2013 I took the flight that brought me to the US for high school. Since then I have flown back and forth between China and the US many times. This little plane stands for the bond I carry between my two homes.',
       boarding:'That flight led to my first time living at school, at a boarding school in upstate New York near Albany. I was far from home, surrounded by new friends, and it was a really happy time.',
       thread:'I never met my maternal grandfather. Nearly a century ago he came to San Francisco, long before I did. Watch the little ship cross the box. It is a small connection I still find moving.'}},
+  {id:'new-york-years',station:'home',title:'Three years in upstate New York',mode:'souvenir',
+    clue:'A little stone hall on the side table, under red and purple colours. Look at the hall, the friends on the drive, and the road sign.',
+    note:'My high school years were at Hoosac School in upstate New York. I lived two of them in Tibbits Hall, the old stone house at the heart of the campus.',
+    anchor:[.95,.30,-3.06],room:'welcome-gatehall',indoor:true,
+    support:'A walnut side table of its own on the Welcome floor, against the back wall of the right wing, under the window.',
+    controls:[['tibbits','Tibbits Hall'],['friends','The happy years'],['city','The city down the road']],
+    pages:{tibbits:'Tibbits Hall is the old stone house at the heart of Hoosac School, with steep slate roofs, two towers and bay windows. I lived there for two of my three high school years. It felt a little like living in a castle.',
+      friends:'It was my first time living at school, far from home, and it was a happy time with many new friends. Our mascot was an owl, so the owl post in this world is a small nod to those years too.',
+      city:'I thought New York City would be close. It was about three and a half hours down the road, so the city always stayed a little farther away than I imagined.'}},
   {id:'wider-compass',station:'education',title:'The compass that says wider',mode:'souvenir',
     clue:'Turn a small compass through four places: Upstate New York, Davis, DC and Bethlehem. It is a collection of feelings, not a second résumé.',
     note:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.',
@@ -480,6 +489,10 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
           token=disc(s.id+'-'+key+'-compass-chapter-token',.021,.013,[Math.sin(a)*.139,.0315,Math.cos(a)*.096],i%2?mats.green:mats.blue,body);
         register(s,key,s.spec.controls[i][1],token,()=>select(s.id,key));
       }
+    }else if(s.id==='new-york-years'){
+      const top=table(s,.62,.40,.60);body.position.y=top;
+      const k=buildHoosacNY(body,{resources,reduced,low});s.keepsake=k;
+      for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
     }else if(s.id==='cats-across-america'){
       const k=buildRoadTrips(body,{resources,reduced,low});s.keepsake=k;
       for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));

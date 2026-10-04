@@ -1910,7 +1910,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   }
 
   // keepsakes live inside rooms; drawing them from across the island wastes draw calls
-  const nearOnly = ['keepsake-two-shores-box', 'keepsake-two-crossings-map', 'keepsake-un-crossroads'].map(n => scene.getObjectByName(n)).filter(Boolean)
+  const nearOnly = ['keepsake-two-shores-box', 'keepsake-two-crossings-map', 'keepsake-un-crossroads', 'keepsake-hoosac-tibbits'].map(n => scene.getObjectByName(n)).filter(Boolean)
     .map(o => ({o, p: o.getWorldPosition(new THREE.Vector3())}));
   let owlTurn = 0, nextBlink = 2, owlFlutter = 12;
   function update(dt, t, camera, renderer) {
