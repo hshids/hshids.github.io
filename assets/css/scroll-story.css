@@ -1,0 +1,19 @@
+/* The handscroll layer for the 2D world: a long painted scroll told in chapters. Loaded after every
+   other world stylesheet; presentation only. */
+
+/* ---------- travelling: the scroll unrolls and the figures ride along as shadow puppets ---------- */
+.actor { transition: filter .35s ease, opacity .35s ease; }
+.actor.is-puppet {
+  filter: brightness(.16) sepia(.7) saturate(1.6) drop-shadow(0 0 4px rgba(255, 196, 120, .6)) drop-shadow(0 0 16px rgba(255, 168, 86, .35));
+  opacity: .9;
+}
+.actor.is-puppet .bubble { visibility: hidden; }
+#world::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 4; opacity: 0; transition: opacity .45s ease;
+  background:
+    linear-gradient(90deg, var(--scroll-mist, rgba(240, 233, 219, .78)) 0, transparent 18%, transparent 82%, var(--scroll-mist, rgba(240, 233, 219, .78)) 100%),
+    radial-gradient(120% 70% at 50% 60%, transparent 55%, var(--scroll-mist-soft, rgba(240, 233, 219, .35)) 100%);
+}
+#world.is-unrolling::after { opacity: 1; }
+[data-theme="dark"] #world { --scroll-mist: rgba(14, 18, 30, .8); --scroll-mist-soft: rgba(14, 18, 30, .4); }
+@media (prefers-reduced-motion: reduce) { .actor { transition: none; } #world::after { transition: none; } }

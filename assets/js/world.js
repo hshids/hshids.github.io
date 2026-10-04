@@ -57,7 +57,7 @@
     lang: "en",   // the site is in English; the guide switches to Chinese only when asked in Chinese
     raf: 0, last: 0, title: false, dragged: false,
     guideMin: false,   // the visitor folded the chat away themselves
-    navTimer: 0, navToken: 0
+    navTimer: 0, navToken: 0, glide: null
   };
 
   // ---------- DOM ----------
@@ -311,6 +311,21 @@
       state.vmax = WALK_SPEED; state.focusX = null; state.trip = null;
     }
 
+    if (state.glide) {
+      var gl = state.glide; gl.t = Math.min(gl.dur, gl.t + dt);
+      var gp = gl.t / gl.dur, ge = gp < .5 ? 4 * gp * gp * gp : 1 - Math.pow(-2 * gp + 2, 3) / 2;
+      state.cam = gl.fromCam + (gl.toCam - gl.fromCam) * ge;
+      // the puppets keep their place on the screen while the scroll moves under them, and drift onto the landing spot
+      var ride = gl.fromX + (state.cam - gl.fromCam), settle = gp < .7 ? 0 : (gp - .7) / .3;
+      state.x = state.target = ride + (gl.landX - ride) * settle * settle;
+      state.catX = gl.fromCatX + (state.cam - gl.fromCam) + ((gl.landX - gl.direction * 82) - (gl.fromCatX + (state.cam - gl.fromCam))) * settle * settle;
+      state.dir = state.catDir = gl.direction; state.vel = 0;
+      render(); updateNear();
+      if (gp >= 1) endGlide(true);
+      state.raf = requestAnimationFrame(tick);
+      return;
+    }
+
     // walking (velocity with accel/decel)
     var humanPreviousX = state.x, dx = state.target - state.x;
     if (Math.abs(dx) > 0.5 || Math.abs(state.vel) > 1) {
@@ -410,10 +425,27 @@
 
   // ---------- movement API ----------
   function cancelNavTransition() {
+    if (state.glide) { endGlide(false); state.target = state.x; state.vel = 0; state.trip = null; state.focusX = null; return; }
     if (!state.navTimer) return;
     clearTimeout(state.navTimer); state.navTimer = 0; state.navToken++;
     worldEl.classList.remove("scene-changing");
     state.target = state.x; state.vel = 0; state.trip = null; state.focusX = null;
+  }
+
+  // A distant Places jump unrolls the scroll: the camera glides through every scene in between while
+  // Hanjing and the kitty ride along as backlit shadow-puppet silhouettes, then step out and walk in.
+  function endGlide(arrived) {
+    var g = state.glide; if (!g) return;
+    state.glide = null;
+    charEl.classList.remove("is-puppet"); catEl.classList.remove("is-puppet"); worldEl.classList.remove("is-unrolling");
+    if (!arrived) return;
+    state.x = g.landX; state.target = g.destination; state.dir = g.direction; state.vel = 0;
+    state.trip = g.trip; state.focusX = g.focus;
+    state.catX = state.x - g.direction * 82; state.catDir = state.catTrail = g.direction;
+    state.catVel = 0; state.catGaitMix = 0; state.catStride = 0; state.charStride = 0;
+    charEl._rigHumanWorldX = state.x;
+    if (ART.resetHumanStep) ART.resetHumanStep(charEl);
+    if (catEl._paintRig) { catEl._paintRig.catPlants = []; catEl._paintRig.catPreviousBodyX = undefined; }
   }
 
   function walkTo(x, opts) {
@@ -437,30 +469,19 @@
       return;
     }
     if (opts.trip && dist > 500) {
-      // A distant Places jump is a brief scene change, followed by a real
-      // approach at the same walking pace as keys, scrolling and dragging.
-      var destination = state.target, trip = state.trip, focus = state.focusX;
-      var direction = destination > state.x ? 1 : -1, token = ++state.navToken;
+      var destination = state.target, trip = state.trip, direction = destination > state.x ? 1 : -1;
+      var landX = clamp(destination - direction * 165, 90, W - 90), station = byId[trip.id];
+      // frame the destination the way the arrival will, so the glide ends where the walk-in begins
+      var keepX = state.x, keepFocus = state.focusX;
+      state.x = destination; state.focusX = station ? station.x : null;
+      var toCam = camGoal();
+      state.x = keepX; state.focusX = keepFocus;
       state.target = state.x; state.vel = 0; state.trip = null;
       charEl.classList.remove("is-walking", "is-running");
-      worldEl.classList.add("scene-changing");
-      state.navTimer = setTimeout(function () {
-        if (token !== state.navToken) return;
-        state.navTimer = 0;
-        state.x = clamp(destination - direction * 165, 90, W - 90);
-        state.target = destination; state.dir = direction; state.vel = 0;
-        state.trip = trip; state.focusX = focus;
-        state.catX = state.x - direction * 82;
-        state.catDir = state.catTrail = direction;
-        state.catVel = 0; state.catGaitMix = 0; state.catStride = 0; state.charStride = 0;
-        charEl._rigHumanWorldX = state.x;
-        if (ART.resetHumanStep) ART.resetHumanStep(charEl);
-        if (catEl._paintRig) { catEl._paintRig.catPlants = []; catEl._paintRig.catPreviousBodyX = undefined; }
-        state.cam = camGoal();
-        render();
-        worldEl.classList.remove("scene-changing");
-        start();
-      }, 140);
+      charEl.classList.add("is-puppet"); catEl.classList.add("is-puppet"); worldEl.classList.add("is-unrolling");
+      state.glide = { t: 0, dur: clamp(Math.abs(toCam - state.cam) / 2400, .9, 1.9), fromCam: state.cam, toCam: toCam,
+        fromX: state.x, fromCatX: state.catX, landX: landX, destination: destination, direction: direction, trip: trip, focus: state.focusX };
+      state.focusX = null;
       start();
       return;
     }
