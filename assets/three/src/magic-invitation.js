@@ -75,7 +75,8 @@ export function createInvitation({
         <div class="magic-letter-ink">
           <p>I’m Hanjing. I study how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.</p>
           <p>Building things is my way of asking questions. Here you’ll find a little ink, a little starlight, and pieces of the places I’ve called home. And yes, my household belongs to six cats.</p>
-          <p>Chinese traditions are close to my heart, and I’ve lived in the US since high school. That mix finds its way here: ink courtyards, castle-like rooftops, and little echoes of my travels.</p>
+          <p>I have a big LEGO collection, and I’ve loved building with blocks since I was little. Building is still how I explore. Piece by piece, I step into the little world taking shape in my hands, especially with the Harry Potter sets. That is why this world is made of bricks, candlelight, and a little magic.</p>
+          <p>Chinese traditions are close to my heart, and I’ve lived in the US since high school. That mix finds its way here, in ink courtyards, castle-like rooftops, the sea of my seaside hometown, and little echoes of my travels.</p>
           <p>Look closer at whatever catches your eye. Open a book or linger by the water. JinBingBing and XiaoHei are here, too. Explore in any order. You can always read my work without solving anything first.</p>
           <p>I’m glad you’re here.</p>
         </div>

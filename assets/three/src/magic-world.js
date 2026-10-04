@@ -16,12 +16,13 @@ import {createWritingBrush} from './fidelity-hand-contact.js';
 import {createDisplayAntialias} from './fidelity-antialias.js';
 import {createContent} from './content.js';
 import {createAudio} from './audio.js';
+import {createEnchantment} from './magic-enchantment.js';
 
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const canvas=$('#world-canvas'),container=$('#world'),low=matchMedia('(max-width:700px)').matches,quality=low?'low':'high';
 const reduced=matchMedia('(prefers-reduced-motion:reduce)').matches,audio=createAudio();
 const state={mode:'overview',near:'home',dark:true,time:0,overlay:null,yaw:-.12,pitch:.92,distance:90,roomId:null,ready:false};
-let renderer,scene,camera,garden,landscape,magic,cats,content,notebook,diary,stories,architecture,talkNotes,pathWalk,environment,aa,brush,interiorLight,key,overviewBatches,captionObserver;
+let enchant,renderer,scene,camera,garden,landscape,magic,cats,content,notebook,diary,stories,architecture,talkNotes,pathWalk,environment,aa,brush,interiorLight,key,overviewBatches,captionObserver;
 let last=0,raf=0,stopped=false,paused=false,drag=null,lastTap=null,writingUntil=0,speechTimer=0,disposed=false,invitationRendered=false,qaRenderOnce=false;
 const pointers=new Map(),ray=new THREE.Raycaster(),ndc=new THREE.Vector2(),centre=new THREE.Vector3(10.5,-.65,-12),target=centre.clone(),desired=centre.clone();
 const roomEye=new THREE.Vector3(),cameraEye=new THREE.Vector3(),rootSize=new THREE.Vector3();
@@ -40,7 +41,7 @@ function setOverlay(value){
   state.overlay=value;if(value&&state.mode==='walk')pathWalk?.pause();if(state.mode==='walk'&&pathWalk?.getState().active)refreshPrompt();drag=null;pointers.clear();hideTip();invitationRendered=false;last=0;
 }
 function closeNewPages(){diary?.close('navigation');stories?.close();talkNotes?.close();hideTip();}
-function interactionItems(){return [...(magic?.interactables||[]),...(stories?.interactables||[]),...(diary?.interactables||[]),...(talkNotes?.interactables||[]),...(garden?.interactables||[]),...(cats?.interactables||[]),...(landscape?.interactables||[])];}
+function interactionItems(){return [...(enchant?.interactables||[]),...(magic?.interactables||[]),...(stories?.interactables||[]),...(diary?.interactables||[]),...(talkNotes?.interactables||[]),...(garden?.interactables||[]),...(cats?.interactables||[]),...(landscape?.interactables||[])];}
 function refreshKeepsakeButton(){const button=$('#keepsake-btn');if(!button)return;button.hidden=state.mode==='overview'||state.mode==='walk'||!stories?.metadata.entries.some(e=>e.station===state.near);$('#walk-start-btn').hidden=state.mode!=='overview';}
 function findKeepsake(){const entries=stories?.metadata.entries.filter(e=>e.station===state.near)||[];if(!entries.length)return;const index=keepsakeSteps.get(state.near)||0;keepsakeSteps.set(state.near,index+1);const entry=entries[index%entries.length];returnToDiscovery(entry.station,entry.id,{viewOnly:true});$('#chapter-sub').textContent=entry.title+'. '+(low?'Tap':'Click')+' the keepsake to explore.';}
 function refreshPrompt(){if(state.mode==='walk'){const s=pathWalk.getState();$('#prompt-label').textContent=s.done?'Choose the next path':s.paused?'Walk this path':'Pause and look around';$('#world-prompt').disabled=s.done;return;}$('#world-prompt').disabled=false;const label=state.mode==='interior'&&state.near==='writing'?'Write to the diary':state.mode==='interior'&&state.near==='talks'?'Leave a thought':state.near==='home'?'Read Hanjing’s letter':'Read '+(station()?.label||'this place');$('#prompt-label').textContent=label;}
@@ -65,14 +66,15 @@ function showHover(now){if(!hoverDirty||!hoverPoint||state.overlay||drag||now-ho
 function say(text){clearTimeout(speechTimer);const el=$('#speech');el.textContent=text;el.hidden=false;speechTimer=setTimeout(()=>el.hidden=true,6500);}
 function station(id=state.near){return garden?.stations.find(s=>s.id===id);}
 function descriptor(id){return magic?.metadata.chapters.find(c=>c.station===id);}
-function record(event){if(!event||event.complete===false)return;notebook?.discover({...event,silent:!!state.overlay});landscape?.discover?.(event.station||event.id);}
+function discoveryAnchor(event){const entry=stories?.metadata.entries.find(e=>(e.discoveryId||e.id)===(event.discoveryId||event.id));const p=entry?.getWorldAnchor?.();if(p)return new THREE.Vector3(...p).add(new THREE.Vector3(0,.35,0));const s=station(event.station||event.id);return s?s.root.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0,2.2,0)):null;}
+function record(event){if(!event||event.complete===false)return;if(event.fresh!==false&&!event.silent&&state.ready)enchant?.burst(discoveryAnchor(event));notebook?.discover({...event,silent:!!state.overlay});landscape?.discover?.(event.station||event.id);}
 function setCaption(id){const d=descriptor(id);$('#chapter-title').textContent=d?.title||station(id)?.label||'A world within';$('#chapter-sub').textContent=d?.subtitle||'A little ink. A little starlight. Pieces of places I’ve called home.';
   $$('[data-go]').forEach(b=>{const here=state.mode!=='overview'&&b.dataset.go===id;b.classList.toggle('is-here',here);if(here)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});refreshKeepsakeButton();}
 function fitDistance(box,aspect=camera.aspect){box.getSize(rootSize);const t=Math.tan(THREE.MathUtils.degToRad(44/2));return Math.max(rootSize.x/(2*t*aspect),Math.hypot(rootSize.z,rootSize.y)/(2*t))*(low?1.16:1.32);}
 function overview(){if(!state.ready)return;const wasWalking=state.mode==='walk';stopWalking();closeNewPages();content.closePanel();content.expandGuide(false);notebook?.close();state.mode='overview';state.roomId=null;state.near='home';state.yaw=-.12;state.pitch=.50;garden.setActive('overview');overviewBatches?.set(true);container.classList.remove('is-inside-room');
   key.shadow.needsUpdate=true;
-  desired.copy(centre);const bounds=landscape.diagnostics?.overviewBounds;const box=bounds?new THREE.Box3(new THREE.Vector3(...bounds.min),new THREE.Vector3(...bounds.max)):new THREE.Box3(new THREE.Vector3(-24,-8,-36),new THREE.Vector3(46,7,12));
-  wantedDistance=THREE.MathUtils.clamp(fitDistance(box),72,250);if(reduced||wasWalking){target.copy(desired);state.distance=wantedDistance;}
+  const bounds=enchant?.overviewBounds||landscape.diagnostics?.overviewBounds;const box=bounds?new THREE.Box3(new THREE.Vector3(...bounds.min),new THREE.Vector3(...bounds.max)):new THREE.Box3(new THREE.Vector3(-24,-8,-36),new THREE.Vector3(46,7,12));
+  box.getCenter(desired);desired.y+=4;wantedDistance=THREE.MathUtils.clamp(fitDistance(box)*(enchant?.overviewBounds?.78:1),72,260);if(reduced||wasWalking){target.copy(desired);state.distance=wantedDistance;}
   $('#chapter-title').textContent='A world within';$('#chapter-sub').textContent='Ink, starlight, and places I’ve called home. '+(low?'Tap':'Click')+' a miniature to look closer, or a stone path to walk.';$('#chapter-eyebrow').textContent='HANJING’S OPENED CRYSTAL WORLD';
   refreshKeepsakeButton();$('#room-btn').hidden=true;$('#prompt-label').textContent='Read the invitation';$$('[data-go]').forEach(b=>{b.classList.remove('is-here');b.removeAttribute('aria-current');});
   cats.bingbing.visible=false;cats.xiaohei.visible=false;history.replaceState(null,'',location.pathname+location.search);}
@@ -102,6 +104,7 @@ function action(name){const normalized=String(name||'').toLowerCase();
   if(['talk','projector'].includes(normalized)){content.openTheater(0);return;}
   if(['cap','mail','read'].includes(normalized)){content.openPanel(normalized==='cap'?'education':normalized==='mail'?'contact':'research');audio.play('wood');}}
 function interact(item){if(!item)return;
+  if(item.type==='enchant'){item.onInteract?.();audio.play('bell');return;}
   if(item.type==='road'){beginWalk(landscape.pickRoad(item.point));return;}
   if(item.type==='chapter'){go(item.station);return;}
   if(item.type==='diary'){openDiary();return;}
@@ -125,6 +128,7 @@ function isPickable(object){const proxy=object?.userData.roomSolid===false&&obje
 function pick(x,y){const rect=canvas.getBoundingClientRect();ndc.set((x-rect.left)/rect.width*2-1,-(y-rect.top)/rect.height*2+1);ray.setFromCamera(ndc,camera);
   if(state.mode==='overview'){
     let best=null,distance=Infinity;for(const s of garden.stations){const hit=ray.intersectObject(s.root,true).find(h=>h.object.material?.visible!==false);if(hit&&hit.distance<distance){best={id:s.id,type:'chapter',station:s.id,title:descriptor(s.id)?.title||s.label,point:hit.point};distance=hit.distance;}}
+    for(const item of enchant?.interactables||[]){const objects=(item.objects||[item.object]).filter(o=>o?.isObject3D&&isPickable(o));const hit=ray.intersectObjects(objects,true)[0];if(hit&&hit.distance<distance){best={...item,point:hit.point};distance=hit.distance;}}
     for(const item of landscape.interactables){const objects=(item.objects||[item.object]).filter(o=>o?.isObject3D&&isPickable(o));const hit=ray.intersectObjects(objects,true)[0];if(hit&&hit.distance<distance){best={...item,point:hit.point};distance=hit.distance;}}
     return best;
   }
@@ -159,6 +163,7 @@ function frame(now){if(stopped||document.hidden)return;if(paused&&!qaRenderOnce)
   key.target.position.copy(keyTarget);key.position.copy(keyTarget).add(new THREE.Vector3(-28,38,32));key.target.updateMatrixWorld();
   key.shadow.autoUpdate=state.mode!=='overview';
   if(key.shadow.camera.right!==span||key.shadow.camera.top!==span){Object.assign(key.shadow.camera,{left:-span,right:span,top:span,bottom:-span});key.shadow.camera.updateProjectionMatrix();key.shadow.needsUpdate=true;}
+  enchant?.update(dt,state.time,camera,renderer);
   showHover(now);renderer.info.reset();renderer.render(scene,camera);aa?.render();invitationRendered=invitation.isOpen;raf=requestAnimationFrame(frame);}
 function bind(){
   const caption=$('.chapter-caption');captionObserver=new ResizeObserver(()=>{$('#room-btn').style.top=(caption.offsetTop+caption.offsetHeight+12)+'px';});captionObserver.observe(caption,{box:'border-box'});
@@ -195,6 +200,7 @@ async function init(){
   diary=createInkDiary({station:station('writing'),quality,reduced,onOverlay:setOverlay,onDiscover:record});
   talkNotes=createTalkNotes({station:station('talks'),data:window.HJ_DATA,quality,reduced,onOverlay:setOverlay});
   landscape=await createMagicLandscape({quality,reduced,stations:garden.stations,extraBlockers:extraWorldBlockers(),floorAt:garden.floorAt,isPassable:garden.passable});landscape.setTheme(true);scene.add(landscape.root);
+  enchant=createEnchantment({scene,renderer,landscape,garden,quality,reduced,onStory:(id,storyId)=>returnToDiscovery(id,storyId),onOwl(){go('contact');say('Hoo hoo! The owl post runs day and night. Leave Hanjing a letter anytime.');}});scene.add(enchant.root);
   pathWalk=createPathWalk({routes:landscape.walkRoutes,reduced,eyeHeight:1.55,speed:1.6,arrivalDuration:1.3,blockers:walkingBlockers,aerialBlockers:garden.stations.map(s=>{s.root.updateWorldMatrix(true,true);const b=new THREE.Box3().setFromObject(s.root);return{id:s.id+'-roof',min:b.min.toArray(),max:b.max.toArray()};}),groundAt:(x,z)=>Math.max(.002,garden.floorAt(x,z)),isPassable:garden.passable});
   cats.placeXiaoHei(station('life'));cats.placeAtChapter(station('home'),garden);brush=createWritingBrush();brush.root.visible=false;scene.add(brush.root);
   content=createContent({go,action,say,talk(){},setOverlay,theater(){}});content.expandGuide(false);
@@ -206,6 +212,6 @@ async function init(){
   window.__HANJING_3D__={state,go,overview,enterRoom,leaveRoom,currentRoom,perform:action,pick,interact,renderer,scene,camera,garden,cats,actors:cats,magic,landscape,invitation,notebook,diary,stories,architecture,pathWalk,get talkNotes(){return talkNotes;},textureMemory,overviewBatches,
     metrics:()=>({calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,textures:renderer.info.memory.textures,geometries:renderer.info.memory.geometries,quality,humanModels:0}),
     get lastTap(){return lastTap;},getInteractionTargets(){scene.updateMatrixWorld(true);return interactionItems().map(i=>{const objects=(i.objects||[i.object]).filter(o=>o?.isObject3D);const p=objects.length?new THREE.Box3().setFromObject(objects[0]).getCenter(new THREE.Vector3()):new THREE.Vector3(...i.point);p.project(camera);return{id:i.id,type:i.type,station:i.station,x:(p.x*.5+.5)*canvas.clientWidth,y:(-.5*p.y+.5)*canvas.clientHeight+canvas.getBoundingClientRect().top,visible:objects.some(isPickable)&&p.z<1&&Math.abs(p.x)<1&&Math.abs(p.y)<1};});}};
-  if(new URLSearchParams(location.search).has('qa'))window.__CRYSTAL_QA__={pause:value=>{paused=!!value;qaRenderOnce=true;},renderOnce(){qaRenderOnce=true;},advanceWalk(dt){const pose=pathWalk.update(state.overlay?0:dt);qaRenderOnce=true;return pose?pathWalk.getState():null;},finishCamera(){if(state.mode!=='walk'){target.copy(desired);state.distance=wantedDistance;}else{camera.fov=walkFov;camera.updateProjectionMatrix();}qaRenderOnce=true;},get content(){return content;}};
+  if(new URLSearchParams(location.search).has('qa'))window.__CRYSTAL_QA__={pause:value=>{paused=!!value;qaRenderOnce=true;},renderOnce(){qaRenderOnce=true;},advanceWalk(dt){const pose=pathWalk.update(state.overlay?0:dt);qaRenderOnce=true;return pose?pathWalk.getState():null;},finishCamera(){if(state.mode!=='walk'){target.copy(desired);state.distance=wantedDistance;}else{camera.fov=walkFov;camera.updateProjectionMatrix();}qaRenderOnce=true;},get content(){return content;},get scene(){return scene;},get renderer(){return renderer;},get camera(){return camera;}};
 }
 init().catch(error=>{console.error('The crystal world could not open:',error);$('#loading').hidden=true;$('#world-error').hidden=false;invitation.setReady(false);invitation.element.querySelector('.magic-enter-label').textContent='3D is unavailable here';invitation.element.querySelector('.magic-invitation-status').textContent='You can still read the invitation, or use Interactive 2D and Basic above.';});
