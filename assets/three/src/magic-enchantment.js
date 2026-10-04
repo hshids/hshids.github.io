@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries, mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
+import {createCarvings} from './magic-carvings.js';
 
 // The enchantment layer: a magical night sky, LEGO-like studs and brick
 // courses, floating candles, fireflies, lantern glow, the crystal ball and its
@@ -1663,6 +1664,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   garden?.root.updateMatrixWorld(true);
   const fusion = createFusionDetails({garden, low});
   fusion.disposables.forEach(r => disposables.add(r));
+  // carved bases, friezes, door braces, window crowns and couplets on every building
+  const carvings = createCarvings({garden, fusion: FUSION, low, reduced});
+  carvings.disposables.forEach(r => disposables.add(r));
 
   // 2a0. The whiteboard in the Question Library
   const whiteboard = createWhiteboard({garden, low});
@@ -1930,6 +1934,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     const vx = Math.cos(ang) * whalePath.ax, vz = Math.cos(2 * ang) * 2 * whalePath.az;
     whale.root.position.set(whalePath.cx + Math.sin(ang) * whalePath.ax, whalePath.y + (reduced ? 0 : Math.sin(t * 0.21) * 1.2), whalePath.cz + Math.sin(2 * ang) * whalePath.az);
     whale.root.rotation.set(0, -Math.atan2(vz, vx), reduced ? 0 : Math.sin(t * 0.21 + 1.2) * 0.06);
+    carvings.update(t);
     whale.update(t, reveal, reduced);
     iceberg.update(t, reveal, reduced);
     const bp = bubbles.geometry.attributes.position;

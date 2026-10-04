@@ -320,6 +320,14 @@
     return o;
   }
 
+  // Longer material folds under one short line, so a reply reads like talking rather than a page
+  // of cards; the visitor opens it only if they want the list.
+  function fold(lang, label, html) {
+    if (!html) return "";
+    return '<details class="g-more"><summary>' + esc(pick(lang, label)) + "</summary>" + html + "</details>";
+  }
+  function plural(n, one, many) { return n + " " + (n === 1 ? one : many); }
+
   function greet(lang) {
     return A(lang, lang === "zh"
       ? "嗨，我是 Hanjing！👋 准确地说，是迷你版的我。我是 Lehigh 计算机系的博士候选人，研究人和 AI 怎么一起工作。想听我的研究、看我的报告，还是见见我的猫？随便问，或者点一个地方，我带你走过去～"
@@ -344,8 +352,8 @@
         '<span class="g-theme-n">' + n + (lang === "zh" ? " 篇" : n === 1 ? " paper" : " papers") + "</span></button>";
     }).join("") + "</div>";
     return A(lang, lang === "zh"
-      ? "我研究当 AI 不再只是工具，而是以队友、智能体、辅导老师，甚至真实的人的“分身”出现时，人如何保持实质的掌控，包括 AI 的帮助如何被披露、说法如何被验证、系统替我们行动时谁来负责。我的工作可以分成五条线。"
-      : "I study what changes when AI stops being just a tool and starts acting as a teammate, an agent, a tutor, or even a persona of a real person, and what keeps people meaningfully in charge. That means how AI help is disclosed, how claims get verified, and who stays accountable. My work falls into five threads.",
+      ? "简单说，我关心的是：当 AI 不再只是工具，而变成队友、智能体、辅导老师，甚至某个真实的人的“分身”时，人还能不能真正做主。比如 AI 帮了忙要不要说出来、它说的话怎么核实、它替我们做事时谁来负责。我手上大概有五条线，你对哪一条好奇？"
+      : "In short, I keep asking one question: when AI stops being just a tool and starts acting as a teammate, an agent, a tutor, or even a stand-in for a real person, are people still really in charge? That covers when AI help should be disclosed, how its claims get checked, and who answers for what it does. I have five threads going. Which one sounds interesting to you?",
       html, themeChips(lang).slice(0, 3).concat(lang === "zh" ? ["正在做的项目", "研究方法"] : ["Current projects", "Your methods?"]), "research");
   }
 
@@ -353,7 +361,8 @@
     var list = pubs.filter(function (p) { return p.theme === t.id; });
     var html = list.slice(0, 4).map(function (p) { return paperCard(p, lang); }).join("");
     if (list.length > 4) html += '<p class="g-muted">' + (lang === "zh" ? "还有 " + (list.length - 4) + " 篇在藏书阁里。" : "+" + (list.length - 4) + " more on the shelf.") + "</p>";
-    return A(lang, pick(lang, t.blurb), html,
+    var lead = lang === "zh" ? " 这条线上我写了 " + list.length + " 篇，想看的话我把它们摊开给你。" : " I have " + plural(list.length, "piece", "pieces") + " on this so far. Want me to lay them out?";
+    return A(lang, pick(lang, t.blurb) + lead, fold(lang, { en: "Show me the papers", zh: "看看这些论文" }, html),
       themeChips(lang).filter(function (c) { return c !== (lang === "zh" ? t.zhTitle : t.title); }).slice(0, 3),
       "research", { focus: { theme: t.id } });
   }
@@ -373,9 +382,9 @@
   function projects(lang) {
     var list = D.projects || [];
     return A(lang, lang === "zh"
-      ? "这些是我正在做的！🍳 一个在审稿中，两个在进行中。都还没有公开，想了解细节就去找真人版的我吧。"
-      : "Here's what's cooking right now! 🍳 One is under review and two are in progress. None are public yet, so for details, ask the human one.",
-      list.map(function (p) { return projectCard(p, lang); }).join(""),
+      ? "现在锅里有三样！🍳 一个在审稿：给失去宠物的人做的 AI 纪念系统 Afterglow Petopia；两个在进行中：和青少年一起设计网络安全聊天机器人，还有一个关于网上厌女言论的提醒实验。都还没公开，细节可以直接问真人版的我。"
+      : "Three things are cooking right now! 🍳 One is under review, Afterglow Petopia, an AI memorial system for people grieving a pet. Two are in progress: co-designing a cyber safety chatbot, and a nudge study on online misogyny. None are public yet, so for details, ask the human me.",
+      fold(lang, { en: "What are they?", zh: "具体是哪些？" }, list.map(function (p) { return projectCard(p, lang); }).join("")),
       lang === "zh" ? ["你研究什么？", "最近有什么新动态？"] : ["What do you research?", "What's new?"], "research", { focus: { projects: true } });
   }
 
@@ -408,12 +417,13 @@
 
   function papersList(lang, matches) {
     var c = counts();
+    var newest = pubs[0];
     var text = lang === "zh"
-      ? "目前一共 " + pubs.length + " 项，其中 " + c.proceedings + " 篇正式发表（ICWSM、ACM WebSci、AIED、CHI EA、PMLR），" + c.workshop + " 篇 workshop 论文或会议报告，" + c.poster + " 张会议海报，" + c.preprint + " 篇预印本。下面是最新的几项。"
-      : "There are " + pubs.length + " so far, with " + c.proceedings + " in proceedings (ICWSM, ACM WebSci, AIED, CHI EA, PMLR), " + c.workshop + " workshop papers or presentations, " + c.poster + " conference posters and " + c.preprint + " preprints. Here are the latest few.";
-    if (matches && matches.length) text = lang === "zh" ? "这几篇论文和你的问题最相关。" : "These papers are the closest match.";
+      ? "目前一共 " + pubs.length + " 项：" + c.proceedings + " 篇正式发表，" + c.workshop + " 篇 workshop 论文或报告，" + c.poster + " 张海报，还有 " + c.preprint + " 篇预印本。最新的一篇是《" + newest.title + "》。想从哪篇听起？"
+      : "So far there are " + pubs.length + ": " + c.proceedings + " in proceedings, " + c.workshop + " workshop papers or presentations, " + c.poster + " posters and " + c.preprint + " preprints. The newest is “" + newest.title + ".” Which one should I start with?";
+    if (matches && matches.length) text = lang === "zh" ? "我想到 " + matches.length + " 篇和这个有关，最贴近的是《" + matches[0].title + "》。要我细讲哪一篇？" : "A few of my papers touch on that. The closest is “" + matches[0].title + ".” Want me to walk you through one?";
     var list = matches && matches.length ? matches : pubs.slice(0, 3);
-    return A(lang, text, list.map(function (p) { return paperCard(p, lang); }).join(""),
+    return A(lang, text, fold(lang, matches && matches.length ? { en: "Show me those papers", zh: "看看这几篇" } : { en: "Show me the newest three", zh: "看看最新的三篇" }, list.map(function (p) { return paperCard(p, lang); }).join("")),
       lang === "zh" ? ["只看正式发表的", "人格化 AI 与数字来生", "你研究什么？"] : ["Only peer-reviewed ones", "Persona AI & Digital Afterlives", "What do you research?"],
       "research", matches && matches.length ? { focus: { paper: list[0].id } } : null);
   }
@@ -431,8 +441,8 @@
   function papersAtVenue(lang, label) {
     var list = pubs.filter(function (p) { return (p.venueShort + " " + p.venue).toLowerCase().indexOf(label.toLowerCase()) !== -1; });
     if (!list.length) return null;
-    return A(lang, lang === "zh" ? "在 " + label + " 发表的论文共有 " + list.length + " 篇。" : "Here's my work at " + label + " (" + list.length + ").",
-      list.map(function (p) { return paperCard(p, lang); }).join(""),
+    return A(lang, lang === "zh" ? "在 " + label + " 我有 " + list.length + " 篇，比如《" + list[0].title + "》。" : "I have " + plural(list.length, "piece", "pieces") + " at " + label + ", including “" + list[0].title + ".”",
+      fold(lang, { en: "Show me", zh: "看看" }, list.map(function (p) { return paperCard(p, lang); }).join("")),
       lang === "zh" ? ["只看正式发表的", "看看你的论文"] : ["Only peer-reviewed ones", "Show me your papers"], "research",
       { focus: { paper: list[0].id } });
   }
@@ -457,28 +467,28 @@
     return A(lang, lang === "zh"
       ? "让我选最喜欢的论文，就像让我选最喜欢的猫，根本选不出来！不过这两篇是我目前的完整长文（ICWSM 2026 和 ACM WebSci 2026）。"
       : "Picking a favorite paper is like picking a favorite cat. I can't! But these two are my full-length conference papers so far (ICWSM 2026 and ACM WebSci 2026).",
-      full.map(function (p) { return paperCard(p, lang); }).join(""),
+      fold(lang, { en: "Show me those two", zh: "看看这两篇" }, full.map(function (p) { return paperCard(p, lang); }).join("")),
       lang === "zh" ? ["最近有什么新动态？", "你研究什么？"] : ["What's new?", "What do you research?"], "research");
   }
 
   function peerReviewed(lang) {
     var list = pubs.filter(function (p) { return p.type === "proceedings"; });
-    return A(lang, lang === "zh" ? "正式发表（收录于会议论文集）的有这些。" : "Here are the ones published in proceedings.",
-      list.map(function (p) { return paperCard(p, lang); }).join(""),
+    return A(lang, lang === "zh" ? "正式收录进会议论文集的有 " + list.length + " 篇，最新的是《" + list[0].title + "》。" : plural(list.length, "piece is", "pieces are").replace(/^(\d+) /, "$1 ") + " in proceedings so far. The newest is “" + list[0].title + ".”",
+      fold(lang, { en: "Show me all of them", zh: "全部看看" }, list.map(function (p) { return paperCard(p, lang); }).join("")),
       lang === "zh" ? ["预印本有哪些？", "你研究什么？"] : ["What about preprints?", "What do you research?"], "research", { focus: { filter: "proceedings" } });
   }
 
   function postersList(lang) {
     var list = pubs.filter(function (p) { return p.type === "poster"; });
-    return A(lang, lang === "zh" ? "这些是我的会议海报，都在报告厅的画架上。" : "My conference posters are on the easels in the lecture hall.",
-      list.map(function (p) { return paperCard(p, lang); }).join(""),
+    return A(lang, lang === "zh" ? "我有 " + list.length + " 张会议海报，都立在报告厅的画架上，路过可以停下来看看。" : "I have " + plural(list.length, "conference poster", "conference posters") + ", standing on the easels in my lecture hall. Stop by and have a look!",
+      fold(lang, { en: "Show me the posters", zh: "看看海报" }, list.map(function (p) { return paperCard(p, lang); }).join("")),
       lang === "zh" ? ["有报告视频吗？", "你研究什么？"] : ["Do you have video talks?", "What do you research?"], "talks", { focus: { posters: true } });
   }
 
   function preprints(lang) {
     var list = pubs.filter(function (p) { return p.type === "preprint"; });
-    return A(lang, lang === "zh" ? "这些是预印本，还在审稿或准备投稿中。" : "These are preprints, under review or in preparation.",
-      list.slice(0, 5).map(function (p) { return paperCard(p, lang); }).join(""),
+    return A(lang, lang === "zh" ? "预印本有 " + list.length + " 篇，有的在审稿，有的在准备投稿。最新的是《" + list[0].title + "》。" : "There are " + plural(list.length, "preprint", "preprints") + ", some under review and some still in preparation. The newest is “" + list[0].title + ".”",
+      fold(lang, { en: "Show me the preprints", zh: "看看预印本" }, list.slice(0, 5).map(function (p) { return paperCard(p, lang); }).join("")),
       lang === "zh" ? ["只看正式发表的", "你研究什么？"] : ["Only peer-reviewed ones", "What do you research?"], "research", { focus: { filter: "preprint" } });
   }
 
@@ -487,7 +497,10 @@
       return '<li><span class="g-date">' + esc(n.date) + "</span> " + esc(pick(lang, n)) +
         (n.paper ? ' <button type="button" class="g-inline" data-paper="' + esc(n.paper) + '">' + (lang === "zh" ? "看看" : "view") + "</button>" : "") + "</li>";
     }).join("") + "</ul>";
-    return A(lang, lang === "zh" ? "最近的动态在这里！" : "Here's what's new!", html,
+    var n0 = D.news[0], n1 = D.news[1];
+    var said = lang === "zh" ? "最新的消息是：" + pick(lang, n0) + (n1 ? " 再往前一点，" + pick(lang, n1) : "")
+      : "The latest: " + pick(lang, n0).replace(/^Coming up soon, /, "coming up soon, ") + (n1 ? " Before that, " + pick(lang, n1).charAt(0).toLowerCase() + pick(lang, n1).slice(1) : "");
+    return A(lang, said, fold(lang, { en: "What else is new?", zh: "还有呢？" }, html),
       lang === "zh" ? ["看看你的论文", "你研究什么？"] : ["Show me your papers", "What do you research?"], "home");
   }
 
@@ -500,9 +513,9 @@
         "</li>";
     }).join("") + "</ol>";
     return A(lang, lang === "zh"
-      ? "我的求学路线是这样的。UC Davis 计算机科学与统计学本科 → Georgetown 数据科学与分析硕士 → 2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。一路上，我在 Davis 上过院长荣誉榜，在 Georgetown 的两个实验室做过研究、当过助教，还为联合国做过数据科学工作。"
-      : "Here's my path so far. A B.S. in Computer Science and Statistics at UC Davis → an M.S. in Data Science and Analytics at Georgetown → since 2023, a Ph.D. in Computer Science and Engineering at Lehigh, advised by Dr. Dominic DiFranzo. Along the way I made the Dean's List at Davis, did research in two Georgetown labs, worked as a TA, and did data science work for the United Nations.",
-      html, lang === "zh" ? ["过往经历？", "你的导师是谁？"] : ["Past experience?", "Who is your advisor?"], "education");
+      ? "本科我在 UC Davis 读计算机科学和统计，之后去 DC 的 Georgetown 读了数据科学硕士。2023 年起在 Lehigh 读计算机科学与工程博士，导师是 Dominic DiFranzo 博士。每一步我都选了更“宽”的那条路。想听听我一路上做过的事吗，比如联合国的工作？"
+      : "I did my undergrad at UC Davis in computer science and statistics, then moved to DC for a master's in data science at Georgetown. Since 2023 I've been doing my Ph.D. in Computer Science and Engineering at Lehigh, with Dr. Dominic DiFranzo as my advisor. Every step, I picked the wider path. Want to hear what I did along the way, like the UN work?",
+      fold(lang, { en: "See the full timeline", zh: "看看完整时间线" }, html), lang === "zh" ? ["过往经历？", "你的导师是谁？"] : ["Past experience?", "Who is your advisor?"], "education");
   }
 
   // Research labs, teaching, mentoring and UN work that happened alongside each degree.
@@ -543,9 +556,9 @@
         }).join("") + "</ul>";
     }).join("");
     var text = f ? pick(lang, f) : (lang === "zh"
-      ? "除了主线研究，这些是我一路上的经历！🧳 在 Georgetown 的两个实验室做研究、当助教，在两所学校做 mentor，参与 IEEE 标准白皮书，还为联合国做过数据科学工作，从 2023 年的实习一直到 2025 年的研究员。"
-      : "Besides my main research line, here's what I did along the way! 🧳 Research in two Georgetown labs, a TA job, mentoring at Georgetown and Lehigh, an IEEE standards white paper, and data science work for the United Nations, from an internship in 2023 to a researcher role in 2025.");
-    return A(lang, text, html, lang === "zh" ? ["教育背景", "你研究什么？"] : ["Education", "What do you research?"], "education");
+      ? "除了主线研究，一路上我还做了不少事！🧳 在 Georgetown 的两个实验室做研究、当助教，在两所学校带学生，参与 IEEE 标准白皮书，还为联合国做过三次数据科学工作，从 2023 年的实习一直到 2025 年当研究员。你最想听哪一段？"
+      : "Besides my main research, quite a lot happened along the way! 🧳 Research in two Georgetown labs, a TA job, mentoring at Georgetown and Lehigh, an IEEE standards white paper, and three rounds of data science work for the United Nations, from an internship in 2023 to a researcher role in 2025. Which part do you want to hear about?");
+    return A(lang, text, fold(lang, f ? { en: "Show me the details", zh: "看看细节" } : { en: "Show me everything", zh: "全部看看" }, html), lang === "zh" ? ["教育背景", "你研究什么？"] : ["Education", "What do you research?"], "education");
   }
 
   function advisor(lang) {
@@ -564,16 +577,17 @@
     var html = linkList(names.map(function (n) {
       return { label: n, note: countBy[n] + (lang === "zh" ? " 篇" : countBy[n] === 1 ? " paper" : " papers") };
     }));
-    return A(lang, lang === "zh" ? "这些是和我合作过的人，按合作论文数排序。" : "Here are the people I've written papers with, sorted by how many papers we share.",
-      html, lang === "zh" ? ["你的导师是谁？", "看看你的论文"] : ["Who is your advisor?", "Show me your papers"], "research");
+    var top3 = names.slice(0, 3);
+    return A(lang, lang === "zh" ? "我和不少人合作过！合作最多的是 " + top3.join("、") + "。完整名单我也可以给你看。" : "I've been lucky with collaborators! The people I've written the most with are " + top3.slice(0, -1).join(", ") + " and " + top3[top3.length - 1] + ". I can show you the whole list too.",
+      fold(lang, { en: "Show me everyone", zh: "看看完整名单" }, html), lang === "zh" ? ["你的导师是谁？", "看看你的论文"] : ["Who is your advisor?", "Show me your papers"], "research");
   }
 
   function methods(lang) {
     var picks = ["designing-safety", "readability-evaluability", "visibility-verification", "reduced-supervision", "classpulse"];
     return A(lang, lang === "zh"
-      ? "我会混合使用多种方法，包括在线随机实验（比如 N = 309、306、270 的实验）；在 Reddit、小红书等平台上做计算社会科学分析（主题模型、生存分析、句法框架模型）；对 AI 系统和研究文献做结构化审计（63 份材料、93 个系统、86 篇全文）；定性主题分析；以及自己动手做研究系统，比如 ClassPulse 和 Outer Limits。"
-      : "I mix methods, including randomized online experiments (e.g., N = 309, 306, 270); computational social science on Reddit and RedNote (topic modeling, survival analysis, syntactic framing models); structured audits of AI systems and research literature (63 artifacts, 93 systems, 86 full texts); qualitative thematic analysis; and building research systems such as ClassPulse and Outer Limits.",
-      picks.slice(0, 3).map(function (id) { return paperCard(pubById[id], lang); }).join(""),
+      ? "我是个“混搭派”！有时做在线随机实验（几百人规模的），有时在 Reddit 和小红书上做计算社会科学分析，有时系统地审计 AI 系统和研究文献，也做定性分析，还会自己动手搭研究系统，比如 ClassPulse。你想听哪种方法背后的故事？"
+      : "I'm a bit of a mix-and-match researcher! Sometimes it's randomized online experiments with a few hundred people, sometimes computational social science on Reddit and RedNote, sometimes careful audits of AI systems and the research literature. I also do qualitative work, and I like building research systems myself, like ClassPulse. Which one do you want the story behind?",
+      fold(lang, { en: "Show me examples", zh: "看几个例子" }, picks.slice(0, 3).map(function (id) { return paperCard(pubById[id], lang); }).join("")),
       lang === "zh" ? ["你研究什么？", "看看你的论文"] : ["What do you research?", "Show me your papers"], "research");
   }
 
@@ -581,9 +595,9 @@
     var list = focusId ? D.tutorials.filter(function (t) { return t.id === focusId; }) : D.tutorials;
     var html = linkList(list.map(function (t) { return { label: t.title, href: t.href, note: pick(lang, t.desc) }; }));
     return A(lang, lang === "zh"
-      ? "这些是我写的教程（内容是中文的），都收在书桌旁的卷轴里。"
-      : "These are tutorials I wrote (the content is in Chinese), and you'll find them in the scroll rack by my writing desk.",
-      html, lang === "zh" ? ["博客", "工作之外喜欢做什么？"] : ["Your blog?", "What do you do for fun?"], "tutorials",
+      ? "我写过几份教程，R、Python、统计和前端基础都有，都收在书桌旁的卷轴架上。教程正文是中文的。想学哪个？"
+      : "I've written a few tutorials, on R, Python, statistics and front-end basics. They're rolled up in the rack by my writing desk. The tutorials themselves are written in Chinese. Which one do you want to learn?",
+      fold(lang, { en: "Show me the tutorials", zh: "看看教程" }, html), lang === "zh" ? ["博客", "工作之外喜欢做什么？"] : ["Your blog?", "What do you do for fun?"], "tutorials",
       focusId ? { focus: { tutorial: focusId } } : null);
   }
 
@@ -600,15 +614,15 @@
       var f = posts[0];
       text = (lang === "zh" ? "我写过一篇《" + f.title + "》。" : "I wrote a post on this called “" + f.title + ".” ") + pick(lang, f.desc);
     }
-    return A(lang, text, html, lang === "zh" ? ["教程", "工作之外喜欢做什么？"] : ["Tutorials", "What do you do for fun?"], "writing",
+    return A(lang, text, fold(lang, { en: "Show me the posts", zh: "看看文章" }, html), lang === "zh" ? ["教程", "工作之外喜欢做什么？"] : ["Tutorials", "What do you do for fun?"], "writing",
       { focus: focusId ? { post: focusId } : { section: "writing-blogs" } });
   }
 
   function life(lang, focusId) {
     var list = focusId ? D.life.filter(function (l) { return l.id === focusId; }) : D.life;
     var html = '<ul class="g-list">' + list.map(function (l) { return "<li><b>" + esc(l.title) + "</b> · " + esc(pick(lang, l)) + "</li>"; }).join("") + "</ul>";
-    var text = focusId ? pick(lang, list[0]) : (lang === "zh" ? "下班之后的我有六只猫、横穿美国的自驾、美食，还有写博客。" : "Off the clock, it's my six cats, road trips across the U.S., food, and blogging.");
-    return A(lang, text, focusId ? "" : html,
+    var text = focusId ? pick(lang, list[0]) : (lang === "zh" ? "下了班，我基本被六只猫承包了！🐾 剩下的时间在横穿美国自驾、找好吃的，还有写写博客。想先认识猫，还是听听自驾的故事？" : "Off the clock, my six cats mostly run my life! 🐾 The rest goes to road trips across the U.S., hunting for good food, and a bit of blogging. Want to meet the cats first, or hear about the road trips?");
+    return A(lang, text, focusId ? "" : fold(lang, { en: "Tell me a bit about each", zh: "每样都说说" }, html),
       lang === "zh" ? ["你研究什么？", "怎么联系你？"] : ["What do you research?", "How can I contact you?"], "life",
       focusId ? { focus: { life: focusId }, action: focusId === "cats" ? "meow" : undefined } : null);
   }
@@ -623,8 +637,8 @@
   function contact(lang) {
     var L = D.person.links;
     var text = lang === "zh"
-      ? "想聊研究或合作，欢迎联系我！" + (L.email ? "" : "（邮箱我很快会补上，现在可以先通过 LinkedIn 或 Google Scholar 找到我。）")
-      : "Happy to talk research or collaboration!" + (L.email ? "" : " (Email is coming soon. For now, LinkedIn or Google Scholar are the best way to reach me.)");
+      ? "很欢迎你来找我！发邮件最快，LinkedIn 和 Google Scholar 上也找得到我。聊研究、谈合作，或者只是打个招呼都可以。" + (L.email ? "" : "（邮箱我很快会补上，现在可以先通过 LinkedIn 或 Google Scholar 找到我。）")
+      : "I'd love to hear from you! Email is the easiest way to reach me, and I'm on LinkedIn and Google Scholar too. Research questions, collaborations, or just saying hi are all welcome." + (L.email ? "" : " (Email is coming soon. For now, LinkedIn or Google Scholar are the best way to reach me.)");
     return A(lang, text, linkList(contactItems(lang)),
       lang === "zh" ? ["你研究什么？", "看看你的论文"] : ["What do you research?", "Show me your papers"], "contact");
   }
@@ -651,7 +665,7 @@
       var p = pubById[v.paper];
       return p ? paperCard(p, lang) : "";
     }).join("");
-    return A(lang, lang === "zh" ? "这几场报告有录像，去报告厅坐下来看吧！" : "I've recorded these talks, so come take a seat in my lecture hall!", html,
+    return A(lang, lang === "zh" ? "有的！我录了 " + D.videos.length + " 场报告，去报告厅找个位子坐下，我讲给你听。" : "I do! I've recorded " + plural(D.videos.length, "talk", "talks") + ". Grab a seat in my lecture hall and I'll present one for you.", fold(lang, { en: "Which talks?", zh: "是哪几场？" }, html),
       lang === "zh" ? ["看看你的海报", "你研究什么？"] : ["Show me your posters", "What do you research?"], "talks");
   }
 
@@ -665,7 +679,7 @@
   function upcoming(lang) {
     var list = pubs.filter(function (p) { return p.upcoming; });
     if (!list.length) return news(lang);
-    return A(lang, lang === "zh" ? "下一场，我马上要去展示这张海报！" : "Next up, I'm about to present this one!",
+    return A(lang, lang === "zh" ? "下一站：我马上要去展示《" + list[0].title + "》，有点紧张也有点期待！" : "Next up, I'm presenting “" + list[0].title + ".” A little nervous, mostly excited!",
       list.map(function (p) { return paperCard(p, lang); }).join(""),
       lang === "zh" ? ["看看你的海报", "最近有什么新动态？"] : ["Show me your posters", "What's new?"], "talks", { focus: { posters: true } });
   }
@@ -679,7 +693,7 @@
         : "Hmm, I haven't written about that, so I'd rather not make something up. Try one of my research topics, or ask the real me!",
         '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>", themeChips(lang).slice(0, 3), null);
     }
-    return A(lang, lang === "zh" ? "这是我在论文里提出过的观点。" : "Here's what I've argued in my papers.",
+    return A(lang, lang === "zh" ? "这个问题我在论文里认真想过。核心意思是：" + pick(lang, top[0].doc.ref.takeaway) : "I've thought about this in my work. The short version: " + pick(lang, top[0].doc.ref.takeaway),
       top.map(function (h) { return paperCard(h.doc.ref, lang, { takeaway: true }); }).join("") +
       '<p class="g-note">' + esc(pick(lang, DISCLAIMER)) + "</p>",
       lang === "zh" ? ["你研究什么？", "看看你的论文"] : ["What do you research?", "Show me your papers"], "research",
@@ -688,8 +702,8 @@
 
   function fallback(lang) {
     return A(lang, lang === "zh"
-      ? "哎呀，这个把我难住了！我只懂她的论文、教程和主页（这些我可比她熟）。换个问题？"
-      : "Ooh, you stumped me! I only know her papers, tutorials and pages (those I know better than she does). Try one of these?",
+      ? "哎呀，这个把我难住了！我只知道我写过、做过的事，不想乱编。要不问问我的研究、我的猫，或者最近在忙什么？"
+      : "Ooh, you stumped me! I only know what I've actually written and done, and I'd rather not make things up. Maybe ask about my research, my cats, or what I've been up to lately?",
       "", START_CHIPS[lang].slice(0, 5));
   }
 
@@ -706,8 +720,8 @@
     if (d.kind === "paper") {
       var papers = hits.filter(function (h) { return h.doc.kind === "paper" && h.score > top.score * 0.6; }).slice(0, 3);
       if (papers.length === 1 || papers[0].score > (papers[1] ? papers[1].score * 1.6 : 0)) return paperDetail(d.ref, lang);
-      return A(lang, lang === "zh" ? "这几篇论文和你的问题最相关。" : "These papers are the closest match.",
-        papers.map(function (h) { return paperCard(h.doc.ref, lang); }).join(""),
+      return A(lang, lang === "zh" ? "我想到几篇相关的，最贴近的是《" + papers[0].doc.ref.title + "》。要我细讲吗？" : "A few of my papers come to mind. The closest is “" + papers[0].doc.ref.title + ".” Want me to walk you through it?",
+        fold(lang, { en: "Show me those papers", zh: "看看这几篇" }, papers.map(function (h) { return paperCard(h.doc.ref, lang); }).join("")),
         themeChips(lang).slice(0, 3), "research", { focus: { paper: papers[0].doc.ref.id } });
     }
     if (d.kind === "project") return projectDetail(d.ref, lang);

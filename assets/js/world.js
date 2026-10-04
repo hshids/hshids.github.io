@@ -155,6 +155,7 @@
           var sp = ART.tutorialSpots[i];
           el.insertAdjacentHTML("beforeend", '<button type="button" class="paper-control" data-tutorial="' + t.id + '" aria-label="Read ' + esc(t.title) + '" style="left:calc(var(--s) * ' + (byId.writing.x + sp[0]) + 'px);bottom:calc(var(--s) * ' + (VH - sp[1] - sp[3]) + 'px);width:calc(var(--s) * ' + sp[2] + 'px);height:calc(var(--s) * ' + sp[3] + 'px)"></button>');
         });
+        if (ART.scroll) el.insertAdjacentHTML("beforeend", ART.scroll.hotspotMarkup());
         groundEl = el;
       } else {
         el.innerHTML = svgWrap(L.width, L.build(L.width) + (L.id === "front" && ART.scroll ? ART.scroll.ends(W) : ""), "scene");
@@ -459,12 +460,12 @@
     state.target = state.x; state.vel = 0; state.trip = null; state.focusX = null;
   }
 
-  // A distant Places jump unrolls the scroll: the camera glides through every scene in between while
-  // Hanjing and the kitty ride along as backlit shadow-puppet silhouettes, then step out and walk in.
+  // A distant Places jump unrolls the scroll: Hanjing and the kitty fade into the mist, the camera
+  // glides through every scene in between, and they fade back in a few steps short and walk in.
   function endGlide(arrived) {
     var g = state.glide; if (!g) return;
     state.glide = null;
-    charEl.classList.remove("is-puppet"); catEl.classList.remove("is-puppet"); worldEl.classList.remove("is-unrolling");
+    charEl.classList.remove("is-travelling"); catEl.classList.remove("is-travelling"); worldEl.classList.remove("is-unrolling");
     if (!arrived) return;
     state.x = g.landX; state.target = g.destination; state.dir = g.direction; state.vel = 0;
     state.trip = g.trip; state.focusX = g.focus;
@@ -505,7 +506,7 @@
       state.x = keepX; state.focusX = keepFocus;
       state.target = state.x; state.vel = 0; state.trip = null;
       charEl.classList.remove("is-walking", "is-running");
-      charEl.classList.add("is-puppet"); catEl.classList.add("is-puppet"); worldEl.classList.add("is-unrolling");
+      charEl.classList.add("is-travelling"); catEl.classList.add("is-travelling"); worldEl.classList.add("is-unrolling");
       state.glide = { t: 0, dur: clamp(Math.abs(toCam - state.cam) / 2400, .9, 1.9), fromCam: state.cam, toCam: toCam,
         fromX: state.x, fromCatX: state.catX, landX: landX, destination: destination, direction: direction, trip: trip, focus: state.focusX };
       state.focusX = null;
@@ -529,7 +530,7 @@
 
   function arrive(trip) {
     var st = byId[trip.id];
-    if (!st) { render(); start(); return; }
+    if (!st) { render(); start(); if (trip.say) bubble(charEl, trip.say, Math.max(5000, trip.say.length * 55)); return; }
     state.dir = st.x >= state.x ? 1 : -1;
     state.focusX = st.x;
     if (state.mobile) layout();
@@ -605,7 +606,7 @@
     home: { en: "Welcome to my little world! Come on in! The notice board has what I've been up to lately.", zh: "欢迎来到我的小世界！进来吧～公告栏上是我最近在忙的事。" },
     research: { en: "My library! Every book on these shelves is one of my papers. Let me grab one for you!", zh: "我的藏书阁！书架上每一本都是我的论文，我给你拿一本！" },
     talks: { en: "Welcome to my lecture hall! Grab a seat, pick a talk, and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下，选一场报告，我讲给你听。" },
-    education: { en: "Upstate New York → UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "纽约上州 → UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
+    education: { en: "UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
     writing: { en: "Let me sit down and write for a bit… My posts are on the desk, and my tutorials are tucked into the scroll rack.", zh: "让我坐下来写一会儿……书桌上是我的博客，旁边的卷轴里收着我写的教程。" },
     life: { en: "Off the clock! Hold on, XiaoHei is napping and I have to pet him first. 🐾 Then come road trips, food and my cat gallery.", zh: "下班时间！等一下，小黑在睡觉，我先摸摸他 🐾 然后看看我的自驾、美食和猫咪画廊。" },
     contact: { en: "Let me mail you a letter! ✉️ Want to talk research or collaborate? Here's where to find me.", zh: "给你寄封信！✉️ 想聊研究或合作？在这里可以找到我。" }
@@ -1592,6 +1593,11 @@
       var scroll = $('.tutorial-scroll[data-tutorial="' + el.dataset.tutorial + '"]');
       flash(scroll, "is-unrolling", 1500);
       goTo("writing", { focus: { tutorial: el.dataset.tutorial } }); return;
+    }
+    if ((el = t.closest("[data-scroll-hotspot]")) && ART.scroll) {
+      var hs = ART.scroll.hotspot(el.dataset.scrollHotspot);
+      if (hs) { closePanel(); var standX = hs.x - 70; if (Math.abs(state.x - standX) < 40) arrive({ id: null, say: hs.say }); else walkTo(standX, { trip: { id: null, say: hs.say } }); }
+      return;
     }
     if ((el = t.closest("[data-ornament]"))) {
       var ornament = $('.paper-ornament[data-ornament="' + el.dataset.ornament + '"]');

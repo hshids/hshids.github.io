@@ -53,7 +53,7 @@ const TOPICS=[
     'I love a good mystery: Sherlock Holmes, and murder mystery games where everyone plays a part and the truth hides in plain sight. This little world keeps a few clues of its own. Have you opened the casebook yet?',
     'My favorite moment in a mystery is when small details suddenly line up. Research feels like that sometimes. Which clue would you follow first?']],
   ['whale',/\b(whale|whales|deep sea|the deep)\b|鲸/i,[
-    'My name, Hanjing, sounds a little like 鲸, whale. Look into the sea below the island and click the deep. Something old and wise swims there.',
+    'My name, Hanjing, sounds a little like the Chinese word for whale. Look into the sea below the island and click the deep. Something old and wise swims there.',
     'Whales remind me of ancient wisdom and of the unknown we still get to explore. What would you go looking for in the deep?']],
   ['lego',/\b(lego|brick|bricks|block|blocks|miniature)\b/i,[
     'A few little bricks, and suddenly there is a place to wander. I like that a world can be built, taken apart, and imagined again. What would you add to this one?',

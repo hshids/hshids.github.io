@@ -134,9 +134,11 @@ python3 -m http.server 8000
 | Enter | Explore the current place |
 | `/` | Open the chat |
 | Esc | Close panels, lightboxes and the lecture hall; in an empty chat box, fold the chat away |
-| Scroll map (bottom) | Jump to a chapter; the view glides along the scroll with the figures as shadow puppets |
+| Scroll map (bottom) | Jump to a chapter; the view glides along the scroll while the figures fade into the mist and walk back in |
 
-The walk reads as one handscroll: a title head, a prologue in Dalian, the gate, the 2013 crossing, then the schools (upstate New York first), research, talks, writing, life and the letters, ending in an unfinished tail. To move a station along the scroll or add a chapter, edit `LAYOUT` and `CHAPTERS` in `assets/js/scroll-story.js`; `assets/css/scroll-story.css` holds its look, including the album-leaf panel.
+The walk reads as one handscroll: a title, a prologue for Dalian, the gate, the 2013 crossing (tap the paper crane and Hanjing tells the high-school story), then the schools, research, talks, writing, life and the letters, ending with "to be continued". New chapters reuse the painted sprites so they match the stations, and all on-page text is English; Chinese appears only when a visitor chats with Mini-Hanjing in Chinese. To move a station or add a chapter, edit `LAYOUT`, `CHAPTERS` and `HOTSPOTS` in `assets/js/scroll-story.js`; `assets/css/scroll-story.css` holds its look, including the album-leaf panel.
+
+Mini-Hanjing answers like a conversation: a few sentences and a follow-up question, with any long list folded under a "Show me" button (`fold()` in `assets/js/guide.js`).
 
 The chat folds into a small "Ask me" button (the ⌄ button in its header), and the site remembers that choice. While it's folded, Mini-Hanjing says short answers in a speech bubble.
 
