@@ -1,17 +1,22 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {createCraftMaterials,applyCraftSurface} from './fidelity-surface-materials.js';
 
 /** Small solid Packer Chapel keepsake. Window surrounds intersect their own
  * wall plane; each recess is a real opening with glass set inside it. */
 export function createLehighCampus({source:s,quality='high'}) {
   const root=new THREE.Group();root.name='lehigh-complete-chapel';
   const resources=new Set(),parts=[],buckets=new Map(),attachments=[];
-  const radial=quality==='low'?12:24,curves=quality==='low'?3:6;
+  const surfaces=createCraftMaterials({name:'lehigh-campus',quality,resources});
+  const radial=quality==='low'?18:32,curves=quality==='low'?4:8;
   const mat=(name,color,extra={})=>{const m=new THREE.MeshStandardMaterial({color,roughness:.8,...extra});m.name=`lehigh-${name}`;resources.add(m);return m;};
   const stone=mat('warm-sandstone','#b69c75'),trim=mat('carved-limestone','#d0b88c'),base=mat('grounded-stone-plinth','#958a73');
   const roof=mat('soft-slate-roof','#485664',{roughness:.67}),lead=mat('window-lead-and-door-hardware','#45474b',{metalness:.25});
   const wood=mat('recessed-oak-door','#665139'),glass=mat('stained-glass','#667d83',{roughness:.42,emissive:'#ffc46d',emissiveIntensity:0});
   const roseGlass=mat('rose-amber-glass','#c19e73',{roughness:.45,emissive:'#ffd091',emissiveIntensity:0}),greenery=mat('rounded-campus-planting','#71815c');
+  for(const m of[stone,trim,base])applyCraftSurface(m,surfaces.stone);
+  applyCraftSurface(wood,surfaces.darkWood);applyCraftSurface(roof,surfaces.roof,{preserveRoughness:true});
   const x=n=>s.X(n),y=n=>s.Y(n);
   function add(name,g,m,p=[0,0,0],rotation=[0,0,0],extra={}) {
     g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(1,1,1)));
@@ -19,7 +24,14 @@ export function createLehighCampus({source:s,quality='high'}) {
     if(!g.getAttribute('uv'))g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
     if(!buckets.has(m))buckets.set(m,[]);buckets.get(m).push(g);return g;
   }
-  const box=(name,min,max,m=stone)=>add(name,new THREE.BoxGeometry(...max.map((v,i)=>v-min[i])),m,min.map((v,i)=>(v+max[i])/2));
+  const box=(name,min,max,m=stone)=>{
+    const size=max.map((v,i)=>v-min[i]),crafted=/buttress|door-step|grounded-foundation/.test(name),radius=Math.min(.003,...size.map(v=>v*.12));
+    return add(name,crafted?new RoundedBoxGeometry(...size,1,radius):new THREE.BoxGeometry(...size),m,min.map((v,i)=>(v+max[i])/2));
+  };
+  function softFrame(shape,depth=.026){
+    const r=.0012,g=new THREE.ExtrudeGeometry(shape,{depth:depth-2*r,bevelEnabled:true,bevelSize:r,bevelThickness:r,bevelSegments:1,curveSegments:curves});
+    g.translate(0,0,r);return g;
+  }
   const cyl=(name,rt,rb,h,p,m,segments=radial,rot=[0,0,0])=>add(name,new THREE.CylinderGeometry(rt,rb,h,segments),m,p,rot);
   function arch(w,h,cx=0,bottom=0) {
     const q=new THREE.Shape();q.moveTo(cx-w/2,bottom);q.lineTo(cx+w/2,bottom);q.lineTo(cx+w/2,bottom+h-w/2);
@@ -47,7 +59,7 @@ export function createLehighCampus({source:s,quality='high'}) {
     const pose=new THREE.Matrix4().compose(new THREE.Vector3(cx,bottom,plane),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,angle,0)),new THREE.Vector3(1,1,1));
     const placed=(suffix,g,m,offset)=>{g.translate(...offset);g.applyMatrix4(pose);return add(`${name}-${suffix}`,g,m);};
     const rim=arch(w+.028,h+.018,-0,-.009);rim.holes=[pathOf(arch(w,h))];
-    placed('attached-stone-frame',new THREE.ExtrudeGeometry(rim,{depth:.026,bevelEnabled:false,curveSegments:curves}),trim,[0,0,-.012]);
+    placed('attached-stone-frame',softFrame(rim),trim,[0,0,-.012]);
     placed('recessed-pane',new THREE.ExtrudeGeometry(arch(w-.006,h-.009),{depth:.012,bevelEnabled:false,curveSegments:curves}),isDoor?wood:glass,[0,.003,-.023]);
     placed('centre-lead',new THREE.BoxGeometry(.006,h-w*.3,.008),lead,[0,(h-w*.3)/2,-.004]);
     if(!isDoor)for(const f of [.35,.66])placed(`cross-lead-${f}`,new THREE.BoxGeometry(w-.008,.006,.008),lead,[0,h*f,-.004]);
@@ -75,7 +87,7 @@ export function createLehighCampus({source:s,quality='high'}) {
       slab(`${name}-${side}-end-wall`,[[-width/2,.105],[width/2,.105],[width/2,eave],[-width/2,eave]],[arch(w,h,0,bottom)],.04,[xx-.04*Math.sin(a),0,centreZ],a);
       const pose=new THREE.Matrix4().compose(new THREE.Vector3(xx,bottom,centreZ),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,a,0)),new THREE.Vector3(1,1,1));
       const rim=arch(w+.028,h+.018,0,-.009);rim.holes=[pathOf(arch(w,h))];
-      const g=new THREE.ExtrudeGeometry(rim,{depth:.026,bevelEnabled:false,curveSegments:curves});g.translate(0,0,-.012);g.applyMatrix4(pose);add(`${name}-${side}-window-attached-frame`,g,trim);
+      const g=softFrame(rim);g.translate(0,0,-.012);g.applyMatrix4(pose);add(`${name}-${side}-window-attached-frame`,g,trim);
       const pane=new THREE.ExtrudeGeometry(arch(w-.006,h-.009),{depth:.012,bevelEnabled:false,curveSegments:curves});pane.translate(0,.003,-.023);pane.applyMatrix4(pose);add(`${name}-${side}-window-recessed-pane`,pane,glass);
     }
     box(`${name}-floor`,[l,.105,back],[r,.125,front],base);
@@ -109,7 +121,7 @@ export function createLehighCampus({source:s,quality='high'}) {
     if(hasWindow) {
       const pose=new THREE.Matrix4().compose(new THREE.Vector3(xx,.27,zz),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,a,0)),new THREE.Vector3(1,1,1));
       const rim=arch(.118,.418,0,-.009);rim.holes=[pathOf(arch(.09,.40))];
-      const g=new THREE.ExtrudeGeometry(rim,{depth:.026,bevelEnabled:false,curveSegments:curves});g.translate(0,0,-.012);g.applyMatrix4(pose);add(`lehigh-apse-window-${j}-attached-frame`,g,trim);
+      const g=softFrame(rim);g.translate(0,0,-.012);g.applyMatrix4(pose);add(`lehigh-apse-window-${j}-attached-frame`,g,trim);
       const pane=new THREE.ExtrudeGeometry(arch(.084,.391),{depth:.012,bevelEnabled:false,curveSegments:curves});pane.translate(0,.003,-.023);pane.applyMatrix4(pose);add(`lehigh-apse-window-${j}-recessed-pane`,pane,glass);
     }
   }

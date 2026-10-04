@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createRoomKit} from './fidelity-room-kit.js';
+import {createCraftRoofTileGeometry} from './fidelity-craft-geometry.js';
 
 /** Complete metre-scale timber library. The old two roof tiers, warm wood,
  * pale plaster and grey tiles remain; no facade photograph supplies its shape.
@@ -94,7 +95,7 @@ export async function createFaithfulResearch({data,quality='high'}={}){
     }
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.computeVertexNormals();resources.add(g);
     const roof=new THREE.Mesh(g,kit.materials.roof);roof.name='research-lower-complete-four-sided-tile-skirt';roof.castShadow=roof.receiveShadow=true;roof.userData.roomSolid=true;root.add(roof);
-    const matrices=[],rows=quality==='low'?4:7;
+    const matrices=[],rows=quality==='low'?4:6;
     function rowPoint(side,t){
       let r=0;while(r<ts.length-2&&t>=ts[r+1])r++;
       return new THREE.Vector3(...rings[r][side]).lerp(new THREE.Vector3(...rings[r+1][side]),(t-ts[r])/(ts[r+1]-ts[r]));
@@ -103,16 +104,16 @@ export async function createFaithfulResearch({data,quality='high'}={}){
       const t=(row+.5)/rows,r=Math.min(ts.length-2,ts.findIndex(v=>v>t)-1),mix=(t-ts[r])/(ts[r+1]-ts[r]),
         a=new THREE.Vector3(...rings[r][s]).lerp(new THREE.Vector3(...rings[r+1][s]),mix),b=new THREE.Vector3(...rings[r][(s+1)%4]).lerp(new THREE.Vector3(...rings[r+1][(s+1)%4]),mix),
         x=b.clone().sub(a).normalize(),inward=new THREE.Vector3(...rings[r+1][s]).sub(new THREE.Vector3(...rings[r][s])).normalize(),y=inward.clone().cross(x).normalize();
-      if(y.y<0)y.negate();const z=x.clone().cross(y).normalize(),q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z)),n=Math.ceil(a.distanceTo(b)/.24);
+      if(y.y<0)y.negate();const z=x.clone().cross(y).normalize(),q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,y,z)),n=Math.ceil(a.distanceTo(b)/.30);
       // Each solid tile stays inside its course. Fixed-depth boxes used to
       // overlap coplanar tops between rows and produce dark flickering marks.
       const centre=a.clone().add(b).multiplyScalar(.5),outer=rowPoint(s,row/rows).add(rowPoint((s+1)%4,row/rows)).multiplyScalar(.5),
         inner=rowPoint(s,(row+1)/rows).add(rowPoint((s+1)%4,(row+1)/rows)).multiplyScalar(.5),
         halfRun=Math.min(Math.abs(centre.clone().sub(outer).dot(z)),Math.abs(inner.clone().sub(centre).dot(z))),
-        tileDepth=halfRun*1.80,tileWidth=a.distanceTo(b)/n-.006;
-      for(let i=0;i<n;i++)matrices.push(new THREE.Matrix4().compose(a.clone().lerp(b,(i+.5)/n).addScaledVector(y,.024),q,new THREE.Vector3(tileWidth/.225,1,tileDepth/.235)));
+        tileDepth=halfRun*1.80,tileWidth=a.distanceTo(b)/n-.004;
+      for(let i=0;i<n;i++)matrices.push(new THREE.Matrix4().compose(a.clone().lerp(b,(i+.5)/n).addScaledVector(y,.019),q,new THREE.Vector3(tileWidth/.225,1,tileDepth/.235)));
     }
-    const tileG=new THREE.BoxGeometry(.225,.040,.235);resources.add(tileG);const tiles=new THREE.InstancedMesh(tileG,kit.materials.roof,matrices.length);
+    const tileG=createCraftRoofTileGeometry({quality,width:.225,height:.040,depth:.235});resources.add(tileG);const tiles=new THREE.InstancedMesh(tileG,kit.materials.roof,matrices.length);
     tiles.name='research-lower-real-solid-tile-laps';matrices.forEach((m,i)=>tiles.setMatrixAt(i,m));tiles.castShadow=tiles.receiveShadow=true;root.add(tiles);
     parts.push({name:roof.name,kind:'closed-annular-hipped-roof',thickness:.12,upperStoreyOpening:{min:[-2.56,-3.84],max:[2.56,-1.08]}});
   }
@@ -137,21 +138,32 @@ export async function createFaithfulResearch({data,quality='high'}={}){
   // A single opaque number-label atlas sits on real, stitched book spines.
   const atlas=document.createElement('canvas');atlas.width=quality==='low'?512:1024;
   const labelRows=Math.max(1,Math.ceil(sorted.length/8)),cellW=atlas.width/8,cellH=quality==='low'?64:128;atlas.height=2**Math.ceil(Math.log2(labelRows*cellH));
-  const c=atlas.getContext('2d');c.fillStyle='#eee3cb';c.fillRect(0,0,atlas.width,atlas.height);c.textAlign='center';c.textBaseline='middle';c.fillStyle='#574635';c.font=`600 ${cellW*.28}px Georgia, serif`;
+  const c=atlas.getContext('2d');c.fillStyle='#eadcc0';c.fillRect(0,0,atlas.width,atlas.height);c.textAlign='center';c.textBaseline='middle';c.fillStyle='#574635';c.font=`600 ${cellW*.32}px Georgia, serif`;
   sorted.forEach((paper,i)=>c.fillText(String(i+1).padStart(2,'0'),(i%8+.5)*cellW,(Math.floor(i/8)+.5)*cellH));
   const labelTexture=new THREE.CanvasTexture(atlas);labelTexture.colorSpace=THREE.SRGBColorSpace;resources.add(labelTexture);
   const labelMat=new THREE.MeshStandardMaterial({name:'research-physical-paper-spine-labels',map:labelTexture,roughness:.90});resources.add(labelMat);
   const labelPositions=[],labelUV=[],proxyMat=new THREE.MeshBasicMaterial({visible:false});resources.add(proxyMat);
   const perCase=Math.ceil(sorted.length/2),columns=Math.max(1,Math.ceil(perCase/3));
+  function boundVolume(paperID,{w,h,x,y,z,role}){
+    // Two/three page signatures form real shallow fore-edge channels. The
+    // overall page/cover dimensions and every paper's supported position stay
+    // unchanged; a few broad seams replace the previous white tape stripes.
+    const layers=quality==='low'?2:3,pageHeight=h-.025,gap=.0008;
+    for(let layer=0;layer<layers;layer++)kit.box('publication-'+paperID+'-page-signature-'+layer,[w-.008,pageHeight/layers-(layer?gap:0),.245],[x,y+.0125+pageHeight*(layer+.5)/layers+(layer?gap/2:0),z-.133],'ivory');
+    for(const sign of[-1,1])kit.box('publication-'+paperID+'-cloth-cover-'+sign,[.008,h,.282],[x+sign*w/2,y+h/2,z-.129],role);
+    kit.box('publication-'+paperID+'-stitched-spine',[w+.010,h,.029],[x,y+h/2,z+.002],role);
+    for(const t of[.17,.85])kit.box('publication-'+paperID+'-raised-binding-rib-'+t,[w+.005,.006,.005],[x,y+h*t,z+.017],role);
+    for(const sign of[-1,1])kit.box('publication-'+paperID+'-pressed-spine-fold-'+sign,[.0018,h*.91,.0015],[x+sign*w*.42,y+h/2,z+.01725],'darkWood');
+    // A slim cloth tab lies directly on the actual top page block, partly
+    // inserted beneath its cover rather than floating in front of the spine.
+    if(quality!=='low'||bookManifest.length%2===0)kit.box('publication-'+paperID+'-thin-cloth-bookmark',[.006,.0015,.085],[x+w*.21,y+h-.01175,z-.126],'red');
+  }
   for(let i=0;i<sorted.length;i++){
     const paper=sorted[i],side=Math.min(1,Math.floor(i/Math.max(1,perCase))),local=i-side*perCase,row=Math.floor(local/columns),col=local%columns,bookcase=cases[side],
       rowCount=Math.min(columns,(side?sorted.length-perCase:perCase)-row*columns),pitch=Math.min(.185,1.83/Math.max(1,columns)),
       x=bookcase.cx+(col-(rowCount-1)/2)*pitch,y=bookcase.bottom+.51+row*.51+.0325,h=.365+(i%3)*.013,w=.088+(i%3)*.012,z=-3.54,role=['blue','green','cloth'][i%3],paperID=paper.id||`research-book-${i}`;
-    kit.box('publication-'+paperID+'-actual-page-block',[w-.008,h-.025,.245],[x,y+h/2,z-.133],'ivory');
-    for(const sign of[-1,1])kit.box('publication-'+paperID+'-cloth-cover-'+sign,[.008,h,.282],[x+sign*w/2,y+h/2,z-.129],role);
-    kit.box('publication-'+paperID+'-stitched-spine',[w+.010,h,.029],[x,y+h/2,z+.002],role);
-    for(let s=0;s<4;s++)kit.box('publication-'+paperID+'-binding-thread-'+s,[w+.014,.005,.010],[x,y+h*(.14+s*.23),z+.019],'ivory');
-    const uv=[(i%8)*cellW/atlas.width,1-(Math.floor(i/8)+1)*cellH/atlas.height,(i%8+1)*cellW/atlas.width,1-Math.floor(i/8)*cellH/atlas.height],x0=x-w*.34,x1=x+w*.34,y0=y+h*.34,y1=y+h*.71,zz=z+.0173;
+    boundVolume(paperID,{w,h,x,y,z,role});
+    const uv=[(i%8)*cellW/atlas.width,1-(Math.floor(i/8)+1)*cellH/atlas.height,(i%8+1)*cellW/atlas.width,1-Math.floor(i/8)*cellH/atlas.height],x0=x-w*.32,x1=x+w*.32,y0=y+h*.40,y1=y+h*.64,zz=z+.0173;
     labelPositions.push(x0,y0,zz,x1,y0,zz,x1,y1,zz,x0,y0,zz,x1,y1,zz,x0,y1,zz);labelUV.push(uv[0],uv[1],uv[2],uv[1],uv[2],uv[3],uv[0],uv[1],uv[2],uv[3],uv[0],uv[3]);
     const pg=new THREE.BoxGeometry(w+.06,h+.05,.32);resources.add(pg);const pick=new THREE.Mesh(pg,proxyMat);pick.name='pick-'+paperID;pick.position.set(x,y+h/2,z-.12);pick.userData={interaction:true,id:paperID,type:'book',paper:paperID,title:paper.title};root.add(pick);
     const bookStand=[THREE.MathUtils.clamp(x,-2.65,2.65),floorY,-2.75],item={id:paperID,object:pick,type:'book',point:[x,y+h/2,z+.017],title:paper.title,focus:{paper:paper.id},paper,stand:bookStand,room:library.id,
@@ -171,7 +183,26 @@ export async function createFaithfulResearch({data,quality='high'}={}){
     for(const z of[deskZ-.19,deskZ+.19]){const cap=kit.round('research-bamboo-roll-end-'+x+'-'+z,.041,.013,[x,deskY+.089,z],'ivory',bambooGroup,12);cap.rotation.x=Math.PI/2;}
   }
   for(const z of[deskZ-.115,deskZ+.115])kit.box('research-real-manuscript-binding-'+z,[.55,.003,.012],[deskX,deskY+.066,z],'darkWood',bambooGroup);
-  for(let i=0;i<3;i++){const roll=kit.round('research-capped-silk-scroll-'+i,.047,.36,[1.18+i*.13,floorY+.13,-3.63],'ivory',root,12);roll.rotation.x=Math.PI/2;}
+  const scrollGeometries=new Map(),scrollGroup=new THREE.Group();scrollGroup.name='research-supported-layered-paper-scrolls';root.add(scrollGroup);
+  function paperRing(outer,inner,length,segments){
+    const key=[outer,inner,length,segments].join(',');if(scrollGeometries.has(key))return scrollGeometries.get(key);
+    // The annulus has a real axial opening and closed end rings. Its wooden
+    // spindle passes through that opening; no bare full white cylinder cap.
+    const g=new THREE.LatheGeometry([[inner,-length/2],[outer,-length/2],[outer,length/2],[inner,length/2],[inner,-length/2]].map(p=>new THREE.Vector2(...p)),segments);g.rotateX(Math.PI/2);resources.add(g);scrollGeometries.set(key,g);return g;
+  }
+  function scrollPart(name,g,role,p){const m=new THREE.Mesh(g,kit.materials[role]);m.name=name;m.position.fromArray(p);m.castShadow=m.receiveShadow=true;m.userData.roomSolid=true;scrollGroup.add(m);return m;}
+  function silkVolume(i){
+    const x=1.18+i*.13,y=floorY+.13,z=-3.63,radial=quality==='low'?16:24;
+    scrollPart('research-capped-silk-scroll-'+i,paperRing(.047,.013,.36,radial),'ivory',[x,y,z]);
+    const core=kit.round('research-scroll-dark-spindle-'+i,.012,.388,[x,y,z],'darkWood',scrollGroup,quality==='low'?12:16);core.rotation.x=Math.PI/2;
+    for(const sign of[-1,1]){
+      // Sparse paper-turn lips on the end face, with a deeper wooden centre.
+      for(const r of quality==='low'?[.037]:[.025,.038])scrollPart('research-scroll-paper-turn-'+i+'-'+sign+'-'+r,paperRing(r+.0007,r-.0007,.0014,quality==='low'?12:20),'ivory',[x,y,z+sign*.1806]);
+    }
+    scrollPart('research-scroll-fine-hemp-binding-'+i,paperRing(.0475,.046,.010,quality==='low'?12:16),'cloth',[x,y,z+.025]);
+    kit.box('research-scroll-binding-knot-'+i,[.006,.004,.012],[x,y+.048,z+.025],'cloth',scrollGroup);
+  }
+  for(let i=0;i<3;i++)silkVolume(i);
   const plant=new THREE.Group();plant.name='research-complete-potted-plant';plant.position.set(1.58,floorY+.12,-1.62);root.add(plant);
   kit.round('research-plant-closed-pot-body',.16,.25,[0,.125,0],'green',plant,12);kit.round('research-pot-rim',.177,.034,[0,.255,0],'green',plant,12);kit.round('research-real-dark-soil',.142,.015,[0,.258,0],'darkWood',plant,12);
   const foliage=new THREE.Group();foliage.name='research-solid-leaf-and-stem-bundle';foliage.position.y=.266;plant.add(foliage);
@@ -189,7 +220,14 @@ export async function createFaithfulResearch({data,quality='high'}={}){
     const shade=new THREE.Mesh(g,mat);shade.name='research-supported-warm-lamp-'+i;shade.position.set(x,y-.10,z+.08);root.add(shade);const light=kit.lamp([x,y-.11,z+.13],.28,i===2?.65:1.15);practical.push({shade,light});
   }
   const walkAreas=[{id:'research-bearing-platform',minX:-3.27,maxX:3.27,minZ:-4.40,maxZ:.30,y:floorY},{id:'research-front-half-height-step',minX:-.84,maxX:.84,minZ:.30,maxZ:.70,y:.058},{id:'research-rear-half-height-step',minX:-.66,maxX:.66,minZ:-4.80,maxZ:-4.40,y:.058},...library.walkAreas];
-  mergeGroup(bambooGroup);mergeGroup(foliage);mergeGroup(plant);kit.flush();root.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(root);
+  mergeGroup(bambooGroup);mergeGroup(foliage);mergeGroup(plant);mergeGroup(scrollGroup);kit.flush();
+  // Reuse the kit's existing static material batches: three finely made scrolls
+  // do not cost a separate draw call per paper turn, spindle or binding.
+  for(const m of scrollGroup.children.slice()){
+    const batch=root.children.find(o=>o.isMesh&&!o.isInstancedMesh&&o.name.startsWith('research-complete-static-')&&o.material===m.material);
+    if(!batch)continue;const g=mergeGeometries([batch.geometry,m.geometry],false);if(!g)throw new Error('Research scroll/static attributes disagree');resources.add(g);batch.geometry=g;m.removeFromParent();
+  }
+  if(!scrollGroup.children.length)scrollGroup.removeFromParent();root.updateMatrixWorld(true);const bounds=new THREE.Box3().setFromObject(root);
   const diagnostics={construction:'Complete metre-scale two-storey polygonal timber library with lit PBR surfaces',worldScale:1,storeys:2,lowerHeadroom:ceilingY-floorY,upperHeadroom:upperCeilingY-upperFloorY,primaryLibraryAccessible:true,upperStoreyWalkable:false,upperStoreyReason:'Closed physical archive floor; no staircase or teleport is provided.',rooms:[library.bounds,upper.bounds],roof:'Closed annular four-slope lower tier and full four-sided upper hipped roof',furniture:'Closed shelves, page blocks, stitched covers, capped bamboo and silk rolls, supported full pot',publicationOrderPreserved:pubs.length>0,publicationCount:pubs.length,books:bookManifest,parts,originalPaintedFacadeTextures:0,opaqueArchitectureMaterial:'MeshStandardMaterial on front/back/sides',heldReadingStancePreserved:readStand.slice(),limitations:['Upper archive is a complete display storey, not a walkable room.','Reading supports a selected paper; there is no per-shelf-height grasp IK.']};root.userData.reconstruction=diagnostics;
   function setTheme(dark){kit.setTheme(dark);for(const p of practical){p.shade.material.emissiveIntensity=dark?.50:0;p.light.intensity=dark?.28:0;}}
   function update(time,dt){kit.update(time,dt);if(plantMotion>0){plantMotion=Math.max(0,plantMotion-dt*.60);foliage.rotation.z=Math.sin(time*3.2)*.045*plantMotion;}else foliage.rotation.z=0;}

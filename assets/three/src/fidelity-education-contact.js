@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {createLehighCampus} from './fidelity-campus-lehigh.js';
+import {createCraftMaterials,applyCraftSurface} from './fidelity-surface-materials.js';
 
 /** Complete outdoor keepsakes, with coherent lit materials on every side.
  * Printed lettering is painted on real boards/metal, never an architectural
@@ -8,18 +10,24 @@ import {createLehighCampus} from './fidelity-campus-lehigh.js';
 export async function createFaithfulEducationContact({data=globalThis.window?.HJ_DATA,quality='high'}={}) {
   const root=new THREE.Group();root.name='faithful-education-contact';
   const resources=new Set(),parts=[],batches=new Map(),lights=[],attachments=[];
-  const radial=quality==='low'?12:24,curves=quality==='low'?3:6;
-  const material=(name,color,extra={})=>{const m=new THREE.MeshStandardMaterial({color,roughness:.77,...extra});m.name=`ec-${name}`;resources.add(m);return m;};
+  const surfaces=createCraftMaterials({name:'education-contact',quality,resources});
+  const radial=quality==='low'?18:32,curves=quality==='low'?4:8;
+  const material=(name,color,extra={})=>{const Material=extra.clearcoat?THREE.MeshPhysicalMaterial:THREE.MeshStandardMaterial;const m=new Material({color,roughness:.77,...extra});m.name=`ec-${name}`;resources.add(m);return m;};
   const stone=material('stone','#a89c85'),cream=material('limestone','#d5c6ac'),wood=material('oak','#89613e'),darkWood=material('dark-timber','#674a33');
   const bark=material('branch-bark','#846147'),leaf=material('oak-leaves','#7b9660'),leafLight=material('leaf-tips','#94a977');
   const ropeMat=material('hemp-rope','#bfaa82',{roughness:1}),roof=material('slate','#4d6277',{roughness:.66});
   const gtStone=material('georgetown-brown-sandstone','#a88e73'),gtTrim=material('georgetown-carved-sandstone','#c8b08a');
-  const metal=material('davis-painted-metal','#bfc6bb',{metalness:.42,roughness:.48});
+  const metal=material('davis-painted-metal','#bfc6bb',{metalness:.42,roughness:.40,envMapIntensity:.60});
   const navy=material('davis-blue','#486e8a'),gold=material('brass','#c6a25d',{metalness:.4,roughness:.48}),rubber=material('bike-rubber','#414448');
-  const red=material('mailbox-red-enamel','#bf5347',{metalness:.16,roughness:.5}),mailInside=material('mailbox-interior','#373a3b');
+  const red=material('mailbox-red-enamel','#bf5347',{metalness:.16,roughness:.5,clearcoat:.18,clearcoatRoughness:.60}),mailInside=material('mailbox-interior','#373a3b');
   const glass=material('campus-recessed-glass','#738794',{roughness:.35,emissive:'#ffc979',emissiveIntensity:0});
   const lampMat=material('warm-lamp-glass','#bba573',{roughness:.3,emissive:'#ffe5aa',emissiveIntensity:0});
   const paper=material('letter-paper','#eee0bf'),ink=material('letter-crease','#b2a17f');
+  for(const m of[stone,cream,gtStone,gtTrim])applyCraftSurface(m,surfaces.stone);
+  applyCraftSurface(wood,surfaces.wood);applyCraftSurface(darkWood,surfaces.darkWood);applyCraftSurface(bark,surfaces.wood,{preserveRoughness:true});
+  applyCraftSurface(roof,surfaces.roof,{preserveRoughness:true});applyCraftSurface(red,surfaces.red,{preserveRoughness:true});
+  applyCraftSurface(paper,surfaces.paper);applyCraftSurface(ropeMat,surfaces.cloth,{preserveRoughness:true});applyCraftSurface(navy,surfaces.blue);
+  const bannerFabric=material('campus-blue-fabric-banner','#486e8a');applyCraftSurface(bannerFabric,surfaces.cloth);
   const e=scene('education'),c=scene('contact');root.add(e.root,c.root);
   function scene(id){const group=new THREE.Group();group.name=`chapter-${id}-faithful`;return {id,root:group,walkAreas:[],colliders:[],interactables:[],actionStand:{},parts:[]};}
   const S=(x,y,w,h,nw,nh)=>({X:n=>(x+n*w/nw)/85,Y:n=>(560-y-n*h/nh)/85,point(n,p,z=0){return[this.X(n),this.Y(p),z];}});
@@ -34,7 +42,22 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     if(!g.getAttribute('uv'))g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
     const key=`${st.id}/${m.uuid}`;if(!batches.has(key))batches.set(key,{st,m,gs:[]});batches.get(key).gs.push(g);return g;
   }
-  function box(st,name,min,max,m=wood,parent=null){return add(st,name,new THREE.BoxGeometry(...max.map((v,i)=>v-min[i])),m,min.map((v,i)=>(v+max[i])/2),undefined,parent);}
+  function box(st,name,min,max,m=wood,parent=null){
+    const size=max.map((v,i)=>v-min[i]);
+    // Bevel only the pieces a visitor handles or reads. Brick courses and
+    // structural wall cores keep their inexpensive, exactly seated topology.
+    const crafted=/plaque|original-caption$|physical-forecourt|mailbox-(?:grounded-wood-leg|wood-ground-foot|under-box-support|lower-wood-crossbar|brass-slot-rim|door-attached-hinge|raised-brass-flag)|contact-link-rooted-wood-post|bike-leather-seat/.test(name);
+    const radius=Math.min(.006,...size.map(v=>v*.13));
+    const g=crafted?new RoundedBoxGeometry(...size,1,radius):new THREE.BoxGeometry(...size);
+    if((m===wood||m===darkWood)&&size[0]>size[1]&&size[0]>=size[2])alongBoard(g);
+    return add(st,name,g,m,min.map((v,i)=>(v+max[i])/2),undefined,parent);
+  }
+  function alongBoard(g){const uv=g.getAttribute('uv');for(let i=0;i<uv.count;i++){const u=uv.getX(i);uv.setXY(i,uv.getY(i),u);}return g;}
+  function softExtrude(shape,depth,radius=.0012) {
+    const r=Math.min(radius,depth*.16);
+    const g=new THREE.ExtrudeGeometry(shape,{depth:depth-2*r,steps:1,bevelEnabled:true,bevelSize:r,bevelThickness:r,bevelSegments:1,curveSegments:curves});
+    g.translate(0,0,r);return g;
+  }
   const cyl=(st,name,rt,rb,h,p,m,segments=radial,rot=[0,0,0],parent=null)=>add(st,name,new THREE.CylinderGeometry(rt,rb,h,segments),m,p,rot,parent);
   function tube(st,name,start,end,r1,r2,m=bark,parent=null) {
     const a=new THREE.Vector3(...start),b=new THREE.Vector3(...end),delta=b.clone().sub(a);
@@ -43,17 +66,28 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
   }
   function polygon(st,name,outline,front,depth,m=wood,holes=[],parent=null) {
     const shape=new THREE.Shape(outline.map(v=>new THREE.Vector2(...v)));shape.holes=holes.map(h=>new THREE.Path(h.map(v=>new THREE.Vector2(...v))));
-    return add(st,name,new THREE.ExtrudeGeometry(shape,{depth,steps:1,bevelEnabled:false,curveSegments:curves}),m,[0,0,front-depth],undefined,parent);
+    const g=/contact-link-.*-solid-arrow/.test(name)?softExtrude(shape,depth,.002):new THREE.ExtrudeGeometry(shape,{depth,steps:1,bevelEnabled:false,curveSegments:curves});
+    if(m===wood&&/solid-arrow/.test(name))alongBoard(g);
+    return add(st,name,g,m,[0,0,front-depth],undefined,parent);
   }
   function arch(w,h,cx=0,bottom=0){const q=new THREE.Shape();q.moveTo(cx-w/2,bottom);q.lineTo(cx+w/2,bottom);q.lineTo(cx+w/2,bottom+h-w/2);q.absarc(cx,bottom+h-w/2,w/2,0,Math.PI,false);q.lineTo(cx-w/2,bottom);return q;}
   function labelMaterial(name,text,width,height,color='#89613e',font='Georgia',fontWeight='bold') {
     const cv=document.createElement('canvas');cv.width=quality==='low'?512:1024;cv.height=Math.max(96,Math.round(cv.width*height/width));
     const ctx=cv.getContext('2d');ctx.fillStyle=color;ctx.fillRect(0,0,cv.width,cv.height);
-    ctx.strokeStyle='#ba9360';ctx.lineWidth=Math.max(2,cv.height*.025);ctx.strokeRect(12,10,cv.width-24,cv.height-20);
+    // Low-contrast grain and a cut inner border belong to the wooden face,
+    // rather than another bright outlined interface card on top of the sign.
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(49,29,16,.075)';
+    for(let j=0;j<26;j++){const yy=(j+.5)*cv.height/26;ctx.beginPath();for(let k=0;k<=12;k++){const xx=k*cv.width/12,wy=yy+Math.sin(k*.72+j*1.37)*cv.height*.009;k?ctx.lineTo(xx,wy):ctx.moveTo(xx,wy);}ctx.stroke();}
+    ctx.lineWidth=Math.max(1,cv.height*.010);ctx.strokeStyle='#573d29';ctx.strokeRect(14,12,cv.width-28,cv.height-24);
+    ctx.strokeStyle='rgba(232,204,154,.48)';ctx.strokeRect(15,13,cv.width-30,cv.height-26);
     ctx.textAlign='center';ctx.textBaseline='middle';const size=Math.min(cv.height*.57,cv.width/(Math.max(1,text.length)*.66));ctx.font=`${fontWeight} ${size}px ${font}`;
-    ctx.fillStyle='#4b3423';ctx.fillText(text,cv.width/2+1,cv.height/2+2,cv.width*.92);ctx.fillStyle='#f2dcaa';ctx.fillText(text,cv.width/2,cv.height/2,cv.width*.92);
+    const cut=Math.max(1,cv.height*.007);ctx.lineWidth=Math.max(1,cv.height*.012);ctx.strokeStyle='#4b3423';ctx.strokeText(text,cv.width/2,cv.height/2-cut,cv.width*.92);
+    ctx.fillStyle='#b3905c';ctx.fillText(text,cv.width/2+cut,cv.height/2+cut,cv.width*.92);ctx.fillStyle='#f0d6a3';ctx.fillText(text,cv.width/2,cv.height/2,cv.width*.92);
     const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;resources.add(tex);
-    return material(name,'#ffffff',{map:tex,roughness:.82});
+    const label=material(name,'#ffffff',{map:tex,roughness:.82});
+    // The glyph canvas remains the albedo: borrow only the shared wood relief,
+    // never replace readable lettering with the neutral texture template.
+    applyCraftSurface(label,surfaces.wood,{preserveRoughness:true});label.map=tex;return label;
   }
   function board(st,name,text,cx,cy,front,w,h=.31,depth=.065,m=wood) {
     box(st,name,[cx-w/2,cy-h/2,front-depth],[cx+w/2,cy+h/2,front],m);
@@ -69,7 +103,9 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     object.name=`interaction-${id}`;object.position.fromArray(point);object.visible=false;object.userData.interaction=id;object.userData.roomSolid=false;st.root.add(object);
     const item={id,type,point,title,focus:st.id,station:st.id,object,...extra};st.interactables.push(item);return item;
   }
-  for(const st of [e,c])box(st,`${st.id}-physical-forecourt`,[st===e?-4.47:-4.15,-.085,-1.25],[st===e?4.83:4,0,.65],stone);
+  // This must happen before material merging: the name is a part manifest
+  // entry, not a retained Mesh. A 6 mm finished lip clears the garden Y0 tiles.
+  for(const st of [e,c])box(st,`${st.id}-physical-forecourt`,[st===e?-4.47:-4.15,-.085,-1.25],[st===e?4.83:4,.006,.65],stone);
   function caption(name,text,cx,w,z){board(e,`${name}-original-caption`,text,cx,.17,z,w);box(e,`${name}-caption-ground-foot`,[cx-.14,0,z-.09],[cx+.14,.046,z+.02],stone);coll(e,`${name}-original-caption-solid-low-board`,cx-w/2,cx+w/2,z-.065,z+.001,.325);}
   // Davis: closed metal tank, four actual legs and bracing, a full bicycle.
   {
@@ -79,8 +115,9 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     add(e,'davis-unified-dome-tank-bowl',new THREE.LatheGeometry(profile.map(v=>new THREE.Vector2(...v)),radial),metal,[cx,0,z]);
     cyl(e,'davis-tank-cupola',.025,.052,s.Y(0)-s.Y(39),[cx,(s.Y(0)+s.Y(39))/2,z],metal,8);
     const cv=document.createElement('canvas');cv.width=1024;cv.height=256;const ctx=cv.getContext('2d');ctx.fillStyle='#bfc6bb';ctx.fillRect(0,0,1024,256);ctx.fillStyle='#40546a';ctx.font='bold 66px Arial';ctx.textAlign='center';ctx.textBaseline='middle';for(const xx of [256,768])ctx.fillText('UC DAVIS',xx,128,425);
-    const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;resources.add(tex);const tankLettering=material('davis-printed-tank','#ffffff',{map:tex,metalness:.42,roughness:.48});
+    const tex=new THREE.CanvasTexture(cv);tex.colorSpace=THREE.SRGBColorSpace;resources.add(tex);const tankLettering=material('davis-printed-tank','#ffffff',{map:tex,metalness:.42,roughness:.40,envMapIntensity:.60});
     cyl(e,'davis-uc-davis-metal-lettering',151*u+.001,151*u+.001,s.Y(123)-s.Y(239),[cx,(s.Y(123)+s.Y(239))/2,z],tankLettering,radial,[0,-Math.PI/2,0]);
+    for(const [name,yy]of [['lower',s.Y(239)],['upper',s.Y(123)]])add(e,`davis-tank-fine-weld-band-${name}`,new THREE.TorusGeometry(151*u+.002,.0045,5,radial),metal,[cx,yy,z],[Math.PI/2,0,0]);
     for(const [i,[tx,bx,zz]]of [[0,[277,243,-.03]],[1,[478,505,-.03]],[2,[260,228,-.65]],[3,[499,529,-.65]]]){
       tube(e,`davis-load-bearing-leg-${i}`,s.point(bx,620,zz),s.point(tx,274,zz),.053,.042,metal);
       box(e,`davis-grounded-foot-${i}`,[s.X(bx)-.095,floor,zz-.095],[s.X(bx)+.095,s.Y(620)+.018,zz+.095],cream);
@@ -89,7 +126,7 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     tube(e,'davis-centre-water-pipe',s.point(378,610,z),s.point(378,310,z),.024,.024,metal);
     // The banner is a true thick printed fabric slab attached to its mast.
     tube(e,'davis-banner-mast',s.point(533,298,-.17),s.point(603,298,-.17),.009,.009,gold);
-    polygon(e,'davis-blue-gold-banner',[[s.X(544),s.Y(304)],[s.X(600),s.Y(304)],[s.X(600),s.Y(443)],[s.X(573),s.Y(425)],[s.X(544),s.Y(443)]],-.17,.012,navy);
+    polygon(e,'davis-blue-gold-banner',[[s.X(544),s.Y(304)],[s.X(600),s.Y(304)],[s.X(600),s.Y(443)],[s.X(573),s.Y(425)],[s.X(544),s.Y(443)]],-.17,.012,bannerFabric);
     const wheelR=61*u,wheelY=floor+wheelR,bp=(xx,yy,zz=.19)=>[s.X(xx),s.Y(yy)+(wheelY-s.Y(581)),zz];
     for(const xx of [81,260]) {
       add(e,`davis-bike-tire-${xx}`,new THREE.TorusGeometry(wheelR,.018,6,radial),rubber,[s.X(xx),wheelY,.19]);
@@ -115,6 +152,7 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     tube(e,'davis-bike-kickstand',bp(187,583,.17),[s.X(186),floor,.27],.006,.006,metal);
     const lp=bp(68,524,.28);cyl(e,'davis-bike-lamp-housing',.023,.023,.04,[lp[0],lp[1],lp[2]-.012],metal,8,[Math.PI/2,0,0]);
     cyl(e,'davis-bike-lamp-lens',.019,.019,.006,[lp[0],lp[1],lp[2]+.011],lampMat,8,[Math.PI/2,0,0]);
+    add(e,'davis-bike-lamp-attached-metal-bezel',new THREE.TorusGeometry(.0205,.0022,5,radial),metal,[lp[0],lp[1],lp[2]+.014]);
     const light=new THREE.PointLight('#ffdf9b',0,.75,2);light.name='davis-bicycle-warm-lamp';light.position.set(...lp);e.root.add(light);lights.push({light,intensity:.17});
     const beam=new THREE.SpotLight('#ffe2a5',0,1.1,.47,.65,2);beam.name='davis-bicycle-ground-beam';beam.position.set(...lp);beam.target.position.set(s.X(20),floor+.002,.5);e.root.add(beam,beam.target);lights.push({light:beam,intensity:.4});
     caption('bs','B.S. · UC Davis',-192/85,162/85,.39);
@@ -137,7 +175,7 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     const pose=new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(0,a,0)),new THREE.Vector3(1,1,1));
     const placed=(suffix,g,m,offset)=>{g.translate(...offset);g.applyMatrix4(pose);add(st,`${name}-${suffix}`,g,m);};
     const rim=arch(w+.024,h+.014,0,-.007);rim.holes=[new THREE.Path(arch(w,h).getPoints(curves))];
-    placed('embedded-frame',new THREE.ExtrudeGeometry(rim,{depth:.023,bevelEnabled:false,curveSegments:curves}),gtTrim,[0,0,-.011]);
+    placed('embedded-frame',softExtrude(rim,.023),gtTrim,[0,0,-.011]);
     placed('inset-pane',new THREE.ExtrudeGeometry(arch(w-.004,h-.007),{depth:.012,bevelEnabled:false,curveSegments:curves}),door?darkWood:glass,[0,.002,-.024]);
     placed('centre-mullion',new THREE.BoxGeometry(.005,h-w*.35,.006),gold,[0,(h-w*.35)/2,-.005]);
     if(!door)placed('cross-mullion',new THREE.BoxGeometry(w-.004,.005,.006),gold,[0,h*.54,-.005]);
@@ -254,11 +292,11 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     box(c,'mailbox-under-box-support',[cx-w/2-.045,1.005,-.32],[cx+w/2+.045,1.05,.082],wood);
     box(c,'mailbox-lower-wood-crossbar',[.31,.68,-.10],[.92,.75,.04],wood);
     const shape=arch(w,h,cx,bottom);shape.holes=[new THREE.Path(arch(w-.055,h-.035,cx,bottom+.025).getPoints(curves))];
-    add(c,'mailbox-real-hollow-red-shell',new THREE.ExtrudeGeometry(shape,{depth:front-back,bevelEnabled:false,curveSegments:curves}),red,[0,0,back]);
-    add(c,'mailbox-closed-rear',new THREE.ExtrudeGeometry(arch(w-.035,h-.018,cx,bottom+.008),{depth:.018,bevelEnabled:false,curveSegments:curves}),red,[0,0,back-.012]);
+    add(c,'mailbox-real-hollow-red-shell',softExtrude(shape,front-back,.0015),red,[0,0,back]);
+    add(c,'mailbox-closed-rear',softExtrude(arch(w-.035,h-.018,cx,bottom+.008),.018,.0015),red,[0,0,back-.012]);
     c.mailSlot=post.point(91,92,.075);const slotX=c.mailSlot[0],slotY=c.mailSlot[1];
     const door=arch(w-.085,h-.055,cx,bottom+.033);door.holes=[new THREE.Path([new THREE.Vector2(slotX-.16,slotY-.043),new THREE.Vector2(slotX+.16,slotY-.043),new THREE.Vector2(slotX+.16,slotY+.043),new THREE.Vector2(slotX-.16,slotY+.043)])];
-    add(c,'mailbox-recessed-door-with-real-slot',new THREE.ExtrudeGeometry(door,{depth:.025,bevelEnabled:false,curveSegments:curves}),red,[0,0,.023]);
+    add(c,'mailbox-recessed-door-with-real-slot',softExtrude(door,.025,.0015),red,[0,0,.023]);
     box(c,'mailbox-dark-letter-pocket',[slotX-.175,slotY-.06,-.22],[slotX+.175,slotY+.06,-.208],mailInside);
     for(const [i,yy]of [[0,slotY-.047],[1,slotY+.047]])box(c,`mailbox-brass-slot-rim-${i}`,[slotX-.177,yy-.009,.043],[slotX+.177,yy+.009,.064],gold);
     for(const yy of [1.18,1.43,1.62])box(c,`mailbox-door-attached-hinge-${yy}`,[.917,yy-.026,.036],[.961,yy+.026,.074],gold);

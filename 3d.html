@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Hanjing Shi · Interactive 3D garden</title>
+    <title>Hanjing Shi · A world within</title>
     <meta name="description"
-        content="Hanjing Shi, HCI &amp; AI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona. Walk through an interactive world with her mini-avatar, or read the basic version.">
+        content="A handwritten invitation into Hanjing Shi’s opened crystal world: research, memories, a little ink, a little starlight, and two curious cats. Explore Interactive 3D, visit Interactive 2D, or read the basic portfolio.">
     <meta property="og:title" content="Hanjing Shi · Welcome to my world">
     <meta property="og:description"
         content="HCI &amp; AI researcher studying how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.">
@@ -20,21 +20,15 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:image" content="https://hshids.github.io/images/profile-qipao.jpg">
     <meta name="twitter:image:alt" content="Hanjing Shi in a black qipao with gold bamboo embroidery">
-    <meta name="theme-color" content="#f3efe6">
+    <meta name="theme-color" content="#0a172a">
     <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
     <link rel="alternate" href="basic.html" title="Basic version">
     <link rel="canonical" href="https://hshids.github.io/3d.html">
-    <script>
-        (function () {
-            try {
-                var theme = localStorage.getItem('hj-theme');
-                if (theme) document.documentElement.setAttribute('data-theme', theme);
-            } catch (e) { }
-        })();
-    </script>
     <link rel="stylesheet" href="assets/css/world.css">
     <link rel="stylesheet" href="assets/three/version-links.css?v=complete-rooms-v2">
-    <link rel="stylesheet" href="assets/three/world3d.css?v=layered-rooms-v1">
+    <link rel="stylesheet" href="assets/three/world3d.css?v=crystal-letter-v1">
+    <link rel="stylesheet" href="assets/three/magic-world.css?v=crystal-letter-v1">
+    <link rel="stylesheet" href="assets/three/magic-runtime.css?v=crystal-letter-v1">
 </head>
 <body class="garden-body">
     <header class="topbar">
@@ -58,9 +52,8 @@
             </nav>
         </div>
         <div class="top-actions">
-            <button type="button" class="icon-btn" id="theme-btn" aria-pressed="false" aria-label="Switch to night">
-                <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z" /></svg>
-                <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6" /></svg>
+            <button type="button" class="icon-btn" id="overview-btn" aria-label="Return to the whole crystal world" title="The whole world">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 8 6-3 11H7L4 9zM4 9h16M12 3 7 20M12 3l5 17M4 9l8 11 8-11" /></svg>
             </button>
             <a class="view-switch world-version-switch" href="index.html?world" data-view="world" aria-label="Open Interactive 2D"><span class="version-full">Interactive 2D</span><span class="version-short" aria-hidden="true">2D</span></a>
             <a class="view-switch" href="basic.html" data-view="basic">
@@ -70,19 +63,18 @@
         </div>
     </header>
 
-    <main id="world" class="world world-3d" aria-label="Hanjing’s riverside garden. Walk with arrow keys or WASD. Drag to look around. Scroll or use the zoom buttons to move closer. Click objects to explore.">
-      <canvas id="world-canvas" tabindex="0" aria-label="Interactive 3D riverside garden"></canvas>
-      <div id="loading" class="world-loading" role="status"><span class="loading-seal">HS</span><p>Opening the garden…</p><small>Research, stories, and six cats.</small></div>
-      <div class="chapter-caption" aria-live="polite"><p class="chapter-eyebrow">A RIVERSIDE GARDEN</p><h1 id="chapter-title">Welcome</h1><p id="chapter-sub">A little world to wander through.</p></div>
-      <button id="room-btn" class="room-button" type="button" hidden>Enter the building</button>
-      <button id="world-prompt" class="world-prompt" type="button"><span class="prompt-diamond" aria-hidden="true">◇</span><span id="prompt-label">Enter the courtyard</span><kbd>E</kbd></button>
+    <main id="world" class="world world-3d" aria-label="Hanjing’s opened crystal world. Click a miniature to look closer. Drag to turn, pinch or scroll to zoom, and click objects to explore.">
+      <canvas id="world-canvas" tabindex="0" aria-label="Interactive crystal world. Arrow keys turn the view; plus and minus zoom; Escape returns to the whole world."></canvas>
+      <div id="loading" class="world-loading" role="status"><span class="loading-seal">HS</span><p>Opening a world within…</p><small>A little ink. A little starlight. Two curious cats.</small></div>
+      <div class="chapter-caption" aria-live="polite"><p id="chapter-eyebrow" class="chapter-eyebrow">HANJING’S OPENED CRYSTAL WORLD</p><h1 id="chapter-title">A world within</h1><p id="chapter-sub">A little ink. A little starlight.</p></div>
+      <button id="room-btn" class="room-button" type="button" hidden>Look inside</button>
+      <button id="world-prompt" class="world-prompt" type="button"><span class="prompt-diamond" aria-hidden="true">◇</span><span id="prompt-label">Read the invitation</span><kbd>E</kbd></button>
       <div id="object-tip" class="object-tip" hidden></div>
       <div id="speech" class="world-speech" role="status" hidden></div>
       <nav class="garden-journal" aria-label="Garden chapters"><div class="journal-line"></div><button type="button" class="journal-stop" data-go="home" aria-label="Visit Welcome"><span class="journal-dot"></span><span>Welcome</span></button><button type="button" class="journal-stop" data-go="research" aria-label="Visit Research"><span class="journal-dot"></span><span>Research</span></button><button type="button" class="journal-stop" data-go="talks" aria-label="Visit Talks"><span class="journal-dot"></span><span>Talks</span></button><button type="button" class="journal-stop" data-go="education" aria-label="Visit Education"><span class="journal-dot"></span><span>Education</span></button><button type="button" class="journal-stop" data-go="writing" aria-label="Visit Writing"><span class="journal-dot"></span><span>Writing</span></button><button type="button" class="journal-stop" data-go="life" aria-label="Visit Life"><span class="journal-dot"></span><span>Life</span></button><button type="button" class="journal-stop" data-go="contact" aria-label="Visit Contact"><span class="journal-dot"></span><span>Contact</span></button></nav>
-      <p class="world-controls">← → walk <span>·</span> drag to look <span>·</span> click to discover</p>
+      <p class="world-controls">drag to turn <span>·</span> scroll to look closer <span>·</span> click to discover</p>
       <div class="garden-tools"><button id="zoom-in-btn" type="button" aria-label="Move the camera closer" title="Move closer">+</button><button id="zoom-out-btn" type="button" aria-label="Move the camera farther away" title="Move farther away">−</button><button id="sound-btn" type="button" aria-label="Enable garden sounds" aria-pressed="false" title="Garden sounds">♪</button><button id="view-btn" type="button" aria-label="Reset the camera" title="Reset the view">⌖</button><button id="help-btn" type="button" aria-label="Controls and accessibility" title="How to explore">?</button></div>
-      <div class="touch-walk" aria-label="Touch walking controls"><button type="button" data-walk="left" aria-label="Walk left">←</button><button type="button" data-walk="right" aria-label="Walk right">→</button><button type="button" data-walk="forward" aria-label="Walk into the garden">↑</button><button type="button" data-walk="back" aria-label="Walk toward the river">↓</button></div>
-      <div id="world-error" class="world-error" hidden role="alert"><h2>The garden is taking a rest.</h2><p>Your browser paused its 3D display. You can try again, or read everything in the basic version.</p><button type="button" id="recover-btn">Reopen the garden</button><a href="basic.html">Basic version →</a></div>
+      <div id="world-error" class="world-error" hidden role="alert"><h2>The crystal world is taking a rest.</h2><p>Your browser paused its 3D display. You can try again, or read everything in the basic version.</p><button type="button" id="recover-btn">Reopen the world</button><a href="basic.html">Basic version →</a></div>
     </main>
     <aside class="panel" id="panel" hidden aria-label="Place details">
         <button type="button" class="icon-btn panel-close" id="panel-close" aria-label="Close">
@@ -141,6 +133,6 @@
     <script src="assets/js/rituals.js?v=material-v3"></script>
     <script src="assets/js/guide.js?v=family-stories-v6"></script>
     <script src="assets/js/art.js?v=motion-world-v12"></script>
-    <script type="module" src="assets/three/dist/faithful-world.js?v=layered-rooms-v1"></script>
+    <script type="module" src="assets/three/dist/faithful-world.js?v=crystal-letter-v1"></script>
 </body>
 </html>

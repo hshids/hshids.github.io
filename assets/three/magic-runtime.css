@@ -1,0 +1,43 @@
+/* The world is a fixed-night miniature; it never changes the 2D theme setting. */
+.world-3d { background:#0a172a; }
+.garden-journal { display:none; }
+.chapter-caption { top:26px;left:30px;max-width:310px;text-shadow:0 2px 12px #071220; }
+.chapter-eyebrow { color:#bbba9e;font-size:9px;letter-spacing:.15em; }
+.chapter-caption h1 { font-family:Fraunces,Georgia,serif;font-size:clamp(26px,3vw,38px);color:#f5e7c9; }
+.chapter-caption #chapter-sub { color:#ced4cf; }
+.room-button { top:135px;min-height:44px;left:30px;border-radius:2px;background:#172b37e8;color:#f4e4bf; }
+.world-prompt { bottom:34px;background:#132a35ed;color:#f0e5ca;min-height:44px; }
+.world-prompt:hover { background:#234148; }
+.world-prompt kbd { color:#d3c5a2; }
+.world-controls { bottom:4px;color:#aec0c5; }
+.world-speech { left:50%;top:116px;transform:translateX(-50%);max-width:min(430px,calc(100% - 40px));background:#142b36f5;color:#f1e7cb;border-color:#a58955; }
+.world-speech::after { display:none; }
+.garden-tools button { min-width:44px;min-height:44px;color:#f1e7cb;background:#142935ed;border-radius:2px; }
+.garden-tools { bottom:30px; }
+.magic-toolbox { bottom:88px; }
+.magic-notebook-body { flex:1; }
+.magic-notebook-entry button+button { margin-left:16px; }
+.magic-notebook-footer { flex:none;border-top:1px solid #bca6754d;padding:12px 23px; }
+.magic-notebook-reset { background:none;border:0;color:#73561f;font:12px Inter,sans-serif;min-height:44px;text-decoration:underline;text-underline-offset:4px; }
+.magic-toast { top:130px; }
+.world-3d.is-inside-room .chapter-caption { background:#132935ec;border-color:#88917570; }
+.world-3d .guide-fab { bottom:30px; }
+.world-3d:focus-visible { outline:2px solid #cbaa65; }
+@media(max-width:700px) {
+ .chapter-caption { top:19px;left:20px;max-width:250px; }
+ .chapter-caption h1 { font-size:27px; }
+ .room-button { left:20px;top:120px; }
+ .magic-toolbox { right:14px;bottom:calc(114px + env(safe-area-inset-bottom)); }
+ .world-prompt { bottom:calc(65px + env(safe-area-inset-bottom));font-size:11px;padding:9px 12px;min-width:0;max-width:calc(100% - 30px); }
+ .garden-tools { bottom:calc(13px + env(safe-area-inset-bottom));right:12px;gap:5px; }
+ .garden-tools button { width:36px;min-width:36px;height:40px;min-height:40px; }
+ .world-3d .guide-fab { bottom:calc(14px + env(safe-area-inset-bottom));left:12px;max-width:112px; }
+ .magic-toast { top:170px; }
+ .world-speech { top:175px;font-size:11px; }
+ .world-controls { display:none; }
+}
+@media(max-width:380px) {
+ .garden-tools { gap:3px; }
+ .garden-tools button { min-width:32px;width:32px; }
+ .world-3d .guide-fab { max-width:103px;padding-right:10px; }
+}

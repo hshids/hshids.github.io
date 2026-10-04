@@ -1,45 +1,34 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {createCraftMaterials} from './fidelity-surface-materials.js';
+import {craftBoxChamfer,createCraftBoxGeometry,createCraftRoofTileGeometry,createCraftRidgeGeometry} from './fidelity-craft-geometry.js';
 
 // A complete, softly coloured construction kit. Every opaque side uses the
 // same lit material; doors and windows are holes through real walls.
-const COLOURS={wood:'#926344',darkWood:'#5d4031',plaster:'#eadbc0',mortar:'#c9baa1',stone:'#a6a8a1',floor:'#baaa88',roof:'#52616b',red:'#a64c40',brass:'#c5a66b',ivory:'#eee3cb',blue:'#6e919c',green:'#8ca77a',cloth:'#a88970',glass:'#c7d8d4'};
-
 export function createRoomKit({root=new THREE.Group(),name='room',quality='high'}={}){
-  const resources=new Set(),materials={},staticMeshes=[],doors=[],rooms=[],lights=[];
+  const resources=new Set(),materials=createCraftMaterials({name,quality,resources}),staticMeshes=[],doors=[],rooms=[],lights=[],boxGeometries=new Map();
   let dark=false,disposed=false;
-  const grain=document.createElement('canvas');grain.width=grain.height=quality==='low'?128:256;
-  const ctx=grain.getContext('2d'),pixels=ctx.createImageData(grain.width,grain.height);
-  for(let y=0;y<grain.height;y++)for(let x=0;x<grain.width;x++){
-    const h=Math.sin(x*12.9898+y*78.233)*43758.5453,n=h-Math.floor(h);
-    const v=Math.round(237+6*Math.sin(x*.28+Math.sin(y*.045))+n*10),i=(y*grain.width+x)*4;
-    pixels.data[i]=pixels.data[i+1]=pixels.data[i+2]=v;pixels.data[i+3]=255;
-  }
-  ctx.putImageData(pixels,0,0);const texture=new THREE.CanvasTexture(grain);texture.colorSpace=THREE.SRGBColorSpace;texture.wrapS=texture.wrapT=THREE.RepeatWrapping;resources.add(texture);
-  for(const [role,color]of Object.entries(COLOURS)){
-    const m=new THREE.MeshStandardMaterial({name:`${name}-${role}-complete-toy-surface`,color,
-      roughness:role==='brass'?.42:role==='glass'?.30:role==='roof'?.80:.69,
-      metalness:role==='brass'?.38:0,map:['wood','darkWood','floor'].includes(role)?texture:null});
-    if(role==='glass'){m.transparent=true;m.opacity=.36;m.depthWrite=false;}
-    materials[role]=m;resources.add(m);
-  }
   function resolve(role){return typeof role==='string'?(materials[role]||materials.wood):role;}
   function mesh(name,geometry,material,position,parent=root){
     const m=new THREE.Mesh(geometry,resolve(material));m.name=name;m.position.fromArray(position);m.castShadow=!m.material.transparent;m.receiveShadow=true;
     m.userData.roomSolid=!m.material.transparent;parent.add(m);resources.add(geometry);
     if(parent===root)staticMeshes.push(m);return m;
   }
-  function box(label,size,position,role='wood',parent=root){return mesh(label,new THREE.BoxGeometry(...size),role,position,parent);}
+  function box(label,size,position,role='wood',parent=root){
+    const bevel=craftBoxChamfer(label,size,role),grain=['wood','darkWood','floor','red'].includes(role),key=size.join(',')+':'+bevel+':'+grain;
+    let g=boxGeometries.get(key);if(!g){g=createCraftBoxGeometry(size,bevel,{grain});boxGeometries.set(key,g);}
+    return mesh(label,g,role,position,parent);
+  }
   function round(label,radius,height,position,role='wood',parent=root,segments=8){return mesh(label,new THREE.CylinderGeometry(radius,radius,height,segments),role,position,parent);}
   function brickWall(label,size,position,role='plaster',parent=root){
-    // A recessed continuous core closes the thin mortar joints. The visible
-    // wall is assembled from staggered, individual, closed construction blocks.
+    // Larger limewash blocks make a deliberate wall rhythm. A nearly flush,
+    // pale continuous core closes every joint without the old deep dark grid.
     const across=size[0]>=size[2],length=across?size[0]:size[2],height=size[1],thickness=across?size[2]:size[0];
     const core=size.slice();core[across?2:0]*=.90;box(label+'-continuous-core',core,position,'mortar',parent);
-    const rows=Math.max(1,Math.ceil(height/.22)),course=height/rows,origin=-length/2;
+    const rows=Math.max(1,Math.ceil(height/.46)),course=height/rows,origin=-length/2,joint=.0025;
     for(let row=0;row<rows;row++){
-      let u=origin,step=.43;
-      while(u<length/2-.001){const span=Math.min(length/2-u,u===origin&&row%2?step/2:step),dims=across?[span-.006,course-.006,thickness]:[thickness,course-.006,span-.006],p=position.slice();p[across?0:2]+=u+span/2;p[1]+=-height/2+course*(row+.5);box(label+'-brick-'+row+'-'+u.toFixed(3),dims,p,role,parent);u+=span;}
+      let u=origin,step=.94;
+      while(u<length/2-.001){const span=Math.min(length/2-u,u===origin&&row%2?step/2:step),dims=across?[Math.max(.001,span-joint),Math.max(.001,course-joint),thickness]:[thickness,Math.max(.001,course-joint),Math.max(.001,span-joint)],p=position.slice();p[across?0:2]+=u+span/2;p[1]+=-height/2+course*(row+.5);box(label+'-brick-'+row+'-'+u.toFixed(3),dims,p,role,parent);u+=span;}
     }
   }
   function sign(label,text,size,position,role='wood',parent=root){
@@ -76,19 +65,21 @@ export function createRoomKit({root=new THREE.Group(),name='room',quality='high'
     for(let i=0;i<4;i++){const j=(i+1)%4,a=rings[0][i],b=rings[0][j];quad(a,b,b.map((v,k)=>k===1?v-.12:v),a.map((v,k)=>k===1?v-.12:v));}
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));g.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));g.computeVertexNormals();
     mesh(label+'-continuous-four-sided-roof',g,role,[0,0,0]);
-    box(label+'-ridge-cap',[width-2*inset+.22,.14,.20],[(minX+maxX)/2,ridgeY+.055,middle],role);
-    const rows=quality==='low'?5:8,tileG=new THREE.BoxGeometry(.24,.042,.26),transforms=[];
+    mesh(label+'-ridge-cap',createCraftRidgeGeometry({length:width-2*inset+.22,width:.20,height:.14,quality}),role,[(minX+maxX)/2,ridgeY+.055,middle]);
+    const rows=quality==='low'?4:6,tileG=createCraftRoofTileGeometry({quality}),transforms=[];
     for(let side=0;side<4;side++)for(let row=0;row<rows;row++){
       const t=(row+.45)/rows,outerA=new THREE.Vector3(...rings[0][side]),outerB=new THREE.Vector3(...rings[0][(side+1)%4]);
       const innerA=new THREE.Vector3(...top[side]),innerB=new THREE.Vector3(...top[(side+1)%4]);
-      const a=outerA.clone().lerp(innerA,t),b=outerB.clone().lerp(innerB,t),along=b.clone().sub(a),length=along.length(),count=Math.max(1,Math.floor(length/.255));
+      const a=outerA.clone().lerp(innerA,t),b=outerB.clone().lerp(innerB,t),along=b.clone().sub(a),length=along.length(),count=Math.max(1,Math.floor(length/.30));
       const x=along.clone().normalize(),run=innerA.clone().sub(outerA),normal=run.clone().cross(along).normalize();if(normal.y<0)normal.negate();
       const z=x.clone().cross(normal).normalize(),q=new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(x,normal,z));
       // Courses must not overlap on the same top plane. A fixed tile depth
       // caused z-fighting on short roofs and narrow Research slopes.
       const courseRun=run.addScaledVector(x,-run.dot(x)).length()/rows,tileDepth=Math.min(.26,courseRun*.90);
       const edge=Math.min(.075,length*.08),usable=length-2*edge;
-      for(let i=0;i<count;i++){const p=a.clone().lerp(b,(edge+(i+.5)*usable/count)/length).addScaledVector(normal,.025);transforms.push(new THREE.Matrix4().compose(p,q,new THREE.Vector3(Math.max(.01,usable/count-.006)/.24,1,tileDepth/.26)));}
+      // The arched tile's flat underside overlaps the structural slope 2mm;
+      // its curved crown and rolled lip provide the visible depth, not a gap.
+      for(let i=0;i<count;i++){const p=a.clone().lerp(b,(edge+(i+.5)*usable/count)/length).addScaledVector(normal,.019);transforms.push(new THREE.Matrix4().compose(p,q,new THREE.Vector3(Math.max(.01,usable/count-.004)/.24,1,tileDepth/.26)));}
     }
     resources.add(tileG);const tiles=new THREE.InstancedMesh(tileG,resolve(role),transforms.length);tiles.name=label+'-individual-toy-tile-laps';transforms.forEach((m,i)=>tiles.setMatrixAt(i,m));tiles.castShadow=true;tiles.receiveShadow=true;tiles.userData.roomSolid=true;root.add(tiles);return tiles;
   }
@@ -97,7 +88,7 @@ export function createRoomKit({root=new THREE.Group(),name='room',quality='high'
     room.doorRoutes={};
     const centreX=(minX+maxX)/2,centreZ=(minZ+maxZ)/2;
     const floor=box(id+'-complete-bearing-floor',[maxX-minX+.1,.20,maxZ-minZ+.1],[centreX,floorY-.12,centreZ],'floor');floor.userData.walkSurface=true;floor.userData.keepMesh=true;
-    for(let x=minX;x<maxX-.001;x+=.44)for(let z=minZ;z<maxZ-.001;z+=.44){const w=Math.min(.44,maxX-x),d=Math.min(.44,maxZ-z);box(id+'-individual-floor-block-'+x+'-'+z,[w-.006,.024,d-.006],[x+w/2,floorY-.012,z+d/2],'floor');}
+    for(let x=minX;x<maxX-.001;x+=.66)for(let z=minZ;z<maxZ-.001;z+=.66){const w=Math.min(.66,maxX-x),d=Math.min(.66,maxZ-z);box(id+'-individual-floor-block-'+x+'-'+z,[Math.max(.001,w-.003),.024,Math.max(.001,d-.003)],[x+w/2,floorY-.012,z+d/2],'floor');}
     box(id+'-continuous-ceiling',[maxX-minX,.085,maxZ-minZ],[centreX,ceilingY+.043,centreZ],'darkWood');
     room.walkAreas.push({id:id+'-interior-floor',minX,maxX,minZ,maxZ,y:floorY});
     for(const side of['front','back','left','right']){
