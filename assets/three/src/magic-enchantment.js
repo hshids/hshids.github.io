@@ -765,58 +765,76 @@ function mergeStill(group, exclude = []) {
 function buildOwl() {
   const root = new THREE.Group(); root.name = 'enchantment-snowy-owl-post';
   const plume = new THREE.MeshStandardMaterial({name: 'owl-snowy-plumage', color: '#f7f5f0', roughness: 0.92});
-  const shade = new THREE.MeshStandardMaterial({name: 'owl-soft-grey-feather-layer', color: '#e4e1da', roughness: 0.95});
-  const iris = new THREE.MeshStandardMaterial({name: 'owl-golden-eyes', color: '#f2c21a', emissive: '#a36a00', emissiveIntensity: 0.5, roughness: 0.25});
-  const dark = new THREE.MeshStandardMaterial({name: 'owl-pupils-beak-talons', color: '#17130f', roughness: 0.35});
-  const speck = new THREE.MeshStandardMaterial({name: 'owl-dark-speckles', color: '#3b352f', roughness: 0.8});
+  const shade = new THREE.MeshStandardMaterial({name: 'owl-soft-grey-feather-layer', color: '#e6e3dc', roughness: 0.95});
+  const iris = new THREE.MeshStandardMaterial({name: 'owl-golden-eyes', color: '#f4c418', emissive: '#a36a00', emissiveIntensity: 0.55, roughness: 0.2});
+  const dark = new THREE.MeshStandardMaterial({name: 'owl-pupils-beak-talons', color: '#17130f', roughness: 0.3});
+  const speck = new THREE.MeshStandardMaterial({name: 'owl-dark-speckles', color: '#4a433b', roughness: 0.8});
   const paper = new THREE.MeshStandardMaterial({name: 'owl-letter-paper', color: '#efe3c6', roughness: 0.85});
   const seal = new THREE.MeshStandardMaterial({name: 'owl-letter-wax-seal', color: '#9c2a24', roughness: 0.45});
-  const mats = [plume, shade, iris, dark, speck, paper, seal];
+  const ribbon = new THREE.MeshStandardMaterial({name: 'owl-letter-ribbon', color: '#7b1f2a', roughness: 0.55});
+  const mats = [plume, shade, iris, dark, speck, paper, seal, ribbon];
   const ball = (r, m, sc, p, parent = root, seg = 18) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, seg, Math.round(seg * 0.7)), m); o.scale.set(...sc); o.position.set(...p); o.castShadow = true; parent.add(o); return o; };
-  // body and chest
+  // a solid feather scale: a flattened half-ellipsoid, so layers overlap with soft shading and no cut edges
+  const scale = (w, h, d = 0.012) => { const g = new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2); g.rotateX(Math.PI / 2); g.scale(w / 2, h / 2, d); g.translate(0, -h / 2.4, 0); return g; };
+  const lay = (geo, mat, at, rot, parent = root) => { const f = new THREE.Mesh(geo, mat); f.position.set(...at); f.rotation.set(...rot); f.castShadow = true; parent.add(f); return f; };
+  // body and chest, with rows of overlapping breast scales and a few dark bars
   ball(0.2, plume, [1.0, 1.24, 0.96], [0, 0.27, 0]);
   ball(0.165, plume, [0.92, 1.02, 0.55], [0, 0.25, 0.1]);
-  const chestSpecks = [[-0.05, 0.33], [0.04, 0.30], [-0.02, 0.24], [0.06, 0.21], [-0.065, 0.19], [0.0, 0.16]];
-  for (const [x, y] of chestSpecks) { const c = ball(0.011, shade, [1.6, 0.45, 0.35], [x, y, 0.185 - Math.abs(x) * 0.5], root, 6); c.rotation.z = x > 0 ? 0.35 : -0.35; }
-  // folded wings: layered feathers with dark tips
+  const breast = scale(0.055, 0.06);
+  for (let row = 0; row < 5; row++) for (let k = -2; k <= 2; k++) {
+    const x = k * 0.04 + (row % 2) * 0.02, y = 0.43 - row * 0.055;
+    if (Math.abs(x) > 0.1) continue;
+    const z = 0.2 - x * x * 3.2 - Math.abs(row - 2) * 0.012;
+    lay(breast, row < 2 ? plume : shade, [x, y, z], [-0.2, x * 2.4, 0]);
+    if ((row + k) % 3 === 0 && row > 0) ball(0.007, speck, [1.8, 0.5, 0.3], [x, y - 0.04, z + 0.008], root, 6);
+  }
+  // folded wings lying along the flanks: coverts, secondaries and long primaries, with dark bars
+  const covert = scale(0.08, 0.08, 0.016), secondary = scale(0.07, 0.15, 0.014), primary = scale(0.06, 0.2, 0.012);
+  const wings = [];
   for (const s of [-1, 1]) {
-    const wing = new THREE.Group(); wing.position.set(s * 0.165, 0.32, -0.02); wing.rotation.z = s * 0.16; root.add(wing);
-    for (let k = 0; k < 6; k++) {
-      const f = ball(0.075, k < 3 ? plume : shade, [0.42, 1.0, 1.0], [s * 0.01 * k, -0.035 * k, -0.02 * k], wing, 10);
-      f.scale.y = 1.0 + k * 0.12;
-      if (k >= 3) ball(0.022, speck, [0.5, 1.6, 0.8], [s * (0.03 + 0.01 * k), -0.035 * k - 0.05, 0.03 - 0.02 * k], wing, 6);
-    }
-    for (let k = 0; k < 4; k++) ball(0.012, speck, [1.0, 0.7, 0.6], [s * 0.035, 0.03 - k * 0.055, 0.045 - k * 0.012], wing, 6);
+    const wing = new THREE.Group(); wing.position.set(s * 0.175, 0.44, -0.02); root.add(wing); wings.push(wing);
+    const along = [0, s * Math.PI / 2, 0];
+    for (let k = 0; k < 4; k++) lay(covert, plume, [s * 0.01, -0.02 - k * 0.032, 0.06 - k * 0.035], [0.1, along[1], 0], wing);
+    for (let k = 0; k < 5; k++) lay(secondary, k % 2 ? shade : plume, [s * 0.016, -0.09 - k * 0.012, 0.04 - k * 0.04], [0.22, along[1], 0], wing);
+    for (let k = 0; k < 5; k++) lay(primary, shade, [s * 0.02, -0.12 - k * 0.008, -0.06 - k * 0.03], [0.4, along[1], 0], wing);
+    for (let k = 0; k < 7; k++) ball(0.009, speck, [0.4, 0.7, 1.6], [s * 0.035, -0.09 - k * 0.036, 0.03 - k * 0.026], wing, 6);
   }
   // tail fan
-  for (const t of [-1, 0, 1]) { const f = ball(0.06, shade, [0.6, 0.22, 1.5], [t * 0.05, 0.08, -0.17]); f.rotation.y = t * 0.25; f.rotation.x = -0.5; }
-  // feathered feet with black talons
+  const tailF = scale(0.05, 0.12, 0.012);
+  for (const t of [-2, -1, 0, 1, 2]) lay(tailF, t % 2 ? shade : plume, [t * 0.024, 0.17, -0.18], [-2.35, t * 0.16, 0]);
+  // feathered feet with black hooked talons
   for (const s of [-1, 1]) {
     ball(0.045, plume, [1.0, 0.75, 1.25], [s * 0.065, 0.025, 0.08], root, 10);
-    for (let c = -1; c <= 1; c++) { const t = new THREE.Mesh(new THREE.ConeGeometry(0.008, 0.035, 5), dark); t.position.set(s * 0.065 + c * 0.018, 0.005, 0.13); t.rotation.x = Math.PI / 2 + 0.6; root.add(t); }
+    for (let c = -1; c <= 1; c++) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.014, 0.0045, 5, 8, Math.PI * 0.8), dark); t.position.set(s * 0.065 + c * 0.018, 0.012, 0.125); t.rotation.set(0, Math.PI / 2, -0.6); root.add(t); }
   }
-  // head, facial disc, eyes and beak
+  // head: round, with a soft facial disc ring, golden eyes under white brows, and a black beak in white bristles
   const head = new THREE.Group(); head.position.set(0, 0.56, 0.01); root.add(head);
   ball(0.175, plume, [1.06, 0.92, 0.96], [0, 0, 0], head);
   ball(0.15, plume, [1.0, 0.86, 0.45], [0, -0.012, 0.095], head);
-  for (const s of [-1, 1]) ball(0.07, plume, [1.0, 1.0, 0.5], [s * 0.058, 0.01, 0.12], head, 12);
+  const discScale = scale(0.04, 0.05, 0.01);
+  for (const s of [-1, 1]) for (let k = 0; k < 8; k++) { const a = -1.0 + k * 0.32; lay(discScale, k % 2 ? shade : plume, [s * (0.06 + Math.cos(a) * 0.062), 0.018 + Math.sin(a) * 0.062, 0.14], [0, 0, s * (Math.PI / 2 + a)], head); }
+  for (const s of [-1, 1]) ball(0.068, plume, [1.0, 1.0, 0.5], [s * 0.058, 0.01, 0.125], head, 14);
   const eyes = new THREE.Group(); head.add(eyes);
   for (const s of [-1, 1]) {
-    ball(0.034, iris, [1, 1, 0.55], [s * 0.06, 0.018, 0.153], eyes, 14);
-    ball(0.017, dark, [1, 1, 0.5], [s * 0.06, 0.018, 0.168], eyes, 10);
-    ball(0.006, plume, [1, 1, 0.5], [s * 0.06 + 0.008, 0.028, 0.176], eyes, 6);
+    ball(0.036, dark, [1.08, 1.08, 0.5], [s * 0.06, 0.018, 0.15], eyes, 14);
+    ball(0.033, iris, [1, 1, 0.55], [s * 0.06, 0.018, 0.155], eyes, 16);
+    ball(0.016, dark, [1, 1, 0.5], [s * 0.06, 0.018, 0.17], eyes, 10);
+    ball(0.006, plume, [1, 1, 0.5], [s * 0.06 + 0.009, 0.029, 0.177], eyes, 6);
+    const brow = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.009, 6, 14, Math.PI * 0.7), plume); brow.position.set(s * 0.06, 0.022, 0.158); brow.rotation.set(0.2, 0, Math.PI * 0.15); head.add(brow);
   }
-  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.045, 6), dark); beak.position.set(0, -0.03, 0.17); beak.rotation.x = Math.PI * 0.62; head.add(beak);
-  for (const s of [-1, 1]) { const bristle = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.04, 5), plume); bristle.position.set(s * 0.016, -0.012, 0.172); bristle.rotation.set(Math.PI * 0.55, 0, s * 0.5); head.add(bristle); }
-  for (let i = 0; i < 5; i++) ball(0.008, speck, [1.4, 0.7, 0.5], [(i - 2) * 0.04, 0.13 - Math.abs(i - 2) * 0.012, 0.05 - Math.abs(i - 2) * 0.03], head, 6);
-  // a sealed letter resting at its feet
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.045, 8), dark); beak.position.set(0, -0.03, 0.17); beak.rotation.x = Math.PI * 0.62; head.add(beak);
+  for (const s of [-1, 0, 1]) lay(scale(0.022, 0.045, 0.008), plume, [s * 0.017, 0.012, 0.172], [-0.5, 0, s * 0.35], head);
+  for (let i = 0; i < 6; i++) ball(0.007, speck, [1.4, 0.7, 0.5], [(i - 2.5) * 0.035, 0.13 - Math.abs(i - 2.5) * 0.012, 0.05 - Math.abs(i - 2.5) * 0.028], head, 6);
+  // a sealed letter tied with a ribbon, held under one talon
   const letter = new THREE.Group(); letter.position.set(0.02, 0.006, 0.2); letter.rotation.y = -0.3; root.add(letter);
   const env = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.006, 0.13), paper); env.castShadow = true; letter.add(env);
   const flap = new THREE.Mesh(new THREE.CylinderGeometry(0.0, 0.1, 0.004, 3, 1), shade); flap.rotation.y = Math.PI / 2; flap.scale.set(0.65, 1, 1.0); flap.position.set(0, 0.005, -0.02); letter.add(flap);
-  const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.008, 12), seal); wax.position.set(0, 0.009, 0.008); letter.add(wax);
+  for (const [w, d, x, z] of [[0.205, 0.012, 0, 0.03], [0.012, 0.135, 0.05, 0]]) { const band = new THREE.Mesh(new THREE.BoxGeometry(w, 0.008, d), ribbon); band.position.set(x, 0.002, z); letter.add(band); }
+  const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.008, 14), seal); wax.position.set(0.05, 0.009, 0.03); letter.add(wax);
   mergeStill(head, [eyes]);
-  mergeStill(root, [head]);
-  return {root, head, eyes, materials: mats};
+  for (const w of wings) mergeStill(w);
+  mergeStill(root, [head, ...wings]);
+  return {root, head, eyes, wings, materials: mats};
 }
 
 // The crystal ball that holds Hanjing's inner world: a glass sphere, an open
@@ -1636,8 +1654,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   const owl = buildOwl();
   owl.root.position.set(32.6, 1.8, -11.15); owl.root.rotation.y = 0.25; owl.root.scale.setScalar(0.72);
   root.add(owl.root); owl.materials.forEach(m => disposables.add(m)); owl.root.traverse(o => { if (o.geometry) disposables.add(o.geometry); if (o.material && !owl.materials.includes(o.material)) disposables.add(o.material); });
+  owl.materials.forEach(m => disposables.add(m));
   const owlMeshes = []; owl.root.traverse(o => o.isMesh && owlMeshes.push(o));
-  interactables.push({id: 'enchantment-owl-post', type: 'enchant', station: 'contact', title: 'The owl post', objects: owlMeshes, point: owl.root.position.toArray(), onInteract: () => onOwl?.()});
+  interactables.push({id: 'enchantment-owl-post', type: 'enchant', station: 'contact', title: 'The owl post', objects: owlMeshes, point: owl.root.position.toArray(), onInteract: () => { owlFlutter = time; onOwl?.(); }});
 
   // 6b. Books flying around the Question Library: each paper takes wing
   const bookColors = ['#3b5c9a', '#9a3b35', '#3f7a52', '#c79a3a', '#6b4f93', '#2f6670', '#a4632e', '#5a6f8e', '#8a3f5e', '#4d7f6a', '#b5813a', '#3d4f7a'];
@@ -1738,7 +1757,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   // keepsakes live inside rooms; drawing them from across the island wastes draw calls
   const nearOnly = ['keepsake-two-shores-box', 'keepsake-two-crossings-map'].map(n => scene.getObjectByName(n)).filter(Boolean)
     .map(o => ({o, p: o.getWorldPosition(new THREE.Vector3())}));
-  let owlTurn = 0, nextBlink = 2;
+  let owlTurn = 0, nextBlink = 2, owlFlutter = 12;
   function update(dt, t, camera, renderer) {
     time = t;
     sky.mesh.position.copy(camera.position); sky.update(t);
@@ -1773,6 +1792,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
       owlTurn += dt;
       owl.head.rotation.y = Math.sin(owlTurn * 0.35) * 0.65 + Math.sin(owlTurn * 1.3) * 0.05;
       nextBlink -= dt; const blink = nextBlink < 0.12 && nextBlink > 0 ? 0.12 : 1; owl.eyes.scale.y = blink;
+      const fk = time - owlFlutter, flap = fk >= 0 && fk < 1.4 ? Math.sin(fk / 1.4 * Math.PI) * (0.6 + 0.4 * Math.sin(fk * 22)) : 0;
+      owl.wings.forEach((w, i) => { w.rotation.z = (i ? 1 : -1) * flap * 1.2; w.rotation.y = (i ? 1 : -1) * flap * 0.25; });
+      if (fk > 14 + (owlTurn % 6)) owlFlutter = time;
       if (nextBlink < 0) nextBlink = 2.5 + Math.random() * 3;
     }
   }
