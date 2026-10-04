@@ -24,6 +24,8 @@ assets/js/art.js      ← SVG drawings: the avatar (and her pose drawings), JinB
                         architecture kit (tangRoof, dougong, architrave, columns, lattice, terrace), each
                         place, and the layered backdrop (distant palaces, pagodas, towers, clouds)
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
+assets/js/scroll-story.js ← the handscroll: chapter order and positions, calligraphy inscriptions and seals, the
+                        Dalian prologue, the 2013 crossing, Tibbits Hall, the rollers, the scroll map and the air
 assets/js/paint.js    ← painted scenes, material details, facial features and dedicated poses
 assets/js/rig.js      ← continuous 2D joints for painted sleeves, arms, legs and cat paws
 assets/js/gesture-hands.js ← painted gesture hands attached to the moving wrists
@@ -132,6 +134,9 @@ python3 -m http.server 8000
 | Enter | Explore the current place |
 | `/` | Open the chat |
 | Esc | Close panels, lightboxes and the lecture hall; in an empty chat box, fold the chat away |
+| Scroll map (bottom) | Jump to a chapter; the view glides along the scroll with the figures as shadow puppets |
+
+The walk reads as one handscroll: a title head, a prologue in Dalian, the gate, the 2013 crossing, then the schools (upstate New York first), research, talks, writing, life and the letters, ending in an unfinished tail. To move a station along the scroll or add a chapter, edit `LAYOUT` and `CHAPTERS` in `assets/js/scroll-story.js`; `assets/css/scroll-story.css` holds its look, including the album-leaf panel.
 
 The chat folds into a small "Ask me" button (the ⌄ button in its header), and the site remembers that choice. While it's folded, Mini-Hanjing says short answers in a speech bubble.
 

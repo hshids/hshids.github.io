@@ -9,7 +9,7 @@
   var D = window.HJ_DATA, G = window.HJGuide, ART = window.HJArt;
   var GY = ART.GY, VH = ART.VH;
   var SITE_LANG = "en";             // Page content stays English independently of the conversation.
-  var W = 7500;                     // world width in units
+  var W = ART.scroll ? ART.scroll.width : 7500;   // world width in units: the length of the handscroll
   var CHAR_W = 105, CHAR_H = 175;   // adult proportions, with the same feet on the walking line
   var WALK_SPEED = 165, DAY_WALK_SPEED = 180, HUMAN_STEP = 110;
   var CAT_W = 66, CAT_H = 53;   // the chibi golden kitty (90x72 art)
@@ -24,6 +24,12 @@
     { id: "life", x: 6000, stand: 5943, half: 330, label: "Life", zh: "生活" },
     { id: "contact", x: 6900, stand: 6882, half: 340, label: "Contact", zh: "联系" }
   ];
+  // The handscroll tells the stations in story order: the gate, the schools, the questions, the
+  // talks, the writing, life and the letters. Each keeps its own stand offset.
+  if (ART.scroll) {
+    STATIONS.forEach(function (s) { var off = s.stand - s.x; s.x = ART.scroll.layout[s.id]; s.stand = s.x + off; });
+    STATIONS.sort(function (a, b) { return a.x - b.x; });
+  }
   var byId = {};
   STATIONS.forEach(function (s) { byId[s.id] = s; });
   byId.tutorials = byId.writing;     // Keep old links and guide routes working.
@@ -39,7 +45,7 @@
     { id: "front", f: 1, build: ART.foreground }
   ];
 
-  var esc = G.esc, pick = G.pick;
+  var esc = G.esc, pick = G.pick, scrollMapEl = null, scrollViewEl = null;
   function $(s, r) { return (r || document).querySelector(s); }
   function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -49,15 +55,15 @@
 
   var state = {
     s: 1, cw: 0, ch: 0, viewW: 1000, sceneBottom: 0, mobile: false,
-    x: 710, target: 710, vel: 0, vmax: WALK_SPEED, dir: 1,
+    x: byId.home.stand, target: byId.home.stand, vel: 0, vmax: WALK_SPEED, dir: 1,
     cam: 0, camRate: 6, focusX: null, drift: 0,
-    catX: 628, catDir: 1, catTrail: 1, catVel: 0, catStride: 0, catGaitMix: 0, charStride: 0,
+    catX: byId.home.stand - 82, catDir: 1, catTrail: 1, catVel: 0, catStride: 0, catGaitMix: 0, charStride: 0,
     keys: { left: false, right: false },
     trip: null, near: null, panel: null,
     lang: "en",   // the site is in English; the guide switches to Chinese only when asked in Chinese
     raf: 0, last: 0, title: false, dragged: false,
     guideMin: false,   // the visitor folded the chat away themselves
-    navTimer: 0, navToken: 0
+    navTimer: 0, navToken: 0, glide: null
   };
 
   // ---------- DOM ----------
@@ -126,13 +132,13 @@
 
   function build() {
     document.body.insertAdjacentHTML("afterbegin",
-      '<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">' + ART.defs() + "</svg>");
+      '<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">' + ART.defs() + (ART.scroll ? ART.scroll.defs() : "") + "</svg>");
     LAYERS.forEach(function (L) {
       var el = document.createElement("div");
       el.className = "layer layer-" + L.id;
       L.width = L.id === "ground" ? W : Math.ceil(W * L.f + 2600);
       if (L.id === "ground") {
-        el.innerHTML = svgWrap(W, ART.ground(W, STATIONS) + STATIONS.map(stationArt).join(""), "scene") +
+        el.innerHTML = svgWrap(W, ART.ground(W, ART.scroll ? STATIONS.concat(ART.scroll.zones) : STATIONS) + (ART.scroll ? ART.scroll.pieces(W, STATIONS) : "") + STATIONS.map(stationArt).join(""), "scene") +
           '<div class="actor cat" id="cat">' + ART.cat() + '<div class="bubble" id="cat-bubble"></div></div>' +
           '<button type="button" class="cat-butterfly" hidden aria-label="Let JinBingBing chase this visiting butterfly"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="bf-flight"><path class="bf-wing" d="M12 12C5 0 -2 4 3 12Q1 20 11 15ZM12 12C19 0 26 4 21 12Q23 20 13 15Z"/><path class="bf-body" d="M12 8V18M12 8l-2 -3M12 8l2 -3"/></g></svg></button>' +
           '<div class="actor char" id="char">' + ART.character("w") + '<div class="bubble" id="char-bubble"></div></div>';
@@ -151,7 +157,7 @@
         });
         groundEl = el;
       } else {
-        el.innerHTML = svgWrap(L.width, L.build(L.width), "scene");
+        el.innerHTML = svgWrap(L.width, L.build(L.width) + (L.id === "front" && ART.scroll ? ART.scroll.ends(W) : ""), "scene");
       }
       layersEl.appendChild(el);
       L.el = el;
@@ -172,6 +178,21 @@
         paint: leg.dataset.painted === "true" ? leg : null, lowerPaint: $(".paint-cat-lower", leg) };
     });
     waterLightEl = $("#water-light");
+    if (ART.scroll) {
+      ART.scroll.atmosphere(worldEl);
+      scrollMapEl = document.createElement("nav");
+      scrollMapEl.className = "scroll-map"; scrollMapEl.setAttribute("aria-label", "The scroll, chapter by chapter");
+      scrollMapEl.innerHTML = ART.scroll.mapMarkup(STATIONS);
+      worldEl.appendChild(scrollMapEl);
+      scrollViewEl = $(".scroll-map-view", scrollMapEl);
+      ["pointerdown", "pointerup", "mousedown", "touchstart", "wheel"].forEach(function (type) { scrollMapEl.addEventListener(type, function (e) { e.stopPropagation(); }, { passive: true }); });
+      scrollMapEl.addEventListener("click", function (e) {
+        e.stopPropagation();
+        var b = e.target.closest(".scroll-tick"); if (!b) return;
+        if (b.dataset.go) goTo(b.dataset.go);
+        else { closePanel(); walkTo(+b.dataset.at, { trip: { id: null, quiet: true } }); }
+      });
+    }
     $("#guide-portrait").innerHTML = ART.portrait("p");
     $("#guide-fab-face").innerHTML = ART.portrait("f");
     if (ART.initMotionRigs) ART.initMotionRigs(groundEl);
@@ -248,6 +269,7 @@
     charEl.classList.toggle("face-left", state.dir < 0);
     catEl.classList.toggle("face-left", state.catDir < 0);
     catEl.style.setProperty("--cat-facing", state.catDir);
+    if (scrollViewEl) { scrollViewEl.style.left = (state.cam / W * 100).toFixed(2) + "%"; scrollViewEl.style.width = (Math.min(1, state.viewW / W) * 100).toFixed(2) + "%"; }
     // Sun and moon stay in the sky while their broken reflection stays beneath them.
     waterLightEl.setAttribute("transform", "translate(" + (state.cam + state.waterLightX).toFixed(1) + " 0)");
   }
@@ -309,6 +331,21 @@
       cancelNavTransition();
       state.target = clamp(state.x + (state.keys.right ? 1 : -1) * 300, 90, W - 90);
       state.vmax = WALK_SPEED; state.focusX = null; state.trip = null;
+    }
+
+    if (state.glide) {
+      var gl = state.glide; gl.t = Math.min(gl.dur, gl.t + dt);
+      var gp = gl.t / gl.dur, ge = gp < .5 ? 4 * gp * gp * gp : 1 - Math.pow(-2 * gp + 2, 3) / 2;
+      state.cam = gl.fromCam + (gl.toCam - gl.fromCam) * ge;
+      // the puppets keep their place on the screen while the scroll moves under them, and drift onto the landing spot
+      var ride = gl.fromX + (state.cam - gl.fromCam), settle = gp < .7 ? 0 : (gp - .7) / .3;
+      state.x = state.target = ride + (gl.landX - ride) * settle * settle;
+      state.catX = gl.fromCatX + (state.cam - gl.fromCam) + ((gl.landX - gl.direction * 82) - (gl.fromCatX + (state.cam - gl.fromCam))) * settle * settle;
+      state.dir = state.catDir = gl.direction; state.vel = 0;
+      render(); updateNear();
+      if (gp >= 1) endGlide(true);
+      state.raf = requestAnimationFrame(tick);
+      return;
     }
 
     // walking (velocity with accel/decel)
@@ -392,6 +429,11 @@
       var span = Math.max(1, W - state.viewW);
       var p = (state.drift % (2 * span)); state.cam = p < span ? p : 2 * span - p;
       busy = true;
+    } else if (state.camGlide) {
+      var cg = state.camGlide, cgoal = camGoal(); cg.t = Math.min(cg.dur, cg.t + dt);
+      var cp = cg.t / cg.dur, ce = .5 - .5 * Math.cos(Math.PI * cp);
+      state.cam = cg.from + (cgoal - cg.from) * ce; busy = true;
+      if (cp >= 1 || state.keys.left || state.keys.right) state.camGlide = null;
     } else {
       var goal = camGoal();
       var dc = goal - state.cam;
@@ -410,10 +452,27 @@
 
   // ---------- movement API ----------
   function cancelNavTransition() {
+    if (state.glide) { endGlide(false); state.target = state.x; state.vel = 0; state.trip = null; state.focusX = null; return; }
     if (!state.navTimer) return;
     clearTimeout(state.navTimer); state.navTimer = 0; state.navToken++;
     worldEl.classList.remove("scene-changing");
     state.target = state.x; state.vel = 0; state.trip = null; state.focusX = null;
+  }
+
+  // A distant Places jump unrolls the scroll: the camera glides through every scene in between while
+  // Hanjing and the kitty ride along as backlit shadow-puppet silhouettes, then step out and walk in.
+  function endGlide(arrived) {
+    var g = state.glide; if (!g) return;
+    state.glide = null;
+    charEl.classList.remove("is-puppet"); catEl.classList.remove("is-puppet"); worldEl.classList.remove("is-unrolling");
+    if (!arrived) return;
+    state.x = g.landX; state.target = g.destination; state.dir = g.direction; state.vel = 0;
+    state.trip = g.trip; state.focusX = g.focus;
+    state.catX = state.x - g.direction * 82; state.catDir = state.catTrail = g.direction;
+    state.catVel = 0; state.catGaitMix = 0; state.catStride = 0; state.charStride = 0;
+    charEl._rigHumanWorldX = state.x;
+    if (ART.resetHumanStep) ART.resetHumanStep(charEl);
+    if (catEl._paintRig) { catEl._paintRig.catPlants = []; catEl._paintRig.catPreviousBodyX = undefined; }
   }
 
   function walkTo(x, opts) {
@@ -437,30 +496,19 @@
       return;
     }
     if (opts.trip && dist > 500) {
-      // A distant Places jump is a brief scene change, followed by a real
-      // approach at the same walking pace as keys, scrolling and dragging.
-      var destination = state.target, trip = state.trip, focus = state.focusX;
-      var direction = destination > state.x ? 1 : -1, token = ++state.navToken;
+      var destination = state.target, trip = state.trip, direction = destination > state.x ? 1 : -1;
+      var landX = clamp(destination - direction * 165, 90, W - 90), station = byId[trip.id];
+      // frame the destination the way the arrival will, so the glide ends where the walk-in begins
+      var keepX = state.x, keepFocus = state.focusX;
+      state.x = destination; state.focusX = station ? station.x : null;
+      var toCam = camGoal();
+      state.x = keepX; state.focusX = keepFocus;
       state.target = state.x; state.vel = 0; state.trip = null;
       charEl.classList.remove("is-walking", "is-running");
-      worldEl.classList.add("scene-changing");
-      state.navTimer = setTimeout(function () {
-        if (token !== state.navToken) return;
-        state.navTimer = 0;
-        state.x = clamp(destination - direction * 165, 90, W - 90);
-        state.target = destination; state.dir = direction; state.vel = 0;
-        state.trip = trip; state.focusX = focus;
-        state.catX = state.x - direction * 82;
-        state.catDir = state.catTrail = direction;
-        state.catVel = 0; state.catGaitMix = 0; state.catStride = 0; state.charStride = 0;
-        charEl._rigHumanWorldX = state.x;
-        if (ART.resetHumanStep) ART.resetHumanStep(charEl);
-        if (catEl._paintRig) { catEl._paintRig.catPlants = []; catEl._paintRig.catPreviousBodyX = undefined; }
-        state.cam = camGoal();
-        render();
-        worldEl.classList.remove("scene-changing");
-        start();
-      }, 140);
+      charEl.classList.add("is-puppet"); catEl.classList.add("is-puppet"); worldEl.classList.add("is-unrolling");
+      state.glide = { t: 0, dur: clamp(Math.abs(toCam - state.cam) / 2400, .9, 1.9), fromCam: state.cam, toCam: toCam,
+        fromX: state.x, fromCatX: state.catX, landX: landX, destination: destination, direction: direction, trip: trip, focus: state.focusX };
+      state.focusX = null;
       start();
       return;
     }
@@ -481,6 +529,7 @@
 
   function arrive(trip) {
     var st = byId[trip.id];
+    if (!st) { render(); start(); return; }
     state.dir = st.x >= state.x ? 1 : -1;
     state.focusX = st.x;
     if (state.mobile) layout();
@@ -556,7 +605,7 @@
     home: { en: "Welcome to my little world! Come on in! The notice board has what I've been up to lately.", zh: "欢迎来到我的小世界！进来吧～公告栏上是我最近在忙的事。" },
     research: { en: "My library! Every book on these shelves is one of my papers. Let me grab one for you!", zh: "我的藏书阁！书架上每一本都是我的论文，我给你拿一本！" },
     talks: { en: "Welcome to my lecture hall! Grab a seat, pick a talk, and I'll present it for you.", zh: "欢迎来到我的报告厅！找个位置坐下，选一场报告，我讲给你听。" },
-    education: { en: "UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
+    education: { en: "Upstate New York → UC Davis → Georgetown → Lehigh. Caps in the air! 🎓", zh: "纽约上州 → UC Davis → Georgetown → Lehigh。把帽子扔上天！🎓" },
     writing: { en: "Let me sit down and write for a bit… My posts are on the desk, and my tutorials are tucked into the scroll rack.", zh: "让我坐下来写一会儿……书桌上是我的博客，旁边的卷轴里收着我写的教程。" },
     life: { en: "Off the clock! Hold on, XiaoHei is napping and I have to pet him first. 🐾 Then come road trips, food and my cat gallery.", zh: "下班时间！等一下，小黑在睡觉，我先摸摸他 🐾 然后看看我的自驾、美食和猫咪画廊。" },
     contact: { en: "Let me mail you a letter! ✉️ Want to talk research or collaborate? Here's where to find me.", zh: "给你寄封信！✉️ 想聊研究或合作？在这里可以找到我。" }
@@ -889,6 +938,7 @@
       stopRoadTrip();
       panelBody.innerHTML = RENDER[id]();
       panel.setAttribute("aria-label", byId[id].label);
+      panel.dataset.chapter = id;
       panelBody.scrollTop = 0;
     }
     if (!state.panel) lastFocus = document.activeElement;
@@ -1470,6 +1520,8 @@
     setTimeout(function () { t.hidden = true; }, reduced ? 0 : 700);
     state.camRate = 1.9;
     state.focusX = byId.home.x;
+    // the first view unrolls the scroll from its title head to the gate
+    if (ART.scroll && !reduced) { state.cam = 0; state.camGlide = { t: 0, dur: 3.6, from: 0 }; }
     start();
     setTimeout(function () {
       flash(charEl, "is-waving", 1500);
