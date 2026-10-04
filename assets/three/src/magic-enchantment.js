@@ -234,6 +234,89 @@ function buildBridge({x, z0, z1, towerColor, cableColor, deckColor, name, label,
   return {group, meshes, materials: [...Object.values(mats), sign.material], textures: [tex], topY, towerZ};
 }
 
+/** A humpback whale, nose along +x, about 13 units long: dark back, pale belly,
+ * throat grooves, head tubercles, long scalloped pectoral fins and notched flukes. */
+function buildWhale({low}) {
+  const root = new THREE.Group(); root.name = 'enchantment-hidden-whale';
+  const disposables = [];
+  const swim = {uPhase: {value: 0}, uGlow: {value: 0}};
+  const prof = [[0, 0.1], [0.6, 0.32], [2, 0.6], [4, 1.12], [6, 1.55], [7.5, 1.72], [9, 1.66], [10.5, 1.42], [11.8, 1.02], [12.6, 0.55], [13, 0.0]];
+  const bodyGeo = new THREE.LatheGeometry(prof.map(([y, r]) => new THREE.Vector2(r, y)), low ? 28 : 48, 0, Math.PI * 2);
+  bodyGeo.rotateZ(-Math.PI / 2); bodyGeo.translate(-6.5, 0, 0); bodyGeo.scale(1, 0.84, 1);
+  bodyGeo.computeVertexNormals();
+  const pos = bodyGeo.attributes.position, col = new Float32Array(pos.count * 3), dark = new THREE.Color('#2b3b4c'), pale = new THREE.Color('#cdd7de'), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), r = Math.hypot(y, z) || 1, a = Math.atan2(z, -y);
+    c.copy(pale).lerp(dark, THREE.MathUtils.smoothstep(y / r, -0.35, 0.25));
+    if (x > 1.2 && y < -0.35 && Math.sin(a * 38) > 0.55) c.multiplyScalar(0.72);          // throat grooves
+    col.set([c.r, c.g, c.b], i * 3);
+  }
+  bodyGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+  const skin = new THREE.MeshStandardMaterial({name: 'whale-skin', vertexColors: true, roughness: 0.48, metalness: 0.05, emissive: '#2a8fb0', emissiveIntensity: 0});
+  skin.onBeforeCompile = sh => {
+    sh.uniforms.uPhase = swim.uPhase;
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uPhase;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nfloat tailW = smoothstep(2.5, -6.5, transformed.x);\ntransformed.y += 0.55 * tailW * sin(uPhase - transformed.x * 0.45);');
+  };
+  skin.customProgramCacheKey = () => 'enchantment-whale-swim-v1';
+  const body = new THREE.Mesh(bodyGeo, skin); body.name = 'whale-body'; root.add(body); disposables.push(bodyGeo, skin);
+  const darkMat = new THREE.MeshStandardMaterial({name: 'whale-dark-details', color: '#1c2733', roughness: 0.5});
+  const finMat = new THREE.MeshStandardMaterial({name: 'whale-pale-fins', color: '#d9e1e6', roughness: 0.55, emissive: '#2a8fb0', emissiveIntensity: 0});
+  disposables.push(darkMat, finMat);
+  const details = [];
+  for (let i = 0; i < 9; i++) { const t = new THREE.SphereGeometry(0.13, 8, 6); t.translate(4.6 + i * 0.22, 1.05 - i * 0.07, (i % 2 ? 0.25 : -0.25)); details.push(t); }
+  for (const s of [-1, 1]) {
+    const eye = new THREE.SphereGeometry(0.12, 10, 8); eye.translate(4.4, -0.32, s * 1.22); details.push(eye);
+    const mouth = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(6.4, -0.05, s * 0.3), new THREE.Vector3(5.6, -0.3, s * 0.95), new THREE.Vector3(4.6, -0.42, s * 1.2)]), 16, 0.035, 5, false); details.push(mouth);
+  }
+  const dorsal = new THREE.Shape(); dorsal.moveTo(-0.9, 0); dorsal.quadraticCurveTo(-0.2, 0.15, 0.25, 0.55); dorsal.lineTo(0.6, 0); dorsal.closePath();
+  const dg = new THREE.ExtrudeGeometry(dorsal, {depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2}); dg.translate(-2.6, 0.95, -0.07); details.push(dg);
+  const detailGeo = mergeGeometries(details.map(g => g.index ? g.toNonIndexed() : g), false); details.forEach(g => g.dispose());
+  const detailMesh = new THREE.Mesh(detailGeo, darkMat); detailMesh.name = 'whale-head-eyes-mouth-dorsal'; root.add(detailMesh); disposables.push(detailGeo);
+  // long pectoral fins with a scalloped leading edge
+  const fin = new THREE.Shape(); fin.moveTo(0, 0);
+  for (let i = 1; i <= 8; i++) fin.lineTo(i * 0.5, 0.32 - i * 0.025 + (i % 2 ? 0.07 : 0));
+  fin.lineTo(4.25, 0.05); fin.quadraticCurveTo(2.5, -0.35, 0.2, -0.3); fin.closePath();
+  const fins = [];
+  for (const s of [-1, 1]) {
+    const g = new THREE.ExtrudeGeometry(fin, {depth: 0.1, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2, curveSegments: 6});
+    g.rotateX(Math.PI / 2); g.translate(0, 0, 0);
+    const pivot = new THREE.Group(); pivot.position.set(3.4, -0.75, s * 1.35); pivot.rotation.set(0, s * 2.35, s * 0.45); root.add(pivot);
+    const m = new THREE.Mesh(g, finMat); m.name = 'whale-pectoral-fin'; pivot.add(m); fins.push(pivot); disposables.push(g);
+  }
+  // notched flukes on a pivot that follows the tail
+  const fl = new THREE.Shape(); fl.moveTo(0, 0); fl.quadraticCurveTo(-0.5, 1.0, -1.15, 2.0); fl.lineTo(-0.95, 1.6); fl.lineTo(-0.85, 1.25); fl.lineTo(-0.7, 0.85); fl.quadraticCurveTo(-0.45, 0.35, -0.35, 0.1); fl.lineTo(-0.5, 0.0);
+  fl.lineTo(-0.35, -0.1); fl.quadraticCurveTo(-0.45, -0.35, -0.7, -0.85); fl.lineTo(-0.85, -1.25); fl.lineTo(-0.95, -1.6); fl.lineTo(-1.15, -2.0); fl.quadraticCurveTo(-0.5, -1.0, 0, 0);
+  const flGeo = new THREE.ExtrudeGeometry(fl, {depth: 0.09, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.035, bevelSegments: 2, curveSegments: 8});
+  flGeo.rotateX(Math.PI / 2); flGeo.translate(0, 0.045, 0);
+  const flukePivot = new THREE.Group(); flukePivot.position.set(-6.45, 0, 0); root.add(flukePivot);
+  const flukes = new THREE.Mesh(flGeo, darkMat); flukes.name = 'whale-flukes'; flukePivot.add(flukes); disposables.push(flGeo);
+  root.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
+  return {
+    root, disposables, meshes: [body, detailMesh, flukes, ...fins.map(f => f.children[0])],
+    update(t, glow, reduced) {
+      const phase = reduced ? 0 : t * 1.25; swim.uPhase.value = phase;
+      flukePivot.position.y = 0.55 * Math.sin(phase + 6.45 * 0.45);
+      flukePivot.rotation.z = -0.45 * Math.cos(phase + 6.45 * 0.45);
+      fins.forEach((f, i) => { f.rotation.x = reduced ? 0 : Math.sin(t * 0.7 + i * Math.PI) * 0.12; });
+      skin.emissiveIntensity = glow * 0.28; finMat.emissiveIntensity = glow * 0.25;
+    }
+  };
+}
+
+/** Merge the still meshes under a group by material, leaving excluded subtrees alone. */
+function mergeStill(group, exclude = []) {
+  group.updateMatrixWorld(true);
+  const inv = group.matrixWorld.clone().invert(), bins = new Map(), originals = [];
+  group.traverse(o => {
+    if (!o.isMesh || exclude.some(e => { for (let p = o; p; p = p.parent) if (p === e) return true; return false; })) return;
+    const g = (o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone()).applyMatrix4(inv.clone().multiply(o.matrixWorld));
+    if (!bins.has(o.material)) bins.set(o.material, []); bins.get(o.material).push(g); originals.push(o);
+  });
+  originals.forEach(o => { o.removeFromParent(); o.geometry.dispose(); });
+  for (const [m, list] of bins) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = group.name + '-' + m.name; mesh.castShadow = true; group.add(mesh); }
+}
+
 /** A snowy owl on the post box: white plumage, sparse dark speckles, golden
  * eyes, layered wing feathers, feathered feet and a sealed letter. */
 function buildOwl() {
@@ -288,7 +371,8 @@ function buildOwl() {
   const env = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.006, 0.13), paper); env.castShadow = true; letter.add(env);
   const flap = new THREE.Mesh(new THREE.CylinderGeometry(0.0, 0.1, 0.004, 3, 1), shade); flap.rotation.y = Math.PI / 2; flap.scale.set(0.65, 1, 1.0); flap.position.set(0, 0.005, -0.02); letter.add(flap);
   const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.008, 12), seal); wax.position.set(0, 0.009, 0.008); letter.add(wax);
-  root.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  mergeStill(head, [eyes]);
+  mergeStill(root, [head]);
   return {root, head, eyes, materials: mats};
 }
 
@@ -320,7 +404,7 @@ function createGlobeAndSea({reduced, low}) {
     }`;
   const material = new THREE.ShaderMaterial({
     name: 'enchantment-moonlit-sea',
-    uniforms: {uTime: {value: 0}, uMoon: {value: MOON_DIR.clone()}, uCam: {value: new THREE.Vector3()}},
+    uniforms: {uTime: {value: 0}, uReveal: {value: 0}, uMoon: {value: MOON_DIR.clone()}, uCam: {value: new THREE.Vector3()}},
     vertexShader: /* glsl */`
       uniform float uTime; varying vec3 vWorld; varying vec3 vNormal; varying float vCrest; varying float vShore; varying float vEdge;
       ${shoreGLSL}
@@ -340,7 +424,7 @@ function createGlobeAndSea({reduced, low}) {
         gl_Position = projectionMatrix * viewMatrix * wp;
       }`,
     fragmentShader: /* glsl */`
-      uniform float uTime; uniform vec3 uMoon, uCam;
+      uniform float uTime; uniform float uReveal; uniform vec3 uMoon, uCam;
       varying vec3 vWorld; varying vec3 vNormal; varying float vCrest; varying float vShore; varying float vEdge;
       ${NOISE_GLSL}
       void main(){
@@ -363,12 +447,13 @@ function createGlobeAndSea({reduced, low}) {
         float glassFoam = smoothstep(0.985, 1.0, vEdge) * 0.6;
         float foam = clamp(shoreFoam + crestFoam * 0.6 + glassFoam, 0.0, 1.0) * smoothstep(0.32, 0.62, enchFbm(vec3(vWorld.xz * 2.2, uTime * 0.5)));
         col = mix(col, vec3(0.62, 0.74, 0.82), foam * 0.6);
-        gl_FragColor = vec4(col, 1.0);
+        float alpha = clamp(mix(0.80, 0.42, uReveal) + fres * 0.5 + foam * 0.4 + glitter, 0.0, 1.0);
+        gl_FragColor = vec4(col, alpha);
         #include <colorspace_fragment>
       }`,
-    toneMapped: false, fog: false
+    transparent: true, toneMapped: false, fog: false
   });
-  const sea = new THREE.Mesh(geo, material); sea.name = 'enchantment-moonlit-sea-surface'; sea.frustumCulled = false;
+  const sea = new THREE.Mesh(geo, material); sea.name = 'enchantment-moonlit-sea-surface'; sea.frustumCulled = false; sea.renderOrder = 9;
   group.add(sea); disposables.push(geo, material);
 
   // the water body below the surface, seen through the glass
@@ -379,7 +464,7 @@ function createGlobeAndSea({reduced, low}) {
     name: 'enchantment-deep-water-body',
     uniforms: {uTime: {value: 0}, uCam: {value: new THREE.Vector3()}},
     vertexShader: /* glsl */`varying vec3 vWorld; varying vec3 vN; void main(){ vec4 wp = modelMatrix * vec4(position, 1.0); vWorld = wp.xyz; vN = normalize(mat3(modelMatrix) * normal); gl_Position = projectionMatrix * viewMatrix * wp; }`,
-    fragmentShader: /* glsl */`uniform float uTime; uniform vec3 uCam; varying vec3 vWorld; varying vec3 vN;
+    fragmentShader: /* glsl */`uniform float uTime; uniform float uReveal; uniform vec3 uCam; varying vec3 vWorld; varying vec3 vN;
       ${NOISE_GLSL}
       void main(){
         float depth = clamp((${SEA.level.toFixed(2)} - vWorld.y) / ${GLOBE.r.toFixed(1)}, 0.0, 1.0);
@@ -390,13 +475,25 @@ function createGlobeAndSea({reduced, low}) {
         col += vec3(0.03, 0.10, 0.12) * rays;
         vec3 v = normalize(uCam - vWorld);
         col += vec3(0.05, 0.14, 0.18) * pow(1.0 - abs(dot(normalize(vN), v)), 3.0) * 0.6;
-        gl_FragColor = vec4(col, 1.0);
+        gl_FragColor = vec4(col, mix(0.72, 0.22, uReveal));
         #include <colorspace_fragment>
       }`,
-    toneMapped: false, fog: false
+    transparent: true, depthWrite: false, toneMapped: false, fog: false
   });
-  const body = new THREE.Mesh(bodyGeo, bodyMat); body.name = 'enchantment-sea-water-body';
+  bodyMat.uniforms.uReveal = {value: 0};
+  const body = new THREE.Mesh(bodyGeo, bodyMat); body.name = 'enchantment-sea-water-body'; body.renderOrder = 10;
   group.add(body); disposables.push(bodyGeo, bodyMat);
+  // the far side of the water, seen through the clear front when the whale is revealed
+  const backMat = new THREE.MeshBasicMaterial({name: 'enchantment-deep-water-far-side', color: '#03111f', side: THREE.BackSide, toneMapped: false, fog: false});
+  const back = new THREE.Mesh(bodyGeo, backMat); back.name = 'enchantment-sea-water-far-side'; group.add(back); disposables.push(backMat);
+
+  // the island's underside: a stepped brick cone, like a build floating on the sea
+  const steps = [[1.0, -3.4], [0.96, -4.4], [0.86, -4.4], [0.82, -5.4], [0.70, -5.4], [0.66, -6.4], [0.52, -6.4], [0.47, -7.4], [0.33, -7.4], [0.27, -8.4], [0.14, -8.4], [0.0, -9.6]];
+  const coneGeo = new THREE.LatheGeometry(steps.map(([r, y]) => new THREE.Vector2(r * (ISLAND.rx - 1.2), y)), low ? 64 : 112);
+  coneGeo.scale(1, 1, (ISLAND.rz - 0.8) / (ISLAND.rx - 1.2)); coneGeo.translate(ISLAND.cx, 0, ISLAND.cz);
+  const coneMat = new THREE.MeshStandardMaterial({name: 'enchantment-island-underside-bricks', color: '#4f6f6a', roughness: 0.8, side: THREE.DoubleSide});
+  patchBricks(coneMat);
+  const cone = new THREE.Mesh(coneGeo, coneMat); cone.name = 'enchantment-island-underside'; group.add(cone); disposables.push(coneGeo, coneMat);
 
   // the glass sphere: clear in the middle, bright at the rim, with soft studio highlights
   const glassGeo = new THREE.SphereGeometry(GLOBE.r, low ? 64 : 112, low ? 32 : 64); glassGeo.translate(GLOBE.cx, GLOBE.cy, GLOBE.cz);
@@ -444,7 +541,7 @@ function createGlobeAndSea({reduced, low}) {
   plate.position.set(GLOBE.cx, plateY, GLOBE.cz + plateR + 0.02); plate.rotation.x = -0.4; group.add(plate);
   disposables.push(plateTex, plate.geometry, plate.material);
   const bottom = ty;
-  return {group, disposables, bounds: {min: [GLOBE.cx - GLOBE.r - 2, bottom, GLOBE.cz - GLOBE.r - 2], max: [GLOBE.cx + GLOBE.r + 2, GLOBE.cy + GLOBE.r, GLOBE.cz + GLOBE.r + 2]},
+  return {group, disposables, water: body, setReveal(v) { bodyMat.uniforms.uReveal.value = v; material.uniforms.uReveal.value = v; }, bounds: {min: [GLOBE.cx - GLOBE.r - 2, bottom, GLOBE.cz - GLOBE.r - 2], max: [GLOBE.cx + GLOBE.r + 2, GLOBE.cy + GLOBE.r, GLOBE.cz + GLOBE.r + 2]},
     update(t, camera) {
       for (const m of [material, bodyMat, glassMat]) { m.uniforms.uTime.value = reduced ? 0 : t; m.uniforms.uCam.value.copy(camera.position); }
     }};
@@ -497,7 +594,97 @@ function createPromenade({low}) {
   return {group, disposables, lampPoints};
 }
 
-export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl} = {}) {
+// Tang and European classical details, fitted to each building's measured
+// walls (station-local units, front faces +z). If a building is rebuilt, update
+// its entry here.
+const FUSION = {
+  'complete-home': {x: [-3.65, 1.83], z: [-3.60, 0.10], base: 0.30, top: 2.95, roof: 3.92},
+  'research-complete-two-storey-library': {x: [-3.19, 3.19], z: [-4.19, -0.31], base: 0.12, top: 2.48, roof: 6.07, ridgeScale: 0.62},
+  'talks-complete-timber-lecture-hall': {x: [-3.98, 2.08], z: [-4.33, 2.08], base: 0.12, top: 3.35, roof: 4.36},
+  'complete-writing': {x: [-3.73, 5.43], z: [-4.33, 0.68], base: 0.12, top: 2.95, roof: 3.99},
+  'complete-life': {x: [-4.19, 4.19], z: [-4.09, -0.01], base: 0.24, top: 2.95, roof: 3.91}
+};
+
+function createFusionDetails({garden, low}) {
+  const disposables = [], lanternPoints = [];
+  const M = (name, color, o = {}) => { const m = new THREE.MeshStandardMaterial({name: 'fusion-' + name, color, roughness: 0.6, ...o}); disposables.push(m); return m; };
+  const stone = M('classical-cream-stone', '#efe6d2', {roughness: 0.7}), groove = M('pilaster-flute-shadow', '#c9bea6');
+  const vermilion = M('tang-vermilion', '#b4472e'), malachite = M('tang-malachite', '#2f7a68'), azurite = M('tang-azurite', '#3b5f9a');
+  const gilt = M('tang-gilt', '#d2aa55', {metalness: 0.65, roughness: 0.35}), glaze = M('ridge-glazed-tile', '#3c5554', {roughness: 0.45, metalness: 0.1});
+  const lanternRed = M('red-silk-lantern', '#d23a2a', {emissive: '#b8281a', emissiveIntensity: 0.9, roughness: 0.5});
+  const cord = M('lantern-cord', '#3a2418');
+  const painted = M('painted-stone-and-brackets', '#ffffff', {vertexColors: true, roughness: 0.58, metalness: 0.05});
+  for (const station of garden?.root.children || []) {
+    const spec = FUSION[station.name]; if (!spec) continue;
+    // every painted part shares one vertex-coloured material; only the glowing lanterns keep their own
+    const parts = new Map(), add = (g, m, p, r) => {
+      const geo = g.index ? g.toNonIndexed() : g; if (geo !== g) g.dispose();
+      if (r) geo.applyMatrix4(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...r))); geo.translate(...p);
+      if (!geo.attributes.uv) geo.setAttribute('uv', new THREE.Float32BufferAttribute(new Float32Array(geo.attributes.position.count * 2), 2));
+      const key = m === lanternRed ? lanternRed : painted, c = m.color, n = geo.attributes.position.count, col = new Float32Array(n * 3);
+      for (let i = 0; i < n; i++) col.set([c.r, c.g, c.b], i * 3);
+      geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+      if (!parts.has(key)) parts.set(key, []); parts.get(key).push(geo);
+    };
+    const [x0, x1] = spec.x, [z0, z1] = spec.z, top = spec.top, base = spec.base, w = x1 - x0, d = z1 - z0;
+    // classical cornice: two stepped mouldings around the wall top
+    for (const [y, h, out] of [[top - 0.27, 0.07, 0.05], [top - 0.205, 0.045, 0.085]]) {
+      add(new THREE.BoxGeometry(w + out * 2, h, 0.06), stone, [(x0 + x1) / 2, y, z1 + out - 0.03]);
+      add(new THREE.BoxGeometry(w + out * 2, h, 0.06), stone, [(x0 + x1) / 2, y, z0 - out + 0.03]);
+      add(new THREE.BoxGeometry(0.06, h, d + out * 2), stone, [x0 - out + 0.03, y, (z0 + z1) / 2]);
+      add(new THREE.BoxGeometry(0.06, h, d + out * 2), stone, [x1 + out - 0.03, y, (z0 + z1) / 2]);
+    }
+    // Tang dougong brackets along the frieze, front and back
+    const bracket = (x, z, dir) => {
+      add(new THREE.BoxGeometry(0.11, 0.055, 0.11), vermilion, [x, top - 0.15, z + dir * 0.06]);
+      add(new THREE.BoxGeometry(0.30, 0.042, 0.07), malachite, [x, top - 0.105, z + dir * 0.06]);
+      add(new THREE.BoxGeometry(0.07, 0.042, 0.2), azurite, [x, top - 0.105, z + dir * 0.1]);
+      add(new THREE.BoxGeometry(0.12, 0.045, 0.12), vermilion, [x, top - 0.06, z + dir * 0.07]);
+      add(new THREE.BoxGeometry(0.06, 0.012, 0.06), gilt, [x, top - 0.032, z + dir * 0.07]);
+    };
+    const step = low ? 1.3 : 0.9;
+    for (let x = x0 + 0.45; x <= x1 - 0.4; x += step) { if (Math.abs(x - (x0 + x1) / 2) > 0.85) bracket(x, z1, 1); bracket(x, z0, -1); }
+    // classical pilasters at the four corners, with bases, flutes and scroll capitals
+    const shaftH = top - 0.32 - (base + 0.14);
+    for (const [cx, cz] of [[x0 - 0.03, z1 + 0.03], [x1 + 0.03, z1 + 0.03], [x0 - 0.03, z0 - 0.03], [x1 + 0.03, z0 - 0.03]]) {
+      add(new THREE.BoxGeometry(0.24, 0.14, 0.24), stone, [cx, base + 0.07, cz]);
+      add(new THREE.BoxGeometry(0.16, shaftH, 0.16), stone, [cx, base + 0.14 + shaftH / 2, cz]);
+      for (const f of [-0.045, 0, 0.045]) add(new THREE.BoxGeometry(0.014, shaftH - 0.12, 0.004), groove, [cx + f, base + 0.14 + shaftH / 2, cz + (cz > z0 ? 0.081 : -0.081)]);
+      add(new THREE.BoxGeometry(0.25, 0.075, 0.25), stone, [cx, top - 0.335, cz]);
+      add(new THREE.BoxGeometry(0.26, 0.016, 0.26), gilt, [cx, top - 0.29, cz]);
+      for (const sx of [-1, 1]) add(new THREE.CylinderGeometry(0.035, 0.035, 0.26, 12), stone, [cx + sx * 0.1, top - 0.36, cz], [Math.PI / 2, 0, 0]);
+    }
+    // chiwei ridge ornaments and a glazed ridge cap
+    const along = w >= d ? 'x' : 'z', L = Math.max(w, d), W = Math.min(w, d), half = Math.max(0.35, (L - W) / 2 * (spec.ridgeScale ?? 0.9));
+    const cx = (x0 + x1) / 2, cz = (z0 + z1) / 2;
+    const fin = new THREE.Shape(); fin.moveTo(-0.13, 0); fin.lineTo(-0.13, 0.24); fin.quadraticCurveTo(-0.11, 0.44, 0.05, 0.47); fin.quadraticCurveTo(0.13, 0.44, 0.09, 0.35); fin.quadraticCurveTo(0.03, 0.36, 0.04, 0.25); fin.lineTo(0.12, 0); fin.closePath();
+    for (const sgn of [-1, 1]) {
+      const g = new THREE.ExtrudeGeometry(fin, {depth: 0.07, bevelEnabled: true, bevelThickness: 0.012, bevelSize: 0.012, bevelSegments: 2, curveSegments: 10}); g.translate(0, 0, -0.035);
+      const yaw = along === 'x' ? (sgn < 0 ? 0 : Math.PI) : (sgn < 0 ? -Math.PI / 2 : Math.PI / 2);
+      const px = along === 'x' ? cx + sgn * half : cx, pz = along === 'x' ? cz : cz + sgn * half;
+      add(g, glaze, [px, spec.roof - 0.06, pz], [0, yaw, 0]);
+      add(new THREE.SphereGeometry(0.035, 12, 8), gilt, [px + (along === 'x' ? -sgn * 0.05 : 0), spec.roof + 0.42, pz + (along === 'z' ? -sgn * 0.05 : 0)]);
+    }
+    const ridge = new THREE.CylinderGeometry(0.055, 0.055, half * 2, 12);
+    add(ridge, glaze, [cx, spec.roof - 0.02, cz], along === 'x' ? [0, 0, Math.PI / 2] : [Math.PI / 2, 0, 0]);
+    // a pair of red silk lanterns under the front eaves
+    for (const lx of [x0 + 0.3, x1 - 0.3]) {
+      const ly = top - 0.42, lz = z1 + 0.3;
+      add(new THREE.CylinderGeometry(0.006, 0.006, 0.36, 5), cord, [lx, top - 0.12, lz]);
+      const body = new THREE.SphereGeometry(0.14, 16, 12); body.scale(1, 0.82, 1); add(body, lanternRed, [lx, ly, lz]);
+      add(new THREE.CylinderGeometry(0.075, 0.09, 0.04, 12), gilt, [lx, ly + 0.12, lz]);
+      add(new THREE.CylinderGeometry(0.09, 0.075, 0.04, 12), gilt, [lx, ly - 0.12, lz]);
+      add(new THREE.CylinderGeometry(0.012, 0.02, 0.14, 6), lanternRed, [lx, ly - 0.21, lz]);
+      const world = station.localToWorld(new THREE.Vector3(lx, ly, lz)); lanternPoints.push(world.toArray());
+    }
+    const group = new THREE.Group(); group.name = 'enchantment-tang-classical-details';
+    for (const [m, list] of parts) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = 'fusion-' + station.name + '-' + m.name; mesh.castShadow = true; mesh.receiveShadow = true; group.add(mesh); disposables.push(g); }
+    station.add(group);
+  }
+  return {disposables, lanternPoints};
+}
+
+export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale} = {}) {
   const low = quality === 'low', root = new THREE.Group(); root.name = 'Enchantment layer — sky, candles, fireflies, bricks and keepsakes';
   const disposables = new Set(), interactables = [], glowMaterials = [];
   const rand = rng(2024);
@@ -533,6 +720,10 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     }
   });
 
+  garden?.root.updateMatrixWorld(true);
+  const fusion = createFusionDetails({garden, low});
+  fusion.disposables.forEach(r => disposables.add(r));
+
   // 2b. The crystal ball and the open sea. The old river, its lotus and koi,
   // and the partial glass shell give way to a seaside promenade.
   const sea = createGlobeAndSea({reduced, low});
@@ -541,6 +732,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   root.add(promenade.group); promenade.disposables.forEach(r => disposables.add(r));
   if (renderer) renderer.localClippingEnabled = true;
   const frontClip = new THREE.Plane(new THREE.Vector3(0, 0, -1), FRONT_Z);
+  const underClip = new THREE.Plane(new THREE.Vector3(0, 1, 0), 3.4);   // keeps y >= -3.4: the deep sea belongs to the whale
   const hideName = /^(finite-island-front-pond-water|whole-closed-pond-bottom|opaque-thick-lily-leaves|live-lotus-stems|pond-reeds|lotus-interaction-|event-surface-ripple-|closed-thin-crystal-lower-half-globe|closed-thin-open-rear-crystal-crescent|closed-inward-stepped-crystal-socket-)/;
   const hideMaterial = /^(open-rear-crystal-shell-low-opacity-fresnel|thin-opening-crystal-arcs-not-a-full-globe-overlay|magic-lotus-|magic-lily-|magic-koi-)/;
   let hidden = 0;
@@ -550,7 +742,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     if (!o.isMesh && !o.isPoints && !o.isLine) return;
     const mats = Array.isArray(o.material) ? o.material : [o.material];
     if (hideName.test(o.name) || mats.some(m => m && hideMaterial.test(m.name))) { o.visible = false; hidden++; return; }
-    for (const m of mats) if (m && !clipped.has(m)) { m.clippingPlanes = [...(m.clippingPlanes || []), frontClip]; clipped.add(m); }
+    for (const m of mats) if (m && !clipped.has(m)) { m.clippingPlanes = [...(m.clippingPlanes || []), frontClip, underClip]; clipped.add(m); }
   });
 
   // 3. Floating candles above the Question Library and the welcome courtyard
@@ -593,6 +785,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     }
   });
   promenade.lampPoints.forEach((p, i) => lanternGlows.push({p, c: '#ffbe6a', s: 1.7, ph: 0.2 + i * 0.31}));
+  fusion.lanternPoints.forEach((p, i) => lanternGlows.push({p, c: '#ff6a3c', s: 1.2, ph: 0.5 + i * 0.23}));
   const halo = candleSpots.map((p, i) => ({p: [p[0], p[1] + 0.36, p[2]], c: '#ffc96e', s: 0.7, ph: i * 0.13})).concat(lanternGlows);
   const haloMat = glowMaterial({twinkle: 0.12, reduced}); glowMaterials.push(haloMat);
   const haloPoints = new THREE.Points(pointsGeometry(halo), haloMat); haloPoints.name = 'enchantment-candle-and-lantern-glow'; haloPoints.frustumCulled = false; root.add(haloPoints);
@@ -610,6 +803,24 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   const flyMat = glowMaterial({twinkle: 0.85, drift: 0.55, reduced}); glowMaterials.push(flyMat);
   const flyPoints = new THREE.Points(pointsGeometry(flies), flyMat); flyPoints.name = 'enchantment-fireflies'; flyPoints.frustumCulled = false; root.add(flyPoints);
   disposables.add(flyPoints.geometry); disposables.add(flyMat);
+
+  // 5b. The hidden whale: Hanjing sounds a little like 鲸 (jing), whale.
+  const whale = buildWhale({low});
+  root.add(whale.root); whale.disposables.forEach(r => disposables.add(r));
+  const whalePath = {cx: GLOBE.cx, cz: 12.5, y: -7.5, ax: 13, az: 2.5, period: 120};
+  let reveal = 0, revealTarget = 0, revealUntil = 0;
+  const bubbleEntries = [];
+  for (let i = 0; i < (low ? 18 : 40); i++) bubbleEntries.push({p: [0, -100, 0], c: '#cfefff', s: 0.12 + rand() * 0.18, ph: rand()});
+  const bubbleMat = glowMaterial({twinkle: 0.2, reduced}); glowMaterials.push(bubbleMat);
+  const bubbles = new THREE.Points(pointsGeometry(bubbleEntries), bubbleMat); bubbles.name = 'enchantment-whale-bubbles'; bubbles.frustumCulled = false; root.add(bubbles);
+  disposables.add(bubbles.geometry); disposables.add(bubbleMat);
+  const bubbleAge = bubbleEntries.map((_, i) => i / bubbleEntries.length * 6), bubbleOrigin = bubbleEntries.map(() => new THREE.Vector3());
+  function toggleWhale() {
+    revealTarget = revealTarget > 0.5 ? 0 : 1; revealUntil = time + 45;
+    if (revealTarget) onWhale?.();
+    return revealTarget;
+  }
+  interactables.push({id: 'enchantment-hidden-whale', type: 'enchant', title: 'Something moves in the deep', objects: [...whale.meshes, sea.water], point: [GLOBE.cx, -12, GLOBE.cz], onInteract: toggleWhale});
 
   // 6. The owl on the letter tree
   const owl = buildOwl();
@@ -688,6 +899,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     b.mat.uniforms.uAge.value = 0; b.pts.visible = true;
   }
 
+  // keepsakes live inside rooms; drawing them from across the island wastes draw calls
+  const nearOnly = ['keepsake-two-shores-box', 'keepsake-two-crossings-map'].map(n => scene.getObjectByName(n)).filter(Boolean)
+    .map(o => ({o, p: o.getWorldPosition(new THREE.Vector3())}));
   let owlTurn = 0, nextBlink = 2;
   function update(dt, t, camera, renderer) {
     time = t;
@@ -697,6 +911,25 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     const scale = h / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
     for (const m of glowMaterials) { m.uniforms.uTime.value = t; m.uniforms.uScale.value = scale; }
     sea.update(t, camera);
+    for (const k of nearOnly) k.o.visible = camera.position.distanceTo(k.p) < 12;
+    if (revealTarget && time > revealUntil) revealTarget = 0;
+    reveal = reduced ? revealTarget : THREE.MathUtils.damp(reveal, revealTarget, 1.6, dt || 1 / 60);
+    sea.setReveal(reveal);
+    const ang = (reduced ? 0.3 : t / whalePath.period) * Math.PI * 2;
+    // a slow S along the front half of the ball, so visitors see the whale side-on
+    const vx = Math.cos(ang) * whalePath.ax, vz = Math.cos(2 * ang) * 2 * whalePath.az;
+    whale.root.position.set(whalePath.cx + Math.sin(ang) * whalePath.ax, whalePath.y + (reduced ? 0 : Math.sin(t * 0.21) * 1.2), whalePath.cz + Math.sin(2 * ang) * whalePath.az);
+    whale.root.rotation.set(0, -Math.atan2(vz, vx), reduced ? 0 : Math.sin(t * 0.21 + 1.2) * 0.06);
+    whale.update(t, reveal, reduced);
+    const bp = bubbles.geometry.attributes.position;
+    for (let i = 0; i < bubbleAge.length; i++) {
+      bubbleAge[i] += (dt || 0);
+      if (bubbleAge[i] > 6) { bubbleAge[i] = 0; bubbleOrigin[i].set(4.8, 1.2, 0).applyMatrix4(whale.root.matrixWorld); }
+      const o = bubbleOrigin[i], k = bubbleAge[i];
+      if (reveal < 0.05 || o.y < -60) { bp.setXYZ(i, 0, -100, 0); continue; }
+      bp.setXYZ(i, o.x + Math.sin(k * 2 + i) * 0.25, Math.min(SEA.level - 0.5, o.y + k * 2.4), o.z + Math.cos(k * 1.7 + i) * 0.25);
+    }
+    bp.needsUpdate = true;
     if (!reduced) { placeCandles(t); syncHalos(t); placeBooks(t); }
     for (const b of bursts) { if (!b.pts.visible) continue; b.mat.uniforms.uScale.value = scale; b.mat.uniforms.uAge.value += dt; if (b.mat.uniforms.uAge.value > 1.8) b.pts.visible = false; }
     if (!reduced) {
@@ -708,7 +941,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   }
 
   return {
-    root, interactables, burst, update, overviewBounds: sea.bounds,
+    root, interactables, burst, update, toggleWhale, overviewBounds: sea.bounds,
     get diagnostics() {
       return {hiddenRiverAndShellParts: hidden, clippedMaterials: clipped.size, litGlass: litGlass.size, books: nBooks, stars: stars.length, candles: candleSpots.length, glows: halo.length, fireflies: flies.length, lanternGlows: lanternGlows.length, tintedRoofs: tinted, drawCalls: 'sky 1, stars 1, candles 2, glow 1, fireflies 1, bridges 8, thread 1, owl ~20 small meshes, bursts 3 (only while active)'};
     },
