@@ -17,3 +17,105 @@
 #world.is-unrolling::after { opacity: 1; }
 [data-theme="dark"] #world { --scroll-mist: rgba(14, 18, 30, .8); --scroll-mist-soft: rgba(14, 18, 30, .4); }
 @media (prefers-reduced-motion: reduce) { .actor { transition: none; } #world::after { transition: none; } }
+
+/* ---------- calligraphy written on the scroll, and seals ---------- */
+.scroll-inscription text { pointer-events: none; }
+.ins-zh, .ins-mark { font-family: "Noto Serif SC", "Noto Serif CJK SC", "Songti SC", "STSong", "SimSun", serif; text-anchor: middle; font-weight: 600; }
+.ins-zh { fill: #2b221c; opacity: .84; }
+.ins-mark { fill: #b5322a; opacity: .92; }
+.is-title .ins-zh { font-weight: 700; opacity: .88; }
+.ins-en { font-family: Fraunces, Georgia, serif; font-style: italic; font-size: 15px; fill: #4a3b2c; opacity: .82; }
+.ins-en-title { font-style: normal; font-weight: 600; font-size: 34px; opacity: .9; }
+.ins-hint { font-size: 13px; opacity: .6; }
+.seal-ink { fill: #b5322a; opacity: .9; }
+.seal-char { fill: #f7ead8; font-family: "Noto Serif SC", "Songti SC", "STSong", serif; font-weight: 700; text-anchor: middle; }
+.seal-wear { opacity: .22; mix-blend-mode: multiply; }
+[data-theme="dark"] .ins-zh { fill: #eadbb7; opacity: .78; }
+[data-theme="dark"] .ins-en { fill: #e2d4b4; opacity: .72; }
+[data-theme="dark"] .ins-mark { fill: #e0644f; }
+
+/* ---------- the rollers at the two ends, and the table beyond them ---------- */
+.scroll-table { fill: #3a2a20; }
+.scroll-band-edge { fill: #6f5130; }
+.scroll-rod-shine { fill: rgba(255, 240, 220, .22); }
+[data-theme="dark"] .scroll-table { fill: #120d0a; }
+
+/* ---------- new scenes: fine ink lines over soft washes ---------- */
+.gb-line { fill: none; stroke: #3a2b20; stroke-width: 1; stroke-linecap: round; stroke-linejoin: round; opacity: .72; }
+.sea-lines { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: 1.1; stroke-linecap: round; }
+.sea-horizon { fill: none; stroke: rgba(80, 104, 104, .35); stroke-width: 1; }
+.far-shore { fill: rgba(112, 128, 124, .42); }
+.cape { fill: #8f8a7c; }
+.lighthouse { fill: #f4f0e6; }
+.lighthouse-band { fill: #b5322a; }
+.lighthouse-gallery { fill: #3a3a38; }
+.lighthouse-room { fill: #ffe3a2; }
+.lighthouse-cap { fill: #364247; }
+.gull-ink { fill: none; stroke: #2e2b28; stroke-width: 1.6; stroke-linecap: round; opacity: .75; }
+.scroll-gull { animation: scrollGull 5.5s ease-in-out infinite; transform-box: fill-box; }
+@keyframes scrollGull { 50% { translate: 10px -6px; } }
+.sail-hull { fill: #5b4636; }
+.sail-cloth { fill: #f4ecdc; stroke: #6a5a48; stroke-width: .6; }
+.sail-jib { fill: #ece0c8; }
+.scroll-cloud .cloud-curl { opacity: .5; }
+.steamer-hull, .steamer-house, .steamer-stack { fill: rgba(58, 60, 64, .42); }
+.steamer-smoke { fill: none; stroke: rgba(80, 80, 84, .3); stroke-width: 3; stroke-linecap: round; }
+.scroll-crane-flight { animation: scrollCrane 6.5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes scrollCrane { 0%, 100% { translate: 0 0; rotate: -2deg; } 50% { translate: 18px -10px; rotate: 2deg; } }
+.crane-wake { fill: none; stroke: rgba(255, 255, 255, .5); stroke-width: 2.4; stroke-linecap: round; opacity: .6; }
+.gb-stone { fill: url(#gbStone); }
+.gb-ashlar { fill: none; stroke: rgba(88, 76, 60, .32); stroke-width: .55; }
+.gb-slate { fill: url(#gbSlate); }
+.gb-scales { fill: none; stroke: rgba(255, 255, 255, .16); stroke-width: .6; }
+.gb-window { fill: #f3d995; stroke: #6a5a48; stroke-width: .5; }
+.gb-lintel { fill: none; stroke: #ece4d2; stroke-width: 1.4; }
+.gb-door { fill: #5a3a26; }
+.gb-trunk { fill: none; stroke: #4a3526; stroke-width: 3; stroke-linecap: round; }
+.pennant-red { fill: #9b1f2e; }
+.pennant-purple { fill: #5b2a86; }
+.scroll-pennant { animation: scrollPennant 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: left center; }
+@keyframes scrollPennant { 50% { scale: .9 1; skew: 0 6deg; } }
+.scroll-plaque rect { fill: #5a3822; }
+.scroll-plaque text { fill: #f1e3c2; font: 600 8.5px Georgia, serif; letter-spacing: .08em; }
+.tail-silk { stroke: none; }
+.leaf-ink { opacity: .45; stroke-width: .7; }
+.scroll-glow { opacity: 0; transition: opacity .8s; }
+.scroll-beam { fill: rgba(255, 222, 150, .0); transition: fill .8s; transform-box: view-box; }
+[data-theme="dark"] .scroll-piece { filter: brightness(.58) saturate(.82); }
+[data-theme="dark"] .scroll-glow { opacity: .95; }
+[data-theme="dark"] .scroll-beam { fill: rgba(255, 222, 150, .14); }
+[data-theme="dark"] .lighthouse-room, [data-theme="dark"] .gb-window { fill: #ffd780; }
+@media (prefers-reduced-motion: reduce) { .scroll-gull, .scroll-crane-flight, .scroll-pennant { animation: none; } }
+
+/* ---------- the scroll map: two rollers, a strip of silk, a seal per chapter, the part in view ---------- */
+.scroll-map { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 6; display: flex; align-items: center; width: min(560px, 62vw); height: 24px; pointer-events: auto; }
+.scroll-map-rod { width: 9px; height: 30px; border-radius: 4px; background: linear-gradient(90deg, #3b2216, #a7714c 55%, #3b2216); box-shadow: 0 2px 4px #0004; flex: none; position: relative; }
+.scroll-map-rod::before, .scroll-map-rod::after { content: ""; position: absolute; left: -2px; width: 13px; height: 6px; border-radius: 50%; background: radial-gradient(circle at 40% 35%, #f4f1e2, #8fa18c); }
+.scroll-map-rod::before { top: -4px; } .scroll-map-rod::after { bottom: -4px; }
+.scroll-map-strip { position: relative; flex: 1; height: 20px; background: linear-gradient(180deg, #e9dcc0, #f6eedb 45%, #e3d3b2); border-top: 2px solid #c9b48a; border-bottom: 2px solid #c9b48a; box-shadow: 0 3px 10px #0003; }
+.scroll-tick { position: absolute; top: 50%; transform: translate(-50%, -50%); width: 17px; height: 17px; padding: 0; border: 0; border-radius: 3px; background: transparent; color: #4a3b2c; font: 600 10px/17px "Noto Serif SC", "Songti SC", serif; cursor: pointer; }
+.scroll-tick.is-station { background: #b5322a; color: #f7ead8; }
+.scroll-tick:hover, .scroll-tick:focus-visible { outline: 2px solid #c9a24f; outline-offset: 1px; }
+.scroll-map-view { position: absolute; top: -4px; bottom: -4px; border: 1.5px solid #c9a24f; border-radius: 3px; background: rgba(201, 162, 79, .14); pointer-events: none; transition: left .12s linear; }
+[data-theme="dark"] .scroll-map-strip { background: linear-gradient(180deg, #2a2620, #3a342a 45%, #26221c); border-color: #7a6440; }
+[data-theme="dark"] .scroll-tick { color: #e2d4b4; }
+body.title-open .scroll-map { display: none; }
+@media (max-width: 700px) {
+  .scroll-map { left: auto; right: 10px; transform: none; width: 54vw; bottom: calc(10px + var(--scene-bottom, 0px) * 0 + env(safe-area-inset-bottom)); }
+  .scroll-tick { width: 15px; height: 15px; font-size: 9px; line-height: 15px; }
+}
+.lh-plinth { fill: #b9b2a2; }
+.gb-door-lh { fill: #5a4636; }
+.lh-window { fill: #4b4236; }
+.lh-rail { fill: none; stroke: #2f3436; stroke-width: .9; }
+.lh-mullion { fill: none; stroke: #6a5a3c; stroke-width: .8; }
+.lighthouse { stroke: none; }
+.scroll-piece { filter: url(#gbPaint); }
+[data-theme="dark"] .scroll-piece { filter: url(#gbPaint) brightness(.58) saturate(.82); }
+.gb-quoin { fill: #d9d0bf; stroke: rgba(80, 70, 56, .35); stroke-width: .4; }
+.gb-eave-shadow { fill: rgba(40, 34, 28, .22); }
+.gb-ivy circle { fill: #4f6b3a; opacity: .75; }
+.gb-step { fill: #b9b0a0; stroke: rgba(80, 70, 56, .35); stroke-width: .4; }
+.sea-fill { fill: url(#scrollSea); }
+[data-theme="dark"] .sea-fill { fill: url(#scrollSeaNight); }
+[data-theme="dark"] .sea-lines { stroke: rgba(200, 220, 235, .28); }
