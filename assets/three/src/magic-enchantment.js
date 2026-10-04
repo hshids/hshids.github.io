@@ -1490,31 +1490,48 @@ function drawWhiteboard(c, W, H) {
   c.fillStyle = '#f7f8f6'; c.fillRect(0, 0, W, H);
   for (let i = 0; i < 9; i++) { const g = c.createRadialGradient(Math.random() * W, Math.random() * H, 10, Math.random() * W, Math.random() * H, 140); g.addColorStop(0, 'rgba(120,130,150,0.06)'); g.addColorStop(1, 'rgba(120,130,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
   const hand = size => `600 ${size}px "Magic Hand", "Segoe Print", cursive`;
+  const blue = '#1f3f8f', red = '#b8352c', ink = '#222', green = '#2f8a4e';
   c.textBaseline = 'alphabetic'; c.lineCap = 'round'; c.lineJoin = 'round';
-  c.fillStyle = '#1f3f8f'; c.font = hand(64); c.fillText('E = mc²', 60, 110);
-  c.font = hand(50); c.fillText('iħ ∂ψ/∂t = Ĥψ', 60, 190);
-  c.fillStyle = '#b8352c'; c.font = hand(40); c.fillText('∑ curiosity → ∞', 60, 262);
-  // a little Feynman-style diagram
-  c.strokeStyle = '#222'; c.lineWidth = 4; c.beginPath(); c.moveTo(470, 80); c.lineTo(560, 150); c.lineTo(470, 220); c.moveTo(560, 150); c.stroke();
-  c.beginPath(); for (let x = 560; x <= 700; x += 2) c.lineTo(x, 150 + Math.sin((x - 560) / 7) * 12); c.stroke();
-  c.beginPath(); c.moveTo(700, 150); c.lineTo(790, 80); c.moveTo(700, 150); c.lineTo(790, 220); c.stroke();
-  // an atom
-  c.strokeStyle = '#1f3f8f'; c.lineWidth = 3; for (let k = 0; k < 3; k++) { c.save(); c.translate(900, 150); c.rotate(k * Math.PI / 3); c.beginPath(); c.ellipse(0, 0, 70, 24, 0, 0, Math.PI * 2); c.stroke(); c.restore(); }
-  c.fillStyle = '#b8352c'; c.beginPath(); c.arc(900, 150, 9, 0, Math.PI * 2); c.fill();
+  // the physics corner, a nod to a certain sitcom's whiteboards
+  c.fillStyle = blue; c.font = hand(56); c.fillText('E = mc²', 46, 92);
+  c.font = hand(36); c.fillText('iħ ∂ψ/∂t = Ĥψ', 50, 146);
+  c.strokeStyle = blue; c.lineWidth = 2.5; for (let k = 0; k < 3; k++) { c.save(); c.translate(330, 96); c.rotate(k * Math.PI / 3); c.beginPath(); c.ellipse(0, 0, 46, 15, 0, 0, Math.PI * 2); c.stroke(); c.restore(); }
+  c.fillStyle = red; c.beginPath(); c.arc(330, 96, 6, 0, Math.PI * 2); c.fill();
+  // machine learning: attention and gradient descent
+  c.fillStyle = ink; c.font = hand(28); c.fillText('Attention(Q, K, V) =', 50, 214);
+  c.fillStyle = blue; c.font = hand(42); c.fillText('softmax(QKᵀ / √d) V', 72, 262);
+  c.fillStyle = red; c.font = hand(40); c.fillText('θ ← θ − η ∇L(θ)', 50, 330);
+  c.fillStyle = ink; c.font = hand(24); c.fillText('take a small step downhill, again and again', 56, 362);
+  // a little neural network: 3 inputs, two hidden layers, 2 outputs
+  const layers = [3, 4, 4, 2], nx = k => 520 + k * 84, ny = (n, j) => 130 + (j - (n - 1) / 2) * 44;
+  c.strokeStyle = 'rgba(40,50,70,0.45)'; c.lineWidth = 1.6;
+  for (let k = 0; k < layers.length - 1; k++) for (let a = 0; a < layers[k]; a++) for (let b = 0; b < layers[k + 1]; b++) { c.beginPath(); c.moveTo(nx(k), ny(layers[k], a)); c.lineTo(nx(k + 1), ny(layers[k + 1], b)); c.stroke(); }
+  layers.forEach((n, k) => { for (let j = 0; j < n; j++) { c.beginPath(); c.arc(nx(k), ny(n, j), 13, 0, Math.PI * 2); c.fillStyle = k === 0 ? '#f7f8f6' : k === layers.length - 1 ? '#f6d9d4' : '#dfe6f5'; c.fill(); c.strokeStyle = k === layers.length - 1 ? red : blue; c.lineWidth = 3; c.stroke(); } });
+  c.fillStyle = ink; c.font = hand(26); c.fillText('x', nx(0) - 40, 138); c.fillText('ŷ', nx(3) + 26, 138);
+  c.fillStyle = blue; c.font = hand(28); c.fillText('h = σ(Wx + b)', 560, 250);
+  // a loss curve going down over the epochs, with a ball rolling toward the minimum
+  const ox = 600, oy = 470, aw = 260, ah = 150;
+  c.strokeStyle = ink; c.lineWidth = 3; c.beginPath(); c.moveTo(ox, oy - ah); c.lineTo(ox, oy); c.lineTo(ox + aw, oy); c.stroke();
+  c.beginPath(); c.moveTo(ox - 7, oy - ah + 10); c.lineTo(ox, oy - ah); c.lineTo(ox + 7, oy - ah + 10); c.moveTo(ox + aw - 10, oy - 7); c.lineTo(ox + aw, oy); c.lineTo(ox + aw - 10, oy + 7); c.stroke();
+  c.strokeStyle = red; c.lineWidth = 4; c.beginPath();
+  for (let x = 0; x <= aw - 16; x += 4) { const y = oy - 18 - (ah - 34) * Math.exp(-x / 55) - 5 * Math.sin(x / 9) * Math.exp(-x / 90); x ? c.lineTo(ox + 8 + x, y) : c.moveTo(ox + 8 + x, y); }
+  c.stroke();
+  c.fillStyle = green; c.beginPath(); c.arc(ox + 70, oy - 18 - (ah - 34) * Math.exp(-62 / 55) - 12, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = ink; c.font = hand(24); c.fillText('loss', ox - 52, oy - ah + 20); c.fillText('epochs', ox + aw - 70, oy + 30);
+  c.fillStyle = red; c.font = hand(32); c.fillText('∑ curiosity → ∞', 650, 524);
   // the research list
-  c.fillStyle = '#222'; c.font = hand(44); c.fillText('Questions worth a PhD', 60, 360);
-  c.strokeStyle = '#222'; c.lineWidth = 3; c.beginPath(); c.moveTo(60, 372); c.lineTo(470, 368); c.stroke();
-  c.font = hand(36);
-  ['1. Who stays in charge of the AI?', '2. What does a persona promise?', '3. Wider or deeper?  wider!'].forEach((t, i) => c.fillText(t, 70, 420 + i * 50));
-  c.strokeStyle = '#2f8a4e'; c.lineWidth = 5; c.beginPath(); c.moveTo(395, 515); c.lineTo(408, 528); c.lineTo(436, 495); c.stroke();
-  // a whale and a cat in the margin
-  c.strokeStyle = '#1f3f8f'; c.lineWidth = 4; c.beginPath(); c.moveTo(560, 470); c.quadraticCurveTo(640, 400, 740, 455); c.quadraticCurveTo(770, 470, 790, 440); c.quadraticCurveTo(785, 470, 800, 490); c.quadraticCurveTo(770, 478, 740, 480); c.quadraticCurveTo(640, 520, 560, 470); c.stroke();
-  c.beginPath(); c.arc(590, 462, 4, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(610, 430); c.quadraticCurveTo(600, 400, 615, 390); c.moveTo(610, 430); c.quadraticCurveTo(625, 400, 640, 405); c.stroke();
-  c.strokeStyle = '#222'; c.beginPath(); c.arc(880, 470, 34, 0, Math.PI * 2); c.moveTo(856, 446); c.lineTo(852, 410); c.lineTo(874, 437); c.moveTo(904, 446); c.lineTo(908, 410); c.lineTo(886, 437); c.stroke();
-  c.beginPath(); c.arc(868, 466, 3, 0, Math.PI * 2); c.arc(892, 466, 3, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(880, 478); c.lineTo(876, 484); c.moveTo(880, 478); c.lineTo(884, 484); c.stroke();
+  c.fillStyle = ink; c.font = hand(40); c.fillText('Questions worth a PhD', 50, 432);
+  c.strokeStyle = ink; c.lineWidth = 3; c.beginPath(); c.moveTo(50, 444); c.lineTo(440, 440); c.stroke();
+  c.font = hand(31);
+  ['1. Who stays in charge of the AI?', '2. What does a persona promise?', '3. Wider or deeper?  wider!'].forEach((t, i) => c.fillText(t, 60, 488 + i * 46));
+  c.strokeStyle = green; c.lineWidth = 5; c.beginPath(); c.moveTo(368, 572); c.lineTo(381, 585); c.lineTo(409, 552); c.stroke();
+  // one whale in the margin
+  c.save(); c.translate(430, 568); c.scale(0.55, 0.55); c.strokeStyle = blue; c.lineWidth = 5;
+  c.beginPath(); c.moveTo(560, 70); c.quadraticCurveTo(640, 0, 740, 55); c.quadraticCurveTo(770, 70, 790, 40); c.quadraticCurveTo(785, 70, 800, 90); c.quadraticCurveTo(770, 78, 740, 80); c.quadraticCurveTo(640, 120, 560, 70); c.stroke();
+  c.beginPath(); c.arc(590, 62, 4, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(610, 30); c.quadraticCurveTo(600, 0, 615, -10); c.moveTo(610, 30); c.quadraticCurveTo(625, 0, 640, 5); c.stroke(); c.restore();
   // a yellow sticky note in the corner
-  c.save(); c.translate(W - 210, H - 200); c.rotate(-0.06); c.fillStyle = '#ffe680'; c.fillRect(0, 0, 170, 150); c.fillStyle = 'rgba(0,0,0,0.08)'; c.fillRect(0, 0, 170, 14);
-  c.fillStyle = '#5a3d1a'; c.font = hand(30); c.fillText('Knock, knock,', 14, 58); c.fillText('knock.', 14, 92); c.fillText('Hanjing!', 14, 128); c.restore();
+  c.save(); c.translate(W - 190, 26); c.rotate(0.05); c.fillStyle = '#ffe680'; c.fillRect(0, 0, 160, 140); c.fillStyle = 'rgba(0,0,0,0.08)'; c.fillRect(0, 0, 160, 14);
+  c.fillStyle = '#5a3d1a'; c.font = hand(28); c.fillText('Knock, knock,', 12, 56); c.fillText('knock.', 12, 88); c.fillText('Hanjing!', 12, 122); c.restore();
 }
 function createWhiteboard({garden, low}) {
   const station = garden?.root.children.find(o => o.name === 'research-complete-two-storey-library'); if (!station) return null;
