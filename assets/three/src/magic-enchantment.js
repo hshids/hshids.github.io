@@ -690,61 +690,123 @@ function buildWhale({low}) {
 // larger mass below it that shows only faintly until it is clicked. Even after
 // a PhD, Hanjing has seen only the tip of what there is to explore.
 const ICEBERG = {x: -6, z: 9};
-function craggy(radius, detail, scale, amount, seed) {
-  const g = mergeVertices(new THREE.IcosahedronGeometry(radius, detail));
-  const p = g.attributes.position, v = new THREE.Vector3(), r = rng(seed);
-  const bumps = Array.from({length: 7}, () => [new THREE.Vector3(r() - 0.5, r() - 0.5, r() - 0.5).normalize(), 0.12 + r() * 0.2]);
+// Ice built from a union of ellipsoid lobes (a pinnacle, a shoulder, a flat tabular block, a twin spire),
+// sculpted with vertical melt grooves, faint layering and a wave-cut notch at the waterline. Smooth
+// shading; colour comes from the surface: snow on the tops, pale glacier ice on the cliffs, deeper
+// blue in grooves and in thin bands of old blue ice, turquoise where the sea washes the base.
+function iceForm(lobes, {detail, grooves = 9, seed = 1, notch = 0, below = false, cuts = [], flute = 1}) {
+  let g = new THREE.IcosahedronGeometry(1, detail); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g);
+  const p = g.attributes.position, n = new THREE.Vector3(), groove = new Float32Array(p.count);
   for (let i = 0; i < p.count; i++) {
-    v.fromBufferAttribute(p, i); const n = v.clone().normalize();
-    let k = 1 + amount * (Math.sin(n.x * 7.3 + seed) * Math.sin(n.y * 5.1) * Math.sin(n.z * 6.7 + seed * 0.3));
-    for (const [d, a] of bumps) k += a * Math.pow(Math.max(0, n.dot(d)), 6);
-    v.multiplyScalar(k).multiply(scale); p.setXYZ(i, v.x, v.y, v.z);
+    n.fromBufferAttribute(p, i).normalize();
+    let t = 0;
+    for (const L of lobes) {
+      const [cx, cy, cz] = L.c, [ax, ay, az] = L.a;
+      const A = (n.x / ax) ** 2 + (n.y / ay) ** 2 + (n.z / az) ** 2, B = -2 * (n.x * cx / ax ** 2 + n.y * cy / ay ** 2 + n.z * cz / az ** 2), C = (cx / ax) ** 2 + (cy / ay) ** 2 + (cz / az) ** 2 - 1;
+      const D = B * B - 4 * A * C; if (D < 0) continue;
+      let far = (-B + Math.sqrt(D)) / (2 * A); if (far <= 0) continue;
+      if (L.cap !== undefined && n.y > 0.05) far = Math.min(far, L.cap / n.y);
+      t = Math.max(t, far);
+    }
+    // sheared cliffs: flat planes cut through the lobes leave crisp faces and edges
+    const q = n.clone().multiplyScalar(t);
+    for (const [cx, cy, cz, d] of cuts) { const k = q.x * cx + q.y * cy + q.z * cz; if (k > d) q.addScaledVector(new THREE.Vector3(cx, cy, cz), d - k); }
+    if (below) { const y = q.y, rmax = 2.5 + Math.max(0, -y - 0.2) * 1.6, rr = Math.hypot(q.x, q.z); if (rr > rmax) { q.x *= rmax / rr; q.z *= rmax / rr; } }
+    const dir = q.clone().normalize(), ang = Math.atan2(dir.z, dir.x), side = 1 - Math.abs(dir.y);
+    const wob = Math.sin(ang * 3 + seed) * 0.6 + Math.sin(q.y * 2.2 + seed * 2) * 0.5;
+    const rid = 1 - Math.abs(Math.sin(ang * grooves + wob * 1.6)), g2 = 1 - Math.abs(Math.sin(ang * grooves * 2.3 + wob * 2.4 + 1.3));
+    groove[i] = side * (rid * 0.65 + g2 * 0.35);
+    let m = 1 + side * flute * (0.05 * Math.pow(rid, 3) + 0.022 * g2) + 0.025 * Math.sin(dir.x * 6.1 + seed) * Math.sin(dir.z * 5.3 - seed) * Math.sin(dir.y * 4.7);
+    m *= 1 + 0.01 * Math.sin(q.y * 9.0 + wob);
+    if (notch && q.y > -0.15 && q.y < 0.35) m *= 1 - notch * Math.sin((q.y + 0.15) / 0.5 * Math.PI);
+    p.setXYZ(i, q.x * m, q.y * m, q.z * m);
   }
-  g.computeVertexNormals(); return g;
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (!below && y < 0) p.setY(i, y * 0.08 - 0.06); if (below && y > 0) p.setY(i, -0.08 - y * 0.02); }
+  g.setAttribute('groove', new THREE.BufferAttribute(groove, 1));
+  g.computeVertexNormals();
+  return g;
+}
+function iceColours(g, {below = false} = {}) {
+  const p = g.attributes.position, nrm = g.attributes.normal, gr = g.attributes.groove, col = new Float32Array(p.count * 3), snow = new Float32Array(p.count), c = new THREE.Color();
+  const snowC = new THREE.Color('#f8fcff'), cliff = new THREE.Color('#b6def0'), deep = new THREE.Color('#5fa6d2'), band = new THREE.Color('#4f9fd0'), sea = new THREE.Color('#5cc6d2'), abyss = new THREE.Color('#1d5b85');
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i), ny = nrm.getY(i), gv = gr.getX(i);
+    if (below) { c.copy(new THREE.Color('#a7deee')).lerp(abyss, THREE.MathUtils.smoothstep(-y, 0.5, 13)); c.lerp(deep, gv * 0.25); snow[i] = 0; }
+    else {
+      const s = THREE.MathUtils.smoothstep(ny, 0.6, 0.88); snow[i] = s;
+      c.copy(cliff).lerp(deep, Math.pow(gv, 2.2) * 0.7);
+      if (Math.sin(y * 7.3 + Math.sin(Math.atan2(p.getZ(i), p.getX(i)) * 2) * 0.8) > 0.93) c.lerp(band, 0.55);
+      c.lerp(sea, 1 - THREE.MathUtils.smoothstep(y, 0.0, 0.45));
+      c.lerp(snowC, s);
+    }
+    col.set([c.r, c.g, c.b], i * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('snow', new THREE.BufferAttribute(snow, 1));
+  return g;
 }
 function buildIceberg({low}) {
   const root = new THREE.Group(); root.name = 'enchantment-iceberg'; root.position.set(ICEBERG.x, SEA.level, ICEBERG.z);
-  const disposables = [], glow = {value: 0};
-  // hidden ice stays dim until the deep is revealed; the tip is always bright
-  const rimPatch = (m, key, hidden = false) => {
+  const disposables = [], glow = {value: 0}, time = {value: 0};
+  // ice light: glossy cliffs and rough snow, a cold rim, a little light inside the ice, glints on the snow;
+  // the hidden mass stays dim until the deep is revealed, then caustics play over it
+  const icePatch = (m, key, hidden = false) => {
     m.onBeforeCompile = sh => {
-      sh.uniforms.uIceGlow = glow;
-      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uIceGlow;')
+      Object.assign(sh.uniforms, {uIceGlow: glow, uIceTime: time});
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float snow;\nvarying float vSnow;\nvarying vec3 vIceW;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvSnow = snow;\nvIceW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uIceGlow, uIceTime;\nvarying float vSnow;\nvarying vec3 vIceW;')
         .replace('#include <color_fragment>', hidden ? '#include <color_fragment>\n diffuseColor.rgb *= mix(0.3, 1.0, uIceGlow);' : '#include <color_fragment>')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix(0.16, 0.82, vSnow);')
         .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
-          float iceRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.2);
-          totalEmissiveRadiance += vec3(0.45, 0.85, 1.0) * iceRim * (${hidden ? '0.06' : '0.18'} + uIceGlow * 0.9);`);
+          float iceRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.4);
+          totalEmissiveRadiance += vec3(0.38, 0.8, 1.0) * iceRim * (${hidden ? '0.05' : '0.16'} + uIceGlow * 0.9) * (1.0 - 0.55 * vSnow);
+          totalEmissiveRadiance += vec3(0.03, 0.12, 0.17) * (1.0 - vSnow) * ${hidden ? 'uIceGlow' : '0.7'};
+          ${hidden ? `float caus = pow(abs(sin(vIceW.x * 1.7 + uIceTime * 0.9) * sin(vIceW.z * 1.9 - uIceTime * 0.7) + sin(vIceW.y * 1.3 + uIceTime * 0.5) * 0.5), 3.0);
+          totalEmissiveRadiance += vec3(0.25, 0.6, 0.75) * caus * uIceGlow * 0.35;` : `float h = fract(sin(dot(floor(vIceW * 34.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+          totalEmissiveRadiance += vec3(1.0) * step(0.982, h) * (0.5 + 0.5 * sin(uIceTime * 2.6 + h * 60.0)) * vSnow * 0.9;`}`);
     };
     m.customProgramCacheKey = () => key;
   };
-  // the tip: two crags above the waterline, snow on the top faces
-  const tipParts = [craggy(1.9, low ? 1 : 2, new THREE.Vector3(1.25, 1.5, 1.0), 0.16, 3), craggy(1.0, 1, new THREE.Vector3(0.9, 2.0, 0.9), 0.2, 7)];
-  tipParts[1].translate(0.9, 0.9, -0.3);
-  for (const g of tipParts) { const p = g.attributes.position; for (let i = 0; i < p.count; i++) if (p.getY(i) < 0) p.setY(i, p.getY(i) * 0.08 - 0.05); g.computeVertexNormals(); }
-  const tipGeo = mergeGeometries(tipParts.map(g => g.toNonIndexed()), false); tipParts.forEach(g => g.dispose()); tipGeo.computeVertexNormals();
-  { const p = tipGeo.attributes.position, nrm = tipGeo.attributes.normal, c = new Float32Array(p.count * 3), col = new THREE.Color();
-    for (let i = 0; i < p.count; i++) { col.set('#a9d6ea').lerp(new THREE.Color('#f6fbfe'), THREE.MathUtils.smoothstep(nrm.getY(i), 0.1, 0.7)); col.lerp(new THREE.Color('#7fb8d4'), 1 - THREE.MathUtils.smoothstep(p.getY(i), 0.0, 0.5)); c.set([col.r, col.g, col.b], i * 3); }
-    tipGeo.setAttribute('color', new THREE.BufferAttribute(c, 3)); }
-  const tipMat = new THREE.MeshStandardMaterial({name: 'iceberg-tip', color: '#ffffff', vertexColors: true, roughness: 0.3, metalness: 0.0, flatShading: true, emissive: '#000000'});
-  rimPatch(tipMat, 'enchantment-iceberg-tip-v1');
-  const tip = new THREE.Mesh(tipGeo, tipMat); tip.name = 'iceberg-tip-above-water'; tip.castShadow = true; root.add(tip); disposables.push(tipGeo, tipMat);
-  // the hidden mass: many times larger, reaching deep into the ball
-  const massGeo = craggy(5.2, low ? 2 : 3, new THREE.Vector3(1.1, 1.35, 0.95), 0.14, 11);
-  { const p = massGeo.attributes.position, c = new Float32Array(p.count * 3), col = new THREE.Color();
-    for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (y > 0) p.setY(i, -0.08 - y * 0.02); }
-    massGeo.translate(0.6, -5.6, 0.2);
-    for (let i = 0; i < p.count; i++) { col.set('#9fd3e8').lerp(new THREE.Color('#2f6f93'), THREE.MathUtils.smoothstep(-p.getY(i), 1, 14)); c.set([col.r, col.g, col.b], i * 3); }
-    massGeo.setAttribute('color', new THREE.BufferAttribute(c, 3)); massGeo.computeVertexNormals(); }
-  const massMat = new THREE.MeshStandardMaterial({name: 'iceberg-hidden-mass', color: '#ffffff', vertexColors: true, roughness: 0.45, flatShading: true});
-  rimPatch(massMat, 'enchantment-iceberg-mass-v2', true);
+  const tipLobes = [
+    {c: [0.2, 1.4, 0.0], a: [1.1, 2.75, 0.95]},
+    {c: [0.95, 1.5, 0.45], a: [0.5, 2.05, 0.5]},
+    {c: [-1.0, 0.6, 0.3], a: [1.45, 1.35, 1.25]},
+    {c: [1.0, 0.4, -0.3], a: [1.35, 1.1, 1.15], cap: 1.25},
+    {c: [0.0, 0.0, 0.0], a: [2.35, 0.55, 1.95]},
+  ];
+  const tipCuts = [[0.96, 0.08, 0.26, 1.85], [-0.89, 0.05, 0.45, 1.75], [0.2, 0.0, 0.98, 1.25], [-0.28, 0.1, -0.95, 1.35], [0.69, 0.7, 0.18, 2.95], [-0.6, 0.76, -0.25, 2.5], [0.1, 0.55, 0.83, 2.3]].map(([x, y, z, d]) => { const l = Math.hypot(x, y, z); return [x / l, y / l, z / l, d]; });
+  const tipGeo = iceColours(iceForm(tipLobes, {detail: low ? 4 : 5, grooves: 13, seed: 2, notch: 0.08, cuts: tipCuts, flute: 1.2}));
+  // a few bergy bits drifting nearby
+  const bits = [[3.1, 1.6, 0.45, 4], [-2.9, 2.3, 0.38, 6], [0.9, 3.2, 0.3, 8], [-1.6, -2.4, 0.26, 9]].map(([x, z, s, seed]) => {
+    const b = iceColours(iceForm([{c: [0, 0.2, 0], a: [1.2, 0.9, 1.0]}, {c: [0.3, 0.4, 0.2], a: [0.6, 1.0, 0.6]}], {detail: low ? 2 : 3, grooves: 7, seed, notch: 0.05, cuts: [[0.92, 0.3, 0.2, 0.75], [-0.8, 0.2, 0.55, 0.8], [0.1, 0.85, -0.5, 0.75]]}));
+    b.scale(s, s * 0.6, s); b.rotateY(seed); b.translate(x, 0, z); return b;
+  });
+  const tipAll = mergeGeometries([tipGeo, ...bits], false); [tipGeo, ...bits].forEach(g => g.dispose());
+  const tipMat = new THREE.MeshStandardMaterial({name: 'iceberg-tip', color: '#ffffff', vertexColors: true, roughness: 0.3, metalness: 0.0, emissive: '#000000'});
+  icePatch(tipMat, 'enchantment-iceberg-tip-v2');
+  const tip = new THREE.Mesh(tipAll, tipMat); tip.name = 'iceberg-tip-above-water'; tip.castShadow = true; tip.receiveShadow = true; root.add(tip); disposables.push(tipAll, tipMat);
+  // the hidden mass: many times larger, smooth and melt-sculpted, reaching deep into the ball
+  const massGeo = iceColours(iceForm([
+    {c: [0.4, -4.2, 0.2], a: [4.4, 4.9, 3.7]},
+    {c: [-2.4, -2.2, 1.0], a: [2.6, 2.6, 2.4]},
+    {c: [1.6, -7.2, -0.6], a: [2.6, 3.2, 2.3]},
+    {c: [2.4, -1.6, -1.2], a: [2.2, 1.8, 2.0]},
+  ], {detail: low ? 3 : 4, grooves: 6, seed: 5, below: true}), {below: true});
+  const massMat = new THREE.MeshStandardMaterial({name: 'iceberg-hidden-mass', color: '#ffffff', vertexColors: true, roughness: 0.35});
+  icePatch(massMat, 'enchantment-iceberg-mass-v3', true);
   const mass = new THREE.Mesh(massGeo, massMat); mass.name = 'iceberg-hidden-mass-below-water'; root.add(mass); disposables.push(massGeo, massMat);
-  // a ring of foam where the ice meets the waves
-  const foamMat = new THREE.MeshBasicMaterial({name: 'iceberg-foam', color: '#e8f6fb', transparent: true, opacity: 0.32, depthWrite: false});
-  const foamGeo = new THREE.RingGeometry(2.3, 3.0, 40, 1); foamGeo.rotateX(-Math.PI / 2); foamGeo.scale(1.25, 1, 1);
-  { const p = foamGeo.attributes.position; for (let i = 0; i < p.count; i++) { const a = Math.atan2(p.getZ(i), p.getX(i)); const k = 1 + 0.12 * Math.sin(a * 5) + 0.06 * Math.sin(a * 13); p.setX(i, p.getX(i) * k); p.setZ(i, p.getZ(i) * k); } }
-  const foam = new THREE.Mesh(foamGeo, foamMat); foam.name = 'iceberg-foam-ring'; foam.position.y = 0.06; foam.renderOrder = 12; root.add(foam); disposables.push(foamGeo, foamMat);
+  // soft foam where the ice meets the waves: a ring whose alpha fades outward, flecked with foam
+  const fc = document.createElement('canvas'); fc.width = fc.height = 256; const fx = fc.getContext('2d');
+  const grad = fx.createRadialGradient(128, 128, 60, 128, 128, 128); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(0.18, 'rgba(255,255,255,0.85)'); grad.addColorStop(0.45, 'rgba(255,255,255,0.35)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  fx.fillStyle = grad; fx.fillRect(0, 0, 256, 256);
+  fx.globalCompositeOperation = 'destination-out'; for (let k = 0; k < 220; k++) { const a = Math.random() * Math.PI * 2, r = 70 + Math.random() * 56; fx.beginPath(); fx.arc(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 2 + Math.random() * 6, 0, Math.PI * 2); fx.fill(); }
+  const foamTex = new THREE.CanvasTexture(fc);
+  const foamMat = new THREE.MeshBasicMaterial({name: 'iceberg-foam', color: '#eef9fc', map: foamTex, transparent: true, opacity: 0.55, depthWrite: false});
+  const foamGeo = new THREE.CircleGeometry(3.4, 48); foamGeo.rotateX(-Math.PI / 2); foamGeo.scale(1.15, 1, 1);
+  { const q = foamGeo.attributes.position; for (let i = 0; i < q.count; i++) { const a = Math.atan2(q.getZ(i), q.getX(i)); const k = 1 + 0.1 * Math.sin(a * 5) + 0.05 * Math.sin(a * 13); q.setX(i, q.getX(i) * k); q.setZ(i, q.getZ(i) * k); } }
+  const foam = new THREE.Mesh(foamGeo, foamMat); foam.name = 'iceberg-foam-ring'; foam.position.y = 0.05; foam.renderOrder = 12; root.add(foam); disposables.push(foamGeo, foamMat, foamTex);
   return {root, disposables, meshes: [tip, mass], point: [ICEBERG.x, SEA.level + 2, ICEBERG.z],
-    update(t, reveal, reduced) { glow.value = reveal; if (!reduced) { foam.scale.setScalar(1 + 0.04 * Math.sin(t * 1.3)); foam.rotation.y = t * 0.02; tip.rotation.z = Math.sin(t * 0.4) * 0.008; mass.rotation.z = tip.rotation.z; root.position.y = SEA.level + Math.sin(t * 0.5) * 0.06; } }};
+    update(t, reveal, reduced) { glow.value = reveal; time.value = t; if (!reduced) { foam.scale.setScalar(1 + 0.04 * Math.sin(t * 1.3)); foam.rotation.y = t * 0.02; tip.rotation.z = Math.sin(t * 0.4) * 0.008; mass.rotation.z = tip.rotation.z; root.position.y = SEA.level + Math.sin(t * 0.5) * 0.06; } }};
 }
 
 /** Merge the still meshes under a group by material, leaving excluded subtrees alone. */
