@@ -3,8 +3,38 @@
 .ink-diary[hidden],.ink-diary [hidden]{display:none;}
 .ink-diary *{box-sizing:border-box;}
 .ink-diary-page{position:absolute;right:max(22px,env(safe-area-inset-right));top:90px;width:min(370px,38vw);max-height:min(76vh,calc(var(--diary-view-height,100vh) - 112px));display:flex;flex-direction:column;padding:22px 25px 18px;pointer-events:auto;background:linear-gradient(90deg,#d3b78420,transparent 8%,transparent 96%,#a5854918),linear-gradient(165deg,#f6ecd4,#eee0bd);border:1px solid #dac69c;border-radius:2px 5px 3px 1px;box-shadow:-8px 14px 28px #07122266,inset 0 0 20px #b79b5520;isolation:isolate;overscroll-behavior:contain;overflow-y:auto;}
-.ink-diary-page::before,.ink-diary-page::after{content:"";position:absolute;left:-7px;right:-7px;height:7px;border:1px solid #7e5a3a;background:linear-gradient(#b28758,#89603e);border-radius:3px;pointer-events:none;}
-.ink-diary-page::before{top:-5px;}.ink-diary-page::after{bottom:-5px;}
+/* An old diary page: a leather spine with stitching on the left, foxing, faint rules, a ribbon and a flourish. */
+.ink-diary-page{padding-left:38px;background:
+  radial-gradient(ellipse 70px 46px at 84% 12%,#c9a46a24,transparent),radial-gradient(ellipse 90px 60px at 14% 82%,#b88f541c,transparent),radial-gradient(ellipse 40px 30px at 66% 94%,#a6814a1a,transparent),
+  radial-gradient(120% 90% at 50% 40%,transparent 62%,#9b7a4626),
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .35  0 0 0 0 .2  0 0 0 .09 0'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>"),
+  linear-gradient(165deg,#f7ecd2,#ecdcb4);border-color:#d3bd8f;}
+.ink-diary-page::before{content:"";position:absolute;left:0;top:0;bottom:0;width:20px;pointer-events:none;background:linear-gradient(90deg,#4a2a1d,#6e3f2a 55%,#3d2318),#5a3322;box-shadow:inset -2px 0 3px #00000055,2px 0 4px #00000033;}
+.ink-diary-page::after{content:"";position:absolute;left:9px;top:10px;bottom:10px;width:0;border-left:1.5px dashed #e3c48d99;pointer-events:none;}
+.ink-diary-ribbon{position:absolute;top:-2px;right:44px;width:13px;height:74px;background:linear-gradient(90deg,#7d1f2a,#a8323d 50%,#7d1f2a);clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);box-shadow:0 2px 3px #0003;pointer-events:none;}
+.ink-diary-flourish{position:absolute;left:46%;top:58px;width:120px;height:26px;transform:translateX(-50%);color:#b08a4a;opacity:.55;pointer-events:none;}
+.ink-diary-lines{background:repeating-linear-gradient(to bottom,transparent 0 25px,#7d8ea41f 25px 26px);background-attachment:local;}
+.ink-diary-entry{position:relative;}
+.ink-diary-handwriting{color:#2b2420;text-shadow:0 0 .6px #2b2420aa;}
+/* the diary's newest words well up with a soft golden glow; older ink settles */
+.ink-diary-entry.is-writing .ink-diary-handwriting{text-shadow:0 0 .6px #2b2420aa,0 0 12px #c9963c66;}
+.ink-diary-handwriting span{filter:blur(.7px);text-shadow:0 0 8px #c9963c;}
+.ink-diary-entry.is-old-ink{opacity:.62;transition:opacity 1.2s ease;}
+.ink-diary-entry.is-old-ink .ink-diary-handwriting{color:#4a3d32;}
+/* your words sink into the paper and vanish, as the page drinks the ink */
+.ink-diary-entry.is-soaked .ink-diary-handwriting{animation:ink-diary-soak 2.6s ease .45s forwards;}
+.ink-diary-entry.is-soaked .ink-diary-speaker{animation:ink-diary-fade 2.6s ease .45s forwards;}
+@keyframes ink-diary-soak{0%{opacity:1;filter:none;color:#725942;}25%{opacity:1;color:#1d1714;filter:blur(.2px);}100%{opacity:.16;filter:blur(1.1px);color:#5a4a3c;letter-spacing:.02em;}}
+@keyframes ink-diary-fade{to{opacity:.35;}}
+.ink-diary-motes{position:absolute;inset:0;pointer-events:none;}
+.ink-diary-motes i{position:absolute;width:4px;height:4px;border-radius:50%;background:radial-gradient(circle,#fff3c4,#e2b04e 60%,transparent 70%);opacity:0;animation:ink-diary-mote 1.7s ease-out forwards;}
+@keyframes ink-diary-mote{0%{opacity:0;transform:translate(0,0) scale(.5);}20%{opacity:1;}100%{opacity:0;transform:translate(var(--drift,0),-42px) scale(1.15);}}
+.ink-diary textarea{font:400 21px/1.3 "Magic Hand",cursive;border-bottom:1px dashed #aa8e5f;color:#2b2420;}
+.ink-diary textarea::placeholder{font:400 17px/1.3 "Magic Hand",cursive;}
+.ink-diary-send{display:inline-flex;align-items:center;gap:7px;}
+.ink-diary-send svg{width:18px;height:18px;color:#7a5a32;}
+@media(prefers-reduced-motion:reduce){.ink-diary-entry.is-soaked .ink-diary-handwriting{animation:none;opacity:.3;}.ink-diary-entry.is-soaked .ink-diary-speaker{animation:none;}.ink-diary-motes{display:none;}}
+@media(max-width:700px){.ink-diary-page{padding-left:30px;}.ink-diary-page::before{width:15px;}.ink-diary-page::after{left:7px;}.ink-diary-ribbon{right:58px;height:52px;}.ink-diary-flourish{display:none;}}
 .ink-diary-header{display:flex;justify-content:space-between;gap:7px;flex:none;margin-bottom:16px;}
 .ink-diary-eyebrow{margin:0 0 6px;font-size:10px;letter-spacing:.13em;color:#796649;}
 .ink-diary h2{margin:0;font:600 29px/1.06 "Magic Hand",cursive;}
