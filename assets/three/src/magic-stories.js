@@ -22,7 +22,7 @@ const STORIES = Object.freeze([
     support:'Research library bearing floor; a small reading stand in front of the right bookcase.',
     controls:[['voice','Voice'],['memory','Memory'],['choice','Choice']]},
   {id:'brick-star-key',station:'writing',title:'A star, brick by brick',
-    clue:'Match the numbered diagram: 1 Blue, 2 Green, 3 Rose.',
+    clue:'Drag each brick onto the slot with its number, 1 Blue, 2 Green, 3 Rose. Or tap a brick to set it in place.',
     note:'I like LEGO and a little magic. Three small bricks become a star key, a playful reminder that ideas can be built piece by piece.',
     anchor:[2.68,.12,-1.24],room:'writing-study',indoor:true,focus:{section:'writing-tutorials'},
     support:'Writing study bearing floor; a separate little workbench beside the desk, clear of the tutorial archive.',
@@ -349,18 +349,42 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     const board=group(s.id+'-diagram-bearing-backboard',[0,top+.092,-.20],s.fixed);
     box(s.id+'-real-diagram-board',[.70,.19,.037],[0,0,0],mats.darkWood,board);
     label(s.id+'-diagram-label','1 BLUE  2 GREEN  3 ROSE',.66,.076,[0,.012,.026],board);
-    const order=['blue','green','rose'];s.bricks=[];s.docks=[];
+    const order=['blue','green','rose'];s.bricks=[];s.docks=[];s.glows=[];
+    const dockX=i=>(i-1)*.234,dragY=top+.10;
+    const glowMat=new THREE.MeshBasicMaterial({name:'hidden-story-brick-slot-glow',color:'#ffd77a',transparent:true,opacity:.0,depthWrite:false});resources.add(glowMat);
     for(let i=0;i<3;i++){
-      const x=(i-1)*.234;
+      const x=dockX(i);
       const dock=box(s.id+'-bearing-numbered-slot-'+i,[.19,.012,.145],[x,top+.006,-.012],mats.darkWood,s.fixed,.002);s.docks.push(dock);
       for(const dx of[-.048,0,.048])for(const dz of[-.025,.025])disc(s.id+'-physical-docking-stud-'+i+'-'+dx+'-'+dz,.016,.010,[x+dx,top+.016,dz-.012],mats.brass,s.fixed);
-      const brick=group(s.id+'-'+order[i]+'-actual-six-stud-brick',[x,top+.027,.226],s.root);
+      const glow=new THREE.Mesh(own(new THREE.PlaneGeometry(.2,.155)),glowMat.clone());resources.add(glow.material);glow.rotation.x=-Math.PI/2;glow.position.set(x,top+.0135,-.012);glow.visible=false;glow.renderOrder=3;glow.raycast=()=>{};s.root.add(glow);s.glows.push(glow);
+      // the bricks start shuffled along the front edge, so each one has to find its own numbered slot
+      const startX=dockX(2-i);
+      const brick=group(s.id+'-'+order[i]+'-actual-six-stud-brick',[startX,top+.027,.226],s.root);
       box(s.id+'-'+order[i]+'-closed-brick-body',[.168,.054,.125],[0,0,0],colors[order[i]],brick,.007);
-      for(const dx of[-.049,0,.049])for(const dz of[-.027,.027])disc(s.id+'-'+order[i]+'-molded-real-stud-'+dx+'-'+dz,.018,.014,[dx,.034,dz],colors[order[i]],brick);
+      for(const dx of[-.049,0,.049])for(const dz of[-.027,.027]){
+        disc(s.id+'-'+order[i]+'-molded-real-stud-'+dx+'-'+dz,.018,.014,[dx,.034,dz],colors[order[i]],brick);
+        disc(s.id+'-'+order[i]+'-stud-rounded-top-'+dx+'-'+dz,.0165,.003,[dx,.0425,dz],colors[order[i]],brick);
+      }
       label(s.id+'-'+order[i]+'-brick-number',String(i+1),.048,.032,[0,0,.067],brick);
-      brick.userData.startZ=.226;brick.userData.dockZ=-.012;s.bricks.push(brick);
-      register(s,order[i],'Place brick '+(i+1)+' · '+order[i],brick,()=>select(s.id,order[i]));
+      brick.userData.startX=startX;brick.userData.dockX=x;brick.userData.startZ=.226;brick.userData.dockZ=-.012;s.bricks.push(brick);
+      const key=order[i],item=register(s,key,'Drag brick '+(i+1)+' · '+key+' onto its slot',brick,()=>select(s.id,key));
+      // drag and drop: lift the brick, carry it over the bench, and let go above a slot
+      item.drag={
+        begin(){if(s.progress.includes(key)||disposed)return false;brick.userData.dragging=true;brick.userData.baseY=undefined;s.glows.forEach(g=>{g.visible=true;g.material.opacity=.18;});return true;},
+        move(ray){
+          const world=brick.parent.localToWorld(new THREE.Vector3(0,dragY,0)),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-world.y),hit=new THREE.Vector3();
+          if(!ray||!ray.intersectPlane(plane,hit))return;const l=brick.parent.worldToLocal(hit);
+          brick.position.set(THREE.MathUtils.clamp(l.x,-.31,.31),dragY,THREE.MathUtils.clamp(l.z,-.12,.27));
+          const near=nearestSlot(brick.position);s.glows.forEach((g,k)=>{g.material.opacity=k===near?.55:.18;});
+        },
+        end(ray){
+          if(ray)this.move(ray);brick.userData.dragging=false;brick.userData.baseY=undefined;s.glows.forEach(g=>{g.visible=false;});
+          const near=nearestSlot(brick.position);if(near<0)return null;
+          if(near!==i)return feedback(s,'That slot is waiting for the '+order[near]+' brick, number '+(near+1)+'. Check the diagram on the board.',{wrong:true,progress:s.progress.length});
+          return select(s.id,key);
+        }};
     }
+    const nearestSlot=p=>{let best=-1,d=.11;for(let k=0;k<3;k++){const dd=Math.hypot(p.x-dockX(k),p.z+.012);if(dd<d){d=dd;best=k;}}return best;};
     const keyBase=group(s.id+'-hidden-key-supported-holder',[0,top+.030,-.28],s.root);
     box(s.id+'-key-support-closed-base',[.12,.06,.078],[0,0,0],mats.darkWood,keyBase,.006);
     rod(s.id+'-key-grounded-brass-stem',[0,.028,0],[0,.170,0],.012,mats.brass,keyBase);
@@ -374,24 +398,27 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     s.keyCover=hinge;
     register(s,'open','Read the numbered brick diagram',board,()=>{open(s.id);return feedback(s,s.spec.clue);});
     s.restore=()=>{s.progress=order.slice();};
+    s.snaps={};
     s.animate=(t,dt)=>{
       for(let i=0;i<3;i++){
-        const b=s.bricks[i],docked=s.progress.includes(order[i]),targetZ=docked?b.userData.dockZ:b.userData.startZ,
-          targetY=top+(docked?.043:.027);
+        const b=s.bricks[i];if(b.userData.dragging)continue;
+        const docked=s.progress.includes(order[i]),targetX=docked?b.userData.dockX:b.userData.startX,targetZ=docked?b.userData.dockZ:b.userData.startZ,targetY=top+(docked?.043:.027);
+        if(!docked)delete s.snaps[order[i]];
+        const since=s.snaps[order[i]]===undefined?9:performance.now()/1000-s.snaps[order[i]],bounce=reduced?0:.014*Math.exp(-since*6)*Math.abs(Math.sin(since*16));
+        b.position.x=reduced?targetX:THREE.MathUtils.damp(b.position.x,targetX,12,dt);
         b.position.z=reduced?targetZ:THREE.MathUtils.damp(b.position.z,targetZ,12,dt);
-        b.position.y=reduced?targetY:THREE.MathUtils.damp(b.position.y,targetY,12,dt);
+        b.userData.baseY=reduced?targetY:THREE.MathUtils.damp(b.userData.baseY??b.position.y,targetY,12,dt);b.position.y=b.userData.baseY+bounce;
       }
       s.keyCover.rotation.x=reduced?(s.solved?-1.45:0):THREE.MathUtils.damp(s.keyCover.rotation.x,s.solved?-1.45:0,10,dt);
       s.key.visible=s.solved&&(reduced||s.keyCover.rotation.x<-.60);
     };
     s.select=key=>{
       if(!order.includes(key))return feedback(s,s.spec.clue);
-      if(s.progress.includes(key))return feedback(s,'That brick is already in place. '+(s.solved?'The star key is yours. Reset to build it again.':'Next: '+s.spec.controls[s.progress.length][1]+'.'));
-      const expected=order[s.progress.length];
-      if(key!==expected)return feedback(s,'That brick does not match the next numbered slot. Try '+s.spec.controls[s.progress.length][1]+' next; your earlier bricks stay in place.',{wrong:true,progress:s.progress.length});
-      s.progress.push(key);
+      if(s.progress.includes(key))return feedback(s,'That brick is already in place. '+(s.solved?'The star key is yours. Reset to build it again.':'Find a home for the others.'));
+      s.progress.push(key);s.snaps[key]=performance.now()/1000;
       if(s.progress.length===3)return finish(s);
-      return feedback(s,'Brick '+s.progress.length+' clicks into place. Next: '+s.spec.controls[s.progress.length][1]+'.',{progress:s.progress.length});
+      const left=order.filter(k=>!s.progress.includes(k)).map(k=>s.spec.controls[order.indexOf(k)][1]);
+      return feedback(s,'Brick '+(order.indexOf(key)+1)+' clicks onto its studs. Still to go, '+left.join(' and ')+'.',{progress:s.progress.length});
     };
   }
 
