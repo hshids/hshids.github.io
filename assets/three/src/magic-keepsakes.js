@@ -388,7 +388,6 @@ export function buildUNCrossroads(parent, {resources, reduced = false, low = fal
   const cap = material(resources, 'fork-cap', '#1f2329', {roughness: 0.7});
   const leftPath = material(resources, 'fork-path-un', '#e3c477', {emissive: '#8a6a1c', emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4});
   const rightPath = material(resources, 'fork-path-phd', '#e3c477', {emissive: '#8a6a1c', emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4});
-  const bridgeMat = material(resources, 'fork-way-back', '#f2d58c', {emissive: '#c99a2e', emissiveIntensity: 0.15, roughness: 0.3, metalness: 0.5});
   const kit = makeKit('keepsake-un-crossroads', resources), unKit = makeKit('keepsake-un-crossroads-un', resources), bookKit = makeKit('keepsake-un-crossroads-book', resources);
   const top = 0.024;
   // the base: walnut with a brass rim, a stone plaza and two little lawns
@@ -454,23 +453,56 @@ export function buildUNCrossroads(parent, {resources, reduced = false, low = fal
   bookKit.add(new THREE.BoxGeometry(0.02, 0.0012, 0.02), cap, {p: [0.12, top + 0.025, 0.03], r: [0, 0.6, 0]});
   bookKit.add(new THREE.CylinderGeometry(0.006, 0.0065, 0.004, 12), cap, {p: [0.12, top + 0.0225, 0.03]});
   bookKit.add(new THREE.CylinderGeometry(0.0004, 0.0004, 0.01, 4), brass, {p: [0.128, top + 0.021, 0.034]});
-  // the way back: a dotted golden arc from the book to the tower, for the summers spent at the UN during the PhD
-  const arc = new THREE.QuadraticBezierCurve3(new THREE.Vector3(bx, top + 0.03, bz), new THREE.Vector3(0, top + 0.17, -0.06), new THREE.Vector3(tw.x + 0.02, top + tw.h * 0.75, tw.z + 0.01));
-  const dotGeo = new THREE.SphereGeometry(0.0022, 8, 6); resources?.add(dotGeo);
-  const dots = new THREE.InstancedMesh(dotGeo, bridgeMat, low ? 18 : 30); dots.name = 'keepsake-un-way-back';
-  const o3 = new THREE.Object3D(); for (let i = 0; i < dots.count; i++) { o3.position.copy(arc.getPoint((i + 0.5) / dots.count)); o3.updateMatrix(); dots.setMatrixAt(i, o3.matrix); }
-  root.add(dots);
-  const tag = L.geometry(L.plate('2024 · 2025', {bg: '#efe1bd', size: 50}), 0.04, 0.014); kit.add(tag, L.mat, {p: [0, top + 0.13, -0.05], r: [-0.2, 0, 0]});
-  kit.build(root); const unMeshes = unKit.build(root), bookMeshes = bookKit.build(root), pathMeshes = pathKit.build(root);
+  // the way back, told with objects: the tower's door stands half open with warm light inside, and two
+  // lanyard badges from the PhD years (2024, 2025) stand on the PhD side of the fork
+  const doorGlow = material(resources, 'fork-door-light', '#ffe2a8', {emissive: '#ffb75e', emissiveIntensity: 0.4, roughness: 0.6});
+  const doorWood = material(resources, 'fork-door-leaf', '#6b4a2e', {roughness: 0.55});
+  const doorKit = makeKit('keepsake-un-crossroads-door', resources), dz = tw.z + tw.d / 2 + 0.0006;
+  doorKit.add(new THREE.PlaneGeometry(0.016, 0.026), doorGlow, {p: [tw.x, top + 0.013, dz]});
+  for (const sx of [-1, 1]) doorKit.add(new THREE.BoxGeometry(0.002, 0.029, 0.003), brass, {p: [tw.x + sx * 0.009, top + 0.0145, dz + 0.001]});
+  doorKit.add(new THREE.BoxGeometry(0.02, 0.002, 0.003), brass, {p: [tw.x, top + 0.0285, dz + 0.001]});
+  const leaf = new THREE.Group(); leaf.position.set(tw.x - 0.008, top, dz + 0.001); root.add(leaf); leaf.rotation.y = -1.0;
+  const leafMesh = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.026, 0.0016), doorWood); leafMesh.position.set(0.008, 0.013, 0); leaf.add(leafMesh); resources?.add(leafMesh.geometry);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.0012, 8, 6), brass); knob.position.set(0.0135, 0.012, 0.0012); leaf.add(knob); resources?.add(knob.geometry);
+  doorKit.add(new THREE.BoxGeometry(0.03, 0.0015, 0.012), marble, {p: [tw.x, top + 0.00075, dz + 0.006]});
+  const badgeKit = makeKit('keepsake-un-crossroads-badges', resources);
+  const lanyard = material(resources, 'fork-lanyard', '#3a78c2', {roughness: 0.7});
+  const badgeBack = material(resources, 'fork-badge-back', '#e9ecef', {roughness: 0.4});
+  // each badge stands on its edge, leaning back a little, with its lanyard lying in a loop behind it
+  const badge = (year, org, x, z, yaw) => {
+    const uv = L.custom((c, w, h) => {
+      c.fillStyle = '#fbfbf8'; c.fillRect(0, 0, w, h); c.fillStyle = '#3a78c2'; c.fillRect(0, 0, w, h * 0.36);
+      c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `700 ${org.length > 8 ? 26 : 36}px Georgia, serif`; c.fillText(org, w / 2, h * 0.19);
+      c.fillStyle = '#c9ccd2'; c.fillRect(20, h * 0.46, 44, 56); c.fillStyle = '#2a2a2a'; c.font = '700 58px Georgia, serif'; c.fillText(year, w * 0.6, h * 0.7);
+      c.strokeStyle = '#3a78c2'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6);
+    });
+    const w = 0.038, h = 0.019, lean = 0.28, cy = h / 2 * Math.cos(lean) + 0.0004;
+    const card = L.geometry(uv, w, h); card.rotateX(-lean); card.rotateY(yaw);
+    badgeKit.add(card, L.mat, {p: [x, top + cy, z]});
+    const back = new THREE.BoxGeometry(w + 0.0012, h + 0.0012, 0.0012); back.translate(0, 0, -0.0007); back.rotateX(-lean); back.rotateY(yaw);
+    badgeKit.add(back, badgeBack, {p: [x, top + cy, z]});
+    const ty = cy + h / 2 * Math.cos(lean), tz = -h / 2 * Math.sin(lean);
+    const pts = [[-0.002, ty + 0.0006, tz], [-0.006, ty + 0.003, tz - 0.004], [-0.009, 0.005, tz - 0.013], [-0.008, 0.0008, tz - 0.022], [0, 0.0008, tz - 0.027],
+      [0.008, 0.0008, tz - 0.022], [0.009, 0.005, tz - 0.013], [0.006, ty + 0.003, tz - 0.004], [0.002, ty + 0.0006, tz]].map(q => new THREE.Vector3(...q));
+    const strap = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.0008, 4, false); strap.scale(1, 0.7, 1); strap.rotateY(yaw);
+    badgeKit.add(strap, lanyard, {p: [x, top, z]});
+    const clip = new THREE.BoxGeometry(0.004, 0.0025, 0.0016); clip.translate(0, ty, tz); clip.rotateY(yaw);
+    badgeKit.add(clip, brass, {p: [x, top, z]});
+  };
+  badge('2024', 'UNODC', 0.072, 0.066, 0.18);
+  badge('2025', 'UN PEACEKEEPING', 0.118, 0.078, -0.14);
+  kit.build(root); const unMeshes = unKit.build(root), bookMeshes = bookKit.build(root), pathMeshes = pathKit.build(root), doorMeshes = doorKit.build(root), badgeMeshes = badgeKit.build(root);
   function animate(t, dt, page) {
     if (!reduced) { sphere.rotation.y = t * 0.4; rings[3].rotation.z = t * 0.6; flags.forEach((f, i) => { f.rotation.y = Math.sin(t * 2.4 + i) * 0.5; f.scale.x = 1 - 0.1 * Math.abs(Math.sin(t * 3.1 + i)); }); }
     const pulse = reduced ? 1 : 0.6 + 0.4 * Math.sin(t * 3);
     leftPath.emissiveIntensity = page === 'opportunity' ? 0.55 * pulse : 0.1;
     rightPath.emissiveIntensity = page === 'choice' ? 0.55 * pulse : 0.1;
-    bridgeMat.emissiveIntensity = page === 'back' ? 0.9 * pulse : 0.15;
+    doorGlow.emissiveIntensity = page === 'back' ? 1.4 * pulse : 0.4;
+    lanyard.emissive?.set(page === 'back' ? '#1c4f8f' : '#000000');
+    leaf.rotation.y = THREE.MathUtils.damp(leaf.rotation.y, page === 'back' ? -1.6 : -1.0, 4, dt || 0.016);
   }
   animate(0, 0, null);
-  return {root, objects: {opportunity: [...unMeshes, ...flags], choice: [...bookMeshes, ...rings, earth], back: [dots]}, animate};
+  return {root, objects: {opportunity: [...unMeshes, ...flags], choice: [...bookMeshes, ...rings, earth], back: [...doorMeshes, leafMesh, ...badgeMeshes]}, animate};
 }
 
 export function buildRoadTrips(parent, {resources, reduced = false, low = false} = {}) {
