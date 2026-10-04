@@ -284,7 +284,8 @@ function patchPorcelainBricks(material, center) {
 
 // Each building's rooms get their own hand-painted wallpaper over a wooden
 // wainscot, chosen to suit the room:
-//   Home      blue-and-white birds and prunus on warm ivory, walnut panels
+//   Home      midnight-blue silk with gilt stars, little envelopes on dotted
+//             flight paths and owl feathers (letters are always welcome), walnut
 //   Research  a deep library-green damask with gilt medallions, dark walnut
 //   Talks     crimson silk with gold cloud medallions, dark lacquer panels
 //   Writing   ink bamboo on rice paper, pale elm panels
@@ -292,7 +293,7 @@ function patchPorcelainBricks(material, center) {
 //             honey silk ground, honey oak panels
 const RAIL_GILT = '#caa255';
 const INTERIORS = {
-  'HWL-home-plaster-crafted-surface': {paper: 'birds', wood: '#5b3b28', rail: RAIL_GILT, scale: 1.15},
+  'HWL-home-plaster-crafted-surface': {paper: 'letters', wood: '#5b3b28', rail: RAIL_GILT, scale: 1.1},
   'research-plaster-crafted-surface': {paper: 'library', wood: '#3e2a1e', rail: RAIL_GILT, scale: 0.9},
   'magic-research-plaster-crafted-surface': {paper: 'library', wood: '#3e2a1e', rail: RAIL_GILT, scale: 0.9},
   'Talks-plaster-crafted-surface': {paper: 'crimson', wood: '#3a1e17', rail: RAIL_GILT, scale: 0.9},
@@ -341,7 +342,35 @@ function wallpaperTexture(kind, low) {
   };
   const branches = [[[30, 500], [130, 400], [70, 270], [210, 170]], [[290, 520], [270, 410], [390, 350], [480, 240]], [[230, 130], [300, 60], [410, 100], [505, 15]]];
 
-  if (kind === 'birds') {
+  if (kind === 'letters') {
+    // midnight silk, gilt stars, little envelopes flying along dotted paths, a few owl feathers
+    grain('#1e2c49', 0.05);
+    const stars = Array.from({length: 26}, () => [r() * 512, r() * 512, 1 + r() * 2.6, r()]);
+    const letters = [[90, 120, -0.35], [330, 70, 0.25], [420, 300, -0.15], [170, 380, 0.4], [260, 230, -0.05]];
+    const paths = [[[40, 200], [120, 40], [330, 70]], [[330, 70], [470, 160], [420, 300]], [[420, 300], [330, 470], [170, 380]], [[170, 380], [40, 300], [90, 120]]];
+    const sparkle = (x, y, R) => { c.beginPath(); c.moveTo(x, y - R * 2.4); c.quadraticCurveTo(x, y, x + R * 2.4, y); c.quadraticCurveTo(x, y, x, y + R * 2.4); c.quadraticCurveTo(x, y, x - R * 2.4, y); c.quadraticCurveTo(x, y, x, y - R * 2.4); c.fill(); };
+    const envelope = (x, y, a) => {
+      c.save(); c.translate(x, y); c.rotate(a);
+      c.fillStyle = '#f3e6c8'; c.fillRect(-15, -10, 30, 20);
+      c.strokeStyle = '#c9a55a'; c.lineWidth = 1.2; c.strokeRect(-15, -10, 30, 20);
+      c.beginPath(); c.moveTo(-15, -10); c.lineTo(0, 2); c.lineTo(15, -10); c.stroke();
+      c.fillStyle = '#9c3a30'; c.beginPath(); c.arc(0, 2, 3.2, 0, Math.PI * 2); c.fill();
+      c.restore();
+    };
+    const feather = (x, y, a) => {
+      c.save(); c.translate(x, y); c.rotate(a); c.fillStyle = '#e9eef2'; c.globalAlpha = 0.85;
+      c.beginPath(); c.moveTo(0, -24); c.quadraticCurveTo(9, -6, 3, 20); c.lineTo(0, 26); c.lineTo(-3, 20); c.quadraticCurveTo(-9, -6, 0, -24); c.fill();
+      c.strokeStyle = '#c9a55a'; c.lineWidth = 1; c.globalAlpha = 1; c.beginPath(); c.moveTo(0, -22); c.lineTo(0, 27); c.stroke(); c.restore();
+    };
+    wrap(() => {
+      c.strokeStyle = '#c9a55a'; c.globalAlpha = 0.5; c.lineWidth = 1.4; c.setLineDash([2, 7]);
+      for (const [a, q, b] of paths) { c.beginPath(); c.moveTo(...a); c.quadraticCurveTo(...q, ...b); c.stroke(); }
+      c.setLineDash([]); c.globalAlpha = 1;
+      for (const [x, y, R, k] of stars) { c.fillStyle = k > 0.7 ? '#f2d58c' : '#c9a55a'; if (R > 2.6) sparkle(x, y, R); else { c.beginPath(); c.arc(x, y, R * 0.7, 0, Math.PI * 2); c.fill(); } }
+      for (const [x, y, a] of letters) envelope(x, y, a);
+      feather(250, 120, 0.6); feather(470, 440, -0.5);
+    });
+  } else if (kind === 'birds') {
     grain('#efece0', 0.035);
     const draw = branchesWith(branches, '#2c4f9c', ['#fbfaf5'], ['#8ea6d4'], '#2c4f9c', '#2c4f9c');
     wrap(() => { draw(); bird(150, 236, -0.25, 1, '#2c4f9c', '#fbfaf5'); bird(395, 318, 0.2, -1, '#2c4f9c', '#fbfaf5'); });
@@ -1426,7 +1455,7 @@ function createPorcelainPagoda({low, ground = 0}) {
   return {group, disposables, glowPoints, meshes, top: [PAGODA.x, top, PAGODA.z]};
 }
 
-export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda, onIceberg} = {}) {
+export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda, onIceberg, onLetters} = {}) {
   const low = quality === 'low', root = new THREE.Group(); root.name = 'Enchantment layer — sky, candles, fireflies, bricks and keepsakes';
   const disposables = new Set(), interactables = [], glowMaterials = [];
   const rand = rng(2024);
@@ -1639,6 +1668,32 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   }
   placeBooks(0);
 
+  // 6b2. Letters spiral up through the Welcome hall: Hanjing is waiting for yours
+  const letterCanvas = document.createElement('canvas'); letterCanvas.width = 128; letterCanvas.height = 88;
+  { const c = letterCanvas.getContext('2d'); c.fillStyle = '#f4e8cc'; c.fillRect(0, 0, 128, 88); c.strokeStyle = '#b8954f'; c.lineWidth = 3; c.strokeRect(2, 2, 124, 84);
+    c.lineWidth = 2.5; c.beginPath(); c.moveTo(3, 3); c.lineTo(64, 50); c.lineTo(125, 3); c.stroke();
+    c.fillStyle = '#9c3a30'; c.beginPath(); c.arc(64, 50, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#c9675a'; c.beginPath(); c.arc(61, 47, 3.5, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#8a7a62'; c.lineWidth = 2; for (const y of [66, 74]) { c.beginPath(); c.moveTo(70, y); c.lineTo(112, y); c.stroke(); } }
+  const letterTex = new THREE.CanvasTexture(letterCanvas); letterTex.colorSpace = THREE.SRGBColorSpace; letterTex.anisotropy = 4;
+  const letterMat = new THREE.MeshStandardMaterial({name: 'enchantment-flying-letters', map: letterTex, emissive: '#ffdca0', emissiveMap: letterTex, emissiveIntensity: 0.28, roughness: 0.8, side: THREE.DoubleSide});
+  const letterGeo = new THREE.PlaneGeometry(0.17, 0.117);
+  const nLetters = low ? 14 : 28, hall = {x: -0.91, y: 0.3, z: -1.75};
+  const letters = new THREE.InstancedMesh(letterGeo, letterMat, nLetters); letters.name = 'enchantment-welcome-letter-spiral'; letters.frustumCulled = false;
+  root.add(letters); [letterTex, letterMat, letterGeo].forEach(r => disposables.add(r));
+  const letterTmp = new THREE.Object3D();
+  function placeLetters(t) {
+    for (let i = 0; i < nLetters; i++) {
+      const k = i / nLetters, f = (k + t * 0.045) % 1, a = k * Math.PI * 6 + t * 0.85, rad = 0.35 + 0.55 * f;
+      letterTmp.position.set(hall.x + Math.cos(a) * rad, hall.y + 0.75 + f * 1.85 + Math.sin(t * 2 + i) * 0.04, hall.z + Math.sin(a) * rad * 0.85);
+      letterTmp.rotation.set(-0.35 + 0.3 * Math.sin(t * 4.1 + i * 1.3), -a + Math.PI / 2, 0.45 * Math.sin(t * 5.3 + i));
+      letterTmp.scale.setScalar(THREE.MathUtils.smoothstep(f, 0, 0.12) * (1 - THREE.MathUtils.smoothstep(f, 0.86, 1)));
+      letterTmp.updateMatrix(); letters.setMatrixAt(i, letterTmp.matrix);
+    }
+    letters.instanceMatrix.needsUpdate = true;
+  }
+  placeLetters(1.5);
+  interactables.push({id: 'enchantment-welcome-letters', type: 'enchant', station: 'home', title: 'Letters in the air', objects: [letters], point: [hall.x, 1.8, hall.z], onInteract: () => onLetters?.()});
+
   // 6c. Warm lit windows, and a cool moonlight rim from behind the island
   const glassNames = /glass-crafted-surface$|^lehigh-(stained|rose-amber)-glass$|^ec-campus-recessed-glass$/;
   const litGlass = new Set();
@@ -1712,7 +1767,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
       bp.setXYZ(i, o.x + Math.sin(k * 2 + i) * 0.25, Math.min(SEA.level - 0.5, o.y + k * 2.4), o.z + Math.cos(k * 1.7 + i) * 0.25);
     }
     bp.needsUpdate = true;
-    if (!reduced) { placeCandles(t); syncHalos(t); placeBooks(t); }
+    if (!reduced) { placeCandles(t); syncHalos(t); placeBooks(t); placeLetters(t); }
     for (const b of bursts) { if (!b.pts.visible) continue; b.mat.uniforms.uScale.value = scale; b.mat.uniforms.uAge.value += dt; if (b.mat.uniforms.uAge.value > 1.8) b.pts.visible = false; }
     if (!reduced) {
       owlTurn += dt;
