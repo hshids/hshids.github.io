@@ -95,6 +95,15 @@ library, books that slide out when clicked (`animateParts` in
 `fidelity-room-kit.js`), a teaser wand for XiaoHei, a butterfly and a head rub
 for JinBingBing (`magic-cats.js`), and a refined projector in Life.
 
+The Life home has its own small modules: `life-cinema.js` (the six-cat picture
+house with curtains, pelmet, marquee and a vignette shader on the screen),
+`life-luggage.js` (the leather suitcase and its stickers) and `life-seafood.js`
+(lifting the pot lid serves steamed Dalian seafood from a bamboo steamer). The
+LEGO star key in the Writing study can be dragged: interactables with a `drag`
+object (`begin`, `move(ray)`, `end(ray)`) are carried on pointer-down instead of
+turning the camera, and tapping still works. `buildHoosacNY` in
+`magic-keepsakes.js` is the Tibbits Hall keepsake in the Welcome hall.
+
 The Lantern Theatre note sends straight to the site's email address through
 FormSubmit (`sendReflection` in `magic-guestbook.js`). The very first note
 triggers a one-time activation email to that inbox; until the link in it is
