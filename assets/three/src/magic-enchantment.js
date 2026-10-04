@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {mergeGeometries, mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // The enchantment layer: a magical night sky, LEGO-like studs and brick
 // courses, floating candles, fireflies, lantern glow, the crystal ball and its
@@ -284,7 +284,8 @@ function patchPorcelainBricks(material, center) {
 
 // Each building's rooms get their own hand-painted wallpaper over a wooden
 // wainscot, chosen to suit the room:
-//   Home      blue-and-white birds and prunus on warm ivory, walnut panels
+//   Home      midnight-blue silk with gilt stars, little envelopes on dotted
+//             flight paths and owl feathers (letters are always welcome), walnut
 //   Research  a deep library-green damask with gilt medallions, dark walnut
 //   Talks     crimson silk with gold cloud medallions, dark lacquer panels
 //   Writing   ink bamboo on rice paper, pale elm panels
@@ -292,7 +293,7 @@ function patchPorcelainBricks(material, center) {
 //             honey silk ground, honey oak panels
 const RAIL_GILT = '#caa255';
 const INTERIORS = {
-  'HWL-home-plaster-crafted-surface': {paper: 'birds', wood: '#5b3b28', rail: RAIL_GILT, scale: 1.15},
+  'HWL-home-plaster-crafted-surface': {paper: 'letters', wood: '#5b3b28', rail: RAIL_GILT, scale: 1.1},
   'research-plaster-crafted-surface': {paper: 'library', wood: '#3e2a1e', rail: RAIL_GILT, scale: 0.9},
   'magic-research-plaster-crafted-surface': {paper: 'library', wood: '#3e2a1e', rail: RAIL_GILT, scale: 0.9},
   'Talks-plaster-crafted-surface': {paper: 'crimson', wood: '#3a1e17', rail: RAIL_GILT, scale: 0.9},
@@ -341,7 +342,35 @@ function wallpaperTexture(kind, low) {
   };
   const branches = [[[30, 500], [130, 400], [70, 270], [210, 170]], [[290, 520], [270, 410], [390, 350], [480, 240]], [[230, 130], [300, 60], [410, 100], [505, 15]]];
 
-  if (kind === 'birds') {
+  if (kind === 'letters') {
+    // midnight silk, gilt stars, little envelopes flying along dotted paths, a few owl feathers
+    grain('#1e2c49', 0.05);
+    const stars = Array.from({length: 26}, () => [r() * 512, r() * 512, 1 + r() * 2.6, r()]);
+    const letters = [[90, 120, -0.35], [330, 70, 0.25], [420, 300, -0.15], [170, 380, 0.4], [260, 230, -0.05]];
+    const paths = [[[40, 200], [120, 40], [330, 70]], [[330, 70], [470, 160], [420, 300]], [[420, 300], [330, 470], [170, 380]], [[170, 380], [40, 300], [90, 120]]];
+    const sparkle = (x, y, R) => { c.beginPath(); c.moveTo(x, y - R * 2.4); c.quadraticCurveTo(x, y, x + R * 2.4, y); c.quadraticCurveTo(x, y, x, y + R * 2.4); c.quadraticCurveTo(x, y, x - R * 2.4, y); c.quadraticCurveTo(x, y, x, y - R * 2.4); c.fill(); };
+    const envelope = (x, y, a) => {
+      c.save(); c.translate(x, y); c.rotate(a);
+      c.fillStyle = '#f3e6c8'; c.fillRect(-15, -10, 30, 20);
+      c.strokeStyle = '#c9a55a'; c.lineWidth = 1.2; c.strokeRect(-15, -10, 30, 20);
+      c.beginPath(); c.moveTo(-15, -10); c.lineTo(0, 2); c.lineTo(15, -10); c.stroke();
+      c.fillStyle = '#9c3a30'; c.beginPath(); c.arc(0, 2, 3.2, 0, Math.PI * 2); c.fill();
+      c.restore();
+    };
+    const feather = (x, y, a) => {
+      c.save(); c.translate(x, y); c.rotate(a); c.fillStyle = '#e9eef2'; c.globalAlpha = 0.85;
+      c.beginPath(); c.moveTo(0, -24); c.quadraticCurveTo(9, -6, 3, 20); c.lineTo(0, 26); c.lineTo(-3, 20); c.quadraticCurveTo(-9, -6, 0, -24); c.fill();
+      c.strokeStyle = '#c9a55a'; c.lineWidth = 1; c.globalAlpha = 1; c.beginPath(); c.moveTo(0, -22); c.lineTo(0, 27); c.stroke(); c.restore();
+    };
+    wrap(() => {
+      c.strokeStyle = '#c9a55a'; c.globalAlpha = 0.5; c.lineWidth = 1.4; c.setLineDash([2, 7]);
+      for (const [a, q, b] of paths) { c.beginPath(); c.moveTo(...a); c.quadraticCurveTo(...q, ...b); c.stroke(); }
+      c.setLineDash([]); c.globalAlpha = 1;
+      for (const [x, y, R, k] of stars) { c.fillStyle = k > 0.7 ? '#f2d58c' : '#c9a55a'; if (R > 2.6) sparkle(x, y, R); else { c.beginPath(); c.arc(x, y, R * 0.7, 0, Math.PI * 2); c.fill(); } }
+      for (const [x, y, a] of letters) envelope(x, y, a);
+      feather(250, 120, 0.6); feather(470, 440, -0.5);
+    });
+  } else if (kind === 'birds') {
     grain('#efece0', 0.035);
     const draw = branchesWith(branches, '#2c4f9c', ['#fbfaf5'], ['#8ea6d4'], '#2c4f9c', '#2c4f9c');
     wrap(() => { draw(); bird(150, 236, -0.25, 1, '#2c4f9c', '#fbfaf5'); bird(395, 318, 0.2, -1, '#2c4f9c', '#fbfaf5'); });
@@ -547,69 +576,237 @@ function buildBridge({x, z0, z1, towerColor, cableColor, deckColor, name, label,
 function buildWhale({low}) {
   const root = new THREE.Group(); root.name = 'enchantment-hidden-whale';
   const disposables = [];
-  const swim = {uPhase: {value: 0}, uGlow: {value: 0}};
-  const prof = [[0, 0.1], [0.6, 0.32], [2, 0.6], [4, 1.12], [6, 1.55], [7.5, 1.72], [9, 1.66], [10.5, 1.42], [11.8, 1.02], [12.6, 0.55], [13, 0.0]];
-  const bodyGeo = new THREE.LatheGeometry(prof.map(([y, r]) => new THREE.Vector2(r, y)), low ? 28 : 48, 0, Math.PI * 2);
+  const swim = {uPhase: {value: 0}, uGlow: {value: 0}, uTime: {value: 0}};
+  // a humpback profile: a long flat rostrum, a deep chest and a slim tail stock
+  const prof = [[0, 0.08], [0.4, 0.26], [1.2, 0.46], [2.2, 0.68], [3.4, 0.98], [4.6, 1.3], [5.8, 1.56], [7.0, 1.72], [8.2, 1.74], [9.2, 1.62], [10.2, 1.4], [11.0, 1.12], [11.7, 0.82], [12.3, 0.5], [12.75, 0.24], [13, 0.0]];
+  const bodyGeo = new THREE.LatheGeometry(prof.map(([y, r]) => new THREE.Vector2(r, y)), low ? 32 : 72, 0, Math.PI * 2);
   bodyGeo.rotateZ(-Math.PI / 2); bodyGeo.translate(-6.5, 0, 0); bodyGeo.scale(1, 0.84, 1);
-  bodyGeo.computeVertexNormals();
-  const pos = bodyGeo.attributes.position, col = new Float32Array(pos.count * 3), dark = new THREE.Color('#2b3b4c'), pale = new THREE.Color('#cdd7de'), c = new THREE.Color();
+  const pos = bodyGeo.attributes.position;
+  // throat pleats cut into the belly from the chin to the navel
   for (let i = 0; i < pos.count; i++) {
     const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), r = Math.hypot(y, z) || 1, a = Math.atan2(z, -y);
-    c.copy(pale).lerp(dark, THREE.MathUtils.smoothstep(y / r, -0.35, 0.25));
-    if (x > 1.2 && y < -0.35 && Math.sin(a * 38) > 0.55) c.multiplyScalar(0.72);          // throat grooves
+    const belly = THREE.MathUtils.smoothstep(-y / r, 0.15, 0.55) * THREE.MathUtils.smoothstep(x, -1.8, 0.6) * (1 - THREE.MathUtils.smoothstep(x, 5.6, 6.4));
+    const pleat = belly * 0.05 * Math.pow(Math.abs(Math.sin(a * 22)), 6);
+    pos.setXYZ(i, x, y - (y / r) * pleat, z - (z / r) * pleat);
+  }
+  bodyGeo.computeVertexNormals();
+  const col = new Float32Array(pos.count * 3), dark = new THREE.Color('#25333f'), slate = new THREE.Color('#3b4d5c'), pale = new THREE.Color('#d6dee3'), c = new THREE.Color();
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i), r = Math.hypot(y, z) || 1;
+    c.copy(pale).lerp(dark, THREE.MathUtils.smoothstep(y / r, -0.42, 0.22));
+    if (y / r > 0.2) c.lerp(slate, 0.35 * (0.5 + 0.5 * Math.sin(x * 2.1 + z * 3.3)));
     col.set([c.r, c.g, c.b], i * 3);
   }
   bodyGeo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-  const skin = new THREE.MeshStandardMaterial({name: 'whale-skin', vertexColors: true, roughness: 0.48, metalness: 0.05, emissive: '#2a8fb0', emissiveIntensity: 0});
+  const skin = new THREE.MeshStandardMaterial({name: 'whale-skin', vertexColors: true, roughness: 0.42, metalness: 0.05, emissive: '#2a8fb0', emissiveIntensity: 0});
   skin.onBeforeCompile = sh => {
-    sh.uniforms.uPhase = swim.uPhase;
-    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uPhase;')
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\nfloat tailW = smoothstep(2.5, -6.5, transformed.x);\ntransformed.y += 0.55 * tailW * sin(uPhase - transformed.x * 0.45);');
+    Object.assign(sh.uniforms, {uPhase: swim.uPhase, uGlow: swim.uGlow, uTime: swim.uTime});
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nuniform float uPhase;\nvarying vec3 vWhaleL;')
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\nvWhaleL = transformed;\nfloat tailW = smoothstep(2.5, -6.5, transformed.x);\ntransformed.y += 0.55 * tailW * sin(uPhase - transformed.x * 0.45) + 0.06 * smoothstep(3.0, 6.5, transformed.x) * sin(uPhase + 1.2);');
+    sh.fragmentShader = sh.fragmentShader.replace('#include <common>', `#include <common>\nuniform float uGlow, uTime;\nvarying vec3 vWhaleL;\n${NOISE_GLSL}`)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+        {
+          // mottled skin, pale scars and barnacle freckles on the back and the chin
+          float mott = enchFbm(vWhaleL * vec3(1.6, 2.4, 2.4));
+          diffuseColor.rgb *= 0.86 + 0.24 * mott;
+          float barn = step(0.965, enchNoise(vWhaleL * 9.0)) * smoothstep(4.2, 6.2, vWhaleL.x);
+          diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.74, 0.79, 0.82), barn * 0.6);
+        }`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+        {
+          // sunlight caustics rippling over the back, and a soft rim when the whale is revealed
+          float up = clamp(normal.y, 0.0, 1.0);
+          float ca = enchNoise(vec3(vWhaleL.xz * 1.6, uTime * 0.6)) * enchNoise(vec3(vWhaleL.xz * 2.7 + 4.0, uTime * 0.45));
+          float rim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.5);
+          totalEmissiveRadiance += vec3(0.35, 0.75, 0.9) * (smoothstep(0.18, 0.45, ca) * up * 0.5 + rim * 0.55) * uGlow;
+        }`);
   };
-  skin.customProgramCacheKey = () => 'enchantment-whale-swim-v1';
+  skin.customProgramCacheKey = () => 'enchantment-whale-swim-v4';
   const body = new THREE.Mesh(bodyGeo, skin); body.name = 'whale-body'; root.add(body); disposables.push(bodyGeo, skin);
   const darkMat = new THREE.MeshStandardMaterial({name: 'whale-dark-details', color: '#1c2733', roughness: 0.5});
-  const finMat = new THREE.MeshStandardMaterial({name: 'whale-pale-fins', color: '#d9e1e6', roughness: 0.55, emissive: '#2a8fb0', emissiveIntensity: 0});
+  const finMat = new THREE.MeshStandardMaterial({name: 'whale-pale-fins', color: '#ffffff', vertexColors: true, roughness: 0.5, emissive: '#2a8fb0', emissiveIntensity: 0});
   disposables.push(darkMat, finMat);
   const details = [];
-  for (let i = 0; i < 9; i++) { const t = new THREE.SphereGeometry(0.13, 8, 6); t.translate(4.6 + i * 0.22, 1.05 - i * 0.07, (i % 2 ? 0.25 : -0.25)); details.push(t); }
-  for (const s of [-1, 1]) {
-    const eye = new THREE.SphereGeometry(0.12, 10, 8); eye.translate(4.4, -0.32, s * 1.22); details.push(eye);
-    const mouth = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(6.4, -0.05, s * 0.3), new THREE.Vector3(5.6, -0.3, s * 0.95), new THREE.Vector3(4.6, -0.42, s * 1.2)]), 16, 0.035, 5, false); details.push(mouth);
+  // knobbly tubercles in rows along the rostrum and the lower jaw
+  for (const [row, yy, zz] of [[0, 0.62, 0], [1, 0.5, 0.32], [1, 0.5, -0.32], [2, -0.2, 0.62], [2, -0.2, -0.62]]) {
+    for (let i = 0; i < (row === 2 ? 6 : 8); i++) {
+      const x = 6.25 - i * 0.32, t = new THREE.SphereGeometry(0.075 + (i % 3) * 0.012, 8, 6);
+      t.scale(1, 0.7, 1); t.translate(x, (yy - i * 0.045) * (row === 2 ? 1 : 1), zz * (1 + i * 0.07)); details.push(t);
+    }
   }
-  const dorsal = new THREE.Shape(); dorsal.moveTo(-0.9, 0); dorsal.quadraticCurveTo(-0.2, 0.15, 0.25, 0.55); dorsal.lineTo(0.6, 0); dorsal.closePath();
-  const dg = new THREE.ExtrudeGeometry(dorsal, {depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2}); dg.translate(-2.6, 0.95, -0.07); details.push(dg);
-  const detailGeo = mergeGeometries(details.map(g => g.index ? g.toNonIndexed() : g), false); details.forEach(g => g.dispose());
-  const detailMesh = new THREE.Mesh(detailGeo, darkMat); detailMesh.name = 'whale-head-eyes-mouth-dorsal'; root.add(detailMesh); disposables.push(detailGeo);
-  // long pectoral fins with a scalloped leading edge
-  const fin = new THREE.Shape(); fin.moveTo(0, 0);
-  for (let i = 1; i <= 8; i++) fin.lineTo(i * 0.5, 0.32 - i * 0.025 + (i % 2 ? 0.07 : 0));
-  fin.lineTo(4.25, 0.05); fin.quadraticCurveTo(2.5, -0.35, 0.2, -0.3); fin.closePath();
-  const fins = [];
+  // chin knob, blowholes, eyes with a ridge above
+  const chin = new THREE.SphereGeometry(0.18, 10, 8); chin.scale(1.3, 0.8, 1); chin.translate(6.05, -0.42, 0); details.push(chin);
   for (const s of [-1, 1]) {
+    const hole = new THREE.SphereGeometry(0.09, 10, 6); hole.scale(1.8, 0.35, 0.7); hole.translate(3.95, 1.06, s * 0.1); details.push(hole);
+    const eye = new THREE.SphereGeometry(0.12, 12, 10); eye.translate(4.4, -0.32, s * 1.22); details.push(eye);
+    const brow = new THREE.TorusGeometry(0.17, 0.035, 6, 14, Math.PI); brow.rotateY(s > 0 ? 0 : Math.PI); brow.translate(4.4, -0.3, s * 1.2); details.push(brow);
+    const mouth = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(6.45, -0.05, s * 0.3), new THREE.Vector3(5.6, -0.3, s * 0.95), new THREE.Vector3(4.6, -0.42, s * 1.2), new THREE.Vector3(4.2, -0.55, s * 1.22)]), 20, 0.035, 5, false); details.push(mouth);
+  }
+  // a small dorsal fin on a hump, as humpbacks have
+  const hump = new THREE.SphereGeometry(0.38, 12, 8); hump.scale(1.8, 0.5, 0.8); hump.translate(-2.2, 0.98, 0); details.push(hump);
+  const dorsal = new THREE.Shape(); dorsal.moveTo(-0.9, 0); dorsal.quadraticCurveTo(-0.2, 0.15, 0.25, 0.55); dorsal.lineTo(0.6, 0); dorsal.closePath();
+  const dg = new THREE.ExtrudeGeometry(dorsal, {depth: 0.14, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.05, bevelSegments: 2}); dg.translate(-2.6, 1.05, -0.07); details.push(dg);
+  const detailGeo = mergeGeometries(details.map(g => g.index ? g.toNonIndexed() : g), false); details.forEach(g => g.dispose());
+  const detailMesh = new THREE.Mesh(detailGeo, darkMat); detailMesh.name = 'whale-head-tubercles-eyes-mouth-dorsal'; root.add(detailMesh); disposables.push(detailGeo);
+  // long white pectoral fins with knobs on the leading edge and dark tips on top
+  const fin = new THREE.Shape(); fin.moveTo(0, 0);
+  for (let i = 1; i <= 10; i++) fin.lineTo(i * 0.42, 0.34 - i * 0.022 + (i % 2 ? 0.07 : 0));
+  fin.lineTo(4.45, 0.04); fin.quadraticCurveTo(2.6, -0.36, 0.2, -0.3); fin.closePath();
+  const fins = [];
+  for (const sd of [-1, 1]) {
     const g = new THREE.ExtrudeGeometry(fin, {depth: 0.1, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.04, bevelSegments: 2, curveSegments: 6});
-    g.rotateX(Math.PI / 2); g.translate(0, 0, 0);
-    const pivot = new THREE.Group(); pivot.position.set(3.4, -0.75, s * 1.35); pivot.rotation.set(0, s * 2.35, s * 0.45); root.add(pivot);
+    g.rotateX(Math.PI / 2);
+    const p = g.attributes.position, fc = new Float32Array(p.count * 3), cc = new THREE.Color();
+    for (let i = 0; i < p.count; i++) { cc.set('#e2e9ed').lerp(new THREE.Color('#2b3a47'), THREE.MathUtils.smoothstep(p.getX(i), 2.6, 4.4) * (p.getY(i) > 0 ? 0.85 : 0.3)); fc.set([cc.r, cc.g, cc.b], i * 3); }
+    g.setAttribute('color', new THREE.BufferAttribute(fc, 3));
+    const pivot = new THREE.Group(); pivot.position.set(3.4, -0.75, sd * 1.35); pivot.rotation.set(0, sd * 2.35, sd * 0.45); root.add(pivot);
     const m = new THREE.Mesh(g, finMat); m.name = 'whale-pectoral-fin'; pivot.add(m); fins.push(pivot); disposables.push(g);
   }
-  // notched flukes on a pivot that follows the tail
-  const fl = new THREE.Shape(); fl.moveTo(0, 0); fl.quadraticCurveTo(-0.5, 1.0, -1.15, 2.0); fl.lineTo(-0.95, 1.6); fl.lineTo(-0.85, 1.25); fl.lineTo(-0.7, 0.85); fl.quadraticCurveTo(-0.45, 0.35, -0.35, 0.1); fl.lineTo(-0.5, 0.0);
-  fl.lineTo(-0.35, -0.1); fl.quadraticCurveTo(-0.45, -0.35, -0.7, -0.85); fl.lineTo(-0.85, -1.25); fl.lineTo(-0.95, -1.6); fl.lineTo(-1.15, -2.0); fl.quadraticCurveTo(-0.5, -1.0, 0, 0);
+  // notched flukes with a serrated trailing edge, dark above and pale below
+  const fl = new THREE.Shape(); fl.moveTo(0, 0); fl.quadraticCurveTo(-0.5, 1.0, -1.15, 2.05);
+  for (let i = 0; i < 7; i++) fl.lineTo(-1.0 + i * 0.05 + (i % 2 ? -0.08 : 0), 1.85 - i * 0.27);
+  fl.quadraticCurveTo(-0.45, 0.3, -0.35, 0.1); fl.lineTo(-0.52, 0.0); fl.lineTo(-0.35, -0.1);
+  for (let i = 6; i >= 0; i--) fl.lineTo(-1.0 + i * 0.05 + (i % 2 ? -0.08 : 0), -(1.85 - i * 0.27));
+  fl.lineTo(-1.15, -2.05); fl.quadraticCurveTo(-0.5, -1.0, 0, 0);
   const flGeo = new THREE.ExtrudeGeometry(fl, {depth: 0.09, bevelEnabled: true, bevelThickness: 0.035, bevelSize: 0.035, bevelSegments: 2, curveSegments: 8});
   flGeo.rotateX(Math.PI / 2); flGeo.translate(0, 0.045, 0);
+  { const p = flGeo.attributes.position, fc = new Float32Array(p.count * 3), cc = new THREE.Color(); for (let i = 0; i < p.count; i++) { cc.set(p.getY(i) > 0.045 ? '#26333f' : '#d9e1e6'); if (p.getY(i) <= 0.045 && Math.sin(p.getZ(i) * 7) > 0.6) cc.set('#3a4855'); fc.set([cc.r, cc.g, cc.b], i * 3); } flGeo.setAttribute('color', new THREE.BufferAttribute(fc, 3)); }
   const flukePivot = new THREE.Group(); flukePivot.position.set(-6.45, 0, 0); root.add(flukePivot);
-  const flukes = new THREE.Mesh(flGeo, darkMat); flukes.name = 'whale-flukes'; flukePivot.add(flukes); disposables.push(flGeo);
+  const flukes = new THREE.Mesh(flGeo, finMat); flukes.name = 'whale-flukes'; flukes.scale.set(1.25, 1, 1.3); flukePivot.add(flukes); disposables.push(flGeo);
   root.traverse(o => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
   return {
     root, disposables, meshes: [body, detailMesh, flukes, ...fins.map(f => f.children[0])],
     update(t, glow, reduced) {
-      const phase = reduced ? 0 : t * 1.25; swim.uPhase.value = phase;
+      const phase = reduced ? 0 : t * 1.25; swim.uPhase.value = phase; swim.uTime.value = reduced ? 0 : t; swim.uGlow.value = glow;
       flukePivot.position.y = 0.55 * Math.sin(phase + 6.45 * 0.45);
       flukePivot.rotation.z = -0.45 * Math.cos(phase + 6.45 * 0.45);
       fins.forEach((f, i) => { f.rotation.x = reduced ? 0 : Math.sin(t * 0.7 + i * Math.PI) * 0.12; });
-      skin.emissiveIntensity = glow * 0.28; finMat.emissiveIntensity = glow * 0.25;
+      skin.emissiveIntensity = glow * 0.22; finMat.emissiveIntensity = glow * 0.25;
     }
   };
+}
+
+// An iceberg in the open sea: a small bright tip above the water, and a far
+// larger mass below it that shows only faintly until it is clicked. Even after
+// a PhD, Hanjing has seen only the tip of what there is to explore.
+const ICEBERG = {x: -6, z: 9};
+// Ice built from a union of ellipsoid lobes (a pinnacle, a shoulder, a flat tabular block, a twin spire),
+// sculpted with vertical melt grooves, faint layering and a wave-cut notch at the waterline. Smooth
+// shading; colour comes from the surface: snow on the tops, pale glacier ice on the cliffs, deeper
+// blue in grooves and in thin bands of old blue ice, turquoise where the sea washes the base.
+function iceForm(lobes, {detail, grooves = 9, seed = 1, notch = 0, below = false, cuts = [], flute = 1}) {
+  let g = new THREE.IcosahedronGeometry(1, detail); g.deleteAttribute('normal'); g.deleteAttribute('uv'); g = mergeVertices(g);
+  const p = g.attributes.position, n = new THREE.Vector3(), groove = new Float32Array(p.count);
+  for (let i = 0; i < p.count; i++) {
+    n.fromBufferAttribute(p, i).normalize();
+    let t = 0;
+    for (const L of lobes) {
+      const [cx, cy, cz] = L.c, [ax, ay, az] = L.a;
+      const A = (n.x / ax) ** 2 + (n.y / ay) ** 2 + (n.z / az) ** 2, B = -2 * (n.x * cx / ax ** 2 + n.y * cy / ay ** 2 + n.z * cz / az ** 2), C = (cx / ax) ** 2 + (cy / ay) ** 2 + (cz / az) ** 2 - 1;
+      const D = B * B - 4 * A * C; if (D < 0) continue;
+      let far = (-B + Math.sqrt(D)) / (2 * A); if (far <= 0) continue;
+      if (L.cap !== undefined && n.y > 0.05) far = Math.min(far, L.cap / n.y);
+      t = Math.max(t, far);
+    }
+    // sheared cliffs: flat planes cut through the lobes leave crisp faces and edges
+    const q = n.clone().multiplyScalar(t);
+    for (const [cx, cy, cz, d] of cuts) { const k = q.x * cx + q.y * cy + q.z * cz; if (k > d) q.addScaledVector(new THREE.Vector3(cx, cy, cz), d - k); }
+    if (below) { const y = q.y, rmax = 2.5 + Math.max(0, -y - 0.2) * 1.6, rr = Math.hypot(q.x, q.z); if (rr > rmax) { q.x *= rmax / rr; q.z *= rmax / rr; } }
+    const dir = q.clone().normalize(), ang = Math.atan2(dir.z, dir.x), side = 1 - Math.abs(dir.y);
+    const wob = Math.sin(ang * 3 + seed) * 0.6 + Math.sin(q.y * 2.2 + seed * 2) * 0.5;
+    const rid = 1 - Math.abs(Math.sin(ang * grooves + wob * 1.6)), g2 = 1 - Math.abs(Math.sin(ang * grooves * 2.3 + wob * 2.4 + 1.3));
+    groove[i] = side * (rid * 0.65 + g2 * 0.35);
+    let m = 1 + side * flute * (0.05 * Math.pow(rid, 3) + 0.022 * g2) + 0.025 * Math.sin(dir.x * 6.1 + seed) * Math.sin(dir.z * 5.3 - seed) * Math.sin(dir.y * 4.7);
+    m *= 1 + 0.01 * Math.sin(q.y * 9.0 + wob);
+    if (notch && q.y > -0.15 && q.y < 0.35) m *= 1 - notch * Math.sin((q.y + 0.15) / 0.5 * Math.PI);
+    p.setXYZ(i, q.x * m, q.y * m, q.z * m);
+  }
+  for (let i = 0; i < p.count; i++) { const y = p.getY(i); if (!below && y < 0) p.setY(i, y * 0.08 - 0.06); if (below && y > 0) p.setY(i, -0.08 - y * 0.02); }
+  g.setAttribute('groove', new THREE.BufferAttribute(groove, 1));
+  g.computeVertexNormals();
+  return g;
+}
+function iceColours(g, {below = false} = {}) {
+  const p = g.attributes.position, nrm = g.attributes.normal, gr = g.attributes.groove, col = new Float32Array(p.count * 3), snow = new Float32Array(p.count), c = new THREE.Color();
+  const snowC = new THREE.Color('#f8fcff'), cliff = new THREE.Color('#b6def0'), deep = new THREE.Color('#5fa6d2'), band = new THREE.Color('#4f9fd0'), sea = new THREE.Color('#5cc6d2'), abyss = new THREE.Color('#1d5b85');
+  for (let i = 0; i < p.count; i++) {
+    const y = p.getY(i), ny = nrm.getY(i), gv = gr.getX(i);
+    if (below) { c.copy(new THREE.Color('#a7deee')).lerp(abyss, THREE.MathUtils.smoothstep(-y, 0.5, 13)); c.lerp(deep, gv * 0.25); snow[i] = 0; }
+    else {
+      const s = THREE.MathUtils.smoothstep(ny, 0.6, 0.88); snow[i] = s;
+      c.copy(cliff).lerp(deep, Math.pow(gv, 2.2) * 0.7);
+      if (Math.sin(y * 7.3 + Math.sin(Math.atan2(p.getZ(i), p.getX(i)) * 2) * 0.8) > 0.93) c.lerp(band, 0.55);
+      c.lerp(sea, 1 - THREE.MathUtils.smoothstep(y, 0.0, 0.45));
+      c.lerp(snowC, s);
+    }
+    col.set([c.r, c.g, c.b], i * 3);
+  }
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('snow', new THREE.BufferAttribute(snow, 1));
+  return g;
+}
+function buildIceberg({low}) {
+  const root = new THREE.Group(); root.name = 'enchantment-iceberg'; root.position.set(ICEBERG.x, SEA.level, ICEBERG.z);
+  const disposables = [], glow = {value: 0}, time = {value: 0};
+  // ice light: glossy cliffs and rough snow, a cold rim, a little light inside the ice, glints on the snow;
+  // the hidden mass stays dim until the deep is revealed, then caustics play over it
+  const icePatch = (m, key, hidden = false) => {
+    m.onBeforeCompile = sh => {
+      Object.assign(sh.uniforms, {uIceGlow: glow, uIceTime: time});
+      sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\nattribute float snow;\nvarying float vSnow;\nvarying vec3 vIceW;')
+        .replace('#include <begin_vertex>', '#include <begin_vertex>\nvSnow = snow;\nvIceW = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+      sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\nuniform float uIceGlow, uIceTime;\nvarying float vSnow;\nvarying vec3 vIceW;')
+        .replace('#include <color_fragment>', hidden ? '#include <color_fragment>\n diffuseColor.rgb *= mix(0.3, 1.0, uIceGlow);' : '#include <color_fragment>')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\n roughnessFactor = mix(0.16, 0.82, vSnow);')
+        .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+          float iceRim = pow(1.0 - abs(dot(normalize(normal), normalize(vViewPosition))), 2.4);
+          totalEmissiveRadiance += vec3(0.38, 0.8, 1.0) * iceRim * (${hidden ? '0.05' : '0.16'} + uIceGlow * 0.9) * (1.0 - 0.55 * vSnow);
+          totalEmissiveRadiance += vec3(0.03, 0.12, 0.17) * (1.0 - vSnow) * ${hidden ? 'uIceGlow' : '0.7'};
+          ${hidden ? `float caus = pow(abs(sin(vIceW.x * 1.7 + uIceTime * 0.9) * sin(vIceW.z * 1.9 - uIceTime * 0.7) + sin(vIceW.y * 1.3 + uIceTime * 0.5) * 0.5), 3.0);
+          totalEmissiveRadiance += vec3(0.25, 0.6, 0.75) * caus * uIceGlow * 0.35;` : `float h = fract(sin(dot(floor(vIceW * 34.0), vec3(12.9898, 78.233, 37.719))) * 43758.5453);
+          totalEmissiveRadiance += vec3(1.0) * step(0.982, h) * (0.5 + 0.5 * sin(uIceTime * 2.6 + h * 60.0)) * vSnow * 0.9;`}`);
+    };
+    m.customProgramCacheKey = () => key;
+  };
+  const tipLobes = [
+    {c: [0.2, 1.4, 0.0], a: [1.1, 2.75, 0.95]},
+    {c: [0.95, 1.5, 0.45], a: [0.5, 2.05, 0.5]},
+    {c: [-1.0, 0.6, 0.3], a: [1.45, 1.35, 1.25]},
+    {c: [1.0, 0.4, -0.3], a: [1.35, 1.1, 1.15], cap: 1.25},
+    {c: [0.0, 0.0, 0.0], a: [2.35, 0.55, 1.95]},
+  ];
+  const tipCuts = [[0.96, 0.08, 0.26, 1.85], [-0.89, 0.05, 0.45, 1.75], [0.2, 0.0, 0.98, 1.25], [-0.28, 0.1, -0.95, 1.35], [0.69, 0.7, 0.18, 2.95], [-0.6, 0.76, -0.25, 2.5], [0.1, 0.55, 0.83, 2.3]].map(([x, y, z, d]) => { const l = Math.hypot(x, y, z); return [x / l, y / l, z / l, d]; });
+  const tipGeo = iceColours(iceForm(tipLobes, {detail: low ? 4 : 5, grooves: 13, seed: 2, notch: 0.08, cuts: tipCuts, flute: 1.2}));
+  // a few bergy bits drifting nearby
+  const bits = [[3.1, 1.6, 0.45, 4], [-2.9, 2.3, 0.38, 6], [0.9, 3.2, 0.3, 8], [-1.6, -2.4, 0.26, 9]].map(([x, z, s, seed]) => {
+    const b = iceColours(iceForm([{c: [0, 0.2, 0], a: [1.2, 0.9, 1.0]}, {c: [0.3, 0.4, 0.2], a: [0.6, 1.0, 0.6]}], {detail: low ? 2 : 3, grooves: 7, seed, notch: 0.05, cuts: [[0.92, 0.3, 0.2, 0.75], [-0.8, 0.2, 0.55, 0.8], [0.1, 0.85, -0.5, 0.75]]}));
+    b.scale(s, s * 0.6, s); b.rotateY(seed); b.translate(x, 0, z); return b;
+  });
+  const tipAll = mergeGeometries([tipGeo, ...bits], false); [tipGeo, ...bits].forEach(g => g.dispose());
+  const tipMat = new THREE.MeshStandardMaterial({name: 'iceberg-tip', color: '#ffffff', vertexColors: true, roughness: 0.3, metalness: 0.0, emissive: '#000000'});
+  icePatch(tipMat, 'enchantment-iceberg-tip-v2');
+  const tip = new THREE.Mesh(tipAll, tipMat); tip.name = 'iceberg-tip-above-water'; tip.castShadow = true; tip.receiveShadow = true; root.add(tip); disposables.push(tipAll, tipMat);
+  // the hidden mass: many times larger, smooth and melt-sculpted, reaching deep into the ball
+  const massGeo = iceColours(iceForm([
+    {c: [0.4, -4.2, 0.2], a: [4.4, 4.9, 3.7]},
+    {c: [-2.4, -2.2, 1.0], a: [2.6, 2.6, 2.4]},
+    {c: [1.6, -7.2, -0.6], a: [2.6, 3.2, 2.3]},
+    {c: [2.4, -1.6, -1.2], a: [2.2, 1.8, 2.0]},
+  ], {detail: low ? 3 : 4, grooves: 6, seed: 5, below: true}), {below: true});
+  const massMat = new THREE.MeshStandardMaterial({name: 'iceberg-hidden-mass', color: '#ffffff', vertexColors: true, roughness: 0.35});
+  icePatch(massMat, 'enchantment-iceberg-mass-v3', true);
+  const mass = new THREE.Mesh(massGeo, massMat); mass.name = 'iceberg-hidden-mass-below-water'; root.add(mass); disposables.push(massGeo, massMat);
+  // soft foam where the ice meets the waves: a ring whose alpha fades outward, flecked with foam
+  const fc = document.createElement('canvas'); fc.width = fc.height = 256; const fx = fc.getContext('2d');
+  const grad = fx.createRadialGradient(128, 128, 60, 128, 128, 128); grad.addColorStop(0, 'rgba(255,255,255,0)'); grad.addColorStop(0.18, 'rgba(255,255,255,0.85)'); grad.addColorStop(0.45, 'rgba(255,255,255,0.35)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  fx.fillStyle = grad; fx.fillRect(0, 0, 256, 256);
+  fx.globalCompositeOperation = 'destination-out'; for (let k = 0; k < 220; k++) { const a = Math.random() * Math.PI * 2, r = 70 + Math.random() * 56; fx.beginPath(); fx.arc(128 + Math.cos(a) * r, 128 + Math.sin(a) * r, 2 + Math.random() * 6, 0, Math.PI * 2); fx.fill(); }
+  const foamTex = new THREE.CanvasTexture(fc);
+  const foamMat = new THREE.MeshBasicMaterial({name: 'iceberg-foam', color: '#eef9fc', map: foamTex, transparent: true, opacity: 0.55, depthWrite: false});
+  const foamGeo = new THREE.CircleGeometry(3.4, 48); foamGeo.rotateX(-Math.PI / 2); foamGeo.scale(1.15, 1, 1);
+  { const q = foamGeo.attributes.position; for (let i = 0; i < q.count; i++) { const a = Math.atan2(q.getZ(i), q.getX(i)); const k = 1 + 0.1 * Math.sin(a * 5) + 0.05 * Math.sin(a * 13); q.setX(i, q.getX(i) * k); q.setZ(i, q.getZ(i) * k); } }
+  const foam = new THREE.Mesh(foamGeo, foamMat); foam.name = 'iceberg-foam-ring'; foam.position.y = 0.05; foam.renderOrder = 12; root.add(foam); disposables.push(foamGeo, foamMat, foamTex);
+  return {root, disposables, meshes: [tip, mass], point: [ICEBERG.x, SEA.level + 2, ICEBERG.z],
+    update(t, reveal, reduced) { glow.value = reveal; time.value = t; if (!reduced) { foam.scale.setScalar(1 + 0.04 * Math.sin(t * 1.3)); foam.rotation.y = t * 0.02; tip.rotation.z = Math.sin(t * 0.4) * 0.008; mass.rotation.z = tip.rotation.z; root.position.y = SEA.level + Math.sin(t * 0.5) * 0.06; } }};
 }
 
 /** Merge the still meshes under a group by material, leaving excluded subtrees alone. */
@@ -622,7 +819,7 @@ function mergeStill(group, exclude = []) {
     if (!bins.has(o.material)) bins.set(o.material, []); bins.get(o.material).push(g); originals.push(o);
   });
   originals.forEach(o => { o.removeFromParent(); o.geometry.dispose(); });
-  for (const [m, list] of bins) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = group.name + '-' + m.name; mesh.castShadow = true; group.add(mesh); }
+  for (const [m, list] of bins) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = group.name + '-' + m.name; mesh.castShadow = !m.transparent; group.add(mesh); }
 }
 
 /** A snowy owl on the post box: white plumage, sparse dark speckles, golden
@@ -630,58 +827,86 @@ function mergeStill(group, exclude = []) {
 function buildOwl() {
   const root = new THREE.Group(); root.name = 'enchantment-snowy-owl-post';
   const plume = new THREE.MeshStandardMaterial({name: 'owl-snowy-plumage', color: '#f7f5f0', roughness: 0.92});
-  const shade = new THREE.MeshStandardMaterial({name: 'owl-soft-grey-feather-layer', color: '#e4e1da', roughness: 0.95});
-  const iris = new THREE.MeshStandardMaterial({name: 'owl-golden-eyes', color: '#f2c21a', emissive: '#a36a00', emissiveIntensity: 0.5, roughness: 0.25});
-  const dark = new THREE.MeshStandardMaterial({name: 'owl-pupils-beak-talons', color: '#17130f', roughness: 0.35});
-  const speck = new THREE.MeshStandardMaterial({name: 'owl-dark-speckles', color: '#3b352f', roughness: 0.8});
+  const shade = new THREE.MeshStandardMaterial({name: 'owl-soft-grey-feather-layer', color: '#e6e3dc', roughness: 0.95});
+  const iris = new THREE.MeshStandardMaterial({name: 'owl-golden-eyes', color: '#f4c418', emissive: '#a36a00', emissiveIntensity: 0.55, roughness: 0.2});
+  const dark = new THREE.MeshStandardMaterial({name: 'owl-pupils-beak-talons', color: '#17130f', roughness: 0.3});
+  const speck = new THREE.MeshStandardMaterial({name: 'owl-dark-speckles', color: '#4a433b', roughness: 0.8});
   const paper = new THREE.MeshStandardMaterial({name: 'owl-letter-paper', color: '#efe3c6', roughness: 0.85});
   const seal = new THREE.MeshStandardMaterial({name: 'owl-letter-wax-seal', color: '#9c2a24', roughness: 0.45});
-  const mats = [plume, shade, iris, dark, speck, paper, seal];
+  const ribbon = new THREE.MeshStandardMaterial({name: 'owl-letter-ribbon', color: '#7b1f2a', roughness: 0.55});
+  const mats = [plume, shade, iris, dark, speck, paper, seal, ribbon];
   const ball = (r, m, sc, p, parent = root, seg = 18) => { const o = new THREE.Mesh(new THREE.SphereGeometry(r, seg, Math.round(seg * 0.7)), m); o.scale.set(...sc); o.position.set(...p); o.castShadow = true; parent.add(o); return o; };
-  // body and chest
+  // a solid feather scale: a flattened half-ellipsoid, so layers overlap with soft shading and no cut edges
+  const scale = (w, h, d = 0.012) => { const g = new THREE.SphereGeometry(1, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2); g.rotateX(Math.PI / 2); g.scale(w / 2, h / 2, d); g.translate(0, -h / 2.4, 0); return g; };
+  const lay = (geo, mat, at, rot, parent = root) => { const f = new THREE.Mesh(geo, mat); f.position.set(...at); f.rotation.set(...rot); f.castShadow = true; parent.add(f); return f; };
+  // body and chest, with rows of overlapping breast scales and a few dark bars
   ball(0.2, plume, [1.0, 1.24, 0.96], [0, 0.27, 0]);
   ball(0.165, plume, [0.92, 1.02, 0.55], [0, 0.25, 0.1]);
-  const chestSpecks = [[-0.05, 0.33], [0.04, 0.30], [-0.02, 0.24], [0.06, 0.21], [-0.065, 0.19], [0.0, 0.16]];
-  for (const [x, y] of chestSpecks) { const c = ball(0.011, shade, [1.6, 0.45, 0.35], [x, y, 0.185 - Math.abs(x) * 0.5], root, 6); c.rotation.z = x > 0 ? 0.35 : -0.35; }
-  // folded wings: layered feathers with dark tips
+  const breast = scale(0.055, 0.06);
+  for (let row = 0; row < 5; row++) for (let k = -2; k <= 2; k++) {
+    const x = k * 0.04 + (row % 2) * 0.02, y = 0.43 - row * 0.055;
+    if (Math.abs(x) > 0.1) continue;
+    const z = 0.2 - x * x * 3.2 - Math.abs(row - 2) * 0.012;
+    lay(breast, row < 2 ? plume : shade, [x, y, z], [-0.2, x * 2.4, 0]);
+    if ((row + k) % 3 === 0 && row > 0) ball(0.007, speck, [1.8, 0.5, 0.3], [x, y - 0.04, z + 0.008], root, 6);
+  }
+  // folded wings lying along the flanks: coverts, secondaries and long primaries, with dark bars
+  const covert = scale(0.08, 0.08, 0.016), secondary = scale(0.07, 0.15, 0.014), primary = scale(0.06, 0.2, 0.012);
+  const wings = [];
   for (const s of [-1, 1]) {
-    const wing = new THREE.Group(); wing.position.set(s * 0.165, 0.32, -0.02); wing.rotation.z = s * 0.16; root.add(wing);
-    for (let k = 0; k < 6; k++) {
-      const f = ball(0.075, k < 3 ? plume : shade, [0.42, 1.0, 1.0], [s * 0.01 * k, -0.035 * k, -0.02 * k], wing, 10);
-      f.scale.y = 1.0 + k * 0.12;
-      if (k >= 3) ball(0.022, speck, [0.5, 1.6, 0.8], [s * (0.03 + 0.01 * k), -0.035 * k - 0.05, 0.03 - 0.02 * k], wing, 6);
-    }
-    for (let k = 0; k < 4; k++) ball(0.012, speck, [1.0, 0.7, 0.6], [s * 0.035, 0.03 - k * 0.055, 0.045 - k * 0.012], wing, 6);
+    const wing = new THREE.Group(); wing.position.set(s * 0.175, 0.44, -0.02); root.add(wing); wings.push(wing);
+    const along = [0, s * Math.PI / 2, 0];
+    for (let k = 0; k < 4; k++) lay(covert, plume, [s * 0.01, -0.02 - k * 0.032, 0.06 - k * 0.035], [0.1, along[1], 0], wing);
+    for (let k = 0; k < 5; k++) lay(secondary, k % 2 ? shade : plume, [s * 0.016, -0.09 - k * 0.012, 0.04 - k * 0.04], [0.22, along[1], 0], wing);
+    for (let k = 0; k < 5; k++) lay(primary, shade, [s * 0.02, -0.12 - k * 0.008, -0.06 - k * 0.03], [0.4, along[1], 0], wing);
+    for (let k = 0; k < 7; k++) ball(0.009, speck, [0.4, 0.7, 1.6], [s * 0.035, -0.09 - k * 0.036, 0.03 - k * 0.026], wing, 6);
   }
   // tail fan
-  for (const t of [-1, 0, 1]) { const f = ball(0.06, shade, [0.6, 0.22, 1.5], [t * 0.05, 0.08, -0.17]); f.rotation.y = t * 0.25; f.rotation.x = -0.5; }
-  // feathered feet with black talons
+  const tailF = scale(0.05, 0.12, 0.012);
+  for (const t of [-2, -1, 0, 1, 2]) lay(tailF, t % 2 ? shade : plume, [t * 0.024, 0.17, -0.18], [-2.35, t * 0.16, 0]);
+  // feathered feet with black hooked talons
   for (const s of [-1, 1]) {
     ball(0.045, plume, [1.0, 0.75, 1.25], [s * 0.065, 0.025, 0.08], root, 10);
-    for (let c = -1; c <= 1; c++) { const t = new THREE.Mesh(new THREE.ConeGeometry(0.008, 0.035, 5), dark); t.position.set(s * 0.065 + c * 0.018, 0.005, 0.13); t.rotation.x = Math.PI / 2 + 0.6; root.add(t); }
+    for (let c = -1; c <= 1; c++) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.014, 0.0045, 5, 8, Math.PI * 0.8), dark); t.position.set(s * 0.065 + c * 0.018, 0.012, 0.125); t.rotation.set(0, Math.PI / 2, -0.6); root.add(t); }
   }
-  // head, facial disc, eyes and beak
+  // head: round, with a soft facial disc ring, golden eyes under white brows, and a black beak in white bristles
   const head = new THREE.Group(); head.position.set(0, 0.56, 0.01); root.add(head);
   ball(0.175, plume, [1.06, 0.92, 0.96], [0, 0, 0], head);
   ball(0.15, plume, [1.0, 0.86, 0.45], [0, -0.012, 0.095], head);
-  for (const s of [-1, 1]) ball(0.07, plume, [1.0, 1.0, 0.5], [s * 0.058, 0.01, 0.12], head, 12);
+  const discScale = scale(0.04, 0.05, 0.01);
+  for (const s of [-1, 1]) for (let k = 0; k < 8; k++) { const a = -1.0 + k * 0.32; lay(discScale, k % 2 ? shade : plume, [s * (0.06 + Math.cos(a) * 0.062), 0.018 + Math.sin(a) * 0.062, 0.14], [0, 0, s * (Math.PI / 2 + a)], head); }
+  for (const s of [-1, 1]) ball(0.068, plume, [1.0, 1.0, 0.5], [s * 0.058, 0.01, 0.125], head, 14);
   const eyes = new THREE.Group(); head.add(eyes);
   for (const s of [-1, 1]) {
-    ball(0.034, iris, [1, 1, 0.55], [s * 0.06, 0.018, 0.153], eyes, 14);
-    ball(0.017, dark, [1, 1, 0.5], [s * 0.06, 0.018, 0.168], eyes, 10);
-    ball(0.006, plume, [1, 1, 0.5], [s * 0.06 + 0.008, 0.028, 0.176], eyes, 6);
+    ball(0.036, dark, [1.08, 1.08, 0.5], [s * 0.06, 0.018, 0.15], eyes, 14);
+    ball(0.033, iris, [1, 1, 0.55], [s * 0.06, 0.018, 0.155], eyes, 16);
+    ball(0.016, dark, [1, 1, 0.5], [s * 0.06, 0.018, 0.17], eyes, 10);
+    ball(0.006, plume, [1, 1, 0.5], [s * 0.06 + 0.009, 0.029, 0.177], eyes, 6);
+    const brow = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.009, 6, 14, Math.PI * 0.7), plume); brow.position.set(s * 0.06, 0.022, 0.158); brow.rotation.set(0.2, 0, Math.PI * 0.15); head.add(brow);
   }
-  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.045, 6), dark); beak.position.set(0, -0.03, 0.17); beak.rotation.x = Math.PI * 0.62; head.add(beak);
-  for (const s of [-1, 1]) { const bristle = new THREE.Mesh(new THREE.ConeGeometry(0.012, 0.04, 5), plume); bristle.position.set(s * 0.016, -0.012, 0.172); bristle.rotation.set(Math.PI * 0.55, 0, s * 0.5); head.add(bristle); }
-  for (let i = 0; i < 5; i++) ball(0.008, speck, [1.4, 0.7, 0.5], [(i - 2) * 0.04, 0.13 - Math.abs(i - 2) * 0.012, 0.05 - Math.abs(i - 2) * 0.03], head, 6);
-  // a sealed letter resting at its feet
+  // little round wire spectacles: two gold rims with faint lenses, a bridge over the beak, temples into the feathers
+  const wire = new THREE.MeshStandardMaterial({name: 'owl-spectacle-gold-wire', color: '#d4ac55', roughness: 0.28, metalness: 0.85});
+  const lens = new THREE.MeshStandardMaterial({name: 'owl-spectacle-lens', color: '#e8f4ff', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.16, depthWrite: false});
+  mats.push(wire, lens);
+  for (const s of [-1, 1]) {
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.041, 0.0035, 6, 36), wire); rim.position.set(s * 0.061, 0.018, 0.186); rim.rotation.y = s * 0.16; head.add(rim);
+    const glass = new THREE.Mesh(new THREE.CircleGeometry(0.04, 28), lens); glass.position.set(s * 0.061, 0.018, 0.185); glass.rotation.y = s * 0.16; glass.renderOrder = 2; head.add(glass);
+    const temple = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(s * 0.101, 0.022, 0.178), new THREE.Vector3(s * 0.13, 0.03, 0.15), new THREE.Vector3(s * 0.158, 0.035, 0.095)]), 8, 0.0028, 5, false), wire); head.add(temple);
+  }
+  const bridge = new THREE.Mesh(new THREE.TorusGeometry(0.0145, 0.003, 6, 14, Math.PI), wire); bridge.position.set(0, 0.022, 0.19); head.add(bridge);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.045, 8), dark); beak.position.set(0, -0.03, 0.17); beak.rotation.x = Math.PI * 0.62; head.add(beak);
+  for (const s of [-1, 0, 1]) lay(scale(0.022, 0.045, 0.008), plume, [s * 0.017, 0.012, 0.172], [-0.5, 0, s * 0.35], head);
+  for (let i = 0; i < 6; i++) ball(0.007, speck, [1.4, 0.7, 0.5], [(i - 2.5) * 0.035, 0.13 - Math.abs(i - 2.5) * 0.012, 0.05 - Math.abs(i - 2.5) * 0.028], head, 6);
+  // a sealed letter tied with a ribbon, held under one talon
   const letter = new THREE.Group(); letter.position.set(0.02, 0.006, 0.2); letter.rotation.y = -0.3; root.add(letter);
   const env = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.006, 0.13), paper); env.castShadow = true; letter.add(env);
   const flap = new THREE.Mesh(new THREE.CylinderGeometry(0.0, 0.1, 0.004, 3, 1), shade); flap.rotation.y = Math.PI / 2; flap.scale.set(0.65, 1, 1.0); flap.position.set(0, 0.005, -0.02); letter.add(flap);
-  const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.008, 12), seal); wax.position.set(0, 0.009, 0.008); letter.add(wax);
+  for (const [w, d, x, z] of [[0.205, 0.012, 0, 0.03], [0.012, 0.135, 0.05, 0]]) { const band = new THREE.Mesh(new THREE.BoxGeometry(w, 0.008, d), ribbon); band.position.set(x, 0.002, z); letter.add(band); }
+  const wax = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.008, 14), seal); wax.position.set(0.05, 0.009, 0.03); letter.add(wax);
   mergeStill(head, [eyes]);
-  mergeStill(root, [head]);
-  return {root, head, eyes, materials: mats};
+  for (const w of wings) mergeStill(w);
+  mergeStill(root, [head, ...wings]);
+  return {root, head, eyes, wings, materials: mats};
 }
 
 // The crystal ball that holds Hanjing's inner world: a glass sphere, an open
@@ -1320,7 +1545,86 @@ function createPorcelainPagoda({low, ground = 0}) {
   return {group, disposables, glowPoints, meshes, top: [PAGODA.x, top, PAGODA.z]};
 }
 
-export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda} = {}) {
+// A rolling whiteboard in the Question Library: a nod to The Big Bang Theory,
+// Hanjing's first glimpse of research life. Equations, a research to-do list,
+// a whale and a cat in the margin, and a sticky note that knocks three times.
+function drawWhiteboard(c, W, H) {
+  c.fillStyle = '#f7f8f6'; c.fillRect(0, 0, W, H);
+  for (let i = 0; i < 9; i++) { const g = c.createRadialGradient(Math.random() * W, Math.random() * H, 10, Math.random() * W, Math.random() * H, 140); g.addColorStop(0, 'rgba(120,130,150,0.06)'); g.addColorStop(1, 'rgba(120,130,150,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); }
+  const hand = size => `600 ${size}px "Magic Hand", "Segoe Print", cursive`;
+  const blue = '#1f3f8f', red = '#b8352c', ink = '#222', green = '#2f8a4e';
+  c.textBaseline = 'alphabetic'; c.lineCap = 'round'; c.lineJoin = 'round';
+  // the physics corner, a nod to a certain sitcom's whiteboards
+  c.fillStyle = blue; c.font = hand(56); c.fillText('E = mc²', 46, 92);
+  c.font = hand(36); c.fillText('iħ ∂ψ/∂t = Ĥψ', 50, 146);
+  c.strokeStyle = blue; c.lineWidth = 2.5; for (let k = 0; k < 3; k++) { c.save(); c.translate(330, 96); c.rotate(k * Math.PI / 3); c.beginPath(); c.ellipse(0, 0, 46, 15, 0, 0, Math.PI * 2); c.stroke(); c.restore(); }
+  c.fillStyle = red; c.beginPath(); c.arc(330, 96, 6, 0, Math.PI * 2); c.fill();
+  // machine learning: attention and gradient descent
+  c.fillStyle = ink; c.font = hand(28); c.fillText('Attention(Q, K, V) =', 50, 214);
+  c.fillStyle = blue; c.font = hand(42); c.fillText('softmax(QKᵀ / √d) V', 72, 262);
+  c.fillStyle = red; c.font = hand(40); c.fillText('θ ← θ − η ∇L(θ)', 50, 330);
+  c.fillStyle = ink; c.font = hand(24); c.fillText('take a small step downhill, again and again', 56, 362);
+  // a little neural network: 3 inputs, two hidden layers, 2 outputs
+  const layers = [3, 4, 4, 2], nx = k => 520 + k * 84, ny = (n, j) => 130 + (j - (n - 1) / 2) * 44;
+  c.strokeStyle = 'rgba(40,50,70,0.45)'; c.lineWidth = 1.6;
+  for (let k = 0; k < layers.length - 1; k++) for (let a = 0; a < layers[k]; a++) for (let b = 0; b < layers[k + 1]; b++) { c.beginPath(); c.moveTo(nx(k), ny(layers[k], a)); c.lineTo(nx(k + 1), ny(layers[k + 1], b)); c.stroke(); }
+  layers.forEach((n, k) => { for (let j = 0; j < n; j++) { c.beginPath(); c.arc(nx(k), ny(n, j), 13, 0, Math.PI * 2); c.fillStyle = k === 0 ? '#f7f8f6' : k === layers.length - 1 ? '#f6d9d4' : '#dfe6f5'; c.fill(); c.strokeStyle = k === layers.length - 1 ? red : blue; c.lineWidth = 3; c.stroke(); } });
+  c.fillStyle = ink; c.font = hand(26); c.fillText('x', nx(0) - 40, 138); c.fillText('ŷ', nx(3) + 26, 138);
+  c.fillStyle = blue; c.font = hand(28); c.fillText('h = σ(Wx + b)', 560, 250);
+  // a loss curve going down over the epochs, with a ball rolling toward the minimum
+  const ox = 600, oy = 470, aw = 260, ah = 150;
+  c.strokeStyle = ink; c.lineWidth = 3; c.beginPath(); c.moveTo(ox, oy - ah); c.lineTo(ox, oy); c.lineTo(ox + aw, oy); c.stroke();
+  c.beginPath(); c.moveTo(ox - 7, oy - ah + 10); c.lineTo(ox, oy - ah); c.lineTo(ox + 7, oy - ah + 10); c.moveTo(ox + aw - 10, oy - 7); c.lineTo(ox + aw, oy); c.lineTo(ox + aw - 10, oy + 7); c.stroke();
+  c.strokeStyle = red; c.lineWidth = 4; c.beginPath();
+  for (let x = 0; x <= aw - 16; x += 4) { const y = oy - 18 - (ah - 34) * Math.exp(-x / 55) - 5 * Math.sin(x / 9) * Math.exp(-x / 90); x ? c.lineTo(ox + 8 + x, y) : c.moveTo(ox + 8 + x, y); }
+  c.stroke();
+  c.fillStyle = green; c.beginPath(); c.arc(ox + 70, oy - 18 - (ah - 34) * Math.exp(-62 / 55) - 12, 9, 0, Math.PI * 2); c.fill();
+  c.fillStyle = ink; c.font = hand(24); c.fillText('loss', ox - 52, oy - ah + 20); c.fillText('epochs', ox + aw - 70, oy + 30);
+  c.fillStyle = red; c.font = hand(32); c.fillText('∑ curiosity → ∞', 650, 524);
+  // the research list
+  c.fillStyle = ink; c.font = hand(40); c.fillText('Questions worth a PhD', 50, 432);
+  c.strokeStyle = ink; c.lineWidth = 3; c.beginPath(); c.moveTo(50, 444); c.lineTo(440, 440); c.stroke();
+  c.font = hand(31);
+  ['1. Who stays in charge of the AI?', '2. What does a persona promise?', '3. Wider or deeper?  wider!'].forEach((t, i) => c.fillText(t, 60, 488 + i * 46));
+  c.strokeStyle = green; c.lineWidth = 5; c.beginPath(); c.moveTo(368, 572); c.lineTo(381, 585); c.lineTo(409, 552); c.stroke();
+  // one whale in the margin
+  c.save(); c.translate(430, 568); c.scale(0.55, 0.55); c.strokeStyle = blue; c.lineWidth = 5;
+  c.beginPath(); c.moveTo(560, 70); c.quadraticCurveTo(640, 0, 740, 55); c.quadraticCurveTo(770, 70, 790, 40); c.quadraticCurveTo(785, 70, 800, 90); c.quadraticCurveTo(770, 78, 740, 80); c.quadraticCurveTo(640, 120, 560, 70); c.stroke();
+  c.beginPath(); c.arc(590, 62, 4, 0, Math.PI * 2); c.stroke(); c.beginPath(); c.moveTo(610, 30); c.quadraticCurveTo(600, 0, 615, -10); c.moveTo(610, 30); c.quadraticCurveTo(625, 0, 640, 5); c.stroke(); c.restore();
+  // a yellow sticky note in the corner
+  c.save(); c.translate(W - 190, 26); c.rotate(0.05); c.fillStyle = '#ffe680'; c.fillRect(0, 0, 160, 140); c.fillStyle = 'rgba(0,0,0,0.08)'; c.fillRect(0, 0, 160, 14);
+  c.fillStyle = '#5a3d1a'; c.font = hand(28); c.fillText('Knock, knock,', 12, 56); c.fillText('knock.', 12, 88); c.fillText('Hanjing!', 12, 122); c.restore();
+}
+function createWhiteboard({garden, low}) {
+  const station = garden?.root.children.find(o => o.name === 'research-complete-two-storey-library'); if (!station) return null;
+  const disposables = [], group = new THREE.Group(); group.name = 'enchantment-research-whiteboard';
+  group.position.set(2.62, 0.116, -1.05); group.rotation.y = -Math.PI / 2 + 0.45; station.add(group);
+  const W = low ? 768 : 1024, H = Math.round(W * 0.65), cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+  const ctx = cv.getContext('2d'); ctx.scale(W / 1024, W / 1024); drawWhiteboard(ctx, 1024, 666);
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  document.fonts?.load('600 40px "Magic Hand"').then(() => { ctx.setTransform(W / 1024, 0, 0, W / 1024, 0, 0); drawWhiteboard(ctx, 1024, 666); tex.needsUpdate = true; }).catch(() => {});
+  const boardMat = new THREE.MeshStandardMaterial({name: 'whiteboard-surface', map: tex, roughness: 0.28, metalness: 0.02});
+  const frameMat = new THREE.MeshStandardMaterial({name: 'whiteboard-aluminium', color: '#c9ced3', roughness: 0.3, metalness: 0.7});
+  const darkMat = new THREE.MeshStandardMaterial({name: 'whiteboard-casters', color: '#2a2c30', roughness: 0.6});
+  disposables.push(tex, boardMat, frameMat, darkMat);
+  const bw = 1.0, bh = 0.65, cy = 1.28;
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(bw, bh), boardMat); board.position.set(0, cy, 0.012); board.name = 'whiteboard-writing-surface'; group.add(board); disposables.push(board.geometry);
+  const parts = [];
+  const add = (g, p) => { g.translate(...p); parts.push(g); };
+  add(new THREE.BoxGeometry(bw + 0.05, bh + 0.05, 0.02), [0, cy, 0]);
+  add(new THREE.BoxGeometry(0.6, 0.02, 0.06), [0, cy - bh / 2 - 0.03, 0.04]);
+  for (const sx of [-1, 1]) { add(new THREE.BoxGeometry(0.035, 1.6, 0.035), [sx * (bw / 2 + 0.05), 0.82, 0]); add(new THREE.BoxGeometry(0.035, 0.035, 0.5), [sx * (bw / 2 + 0.05), 0.05, 0]); }
+  add(new THREE.BoxGeometry(bw + 0.1, 0.03, 0.03), [0, 0.3, 0]);
+  const frame = new THREE.Mesh(mergeGeometries(parts.map(g => g.toNonIndexed()), false), frameMat); parts.forEach(g => g.dispose()); frame.castShadow = true; frame.name = 'whiteboard-stand'; group.add(frame); disposables.push(frame.geometry);
+  const casters = []; for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const w = new THREE.CylinderGeometry(0.025, 0.025, 0.02, 12); w.rotateZ(Math.PI / 2); w.translate(sx * (bw / 2 + 0.05), 0.025 - 0.0, sz * 0.22); casters.push(w); }
+  // markers on the tray
+  for (const [k, col] of ['#1f3f8f', '#b8352c', '#222'].entries()) { const m = new THREE.CylinderGeometry(0.008, 0.008, 0.11, 8); m.rotateZ(Math.PI / 2); m.translate(-0.15 + k * 0.12, cy - bh / 2 - 0.012, 0.045); const mat = new THREE.MeshStandardMaterial({name: 'whiteboard-marker-' + k, color: col, roughness: 0.4}); disposables.push(mat, m); group.add(new THREE.Mesh(m, mat)); }
+  const wheels = new THREE.Mesh(mergeGeometries(casters.map(g => g.toNonIndexed()), false), darkMat); casters.forEach(g => g.dispose()); group.add(wheels); disposables.push(wheels.geometry);
+  station.updateMatrixWorld(true);
+  return {group, disposables, meshes: [board, frame], point: board.getWorldPosition(new THREE.Vector3()).toArray()};
+}
+
+export function createEnchantment({scene, renderer, landscape, garden, quality = 'high', reduced = false, onStory, onOwl, onWhale, onPagoda, onIceberg, onLetters, onWhiteboard} = {}) {
   const low = quality === 'low', root = new THREE.Group(); root.name = 'Enchantment layer — sky, candles, fireflies, bricks and keepsakes';
   const disposables = new Set(), interactables = [], glowMaterials = [];
   const rand = rng(2024);
@@ -1359,6 +1663,10 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   garden?.root.updateMatrixWorld(true);
   const fusion = createFusionDetails({garden, low});
   fusion.disposables.forEach(r => disposables.add(r));
+
+  // 2a0. The whiteboard in the Question Library
+  const whiteboard = createWhiteboard({garden, low});
+  if (whiteboard) { whiteboard.disposables.forEach(r => disposables.add(r)); interactables.push({id: 'enchantment-research-whiteboard', type: 'enchant', station: 'research', title: 'A whiteboard', objects: whiteboard.meshes, point: whiteboard.point, onInteract: () => onWhiteboard?.()}); }
 
   // 2a. Chinoiserie wallpaper on the inner walls of every room
   const rooms = [];
@@ -1471,7 +1779,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   // 5b. The hidden whale: Hanjing sounds a little like 鲸 (jing), whale.
   const whale = buildWhale({low});
   root.add(whale.root); whale.disposables.forEach(r => disposables.add(r));
-  const whalePath = {cx: GLOBE.cx, cz: 12.5, y: -7.5, ax: 13, az: 2.5, period: 120};
+  const whalePath = {cx: GLOBE.cx + 4.5, cz: 12.5, y: -7.5, ax: 11, az: 2.5, period: 120};
   let reveal = 0, revealTarget = 0, revealUntil = 0;
   const bubbleEntries = [];
   for (let i = 0; i < (low ? 18 : 40); i++) bubbleEntries.push({p: [0, -100, 0], c: '#cfefff', s: 0.12 + rand() * 0.18, ph: rand()});
@@ -1479,12 +1787,20 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   const bubbles = new THREE.Points(pointsGeometry(bubbleEntries), bubbleMat); bubbles.name = 'enchantment-whale-bubbles'; bubbles.frustumCulled = false; root.add(bubbles);
   disposables.add(bubbles.geometry); disposables.add(bubbleMat);
   const bubbleAge = bubbleEntries.map((_, i) => i / bubbleEntries.length * 6), bubbleOrigin = bubbleEntries.map(() => new THREE.Vector3());
-  function toggleWhale() {
-    revealTarget = revealTarget > 0.5 ? 0 : 1; revealUntil = time + 45;
-    if (revealTarget) onWhale?.();
+  let revealedBy = null;
+  function revealDeep(source) {
+    const hide = revealTarget > 0.5 && revealedBy === source;
+    revealTarget = hide ? 0 : 1; revealUntil = time + 45; revealedBy = hide ? null : source;
+    if (!hide) (source === 'iceberg' ? onIceberg : onWhale)?.();
     return revealTarget;
   }
+  const toggleWhale = () => revealDeep('whale');
   interactables.push({id: 'enchantment-hidden-whale', type: 'enchant', title: 'Something moves in the deep', objects: [...whale.meshes, sea.water], point: [GLOBE.cx, -12, GLOBE.cz], onInteract: toggleWhale});
+
+  // 5a. The iceberg: the tip of everything there is still to learn
+  const iceberg = buildIceberg({low});
+  root.add(iceberg.root); iceberg.disposables.forEach(r => disposables.add(r));
+  interactables.push({id: 'enchantment-iceberg', type: 'enchant', title: 'An iceberg', objects: iceberg.meshes, point: iceberg.point, onInteract: () => revealDeep('iceberg')});
 
   // 5c. The porcelain pagoda rings its bells when visited
   interactables.push({id: 'enchantment-porcelain-pagoda', type: 'enchant', title: 'The porcelain pagoda', objects: pagoda.meshes, point: pagoda.top, onInteract: () => { burst(pagoda.top); onPagoda?.(); }});
@@ -1493,8 +1809,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   const owl = buildOwl();
   owl.root.position.set(32.6, 1.8, -11.15); owl.root.rotation.y = 0.25; owl.root.scale.setScalar(0.72);
   root.add(owl.root); owl.materials.forEach(m => disposables.add(m)); owl.root.traverse(o => { if (o.geometry) disposables.add(o.geometry); if (o.material && !owl.materials.includes(o.material)) disposables.add(o.material); });
+  owl.materials.forEach(m => disposables.add(m));
   const owlMeshes = []; owl.root.traverse(o => o.isMesh && owlMeshes.push(o));
-  interactables.push({id: 'enchantment-owl-post', type: 'enchant', station: 'contact', title: 'The owl post', objects: owlMeshes, point: owl.root.position.toArray(), onInteract: () => onOwl?.()});
+  interactables.push({id: 'enchantment-owl-post', type: 'enchant', station: 'contact', title: 'The owl post', objects: owlMeshes, point: owl.root.position.toArray(), onInteract: () => { owlFlutter = time; onOwl?.(); }});
 
   // 6b. Books flying around the Question Library: each paper takes wing
   const bookColors = ['#3b5c9a', '#9a3b35', '#3f7a52', '#c79a3a', '#6b4f93', '#2f6670', '#a4632e', '#5a6f8e', '#8a3f5e', '#4d7f6a', '#b5813a', '#3d4f7a'];
@@ -1524,6 +1841,32 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     covers.instanceMatrix.needsUpdate = pages.instanceMatrix.needsUpdate = true;
   }
   placeBooks(0);
+
+  // 6b2. Letters spiral up through the Welcome hall: Hanjing is waiting for yours
+  const letterCanvas = document.createElement('canvas'); letterCanvas.width = 128; letterCanvas.height = 88;
+  { const c = letterCanvas.getContext('2d'); c.fillStyle = '#f4e8cc'; c.fillRect(0, 0, 128, 88); c.strokeStyle = '#b8954f'; c.lineWidth = 3; c.strokeRect(2, 2, 124, 84);
+    c.lineWidth = 2.5; c.beginPath(); c.moveTo(3, 3); c.lineTo(64, 50); c.lineTo(125, 3); c.stroke();
+    c.fillStyle = '#9c3a30'; c.beginPath(); c.arc(64, 50, 10, 0, Math.PI * 2); c.fill(); c.fillStyle = '#c9675a'; c.beginPath(); c.arc(61, 47, 3.5, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = '#8a7a62'; c.lineWidth = 2; for (const y of [66, 74]) { c.beginPath(); c.moveTo(70, y); c.lineTo(112, y); c.stroke(); } }
+  const letterTex = new THREE.CanvasTexture(letterCanvas); letterTex.colorSpace = THREE.SRGBColorSpace; letterTex.anisotropy = 4;
+  const letterMat = new THREE.MeshStandardMaterial({name: 'enchantment-flying-letters', map: letterTex, emissive: '#ffdca0', emissiveMap: letterTex, emissiveIntensity: 0.28, roughness: 0.8, side: THREE.DoubleSide});
+  const letterGeo = new THREE.PlaneGeometry(0.17, 0.117);
+  const nLetters = low ? 14 : 28, hall = {x: -0.91, y: 0.3, z: -1.75};
+  const letters = new THREE.InstancedMesh(letterGeo, letterMat, nLetters); letters.name = 'enchantment-welcome-letter-spiral'; letters.frustumCulled = false;
+  root.add(letters); [letterTex, letterMat, letterGeo].forEach(r => disposables.add(r));
+  const letterTmp = new THREE.Object3D();
+  function placeLetters(t) {
+    for (let i = 0; i < nLetters; i++) {
+      const k = i / nLetters, f = (k + t * 0.045) % 1, a = k * Math.PI * 6 + t * 0.85, rad = 0.35 + 0.55 * f;
+      letterTmp.position.set(hall.x + Math.cos(a) * rad, hall.y + 0.75 + f * 1.85 + Math.sin(t * 2 + i) * 0.04, hall.z + Math.sin(a) * rad * 0.85);
+      letterTmp.rotation.set(-0.35 + 0.3 * Math.sin(t * 4.1 + i * 1.3), -a + Math.PI / 2, 0.45 * Math.sin(t * 5.3 + i));
+      letterTmp.scale.setScalar(THREE.MathUtils.smoothstep(f, 0, 0.12) * (1 - THREE.MathUtils.smoothstep(f, 0.86, 1)));
+      letterTmp.updateMatrix(); letters.setMatrixAt(i, letterTmp.matrix);
+    }
+    letters.instanceMatrix.needsUpdate = true;
+  }
+  placeLetters(1.5);
+  interactables.push({id: 'enchantment-welcome-letters', type: 'enchant', station: 'home', title: 'Letters in the air', objects: [letters], point: [hall.x, 1.8, hall.z], onInteract: () => onLetters?.()});
 
   // 6c. Warm lit windows, and a cool moonlight rim from behind the island
   const glassNames = /glass-crafted-surface$|^lehigh-(stained|rose-amber)-glass$|^ec-campus-recessed-glass$/;
@@ -1567,9 +1910,9 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
   }
 
   // keepsakes live inside rooms; drawing them from across the island wastes draw calls
-  const nearOnly = ['keepsake-two-shores-box', 'keepsake-two-crossings-map'].map(n => scene.getObjectByName(n)).filter(Boolean)
+  const nearOnly = ['keepsake-two-shores-box', 'keepsake-two-crossings-map', 'keepsake-un-crossroads', 'keepsake-hoosac-tibbits'].map(n => scene.getObjectByName(n)).filter(Boolean)
     .map(o => ({o, p: o.getWorldPosition(new THREE.Vector3())}));
-  let owlTurn = 0, nextBlink = 2;
+  let owlTurn = 0, nextBlink = 2, owlFlutter = 12;
   function update(dt, t, camera, renderer) {
     time = t;
     sky.mesh.position.copy(camera.position); sky.update(t);
@@ -1588,6 +1931,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     whale.root.position.set(whalePath.cx + Math.sin(ang) * whalePath.ax, whalePath.y + (reduced ? 0 : Math.sin(t * 0.21) * 1.2), whalePath.cz + Math.sin(2 * ang) * whalePath.az);
     whale.root.rotation.set(0, -Math.atan2(vz, vx), reduced ? 0 : Math.sin(t * 0.21 + 1.2) * 0.06);
     whale.update(t, reveal, reduced);
+    iceberg.update(t, reveal, reduced);
     const bp = bubbles.geometry.attributes.position;
     for (let i = 0; i < bubbleAge.length; i++) {
       bubbleAge[i] += (dt || 0);
@@ -1597,12 +1941,15 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
       bp.setXYZ(i, o.x + Math.sin(k * 2 + i) * 0.25, Math.min(SEA.level - 0.5, o.y + k * 2.4), o.z + Math.cos(k * 1.7 + i) * 0.25);
     }
     bp.needsUpdate = true;
-    if (!reduced) { placeCandles(t); syncHalos(t); placeBooks(t); }
+    if (!reduced) { placeCandles(t); syncHalos(t); placeBooks(t); placeLetters(t); }
     for (const b of bursts) { if (!b.pts.visible) continue; b.mat.uniforms.uScale.value = scale; b.mat.uniforms.uAge.value += dt; if (b.mat.uniforms.uAge.value > 1.8) b.pts.visible = false; }
     if (!reduced) {
       owlTurn += dt;
       owl.head.rotation.y = Math.sin(owlTurn * 0.35) * 0.65 + Math.sin(owlTurn * 1.3) * 0.05;
       nextBlink -= dt; const blink = nextBlink < 0.12 && nextBlink > 0 ? 0.12 : 1; owl.eyes.scale.y = blink;
+      const fk = time - owlFlutter, flap = fk >= 0 && fk < 1.4 ? Math.sin(fk / 1.4 * Math.PI) * (0.6 + 0.4 * Math.sin(fk * 22)) : 0;
+      owl.wings.forEach((w, i) => { w.rotation.z = (i ? 1 : -1) * flap * 1.2; w.rotation.y = (i ? 1 : -1) * flap * 0.25; });
+      if (fk > 14 + (owlTurn % 6)) owlFlutter = time;
       if (nextBlink < 0) nextBlink = 2.5 + Math.random() * 3;
     }
   }

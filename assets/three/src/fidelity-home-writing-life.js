@@ -1,7 +1,11 @@
 import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {acquirePaintTexture,releasePaintTexture,worldAssetURL} from './fidelity-assets.js';
 import {createRoomKit} from './fidelity-room-kit.js';
 import {px,createHWLProps,createWritingInk} from './fidelity-hwl-geometry.js';
+import {createCatCinema} from './life-cinema.js';
+import {createTravelCase} from './life-luggage.js';
+import {createSeafoodPlatter} from './life-seafood.js';
 
 /** Complete gatehall, study and three-bay home. Original chapter/content IDs
  * survive; only supported art and family photos are two-dimensional prints. */
@@ -212,7 +216,17 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     const steam=[];for(let i=0;i<2;i++){
       const curve=new THREE.CatmullRomCurve3([new THREE.Vector3(sx+(i-.5)*.09,floorY+.97,sz),new THREE.Vector3(sx-.035+(i-.5)*.09,floorY+1.12,sz),new THREE.Vector3(sx+.02+(i-.5)*.09,floorY+1.29,sz)]),m=new THREE.MeshStandardMaterial({color:'#eee9de',roughness:1,transparent:true,opacity:.08,depthWrite:false}),object=s.props.mesh('life-subtle-actual-pot-steam-'+i,new THREE.TubeGeometry(curve,14,.008,5,false),m);object.castShadow=false;object.userData.roomSolid=false;s.kit.resources.add(m);steam.push(object);
     }
-    let cookingUntil=0;s.root.userData.setCooking=()=>{cookingUntil=performance.now()/1000+3.5;};animated.push(t=>{const active=performance.now()/1000<cookingUntil;lid.position.y=floorY+.845+(active?.045+.008*Math.sin(t*4):0);lid.rotation.z=active?.018*Math.sin(t*4):0;coals.emissiveIntensity=dark?.35:.10;steam.forEach((v,i)=>{v.material.opacity=active?.17:dark?.09:.045;v.position.y=.025*Math.sin(t*.8+i);});});
+    // Lifting the lid serves a steamed platter from home: the lid floats up and tips back, a bamboo steamer
+    // rises out of the pot with mantis shrimp, a swimming crab, clams, sea snails and shrimp.
+    const platter=createSeafoodPlatter({root:s.root,resources:s.kit.resources,position:[sx,floorY+.65,sz],low:quality==='low'});
+    let cookingUntil=0,served=0,lift=0;
+    s.root.userData.setCooking=()=>{const now=performance.now()/1000,fresh=now>=cookingUntil;cookingUntil=now+14;return fresh?'served':'again';};
+    animated.push((t,dt)=>{const active=performance.now()/1000<cookingUntil,k=Math.min(.1,dt||0);
+      lift=dt?THREE.MathUtils.damp(lift,active?1:0,3.2,k):(active?1:0);served=dt?THREE.MathUtils.damp(served,active&&lift>.55?1:0,2.6,k):(active?1:0);
+      const e=lift*lift*(3-2*lift);
+      lid.position.set(sx-.04*e,floorY+.845+.44*e+(active?.008*Math.sin(t*2.2):0),sz-.30*e);lid.rotation.set(-.95*e,0,active?.02*Math.sin(t*1.7):0);
+      platter.group.position.y=floorY+.65+.27*served;platter.update(t,served);
+      coals.emissiveIntensity=dark?.35+(active?.15:0):.10+(active?.12:0);steam.forEach((v,i)=>{v.material.opacity=active?.17:dark?.09:.045;v.position.y=.025*Math.sin(t*.8+i);});});
     obstacle(s,'life-stove-bearing-volume',[.88,1.06,.90],[sx,floorY+.53,sz]);
     // XiaoHei's pad is inside the middle bay, on the same bearing floor.
     const cx=0,cz=-2.00,padY=floorY+.10;
@@ -236,34 +250,79 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     s.root.userData.catSeat={position:[cx,floorY+.20,cz],front:[cx,floorY,cz+.68],radius:.65,name:'XiaoHei',pose:'sleep'};
     s.kit.sign('life-family-photo-small-caption','SIX CATS',[1.17,.18,.08],[0,floorY+2.14,-3.865],'wood');
     lantern(s,'life-cat-room-warm-lantern',[.87,2.43,-3.45],1.45);
-    // Travel case: complete body with separate straps, brass feet and handle.
+    // Travel case: an upright vintage leather suitcase with straps, latches, a handle, stickers and a name tag.
     const tx=2.56,tz=-1.35;
-    solid(s,'life-complete-leather-travel-case',[.86,.66,.34],[tx,floorY+.35,tz],'cloth');
-    for(const dx of[-.25,.25]){solid(s,'life-case-complete-leather-strap-'+dx,[.058,.68,.367],[tx+dx,floorY+.35,tz],'darkWood');solid(s,'life-case-brass-buckle-'+dx,[.09,.10,.022],[tx+dx,floorY+.43,tz+.194],'brass');}
-    for(const dx of[-.35,.35])for(const dz of[-.12,.12])solid(s,'life-case-brass-grounded-foot-'+dx+'-'+dz,[.12,.04,.095],[tx+dx,floorY+.02,tz+dz],'brass');
-    s.props.tube('life-case-carry-handle-left',[tx-.14,floorY+.68,tz],[tx-.14,floorY+.79,tz],.024,'darkWood');s.props.tube('life-case-carry-handle-top',[tx-.14,floorY+.79,tz],[tx+.14,floorY+.79,tz],.024,'darkWood');s.props.tube('life-case-carry-handle-right',[tx+.14,floorY+.79,tz],[tx+.14,floorY+.68,tz],.024,'darkWood');obstacle(s,'life-travel-case-solid',[.91,.82,.39],[tx,floorY+.41,tz]);
-    // Full photo-screen frame stands on its own two bearing feet.
+    const travelCase=createTravelCase({root:s.root,resources:s.kit.resources,floorY,x:tx,z:tz,low:quality==='low'});
+    travelCase.obstacles.forEach(o=>obstacle(s,o.id,o.size,o.position));
+    // The six-cat picture house: stage, masked screen, velvet curtains, pelmet, marquee and a front row.
     const gx=2.90,gz=-3.10,gy=floorY+1.08;
-    solid(s,'life-gallery-complete-opaque-linen-board',[1.28,1.51,.10],[gx,gy,gz],'ivory');
-    for(const dx of[-.71,.71]){solid(s,'life-gallery-full-grounded-carved-post-'+dx,[.095,1.95,.13],[gx+dx,floorY+.975,gz],'wood');solid(s,'life-gallery-solid-bearing-foot-'+dx,[.26,.09,.40],[gx+dx,floorY+.045,gz],'darkWood');}
-    for(const dy of[-.81,.81])solid(s,'life-gallery-full-horizontal-frame-'+dy,[1.52,.095,.15],[gx,gy+dy,gz],'wood');
-    s.kit.sign('life-gallery-inlaid-name','6 CATS',[.86,.20,.06],[gx,floorY+2.0,gz+.085],'darkWood');
+    const cinema=createCatCinema({root:s.root,resources:s.kit.resources,floorY,x:gx,z:gz,screenY:1.08,low:quality==='low'});
+    cinema.obstacles.forEach(o=>obstacle(s,o.id,o.size,o.position));
     const photos=(data?.cats||[]).map(cat=>({src:quality==='low'?cat.photos?.[0]?.replace('images/cats/','images/cats/thumbs/'):cat.photos?.[0],name:cat.name,id:cat.id})),cv=document.createElement('canvas');cv.width=768;cv.height=676;const pc=cv.getContext('2d');pc.fillStyle='#e8deca';pc.fillRect(0,0,768,676);const photoFailures=[];
     await Promise.all(photos.map((cat,i)=>new Promise(resolve=>{const image=new Image();image.onload=()=>{const x=i%3*256,y=Math.floor(i/3)*338,w=256,h=338,scale=Math.max(w/image.width,h/image.height);pc.save();pc.beginPath();pc.rect(x,y,w,h);pc.clip();pc.drawImage(image,x+(w-image.width*scale)/2,y+(h-image.height*scale)/2,image.width*scale,image.height*scale);pc.restore();resolve();};image.onerror=()=>{photoFailures.push(cat.src);resolve();};image.src=worldAssetURL(cat.src);})));const texture=new THREE.CanvasTexture(cv);texture.colorSpace=THREE.SRGBColorSpace;s.kit.resources.add(texture);
-    const photo=s.props.print('life-supported-actual-cat-photograph',texture,1.15,1.43,[gx,gy,gz+.052]),pg=photo.geometry;let photoIndex=-1;animated.push(t=>{const index=Math.floor(t/2.5)%Math.max(1,photos.length);if(index===photoIndex)return;photoIndex=index;const uv=pg.attributes.uv,base=[[0,1],[1,1],[0,0],[1,0]];for(let i=0;i<uv.count;i++)uv.setXY(i,(index%3+base[i][0])/3,1-(Math.floor(index/3)+1-base[i][1])/2);uv.needsUpdate=true;});
-    obstacle(s,'life-gallery-bearing-frame',[1.65,2.09,.42],[gx,floorY+1.045,gz]);
-    // The projector is a complete camera with real rotating reels/tripod.
+    const photo=s.props.print('life-supported-actual-cat-photograph',texture,1.15,1.43,[gx,gy,gz+.052]),pg=photo.geometry;cinema.patchScreen(photo.material,[1.15,1.43]);let photoIndex=-1,cutAt=0;animated.push(t=>{const index=Math.floor(t/2.5)%Math.max(1,photos.length);if(index!==photoIndex)cutAt=t;cinema.update(t,dark,t-cutAt);if(index===photoIndex)return;photoIndex=index;const uv=pg.attributes.uv,base=[[0,1],[1,1],[0,0],[1,0]];for(let i=0;i<uv.count;i++)uv.setXY(i,(index%3+base[i][0])/3,1-(Math.floor(index/3)+1-base[i][1])/2);uv.needsUpdate=true;});
+    // A vintage 16 mm film projector: an enamel body with chrome trim, a vented lamp house, two spoked
+    // reels on arms with film threaded down into the gate, a ringed lens, a crank, and a soft beam of
+    // light that reaches the six-cat gallery. The reels turn, the beam flickers, dust drifts in it.
     const pj=new THREE.Group();pj.name='life-complete-vintage-projector';pj.position.set(1.72,floorY,-2.03);const target=new THREE.Vector3(gx,gy,gz).sub(pj.position);pj.rotation.y=Math.atan2(target.x,target.z);s.root.add(pj);
-    solid(s,'life-projector-complete-camera-body',[.37,.28,.25],[0,1.0,0],'darkWood',pj);
-    for(const [i,x,y,r]of[[0,-.13,1.23,.14],[1,.13,1.20,.125]]){
-      const reel=new THREE.Group();reel.position.set(x,y,-.08);pj.add(reel);const disc=s.props.cylinder('life-projector-real-film-reel-'+i,r,.044,[0,0,0],'brass',reel,12);disc.rotation.x=Math.PI/2;
-      for(let j=0;j<4;j++){const a=j*Math.PI/2;s.props.sphere('life-projector-reel-inset-'+i+'-'+j,[.023,.023,.007],[Math.cos(a)*r*.56,Math.sin(a)*r*.56,.025],'ink',reel);}animated.push(t=>{reel.rotation.z=t*(i?-.35:.25);});
+    const P=s.props,enamel=P.material('#30493f',{roughness:.42,metalness:.3}),chrome=P.material('#cfd3d6',{roughness:.22,metalness:.85}),black=P.material('#191b1c',{roughness:.5,metalness:.2}),film=P.material('#3b2416',{roughness:.6}),plate=P.material('#c9a24f',{roughness:.32,metalness:.7});
+    solid(s,'life-projector-complete-camera-body',[.34,.22,.24],[0,1.0,0],enamel,pj);
+    for(const y of[.89,1.11])solid(s,'life-projector-chrome-band-'+y,[.352,.016,.252],[0,y,0],chrome,pj);
+    for(let i=0;i<5;i++)solid(s,'life-projector-side-vent-'+i,[.004,.012,.14],[.172,.95+i*.022,-.01],black,pj);
+    // the lamp house with cooling rings and a cap
+    P.cylinder('life-projector-lamp-house',.065,.16,[0,1.19,-.05],enamel,pj,20);
+    for(let i=0;i<5;i++)P.torus('life-projector-lamp-vent-ring-'+i,.067,.006,[0,1.13+i*.026,-.05],chrome,pj);
+    P.cylinder('life-projector-lamp-cap',.05,.03,[0,1.285,-.05],black,pj,20,.03);
+    // two reels on arms, axes along x, with flanges, hubs, spokes and a roll of film
+    const reels=[];
+    for(const [i,z,y,r]of[[0,.13,1.42,.135],[1,-.17,1.38,.125]]){
+      P.tube('life-projector-reel-arm-'+i,[0,1.1,z*.45],[0,y,z],.012,chrome,pj);
+      const reel=new THREE.Group();reel.position.set(0,y,z);pj.add(reel);reels.push(reel);
+      for(const x of[-.024,.024]){const ring=P.torus('life-projector-reel-flange-'+i+'-'+x,r,.007,[x,0,0],chrome,reel);ring.rotation.set(0,Math.PI/2,0);
+        for(let j=0;j<5;j++){const a=j*Math.PI*2/5,spoke=P.tube('life-projector-reel-spoke-'+i+'-'+x+'-'+j,[x,0,0],[x,Math.sin(a)*r,Math.cos(a)*r],.006,chrome,reel,6);}}
+      const hub=P.cylinder('life-projector-reel-hub-'+i,.022,.07,[0,0,0],plate,reel,16);hub.rotation.z=Math.PI/2;
+      const roll=P.cylinder('life-projector-film-roll-'+i,r*(i?.55:.78),.04,[0,0,0],film,reel,32);roll.rotation.z=Math.PI/2;
+      animated.push(t=>{reel.rotation.x=t*(i?-.9:.7);});
     }
-    const lens=s.props.cylinder('life-projector-full-optical-lens',.065,.17,[0,1.0,.18],'ink',pj,12);lens.rotation.x=Math.PI/2;
-    const lensFace=s.props.material('ivory',{emissive:'#f3cd82',emissiveIntensity:.07,roughness:.25});const glass=s.props.cylinder('life-projector-emitting-lens-face',.052,.012,[0,1,.27],lensFace,pj,12);glass.rotation.x=Math.PI/2;animated.push(()=>{lensFace.emissiveIntensity=dark?.26:.07;});
-    for(let i=0;i<3;i++){const a=i*Math.PI*2/3;s.props.tube('life-projector-complete-bearing-tripod-'+i,[0,.86,0],[Math.cos(a)*.30,.025,Math.sin(a)*.30],.025,'wood',pj);s.props.sphere('life-projector-grounded-tripod-foot-'+i,[.048,.025,.048],[Math.cos(a)*.30,.025,Math.sin(a)*.30],'darkWood',pj);}
+    // film threaded from the front reel down into the gate, and from the body back up to the take-up reel
+    const filmPath=(name,pts)=>{const curve=new THREE.CatmullRomCurve3(pts.map(p=>new THREE.Vector3(...p)));const geo=new THREE.TubeGeometry(curve,24,.004,4,false);P.mesh(name,geo,film,[0,0,0],pj);};
+    filmPath('life-projector-film-feed',[[0,1.42-.105,.13],[0,1.22,.14],[0,1.12,.125],[0,1.06,.122]]);
+    filmPath('life-projector-film-takeup',[[0,1.0,-.122],[0,1.12,-.15],[0,1.38-.07,-.17]]);
+    // the lens: a barrel with chrome rings, a knurled focus ring and glowing glass
+    P.cylinder('life-projector-full-optical-lens',.055,.16,[0,1.0,.19],black,pj,24).rotation.x=Math.PI/2;
+    for(const z of[.13,.2,.26]){const ring=P.cylinder('life-projector-lens-ring-'+z,.06,.012,[0,1.0,z],chrome,pj,24);ring.rotation.x=Math.PI/2;}
+    for(let j=0;j<12;j++){const a=j*Math.PI/6;P.mesh('life-projector-focus-knurl-'+j,new THREE.BoxGeometry(.006,.008,.03),black,[Math.cos(a)*.061,1.0+Math.sin(a)*.061,.17],pj).rotation.z=a;}
+    const lensFace=P.material('ivory',{emissive:'#f3cd82',emissiveIntensity:.07,roughness:.25});const glass=P.cylinder('life-projector-emitting-lens-face',.047,.008,[0,1,.272],lensFace,pj,24);glass.rotation.x=Math.PI/2;
+    // a crank on the side, and a brass maker's plate
+    P.cylinder('life-projector-crank-disc',.03,.012,[.176,1.0,.04],chrome,pj,16).rotation.z=Math.PI/2;
+    P.tube('life-projector-crank-arm',[.184,1.0,.04],[.184,.95,.08],.006,chrome,pj);
+    P.cylinder('life-projector-crank-knob',.009,.03,[.2,.95,.08],black,pj,10).rotation.z=Math.PI/2;
+    solid(s,'life-projector-makers-plate',[.002,.05,.11],[-.172,1.0,.02],plate,pj);
+    // the beam of light, faint by day and soft at night, with drifting dust
+    const beamLength=Math.hypot(target.x,target.z)-.3,beamGeo=new THREE.CylinderGeometry(.62,.045,beamLength,24,1,true);beamGeo.translate(0,beamLength/2,0);beamGeo.rotateX(Math.PI/2);s.kit.resources.add(beamGeo);
+    const beamMat=new THREE.MeshBasicMaterial({color:'#ffe2a8',transparent:true,opacity:.0,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});beamMat.name='life-projector-light-beam';s.kit.resources.add(beamMat);
+    const beam=new THREE.Mesh(beamGeo,beamMat);beam.name='life-projector-light-beam';beam.position.set(0,1.0,.28);beam.rotation.x=-Math.atan2(target.y-1.0+.0,beamLength)*.0;beam.userData.roomSolid=false;beam.castShadow=false;beam.receiveShadow=false;beam.raycast=()=>{};pj.add(beam);
+    const dustGeo=new THREE.BufferGeometry(),dust=[];for(let i=0;i<40;i++){const f=Math.random();dust.push((Math.random()-.5)*.9*f,(Math.random()-.5)*.9*f,.28+f*beamLength);}dustGeo.setAttribute('position',new THREE.Float32BufferAttribute(dust,3));s.kit.resources.add(dustGeo);
+    const dustMat=new THREE.PointsMaterial({color:'#fff0c8',size:.012,transparent:true,opacity:0,depthWrite:false,blending:THREE.AdditiveBlending});s.kit.resources.add(dustMat);
+    const motes=new THREE.Points(dustGeo,dustMat);motes.position.y=1.0;motes.raycast=()=>{};pj.add(motes);
+    animated.push(t=>{lensFace.emissiveIntensity=dark?.6:.07;const flick=.85+.15*Math.sin(t*23)*Math.sin(t*7.3);beamMat.opacity=dark?.09*flick:.02;dustMat.opacity=dark?.55:.15;motes.rotation.z=t*.05;});
+    // merge the projector into a few meshes: one per material for the still body, and the same for each turning reel
+    const mergeByMaterial=(group,skip=[])=>{group.updateMatrixWorld(true);const inv=group.matrixWorld.clone().invert(),bins=new Map(),done=[];
+      group.traverse(o=>{if(!o.isMesh||o===group||skip.some(k=>{for(let q=o;q;q=q.parent)if(q===k)return true;return false;}))return;
+        const g=(o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone()).applyMatrix4(inv.clone().multiply(o.matrixWorld));if(!g.attributes.uv)g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
+        if(!bins.has(o.material))bins.set(o.material,[]);bins.get(o.material).push(g);done.push(o);});
+      done.forEach(o=>o.removeFromParent());
+      for(const [m,list]of bins){const g=mergeGeometries(list.map(x=>{for(const k of Object.keys(x.attributes))if(!['position','normal','uv'].includes(k))x.deleteAttribute(k);return x;}),false);list.forEach(x=>x.dispose());if(!g)continue;s.kit.resources.add(g);const mesh=new THREE.Mesh(g,m);mesh.name=group.name+'-merged-'+m.name;mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.roomSolid=true;group.add(mesh);}
+    };
+    reels.forEach(r=>mergeByMaterial(r));
+
+    // the tripod: three legs on a brass collar, a centre column, rubber feet
+    P.cylinder('life-projector-tripod-collar',.05,.04,[0,.88,0],plate,pj,16);P.cylinder('life-projector-tripod-column',.018,.5,[0,.62,0],chrome,pj,10);
+    for(let i=0;i<3;i++){const a=i*Math.PI*2/3;P.tube('life-projector-complete-bearing-tripod-'+i,[0,.86,0],[Math.cos(a)*.30,.025,Math.sin(a)*.30],.018,'wood',pj);P.tube('life-projector-tripod-brace-'+i,[0,.45,0],[Math.cos(a)*.16,.47,Math.sin(a)*.16],.007,chrome,pj);P.sphere('life-projector-grounded-tripod-foot-'+i,[.034,.02,.034],[Math.cos(a)*.30,.02,Math.sin(a)*.30],black,pj);}
+    mergeByMaterial(pj,[...reels,beam,motes,glass]);
     s.kit.lamp([1.72,floorY+1.03,-2.03],.28,1.25);obstacle(s,'life-projector-tripod',[.66,1.43,.66],[1.72,floorY+.715,-2.03]);
-    pick(s,'life-kitchen-stove','food',[sx,floorY+.69,sz+.40],[.82,1.08,.30],'Cooking',{life:'food'},[sx,floorY,-.76]).onInteract=s.root.userData.setCooking;
+    pick(s,'life-kitchen-stove','food',[sx,floorY+.69,sz+.40],[.82,1.08,.30],'Lift the lid',{life:'food'},[sx,floorY,-.76]);
+    pick(s,'life-kitchen-pot-lid','food',[sx,floorY+.88,sz],[.74,.2,.74],'Lift the lid',{life:'food'},[sx,floorY,-.76]);
     pick(s,'life-xiaohei-cushion','pet',[cx,floorY+.37,cz],[1.13,.62,1.0],'Pet XiaoHei',{life:'cats'},s.actionStand.pet.point);
     pick(s,'life-travel-suitcase','travel',[tx,floorY+.35,tz+.19],[.89,.72,.20],'Road trips',{life:'travel'},[tx,floorY,-.67]);
     pick(s,'life-six-cat-gallery','gallery',[gx,gy,gz+.11],[1.14,1.44,.15],'Six cats',{life:'cats'},[gx,floorY,-2.18]);

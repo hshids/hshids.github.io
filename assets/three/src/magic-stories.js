@@ -3,7 +3,7 @@ import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js'
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createCraftMaterials} from './fidelity-surface-materials.js';
 import './magic-stories.css';
-import {buildTwoShores,buildRoadTrips} from './magic-keepsakes.js';
+import {buildTwoShores,buildRoadTrips,buildUNCrossroads,buildHoosacNY} from './magic-keepsakes.js';
 
 // These are optional, replayable illustrations. They never gate a publication,
 // original chapter, link, or dialogue. The travel pages intentionally contain
@@ -22,8 +22,8 @@ const STORIES = Object.freeze([
     support:'Research library bearing floor; a small reading stand in front of the right bookcase.',
     controls:[['voice','Voice'],['memory','Memory'],['choice','Choice']]},
   {id:'brick-star-key',station:'writing',title:'A star, brick by brick',
-    clue:'Match the numbered diagram: 1 Blue, 2 Green, 3 Rose.',
-    note:'I like LEGO and a little magic. Three small bricks become a star key — a playful reminder that ideas can be built piece by piece.',
+    clue:'Drag each brick onto the slot with its number, 1 Blue, 2 Green, 3 Rose. Or tap a brick to set it in place.',
+    note:'I like LEGO and a little magic. Three small bricks become a star key, a playful reminder that ideas can be built piece by piece.',
     anchor:[2.68,.12,-1.24],room:'writing-study',indoor:true,focus:{section:'writing-tutorials'},
     support:'Writing study bearing floor; a separate little workbench beside the desk, clear of the tutorial archive.',
     controls:[['blue','1 · Blue'],['green','2 · Green'],['rose','3 · Rose']]},
@@ -34,13 +34,14 @@ const STORIES = Object.freeze([
     support:'Contact physical stone forecourt; between the mailbox and the link post.',
     controls:[['food','Food'],['ideas','Ideas'],['surprise','Something new'],['seal','Seal the letter']]},
   {id:'un-academic-fork',station:'life',title:'A fork before the PhD',mode:'souvenir',
-    clue:'A tiny UN keepsake on the kitchen worktop. Turn the note over for the choice behind it.',
+    clue:'A little crossroads on the kitchen worktop. One path leads to the UN, the other to an open book. Pick a path.',
     note:'Before my PhD, I had an opportunity to keep working at the UN. After some real hesitation, I chose academia for a wider field of knowledge and a chance to contribute beyond the data work I knew.',
     anchor:[-2.03,1.11,-3.38],room:'life-three-bay-home',indoor:true,
     support:'The original Life kitchen worktop, whose real bearing top is y=1.11.',
-    controls:[['opportunity','The opportunity'],['choice','The choice']],
-    pages:{opportunity:'Before my PhD, I had an opportunity to continue working at the UN. It was a real choice to think through, not an easy next step.',
-      choice:'I chose academia because I wanted a broader view of knowledge and a chance to contribute to a wider world. I wanted to grow beyond being a data worker.'}},
+    controls:[['opportunity','The opportunity'],['choice','The choice'],['back','The way back']],
+    pages:{opportunity:'Before my PhD, I had the chance to keep working at the UN. It was a real choice to think through, not an easy next step.',
+      choice:'I chose academia because I wanted a broader view of knowledge and a chance to contribute to a wider world. I wanted to grow beyond being someone who writes data.',
+      back:'The door stayed open. During the PhD I came back to UN work, with UNODC in 2024 and UN Peacekeeping in 2025, this time carrying wider questions with me.'}},
   {id:'two-familiar-seas',station:'home',title:'Two shores, one journey',mode:'souvenir',
     clue:'An open keepsake box on the bench. Two shores, a flight route across the sea, and a little ship below it.',
     note:'Dalian is my seaside hometown, and San Francisco, where I live now, feels a little like it. In 2013 I flew across the Pacific for high school, and my grandfather made the same crossing nearly a century before me.',
@@ -51,16 +52,25 @@ const STORIES = Object.freeze([
       flight:'In 2013 I took the flight that brought me to the US for high school. Since then I have flown back and forth between China and the US many times. This little plane stands for the bond I carry between my two homes.',
       boarding:'That flight led to my first time living at school, at a boarding school in upstate New York near Albany. I was far from home, surrounded by new friends, and it was a really happy time.',
       thread:'I never met my maternal grandfather. Nearly a century ago he came to San Francisco, long before I did. Watch the little ship cross the box. It is a small connection I still find moving.'}},
+  {id:'new-york-years',station:'home',title:'Three years in upstate New York',mode:'souvenir',
+    clue:'A little stone hall on the side table, under red and purple colours. Look at the hall, the friends on the drive, and the road sign.',
+    note:'My high school years were at Hoosac School in upstate New York. I lived two of them in Tibbits Hall, the old stone house at the heart of the campus.',
+    anchor:[.95,.30,-3.06],room:'welcome-gatehall',indoor:true,
+    support:'A walnut side table of its own on the Welcome floor, against the back wall of the right wing, under the window.',
+    controls:[['tibbits','Tibbits Hall'],['friends','The happy years'],['city','The city down the road']],
+    pages:{tibbits:'Tibbits Hall is the old stone house at the heart of Hoosac School, with steep slate roofs, two towers and bay windows. I lived there for two of my three high school years. It felt a little like living in a castle.',
+      friends:'It was my first time living at school, far from home, and it was a happy time with many new friends. Our mascot was an owl, so the owl post in this world is a small nod to those years too.',
+      city:'I thought New York City would be close. It was about three and a half hours down the road, so the city always stayed a little farther away than I imagined.'}},
   {id:'wider-compass',station:'education',title:'The compass that says wider',mode:'souvenir',
-    clue:'Turn a small compass through four personal chapters. It is a collection of feelings, not a second résumé.',
+    clue:'Turn a small compass through four places: Upstate New York, Davis, DC and Bethlehem. It is a collection of feelings, not a second résumé.',
     note:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.',
     anchor:[-3.98,.006,.18],indoor:false,
     support:'The original Education physical stone forecourt, clear of the Davis miniature and its bicycle.',
-    controls:[['newyork','Upstate New York'],['davis','Davis'],['dc','DC'],['wider','Wider']],
+    controls:[['newyork','Upstate New York'],['davis','Davis'],['dc','DC'],['wider','Bethlehem']],
     pages:{newyork:'My first boarding-school chapter was in upstate New York, near Albany, and it was a happy one. I thought New York City would be close; it was actually about three and a half hours away.',
-      davis:'I arrived expecting Davis to be by the sea. It was not — but the quiet campus life and friendships became their own kind of home.',
+      davis:'I arrived expecting Davis to be by the sea. It was not, but the quiet campus life and friendships became their own kind of home.',
       dc:'Georgetown brought a city chapter, with travel and stories I enjoyed sharing. People liked those little glimpses of life.',
-      wider:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.'}},
+      wider:'Lehigh lives in Bethlehem, Pennsylvania, an old steel town along the Lehigh River. At my interview there, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.'}},
   {id:'cats-across-america',station:'life',title:'Two crossings, with cats',mode:'souvenir',
     clue:'A little map on the kitchen worktop. Pick a year and watch the car drive across America, cats and all.',
     note:'The cats came along for two crossings, from San Francisco to DC in 2021 on the northern route through Chicago, and back in 2025 on the southern route through Texas.',
@@ -246,7 +256,40 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     const w=.62,d=.43;
     for(const x of[-.23,.23])for(const z of[-.14,.14])box(s.id+'-ground-bearing-foot-'+x+'-'+z,[.06,.035,.06],[x,.0175,z],mats.brass,s.fixed,.004);
     const c=chest(s,{width:w,depth:d,height:.34,bottom:.035});
-    label(s.id+'-chest-title','TRAVEL',.40,.09,[0,.294,c.front+.014],s.fixed);
+    label(s.id+'-chest-title','TRAVEL',.30,.066,[0,.318,c.front+.014],s.fixed);
+    // a steamer-trunk finish: brass corners, side handles, a hasp, a framed title, enamel flags, and a map in the lid
+    box(s.id+'-title-brass-frame',[.33,.088,.008],[0,.318,c.front+.006],mats.brass,s.fixed,.003);
+    for(const x of[-1,1])for(const y of[.035,.375])for(const z of[-1,1])box(s.id+'-brass-corner-'+x+'-'+y+'-'+z,[.05,.05,.05],[x*(w/2-.018),y+(y<.1?.018:-.018),z*(d/2-.018)],mats.brass,s.fixed,.006);
+    for(const x of[-1,1]){const h=mesh(s.id+'-side-carry-handle-'+x,new THREE.TorusGeometry(.04,.007,6,16,Math.PI),mats.brass,[x*(w/2+.006),.27,0],s.fixed);h.rotation.set(0,Math.PI/2,Math.PI);
+      box(s.id+'-side-handle-plate-'+x,[.006,.03,.11],[x*(w/2+.003),.27,0],mats.brass,s.fixed,.002);}
+    for(const x of[-.2,.2])box(s.id+'-front-leather-band-'+x,[.035,.34,.006],[x,.205,c.front+.002],mats.darkWood,s.fixed,.002);
+    const flagCanvas=document.createElement('canvas');flagCanvas.width=384;flagCanvas.height=96;const fx=flagCanvas.getContext('2d');
+    // Korea: the taegeuk and four trigrams; Sweden and Denmark: Nordic crosses
+    fx.fillStyle='#ffffff';fx.fillRect(0,0,128,96);fx.save();fx.translate(64,48);fx.rotate(-.59);
+    fx.fillStyle='#cd2e3a';fx.beginPath();fx.arc(0,0,22,Math.PI,0);fx.fill();fx.fillStyle='#0047a0';fx.beginPath();fx.arc(0,0,22,0,Math.PI);fx.fill();
+    fx.fillStyle='#cd2e3a';fx.beginPath();fx.arc(-11,0,11,0,Math.PI*2);fx.fill();fx.fillStyle='#0047a0';fx.beginPath();fx.arc(11,0,11,0,Math.PI*2);fx.fill();fx.restore();
+    fx.fillStyle='#111';for(const [cx,cy,a] of[[26,20,.98],[102,76,.98],[102,20,-.98],[26,76,-.98]]){fx.save();fx.translate(cx,cy);fx.rotate(a);for(let k=-1;k<=1;k++)fx.fillRect(-12,k*6-2,24,4);fx.restore();}
+    fx.fillStyle='#006aa7';fx.fillRect(128,0,128,96);fx.fillStyle='#fecc02';fx.fillRect(128+40,0,16,96);fx.fillRect(128,40,128,16);
+    fx.fillStyle='#c8102e';fx.fillRect(256,0,128,96);fx.fillStyle='#ffffff';fx.fillRect(256+40,0,14,96);fx.fillRect(256,41,128,14);
+    const flagTex=new THREE.CanvasTexture(flagCanvas);flagTex.colorSpace=THREE.SRGBColorSpace;resources.add(flagTex);
+    const flagMat=new THREE.MeshStandardMaterial({name:'hidden-story-enamel-flags',map:flagTex,roughness:.35,metalness:.05});resources.add(flagMat);
+    for(let i=0;i<3;i++){const fg=new THREE.PlaneGeometry(.056,.042),uv=fg.attributes.uv;for(let k=0;k<uv.count;k++)uv.setX(k,(i+uv.getX(k))/3);
+      box(s.id+'-flag-brass-setting-'+i,[.064,.05,.01],[(i-1)*.205,.243,c.front+.006],mats.brass,s.fixed,.002);
+      mesh(s.id+'-enamel-flag-'+i,fg,flagMat,[(i-1)*.205,.243,c.front+.0115],s.fixed).castShadow=false;}
+    const hasp=group(s.id+'-lid-brass-hasp',[0,0,0],c.hinge);
+    box(s.id+'-hasp-plate',[.05,.07,.006],[0,-.012,d+.008],mats.brass,hasp,.003);
+    disc(s.id+'-hasp-lock',.014,.008,[0,-.04,d+.012],mats.brass,hasp).rotation.x=Math.PI/2;
+    for(const x of[-1,1])for(const z of[0,1])box(s.id+'-lid-brass-corner-'+x+'-'+z,[.05,.034,.05],[x*(w/2-.012),.0135,z?d-.012:.022],mats.brass,c.hinge,.006);
+    const mapCanvas=document.createElement('canvas');mapCanvas.width=512;mapCanvas.height=360;const mx=mapCanvas.getContext('2d');
+    mx.fillStyle='#ecdcb4';mx.fillRect(0,0,512,360);mx.strokeStyle='#b8955a66';mx.lineWidth=2;
+    for(let k=1;k<8;k++){mx.beginPath();mx.moveTo(k*64,0);mx.lineTo(k*64,360);mx.stroke();}for(let k=1;k<6;k++){mx.beginPath();mx.moveTo(0,k*60);mx.lineTo(512,k*60);mx.stroke();}
+    mx.save();mx.translate(256,180);mx.fillStyle='#8a3f2a';for(let k=0;k<8;k++){mx.rotate(Math.PI/4);mx.beginPath();mx.moveTo(0,-(k%2?52:96));mx.lineTo(10,0);mx.lineTo(-10,0);mx.closePath();mx.fill();}
+    mx.fillStyle='#ecdcb4';mx.beginPath();mx.arc(0,0,9,0,Math.PI*2);mx.fill();mx.restore();
+    mx.fillStyle='#4a3420';mx.font='italic 600 30px Georgia, serif';mx.textAlign='center';mx.fillText('Korea',400,74);mx.fillText('Sweden',110,96);mx.fillText('Denmark',150,300);
+    mx.font='700 26px Georgia, serif';mx.fillText('N',256,58);mx.strokeStyle='#6b4a2e';mx.lineWidth=10;mx.strokeRect(5,5,502,350);
+    const mapTex=new THREE.CanvasTexture(mapCanvas);mapTex.colorSpace=THREE.SRGBColorSpace;resources.add(mapTex);
+    const lining=mesh(s.id+'-lid-lining-travel-map',new THREE.PlaneGeometry(w-.03,d-.03),new THREE.MeshStandardMaterial({name:'hidden-story-lid-map',map:mapTex,roughness:.9}),[0,-.0006,d/2],c.hinge);
+    lining.rotation.x=Math.PI/2;lining.castShadow=false;resources.add(lining.material);
     const page=group(s.id+'-chest-seated-paper-pages',[0,0,0],s.fixed);
     box(s.id+'-true-inner-paper-block',[w-.076,.027,d-.074],[0,c.insideY+.0135,0],mats.paper,page,.003);
     inkLines(s,page,c.insideY+.028,-.095,.35);
@@ -315,18 +358,42 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     const board=group(s.id+'-diagram-bearing-backboard',[0,top+.092,-.20],s.fixed);
     box(s.id+'-real-diagram-board',[.70,.19,.037],[0,0,0],mats.darkWood,board);
     label(s.id+'-diagram-label','1 BLUE  2 GREEN  3 ROSE',.66,.076,[0,.012,.026],board);
-    const order=['blue','green','rose'];s.bricks=[];s.docks=[];
+    const order=['blue','green','rose'];s.bricks=[];s.docks=[];s.glows=[];
+    const dockX=i=>(i-1)*.234,dragY=top+.10;
+    const glowMat=new THREE.MeshBasicMaterial({name:'hidden-story-brick-slot-glow',color:'#ffd77a',transparent:true,opacity:.0,depthWrite:false});resources.add(glowMat);
     for(let i=0;i<3;i++){
-      const x=(i-1)*.234;
+      const x=dockX(i);
       const dock=box(s.id+'-bearing-numbered-slot-'+i,[.19,.012,.145],[x,top+.006,-.012],mats.darkWood,s.fixed,.002);s.docks.push(dock);
       for(const dx of[-.048,0,.048])for(const dz of[-.025,.025])disc(s.id+'-physical-docking-stud-'+i+'-'+dx+'-'+dz,.016,.010,[x+dx,top+.016,dz-.012],mats.brass,s.fixed);
-      const brick=group(s.id+'-'+order[i]+'-actual-six-stud-brick',[x,top+.027,.226],s.root);
+      const glow=new THREE.Mesh(own(new THREE.PlaneGeometry(.2,.155)),glowMat.clone());resources.add(glow.material);glow.rotation.x=-Math.PI/2;glow.position.set(x,top+.0135,-.012);glow.visible=false;glow.renderOrder=3;glow.raycast=()=>{};s.root.add(glow);s.glows.push(glow);
+      // the bricks start shuffled along the front edge, so each one has to find its own numbered slot
+      const startX=dockX(2-i);
+      const brick=group(s.id+'-'+order[i]+'-actual-six-stud-brick',[startX,top+.027,.226],s.root);
       box(s.id+'-'+order[i]+'-closed-brick-body',[.168,.054,.125],[0,0,0],colors[order[i]],brick,.007);
-      for(const dx of[-.049,0,.049])for(const dz of[-.027,.027])disc(s.id+'-'+order[i]+'-molded-real-stud-'+dx+'-'+dz,.018,.014,[dx,.034,dz],colors[order[i]],brick);
+      for(const dx of[-.049,0,.049])for(const dz of[-.027,.027]){
+        disc(s.id+'-'+order[i]+'-molded-real-stud-'+dx+'-'+dz,.018,.014,[dx,.034,dz],colors[order[i]],brick);
+        disc(s.id+'-'+order[i]+'-stud-rounded-top-'+dx+'-'+dz,.0165,.003,[dx,.0425,dz],colors[order[i]],brick);
+      }
       label(s.id+'-'+order[i]+'-brick-number',String(i+1),.048,.032,[0,0,.067],brick);
-      brick.userData.startZ=.226;brick.userData.dockZ=-.012;s.bricks.push(brick);
-      register(s,order[i],'Place brick '+(i+1)+' · '+order[i],brick,()=>select(s.id,order[i]));
+      brick.userData.startX=startX;brick.userData.dockX=x;brick.userData.startZ=.226;brick.userData.dockZ=-.012;s.bricks.push(brick);
+      const key=order[i],item=register(s,key,'Drag brick '+(i+1)+' · '+key+' onto its slot',brick,()=>select(s.id,key));
+      // drag and drop: lift the brick, carry it over the bench, and let go above a slot
+      item.drag={
+        begin(){if(s.progress.includes(key)||disposed)return false;brick.userData.dragging=true;brick.userData.baseY=undefined;s.glows.forEach(g=>{g.visible=true;g.material.opacity=.18;});return true;},
+        move(ray){
+          const world=brick.parent.localToWorld(new THREE.Vector3(0,dragY,0)),plane=new THREE.Plane(new THREE.Vector3(0,1,0),-world.y),hit=new THREE.Vector3();
+          if(!ray||!ray.intersectPlane(plane,hit))return;const l=brick.parent.worldToLocal(hit);
+          brick.position.set(THREE.MathUtils.clamp(l.x,-.31,.31),dragY,THREE.MathUtils.clamp(l.z,-.12,.27));
+          const near=nearestSlot(brick.position);s.glows.forEach((g,k)=>{g.material.opacity=k===near?.55:.18;});
+        },
+        end(ray){
+          if(ray)this.move(ray);brick.userData.dragging=false;brick.userData.baseY=undefined;s.glows.forEach(g=>{g.visible=false;});
+          const near=nearestSlot(brick.position);if(near<0)return null;
+          if(near!==i)return feedback(s,'That slot is waiting for the '+order[near]+' brick, number '+(near+1)+'. Check the diagram on the board.',{wrong:true,progress:s.progress.length});
+          return select(s.id,key);
+        }};
     }
+    const nearestSlot=p=>{let best=-1,d=.11;for(let k=0;k<3;k++){const dd=Math.hypot(p.x-dockX(k),p.z+.012);if(dd<d){d=dd;best=k;}}return best;};
     const keyBase=group(s.id+'-hidden-key-supported-holder',[0,top+.030,-.28],s.root);
     box(s.id+'-key-support-closed-base',[.12,.06,.078],[0,0,0],mats.darkWood,keyBase,.006);
     rod(s.id+'-key-grounded-brass-stem',[0,.028,0],[0,.170,0],.012,mats.brass,keyBase);
@@ -340,24 +407,27 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     s.keyCover=hinge;
     register(s,'open','Read the numbered brick diagram',board,()=>{open(s.id);return feedback(s,s.spec.clue);});
     s.restore=()=>{s.progress=order.slice();};
+    s.snaps={};
     s.animate=(t,dt)=>{
       for(let i=0;i<3;i++){
-        const b=s.bricks[i],docked=s.progress.includes(order[i]),targetZ=docked?b.userData.dockZ:b.userData.startZ,
-          targetY=top+(docked?.043:.027);
+        const b=s.bricks[i];if(b.userData.dragging)continue;
+        const docked=s.progress.includes(order[i]),targetX=docked?b.userData.dockX:b.userData.startX,targetZ=docked?b.userData.dockZ:b.userData.startZ,targetY=top+(docked?.043:.027);
+        if(!docked)delete s.snaps[order[i]];
+        const since=s.snaps[order[i]]===undefined?9:performance.now()/1000-s.snaps[order[i]],bounce=reduced?0:.014*Math.exp(-since*6)*Math.abs(Math.sin(since*16));
+        b.position.x=reduced?targetX:THREE.MathUtils.damp(b.position.x,targetX,12,dt);
         b.position.z=reduced?targetZ:THREE.MathUtils.damp(b.position.z,targetZ,12,dt);
-        b.position.y=reduced?targetY:THREE.MathUtils.damp(b.position.y,targetY,12,dt);
+        b.userData.baseY=reduced?targetY:THREE.MathUtils.damp(b.userData.baseY??b.position.y,targetY,12,dt);b.position.y=b.userData.baseY+bounce;
       }
       s.keyCover.rotation.x=reduced?(s.solved?-1.45:0):THREE.MathUtils.damp(s.keyCover.rotation.x,s.solved?-1.45:0,10,dt);
       s.key.visible=s.solved&&(reduced||s.keyCover.rotation.x<-.60);
     };
     s.select=key=>{
       if(!order.includes(key))return feedback(s,s.spec.clue);
-      if(s.progress.includes(key))return feedback(s,'That brick is already in place. '+(s.solved?'The star key is yours. Reset to build it again.':'Next: '+s.spec.controls[s.progress.length][1]+'.'));
-      const expected=order[s.progress.length];
-      if(key!==expected)return feedback(s,'That brick does not match the next numbered slot. Try '+s.spec.controls[s.progress.length][1]+' next; your earlier bricks stay in place.',{wrong:true,progress:s.progress.length});
-      s.progress.push(key);
+      if(s.progress.includes(key))return feedback(s,'That brick is already in place. '+(s.solved?'The star key is yours. Reset to build it again.':'Find a home for the others.'));
+      s.progress.push(key);s.snaps[key]=performance.now()/1000;
       if(s.progress.length===3)return finish(s);
-      return feedback(s,'Brick '+s.progress.length+' clicks into place. Next: '+s.spec.controls[s.progress.length][1]+'.',{progress:s.progress.length});
+      const left=order.filter(k=>!s.progress.includes(k)).map(k=>s.spec.controls[order.indexOf(k)][1]);
+      return feedback(s,'Brick '+(order.indexOf(key)+1)+' clicks onto its studs. Still to go, '+left.join(' and ')+'.',{progress:s.progress.length});
     };
   }
 
@@ -387,7 +457,7 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     };
     s.select=key=>{
       if(key==='seal'){
-        if(s.progress.length<2)return feedback(s,'Choose any two ingredients before sealing the letter. Food, Ideas, or Something new — there is no wrong combination.');
+        if(s.progress.length<2)return feedback(s,'Choose any two ingredients before sealing the letter. Food, Ideas or Something new. There is no wrong combination.');
         return finish(s);
       }
       if(!INGREDIENTS[key])return feedback(s,s.spec.clue);
@@ -401,18 +471,8 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     const body=group(s.id+'-supported-souvenir',[0,0,0],s.root);
     s.page=s.spec.controls[0][0];
     if(s.id==='un-academic-fork'){
-      box(s.id+'-closed-keepsake-base',[.27,.028,.21],[0,.014,0],mats.wood,body,.005);
-      rod(s.id+'-globe-bearing-stem',[0,.026,-.026],[0,.175,-.026],.010,mats.brass,body);
-      mesh(s.id+'-complete-miniature-globe',new THREE.SphereGeometry(.071,low?12:16,low?8:12),mats.blue,[0,.175,-.026],body);
-      for(const y of[-.034,0,.034]){
-        const ring=mesh(s.id+'-raised-globe-latitude-'+y,new THREE.TorusGeometry(Math.sqrt(.071**2-y*y)+.001,.0018,4,low?12:16),mats.brass,[0,.175+y,-.026],body);
-        ring.rotation.x=Math.PI/2;
-      }
-      label(s.id+'-worktop-seated-UN-name','UN',.095,.065,[0,.0605,.106],body);
-      for(const[step,key]of s.spec.controls.entries()){
-        const coin=disc(s.id+'-'+key[0]+'-real-turning-token',.032,.012,[(step-.5)*.14,.034,.048],step?mats.green:mats.brass,body);
-        register(s,key[0],key[1],coin,()=>select(s.id,key[0]));
-      }
+      const k=buildUNCrossroads(body,{resources,reduced,low});s.keepsake=k;
+      for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
     }else if(s.id==='two-familiar-seas'){
       const k=buildTwoShores(body,{resources,reduced,low});s.keepsake=k;
       for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
@@ -429,6 +489,10 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
           token=disc(s.id+'-'+key+'-compass-chapter-token',.021,.013,[Math.sin(a)*.139,.0315,Math.cos(a)*.096],i%2?mats.green:mats.blue,body);
         register(s,key,s.spec.controls[i][1],token,()=>select(s.id,key));
       }
+    }else if(s.id==='new-york-years'){
+      const top=table(s,.62,.40,.60);body.position.y=top;
+      const k=buildHoosacNY(body,{resources,reduced,low});s.keepsake=k;
+      for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));
     }else if(s.id==='cats-across-america'){
       const k=buildRoadTrips(body,{resources,reduced,low});s.keepsake=k;
       for(const[key,title]of s.spec.controls)register(s,key,title,k.objects[key],()=>select(s.id,key));

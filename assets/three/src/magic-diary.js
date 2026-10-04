@@ -48,7 +48,7 @@ const TOPICS=[
   ['sharing',/\b(social media|socialmedia|rednote|red note|xiaohongshu|sharing|share|posting)\b/i,[
     'I shared travel and everyday DC life, and people enjoyed those discoveries. I like that a small recommendation can become someone else\'s new experience or connection. What would you share?']],
   ['curiosity',/\b(curiosity|curious|about yourself|about you|what do you love|what do you like|your interests|your hobbies)\b/i,[
-    'LEGO, a little magic, cats, food, travel—and questions that wander between fields. I love finding a new connection in an ordinary detail. What has caught your curiosity lately?']],
+    'LEGO, a little magic, cats, food, travel, and questions that wander between fields. I love finding a new connection in an ordinary detail. What has caught your curiosity lately?']],
   ['mystery',/\b(sherlock|holmes|detective|detectives|mystery|mysteries|murder mystery|clue|clues|puzzle|puzzles|riddle|riddles|whodunit|deduce|deduction)\b|剧本杀|侦探|推理|福尔摩斯|解谜/i,[
     'I love a good mystery: Sherlock Holmes, and murder mystery games where everyone plays a part and the truth hides in plain sight. This little world keeps a few clues of its own. Have you opened the casebook yet?',
     'My favorite moment in a mystery is when small details suddenly line up. Research feels like that sometimes. Which clue would you follow first?']],

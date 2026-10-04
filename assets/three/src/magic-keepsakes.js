@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 
 // Finely detailed keepsakes for the hidden stories: the two shores of Dalian
-// and San Francisco, the cats' two road trips across America, and the model
-// plane from 2013. Each builder works in its support's local space (y = 0 is
+// and San Francisco, the cats' two road trips across America, the model
+// plane from 2013, and the fork before the PhD (the UN or a wider view). Each builder works in its support's local space (y = 0 is
 // the supporting surface, +z faces the room) and returns clickable parts per
 // story page plus an animate(t, dt, page) hook.
 
@@ -370,6 +370,141 @@ const ROUTES = {
 const CAT_COLORS = {dahuang: '#e39a4a', xiaohei: '#6e6e72', xiaoheihei: '#1d1d22', tuanzi: '#efe4cf', guozi: '#b8bcc4', jinbingbing: '#d9b26a'};
 const TRIP_CATS = {north: ['dahuang', 'xiaohei', 'xiaoheihei', 'tuanzi'], south: ['dahuang', 'xiaohei', 'xiaoheihei', 'tuanzi', 'guozi', 'jinbingbing']};
 
+/* ------------------------------------------------------------------ */
+/* 3. A fork before the PhD: the UN, the open book, and the way back   */
+/* ------------------------------------------------------------------ */
+export function buildUNCrossroads(parent, {resources, reduced = false, low = false} = {}) {
+  const root = new THREE.Group(); root.name = 'keepsake-un-crossroads'; parent.add(root);
+  const L = makeLabels(resources);
+  const walnut = material(resources, 'fork-walnut', '#5a3822', {roughness: 0.55});
+  const brass = material(resources, 'fork-brass', '#c9a24f', {metalness: 0.7, roughness: 0.32});
+  const plaza = material(resources, 'fork-plaza', '#d8d2c4', {roughness: 0.85});
+  const lawn = material(resources, 'fork-lawn', '#6f9a5e', {roughness: 0.9});
+  const marble = material(resources, 'fork-marble', '#f1eee6', {roughness: 0.5});
+  const roofGrey = material(resources, 'fork-roof', '#9aa3a8', {roughness: 0.6});
+  const pole = material(resources, 'fork-flagpole', '#d7d9dc', {metalness: 0.6, roughness: 0.3});
+  const pageMat = material(resources, 'fork-pages', '#f6efdc', {roughness: 0.9});
+  const cover = material(resources, 'fork-book-cover', '#2f4f7a', {roughness: 0.6});
+  const cap = material(resources, 'fork-cap', '#1f2329', {roughness: 0.7});
+  const leftPath = material(resources, 'fork-path-un', '#e3c477', {emissive: '#8a6a1c', emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4});
+  const rightPath = material(resources, 'fork-path-phd', '#e3c477', {emissive: '#8a6a1c', emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4});
+  const kit = makeKit('keepsake-un-crossroads', resources), unKit = makeKit('keepsake-un-crossroads-un', resources), bookKit = makeKit('keepsake-un-crossroads-book', resources);
+  const top = 0.024;
+  // the base: walnut with a brass rim, a stone plaza and two little lawns
+  kit.add(new THREE.BoxGeometry(0.32, 0.022, 0.22), walnut, {p: [0, 0.011, 0]});
+  for (const sz of [-1, 1]) kit.add(new THREE.BoxGeometry(0.322, 0.006, 0.006), brass, {p: [0, 0.023, sz * 0.108]});
+  for (const sx of [-1, 1]) kit.add(new THREE.BoxGeometry(0.006, 0.006, 0.222), brass, {p: [sx * 0.158, 0.023, 0]});
+  kit.add(new THREE.BoxGeometry(0.306, 0.003, 0.206), plaza, {p: [0, 0.0225, 0]});
+  kit.add(new THREE.BoxGeometry(0.11, 0.003, 0.07), lawn, {p: [-0.09, 0.0235, 0.055]});
+  kit.add(new THREE.BoxGeometry(0.11, 0.003, 0.07), lawn, {p: [0.09, 0.0235, 0.055]});
+  kit.add(L.geometry(L.plate('A FORK', {size: 44, sub: 'before the PhD'}), 0.1, 0.026), L.mat, {p: [0, 0.012, 0.1105]});
+  // the forking path: brass cobbles from the front, splitting left to the UN and right to the book
+  const cobble = (kit2, mat, a, b, c, n) => { const curve = new THREE.QuadraticBezierCurve3(new THREE.Vector3(...a), new THREE.Vector3(...b), new THREE.Vector3(...c)); for (let i = 0; i < n; i++) { const p = curve.getPoint((i + 0.5) / n), tg = curve.getTangent((i + 0.5) / n); kit2.add(new THREE.BoxGeometry(0.009, 0.0016, 0.007), mat, {p: [p.x + (i % 2 ? 0.002 : -0.002), top + 0.0008, p.z], r: [0, -Math.atan2(tg.z, tg.x), 0]}); } };
+  cobble(kit, plaza, [0, 0, 0.1], [0, 0, 0.075], [0, 0, 0.05], 4);
+  const pathKit = makeKit('keepsake-un-crossroads-paths', resources);
+  cobble(pathKit, leftPath, [0, 0, 0.05], [-0.04, 0, 0.04], [-0.075, 0, 0.0], low ? 7 : 11);
+  cobble(pathKit, rightPath, [0, 0, 0.05], [0.04, 0, 0.04], [0.075, 0, 0.0], low ? 7 : 11);
+  // a signpost at the fork
+  kit.add(new THREE.CylinderGeometry(0.0022, 0.0026, 0.085, 8), walnut, {p: [0, top + 0.0425, 0.05]});
+  kit.add(new THREE.SphereGeometry(0.004, 10, 8), brass, {p: [0, top + 0.087, 0.05]});
+  const arrow = (text, dir, y) => {
+    const uv = L.custom((c, w, h) => { c.fillStyle = '#efe1bd'; c.beginPath(); if (dir < 0) { c.moveTo(0, h / 2); c.lineTo(40, 6); c.lineTo(w - 6, 6); c.lineTo(w - 6, h - 6); c.lineTo(40, h - 6); } else { c.moveTo(w, h / 2); c.lineTo(w - 40, 6); c.lineTo(6, 6); c.lineTo(6, h - 6); c.lineTo(w - 40, h - 6); } c.closePath(); c.fill(); c.strokeStyle = '#7a5a2e'; c.lineWidth = 6; c.stroke(); c.fillStyle = '#3a2a12'; c.font = '700 44px Georgia, serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, w / 2 + (dir < 0 ? 14 : -14), h / 2 + 2); });
+    kit.add(new THREE.BoxGeometry(0.058, 0.019, 0.003), walnut, {p: [dir * 0.03, y, 0.05], r: [0, 0, 0]});
+    kit.add(L.geometry(uv, 0.058, 0.019), L.mat, {p: [dir * 0.03, y, 0.0517]});
+  };
+  arrow('THE UN', -1, top + 0.07); arrow('A PhD', 1, top + 0.05);
+  // the left side: a slim glass tower, a low hall with a curved roof, and a row of flags
+  const facadeCanvas = document.createElement('canvas'); facadeCanvas.width = 64; facadeCanvas.height = 160;
+  { const c = facadeCanvas.getContext('2d'); const g = c.createLinearGradient(0, 0, 64, 160); g.addColorStop(0, '#5f8fa0'); g.addColorStop(1, '#2f5566'); c.fillStyle = g; c.fillRect(0, 0, 64, 160);
+    c.strokeStyle = 'rgba(220,235,240,0.55)'; c.lineWidth = 1; for (let x = 0; x <= 64; x += 4) { c.beginPath(); c.moveTo(x, 0); c.lineTo(x, 160); c.stroke(); } for (let y = 0; y <= 160; y += 4) { c.beginPath(); c.moveTo(0, y); c.lineTo(64, y); c.stroke(); }
+    for (let i = 0; i < 70; i++) { c.fillStyle = 'rgba(255,214,140,0.85)'; c.fillRect(Math.floor(Math.random() * 16) * 4 + 1, Math.floor(Math.random() * 40) * 4 + 1, 3, 3); }
+    c.fillStyle = 'rgba(200,210,214,0.9)'; for (const y of [52, 108]) c.fillRect(0, y, 64, 4); }
+  const facadeTex = new THREE.CanvasTexture(facadeCanvas); facadeTex.colorSpace = THREE.SRGBColorSpace; resources?.add(facadeTex);
+  const glass = material(resources, 'fork-curtain-wall', '#ffffff', {map: facadeTex, emissive: '#ffffff', emissiveMap: facadeTex, emissiveIntensity: 0.25, roughness: 0.2, metalness: 0.3});
+  const tw = {x: -0.095, z: -0.055, w: 0.052, h: 0.135, d: 0.016};
+  unKit.add(new THREE.BoxGeometry(tw.w, tw.h, tw.d), marble, {p: [tw.x, top + tw.h / 2, tw.z]});
+  for (const sz of [1, -1]) { const f = new THREE.PlaneGeometry(tw.w * 0.94, tw.h * 0.97); if (sz < 0) f.rotateY(Math.PI); unKit.add(f, glass, {p: [tw.x, top + tw.h / 2, tw.z + sz * (tw.d / 2 + 0.0004)]}); }
+  unKit.add(new THREE.BoxGeometry(tw.w + 0.002, 0.004, tw.d + 0.002), roofGrey, {p: [tw.x, top + tw.h + 0.002, tw.z]});
+  unKit.add(new THREE.BoxGeometry(0.06, 0.016, 0.03), marble, {p: [-0.115, top + 0.008, -0.01]});
+  const vault = new THREE.CylinderGeometry(0.015, 0.015, 0.06, 20, 1, false, 0, Math.PI); vault.rotateZ(Math.PI / 2); vault.rotateX(Math.PI / 2); vault.scale(1, 0.5, 1);
+  unKit.add(vault, roofGrey, {p: [-0.115, top + 0.016, -0.01]});
+  unKit.add(new THREE.SphereGeometry(0.006, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), roofGrey, {p: [-0.115, top + 0.023, -0.01]});
+  const flags = [], flagColors = ['#5b92e5', '#d9534f', '#f0ad4e', '#5cb85c', '#ffffff', '#8e6bbf', '#2c7a7b'];
+  for (let i = 0; i < 7; i++) {
+    const x = -0.135 + i * 0.012, z = 0.018;
+    unKit.add(new THREE.CylinderGeometry(0.0006, 0.0006, 0.05, 5), pole, {p: [x, top + 0.025, z]});
+    const fm = material(resources, 'fork-flag-' + i, flagColors[i], {roughness: 0.8, side: THREE.DoubleSide});
+    const fg = new THREE.PlaneGeometry(0.008, 0.005, 4, 1); fg.translate(0.004, 0, 0); resources?.add(fg);
+    const fl = new THREE.Mesh(fg, fm); fl.position.set(x, top + 0.046, z); root.add(fl); flags.push(fl);
+  }
+  // the right side: an open book with an armillary sphere for a wider view, and a stack with a mortarboard
+  const bx = 0.09, bz = -0.035;
+  for (const sd of [-1, 1]) {
+    bookKit.add(new THREE.BoxGeometry(0.04, 0.003, 0.05), cover, {p: [bx + sd * 0.0205, top + 0.0015, bz], r: [0, 0, sd * 0.08]});
+    bookKit.add(new THREE.BoxGeometry(0.038, 0.007, 0.046), pageMat, {p: [bx + sd * 0.02, top + 0.0055, bz], r: [0, 0, sd * 0.1]});
+    for (let k = 0; k < 4; k++) bookKit.add(new THREE.BoxGeometry(0.026 - k * 0.003, 0.0004, 0.0012), cap, {p: [bx + sd * 0.02, top + 0.0095 + sd * 0.0005, bz - 0.014 + k * 0.009]});
+  }
+  bookKit.add(new THREE.CylinderGeometry(0.0012, 0.0016, 0.03, 8), brass, {p: [bx, top + 0.022, bz]});
+  const sphere = new THREE.Group(); sphere.position.set(bx, top + 0.055, bz); root.add(sphere);
+  const ringGeo = new THREE.TorusGeometry(0.02, 0.0011, 6, 40); resources?.add(ringGeo);
+  const rings = [[0, 0, 0], [Math.PI / 2, 0, 0], [0.4, 0, Math.PI / 2], [Math.PI / 2, 0.5, 0.3]].map(r => { const m = new THREE.Mesh(ringGeo, brass); m.rotation.set(...r); sphere.add(m); return m; });
+  const earth = new THREE.Mesh(new THREE.SphereGeometry(0.0065, 16, 12), material(resources, 'fork-tiny-earth', '#3f7fb0', {roughness: 0.5})); sphere.add(earth); resources?.add(earth.geometry);
+  for (const [k, c] of [['#8a3f3a', 0], ['#3f6a4a', 1], ['#2f4f7a', 2]].entries()) bookKit.add(new THREE.BoxGeometry(0.03 - k * 0.003, 0.007, 0.022), material(resources, 'fork-stack-' + k, c[0]), {p: [0.12, top + 0.0035 + k * 0.007, 0.03], r: [0, k * 0.15, 0]});
+  bookKit.add(new THREE.BoxGeometry(0.02, 0.0012, 0.02), cap, {p: [0.12, top + 0.025, 0.03], r: [0, 0.6, 0]});
+  bookKit.add(new THREE.CylinderGeometry(0.006, 0.0065, 0.004, 12), cap, {p: [0.12, top + 0.0225, 0.03]});
+  bookKit.add(new THREE.CylinderGeometry(0.0004, 0.0004, 0.01, 4), brass, {p: [0.128, top + 0.021, 0.034]});
+  // the way back, told with objects: the tower's door stands half open with warm light inside, and two
+  // lanyard badges from the PhD years (2024, 2025) stand on the PhD side of the fork
+  const doorGlow = material(resources, 'fork-door-light', '#ffe2a8', {emissive: '#ffb75e', emissiveIntensity: 0.4, roughness: 0.6});
+  const doorWood = material(resources, 'fork-door-leaf', '#6b4a2e', {roughness: 0.55});
+  const doorKit = makeKit('keepsake-un-crossroads-door', resources), dz = tw.z + tw.d / 2 + 0.0006;
+  doorKit.add(new THREE.PlaneGeometry(0.016, 0.026), doorGlow, {p: [tw.x, top + 0.013, dz]});
+  for (const sx of [-1, 1]) doorKit.add(new THREE.BoxGeometry(0.002, 0.029, 0.003), brass, {p: [tw.x + sx * 0.009, top + 0.0145, dz + 0.001]});
+  doorKit.add(new THREE.BoxGeometry(0.02, 0.002, 0.003), brass, {p: [tw.x, top + 0.0285, dz + 0.001]});
+  const leaf = new THREE.Group(); leaf.position.set(tw.x - 0.008, top, dz + 0.001); root.add(leaf); leaf.rotation.y = -1.0;
+  const leafMesh = new THREE.Mesh(new THREE.BoxGeometry(0.016, 0.026, 0.0016), doorWood); leafMesh.position.set(0.008, 0.013, 0); leaf.add(leafMesh); resources?.add(leafMesh.geometry);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.0012, 8, 6), brass); knob.position.set(0.0135, 0.012, 0.0012); leaf.add(knob); resources?.add(knob.geometry);
+  doorKit.add(new THREE.BoxGeometry(0.03, 0.0015, 0.012), marble, {p: [tw.x, top + 0.00075, dz + 0.006]});
+  const badgeKit = makeKit('keepsake-un-crossroads-badges', resources);
+  const lanyard = material(resources, 'fork-lanyard', '#3a78c2', {roughness: 0.7});
+  const badgeBack = material(resources, 'fork-badge-back', '#e9ecef', {roughness: 0.4});
+  // each badge stands on its edge, leaning back a little, with its lanyard lying in a loop behind it
+  const badge = (year, org, x, z, yaw) => {
+    const uv = L.custom((c, w, h) => {
+      c.fillStyle = '#fbfbf8'; c.fillRect(0, 0, w, h); c.fillStyle = '#3a78c2'; c.fillRect(0, 0, w, h * 0.36);
+      c.fillStyle = '#fff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = `700 ${org.length > 8 ? 26 : 36}px Georgia, serif`; c.fillText(org, w / 2, h * 0.19);
+      c.fillStyle = '#c9ccd2'; c.fillRect(20, h * 0.46, 44, 56); c.fillStyle = '#2a2a2a'; c.font = '700 58px Georgia, serif'; c.fillText(year, w * 0.6, h * 0.7);
+      c.strokeStyle = '#3a78c2'; c.lineWidth = 6; c.strokeRect(3, 3, w - 6, h - 6);
+    });
+    const w = 0.038, h = 0.019, lean = 0.28, cy = h / 2 * Math.cos(lean) + 0.0004;
+    const card = L.geometry(uv, w, h); card.rotateX(-lean); card.rotateY(yaw);
+    badgeKit.add(card, L.mat, {p: [x, top + cy, z]});
+    const back = new THREE.BoxGeometry(w + 0.0012, h + 0.0012, 0.0012); back.translate(0, 0, -0.0007); back.rotateX(-lean); back.rotateY(yaw);
+    badgeKit.add(back, badgeBack, {p: [x, top + cy, z]});
+    const ty = cy + h / 2 * Math.cos(lean), tz = -h / 2 * Math.sin(lean);
+    const pts = [[-0.002, ty + 0.0006, tz], [-0.006, ty + 0.003, tz - 0.004], [-0.009, 0.005, tz - 0.013], [-0.008, 0.0008, tz - 0.022], [0, 0.0008, tz - 0.027],
+      [0.008, 0.0008, tz - 0.022], [0.009, 0.005, tz - 0.013], [0.006, ty + 0.003, tz - 0.004], [0.002, ty + 0.0006, tz]].map(q => new THREE.Vector3(...q));
+    const strap = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts), 40, 0.0008, 4, false); strap.scale(1, 0.7, 1); strap.rotateY(yaw);
+    badgeKit.add(strap, lanyard, {p: [x, top, z]});
+    const clip = new THREE.BoxGeometry(0.004, 0.0025, 0.0016); clip.translate(0, ty, tz); clip.rotateY(yaw);
+    badgeKit.add(clip, brass, {p: [x, top, z]});
+  };
+  badge('2024', 'UNODC', 0.072, 0.066, 0.18);
+  badge('2025', 'UN PEACEKEEPING', 0.118, 0.078, -0.14);
+  kit.build(root); const unMeshes = unKit.build(root), bookMeshes = bookKit.build(root), pathMeshes = pathKit.build(root), doorMeshes = doorKit.build(root), badgeMeshes = badgeKit.build(root);
+  function animate(t, dt, page) {
+    if (!reduced) { sphere.rotation.y = t * 0.4; rings[3].rotation.z = t * 0.6; flags.forEach((f, i) => { f.rotation.y = Math.sin(t * 2.4 + i) * 0.5; f.scale.x = 1 - 0.1 * Math.abs(Math.sin(t * 3.1 + i)); }); }
+    const pulse = reduced ? 1 : 0.6 + 0.4 * Math.sin(t * 3);
+    leftPath.emissiveIntensity = page === 'opportunity' ? 0.55 * pulse : 0.1;
+    rightPath.emissiveIntensity = page === 'choice' ? 0.55 * pulse : 0.1;
+    doorGlow.emissiveIntensity = page === 'back' ? 1.4 * pulse : 0.4;
+    lanyard.emissive?.set(page === 'back' ? '#1c4f8f' : '#000000');
+    leaf.rotation.y = THREE.MathUtils.damp(leaf.rotation.y, page === 'back' ? -1.6 : -1.0, 4, dt || 0.016);
+  }
+  animate(0, 0, null);
+  return {root, objects: {opportunity: [...unMeshes, ...flags], choice: [...bookMeshes, ...rings, earth], back: [...doorMeshes, leafMesh, ...badgeMeshes]}, animate};
+}
+
 export function buildRoadTrips(parent, {resources, reduced = false, low = false} = {}) {
   const root = new THREE.Group(); root.name = 'keepsake-two-crossings-map'; parent.add(root);
   const L = makeLabels(resources);
@@ -398,9 +533,41 @@ export function buildRoadTrips(parent, {resources, reduced = false, low = false}
   const star = new THREE.Shape(); for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 - Math.PI / 2, r = i % 2 ? 0.0035 : 0.008; i ? star.lineTo(Math.cos(a) * r, Math.sin(a) * r) : star.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
   const starGeo = new THREE.ExtrudeGeometry(star, {depth: 0.002, bevelEnabled: false}); starGeo.rotateX(-Math.PI / 2);
   const tx = P(PLACES.texas); board.add(starGeo, brass, {p: [tx.x, top + 0.0002, tx.z]});
+  // mountains in relief: the Rockies and the Sierra in the west, the Appalachians in the east
+  const peaks = material(resources, 'map-mountains', '#b9a27a', {roughness: 0.9, flatShading: true}), snow = material(resources, 'map-snowcaps', '#f6f2e8', {roughness: 0.8, flatShading: true});
+  const rng = (() => { let n = 7; return () => { n = (n * 16807) % 2147483647; return n / 2147483647; }; })();
+  const chain = (pts, count, size, capped) => { for (let i = 0; i < count; i++) { const f = i / (count - 1), seg = Math.min(pts.length - 2, Math.floor(f * (pts.length - 1))), u = f * (pts.length - 1) - seg;
+    const lon = THREE.MathUtils.lerp(pts[seg][0], pts[seg + 1][0], u) + (rng() - 0.5) * 2.2, lat = THREE.MathUtils.lerp(pts[seg][1], pts[seg + 1][1], u) + (rng() - 0.5) * 2.2;
+    const v = P([lon, lat], top - 0.0004), h = size * (0.6 + rng() * 0.6), r = h * 0.85;
+    board.add(new THREE.ConeGeometry(r, h, 5), peaks, {p: [v.x, v.y + h / 2, v.z], r: [0, rng() * 3, 0]});
+    if (capped && h > size * 0.85) board.add(new THREE.ConeGeometry(r * 0.38, h * 0.38, 5), snow, {p: [v.x, v.y + h * 0.82, v.z], r: [0, rng() * 3, 0]}); } };
+  chain([[-114, 48], [-110, 44], [-106.5, 40], [-106, 36]], low ? 10 : 18, 0.009, true);
+  chain([[-121.5, 40.5], [-119.5, 37.5], [-118.3, 36]], low ? 4 : 6, 0.007, true);
+  chain([[-84.5, 34.5], [-81.5, 37.5], [-78.5, 40], [-75.5, 42]], low ? 6 : 10, 0.005, false);
+  // tiny landmarks: a Golden Gate at SF, a Chicago skyline, the Capitol and the Monument in DC, a cactus in Texas
+  const gg = P(PLACES.sf), orange = material(resources, 'map-golden-gate', '#c4482c', {roughness: 0.5}), cable = material(resources, 'map-cable', '#e9e4da');
+  miniBridge(board, {x0: gg.x - 0.012, x1: gg.x + 0.008, z: gg.z - 0.012, y: top + 0.002, towerH: 0.012, color: orange, cable, deck: orange, scale: 0.55});
+  const ch = P(PLACES.chicago), steel = material(resources, 'map-skyline', '#5b6670', {roughness: 0.4, metalness: 0.3});
+  for (const [dx, dz, h] of [[-0.007, -0.006, 0.014], [-0.002, -0.008, 0.02], [0.003, -0.006, 0.011], [0.007, -0.009, 0.016]]) board.add(new THREE.BoxGeometry(0.004, h, 0.004), steel, {p: [ch.x + dx, top + h / 2, ch.z + dz]});
+  for (const dx of [-0.0012, 0.0012]) board.add(new THREE.CylinderGeometry(0.0003, 0.0003, 0.005, 4), steel, {p: [ch.x - 0.002 + dx, top + 0.0225, ch.z - 0.008]});
+  const dc = P(PLACES.dc), marble = material(resources, 'map-marble', '#f2efe8', {roughness: 0.5});
+  board.add(new THREE.BoxGeometry(0.012, 0.004, 0.006), marble, {p: [dc.x - 0.006, top + 0.002, dc.z - 0.008]});
+  board.add(new THREE.CylinderGeometry(0.0022, 0.0026, 0.003, 12), marble, {p: [dc.x - 0.006, top + 0.0055, dc.z - 0.008]});
+  board.add(new THREE.SphereGeometry(0.0024, 12, 8, 0, Math.PI * 2, 0, Math.PI / 2), marble, {p: [dc.x - 0.006, top + 0.007, dc.z - 0.008]});
+  board.add(new THREE.CylinderGeometry(0.0009, 0.0013, 0.016, 4), marble, {p: [dc.x + 0.009, top + 0.008, dc.z - 0.004], r: [0, Math.PI / 4, 0]});
+  board.add(new THREE.ConeGeometry(0.0009, 0.0016, 4), marble, {p: [dc.x + 0.009, top + 0.0168, dc.z - 0.004], r: [0, Math.PI / 4, 0]});
+  const tx2 = P(PLACES.texas), cactus = material(resources, 'map-cactus', '#4f8a4e', {roughness: 0.8});
+  board.add(new THREE.CylinderGeometry(0.0012, 0.0014, 0.012, 8), cactus, {p: [tx2.x - 0.016, top + 0.006, tx2.z - 0.006]});
+  for (const sd of [-1, 1]) { board.add(new THREE.CylinderGeometry(0.0008, 0.0008, 0.004, 6), cactus, {p: [tx2.x - 0.016 + sd * 0.0022, top + 0.0055, tx2.z - 0.006], r: [0, 0, sd * Math.PI / 2]}); board.add(new THREE.CylinderGeometry(0.0008, 0.0008, 0.005, 6), cactus, {p: [tx2.x - 0.016 + sd * 0.0038, top + 0.0085, tx2.z - 0.006]}); }
+  // a compass rose on the sea
+  const rose = new THREE.Shape(); for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, r = i % 4 === 0 ? 0.016 : i % 2 ? 0.004 : 0.009; i ? rose.lineTo(Math.cos(a) * r, Math.sin(a) * r) : rose.moveTo(Math.cos(a) * r, Math.sin(a) * r); }
+  const roseGeo = new THREE.ExtrudeGeometry(rose, {depth: 0.0012, bevelEnabled: false}); roseGeo.rotateX(-Math.PI / 2); board.add(roseGeo, brass, {p: [0.19, 0.0232, 0.095]});
+  board.add(new THREE.TorusGeometry(0.012, 0.0007, 4, 32), brass, {p: [0.19, 0.0236, 0.095], r: [Math.PI / 2, 0, 0]});
+  const nGeo = L.geometry(L.plate('N', {bg: '#2f5f78', fg: '#e9d8a6', size: 90}), 0.008, 0.006); nGeo.rotateX(-Math.PI / 2); board.add(nGeo, L.mat, {p: [0.19, 0.0236, 0.075]});
   // printed place names and the two year plates
-  const names = [['SF', 'sf', [-0.018, 0.012]], ['CHICAGO', 'chicago', [0.0, -0.014]], ['DC', 'dc', [0.016, 0.01]], ['TEXAS', 'texas', [0.0, 0.016]]];
-  for (const [text, id, [dx, dz]] of names) { const v = P(PLACES[id], top + 0.0006); const g = L.geometry(L.plate(text, {bg: '#efe4c8', fg: '#3a2a12', size: 54}), 0.034, 0.012); g.rotateX(-Math.PI / 2); board.add(g, L.mat, {p: [v.x + dx, v.y, v.z + dz]}); }
+  const names = [['SF', 'sf', [-0.024, 0.016]], ['CHICAGO', 'chicago', [0.006, 0.02]], ['DC', 'dc', [0.02, 0.014]], ['TEXAS', 'texas', [0.004, 0.022]]];
+  for (const [text, id, [dx, dz]] of names) { const v = P(PLACES[id], top + 0.0006); const g = L.geometry(L.plate(text, {bg: '#efe4c8', fg: '#3a2a12', size: 54}), 0.05, 0.017); g.rotateX(-Math.PI / 2); board.add(g, L.mat, {p: [v.x + dx, v.y, v.z + dz]}); }
+  const titleGeo = L.geometry(L.plate('TWO CROSSINGS', {bg: '#d9b65e', size: 40, sub: '46 of 50 states, and six cats'}), 0.15, 0.03); board.add(titleGeo, L.mat, {p: [0, 0.03, -0.1505], r: [-0.25, Math.PI, 0]});
   board.add(L.geometry(L.plate('2021', {sub: 'SF to DC · north'}), 0.09, 0.026), L.mat, {p: [-0.1, 0.012, 0.1505]});
   board.add(L.geometry(L.plate('2025', {sub: 'DC to SF · south'}), 0.09, 0.026), L.mat, {p: [0.1, 0.012, 0.1505]});
   board.add(new THREE.BoxGeometry(0.018, 0.004, 0.003), blue, {p: [-0.16, 0.012, 0.1515]});
@@ -484,3 +651,187 @@ export function buildRoadTrips(parent, {resources, reduced = false, low = false}
   return {root, objects: {north: [routes.north.tube], south: [routes.south.tube]}, animate};
 }
 
+
+// planar UVs so a tiling texture keeps its scale on every face of a box or slope
+function planarUV(g, k) {
+  const p = g.attributes.position, n = g.attributes.normal, uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), az = Math.abs(n.getZ(i));
+    const [u, v] = ay > ax && ay > az ? [p.getX(i), p.getZ(i)] : ax > az ? [p.getZ(i), p.getY(i)] : [p.getX(i), p.getY(i)];
+    uv[i * 2] = u * k; uv[i * 2 + 1] = v * k;
+  }
+  g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); return g;
+}
+function tileTexture(resources, draw, size = 256) {
+  const c = document.createElement('canvas'); c.width = c.height = size; draw(c.getContext('2d'), size);
+  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; resources?.add(t); return t;
+}
+
+/**
+ * Hoosac School, upstate New York: a miniature of Tibbits Hall, the Gothic Revival stone house at the
+ * heart of the campus (ashlar sandstone, steep fishscale slate gables, two towers, a bay window, a
+ * porch and tall chimneys), with autumn maples, a red and purple pennant, a stone owl for the school
+ * mascot, two students on the drive, and a painted backdrop where the city sits far down the road.
+ */
+export function buildHoosacNY(parent, {resources, reduced = false, low = false} = {}) {
+  const root = new THREE.Group(); root.name = 'keepsake-hoosac-tibbits'; parent.add(root);
+  const L = makeLabels(resources);
+  const walnut = material(resources, 'ny-walnut', '#5a3822', {roughness: 0.55});
+  const brass = material(resources, 'ny-brass', '#c9a24f', {metalness: 0.7, roughness: 0.32});
+  const lawn = material(resources, 'ny-autumn-lawn', '#7d8c4c', {roughness: 0.95});
+  const gravel = material(resources, 'ny-drive', '#cdbf9f', {roughness: 0.95});
+  const ashlarTex = tileTexture(resources, (x, s) => {
+    x.fillStyle = '#8f8068'; x.fillRect(0, 0, s, s);
+    const rows = 8, h = s / rows;
+    for (let r = 0; r < rows; r++) { let u = (r % 2) * -h * 0.8; while (u < s) { const w = h * (1.3 + ((r * 7 + Math.floor(u)) % 5) * 0.18); const l = 0.62 + (((r * 13 + Math.floor(u * 3)) % 9) / 9) * 0.16; x.fillStyle = `rgb(${Math.round(176 * l + 40)},${Math.round(160 * l + 34)},${Math.round(132 * l + 26)})`; x.fillRect(u + 2, r * h + 2, w - 4, h - 4); u += w; } }
+  });
+  const slateTex = tileTexture(resources, (x, s) => {
+    x.fillStyle = '#2f323a'; x.fillRect(0, 0, s, s);
+    const rows = 10, h = s / rows, w = s / 8;
+    for (let r = 0; r < rows; r++) for (let k = -1; k <= 8; k++) {
+      const cx = k * w + (r % 2) * w / 2, y0 = r * h, shade = 70 + ((r * 5 + k * 3) % 7) * 6, purple = r % 4 === 1 ? 12 : 0;
+      x.fillStyle = `rgb(${shade + purple},${shade + 2},${shade + 12 + purple})`;
+      x.beginPath(); if (r % 4 === 1 || r % 4 === 2) { x.moveTo(cx - w / 2 + 1, y0); x.lineTo(cx + w / 2 - 1, y0); x.lineTo(cx + w / 2 - 1, y0 + h * 0.6); x.arc(cx, y0 + h * 0.6, w / 2 - 1, 0, Math.PI); } else x.rect(cx - w / 2 + 1, y0, w - 2, h - 1.5);
+      x.fill();
+    }
+  });
+  const stone = material(resources, 'ny-ashlar-sandstone', '#ffffff', {map: ashlarTex, roughness: 0.85});
+  const slate = material(resources, 'ny-fishscale-slate', '#ffffff', {map: slateTex, roughness: 0.6});
+  const trim = material(resources, 'ny-stone-trim', '#c9bca2', {roughness: 0.8});
+  const glass = material(resources, 'ny-lit-windows', '#ffdf9e', {emissive: '#ffb554', emissiveIntensity: 0.35, roughness: 0.3});
+  const door = material(resources, 'ny-oak-door', '#4a2f1d', {roughness: 0.6});
+  const hall = makeKit('keepsake-hoosac-tibbits-hall', resources), kit = makeKit('keepsake-hoosac-tibbits-grounds', resources);
+  const friendsKit = makeKit('keepsake-hoosac-tibbits-friends', resources), cityKit = makeKit('keepsake-hoosac-tibbits-city', resources);
+  const top = 0.026;
+  // the base, the lawn and the drive up to the porch
+  kit.add(new THREE.BoxGeometry(0.46, top, 0.3), walnut, {p: [0, top / 2, 0]});
+  for (const sz of [-1, 1]) kit.add(new THREE.BoxGeometry(0.462, 0.006, 0.006), brass, {p: [0, top + 0.001, sz * 0.148]});
+  for (const sx of [-1, 1]) kit.add(new THREE.BoxGeometry(0.006, 0.006, 0.302), brass, {p: [sx * 0.228, top + 0.001, 0]});
+  kit.add(new THREE.BoxGeometry(0.448, 0.004, 0.288), lawn, {p: [0, top + 0.002, 0]});
+  const drive = new THREE.Shape(); drive.moveTo(-0.045, -0.145); drive.bezierCurveTo(-0.02, -0.09, -0.06, -0.07, -0.04, -0.03); drive.lineTo(-0.018, -0.03); drive.bezierCurveTo(-0.035, -0.07, 0.0, -0.09, -0.015, -0.145); drive.closePath();
+  const dg = new THREE.ShapeGeometry(drive, 8); dg.rotateX(-Math.PI / 2); kit.add(dg, gravel, {p: [0, top + 0.0045, 0], s: [1, 1, 1]});
+  kit.add(L.geometry(L.plate('TIBBITS HALL', {size: 30, sub: 'Hoosac School · New York'}), 0.14, 0.028), L.mat, {p: [0, 0.013, 0.1505]});
+  const ground = top + 0.004, H = -0.025, HZ = -0.035;
+  const wall = (w, h, d, x, y, z) => hall.add(planarUV(new THREE.BoxGeometry(w, h, d), 40), stone, {p: [x, y + h / 2, z]});
+  // a steep gable roof with fishscale slate on both slopes, stone gable ends and a ridge
+  const gable = (len, span, rise, x, y, z, alongZ = false) => {
+    const sh = new THREE.Shape(); sh.moveTo(-span / 2 - 0.004, 0); sh.lineTo(span / 2 + 0.004, 0); sh.lineTo(0, rise); sh.closePath();
+    const g = new THREE.ExtrudeGeometry(sh, {depth: len, bevelEnabled: false}); g.translate(0, 0, -len / 2); g.rotateY(Math.PI / 2); if (alongZ) g.rotateY(Math.PI / 2);
+    g.computeVertexNormals(); planarUV(g, 35);
+    const uv = g.attributes.uv, p = g.attributes.position, n = g.attributes.normal;
+    for (let i = 0; i < p.count; i++) if (Math.abs(n.getY(i)) > 0.2) uv.setXY(i, (alongZ ? p.getZ(i) : p.getX(i)) * 35, (p.getY(i) * 1.3 + (alongZ ? Math.abs(p.getX(i)) : Math.abs(p.getZ(i)))) * 35);
+    hall.add(g, slate, {p: [x, y, z]});
+    if (!alongZ) hall.add(new THREE.BoxGeometry(len + 0.004, 0.004, 0.004), trim, {p: [x, y + rise, z]});
+  };
+  const win = (x, y, z, w = 0.011, h = 0.018, face = 1, pointed = false, side = false) => {
+    let g;
+    if (pointed) { const sh = new THREE.Shape(); sh.moveTo(-w / 2, 0); sh.lineTo(w / 2, 0); sh.lineTo(w / 2, h * 0.6); sh.quadraticCurveTo(w / 2, h * 0.9, 0, h); sh.quadraticCurveTo(-w / 2, h * 0.9, -w / 2, h * 0.6); sh.closePath(); g = new THREE.ShapeGeometry(sh, 4); }
+    else { g = new THREE.PlaneGeometry(w, h); g.translate(0, h / 2, 0); }
+    if (side) g.rotateY(face * Math.PI / 2); else if (face < 0) g.rotateY(Math.PI);
+    hall.add(g, glass, {p: [x, y, z]});
+    const lintel = new THREE.BoxGeometry(side ? 0.004 : w + 0.005, 0.0035, side ? w + 0.005 : 0.004);
+    if (!pointed) hall.add(lintel, trim, {p: [x, y + h + 0.002, z]});
+    hall.add(new THREE.BoxGeometry(side ? 0.004 : w + 0.004, 0.003, side ? w + 0.004 : 0.005), trim, {p: [x, y - 0.0015, z]});
+  };
+  const cx = -0.01;
+  // the main block: one and a half storeys of ashlar under a steep roof
+  wall(0.2, 0.062, 0.088, cx, ground, HZ); gable(0.214, 0.096, 0.072, cx, ground + 0.062, HZ);
+  hall.add(new THREE.BoxGeometry(0.206, 0.006, 0.094), trim, {p: [cx, ground + 0.003, HZ]});
+  for (const x of [-0.075, 0.07]) { win(cx + x, ground + 0.012, HZ + 0.0445); win(cx + x, ground + 0.04, HZ + 0.0445, 0.01, 0.014); }
+  // the front gable wing with a tall pointed window
+  wall(0.072, 0.062, 0.034, cx + 0.045, ground, HZ + 0.06); gable(0.04, 0.076, 0.064, cx + 0.045, ground + 0.062, HZ + 0.065, true);
+  win(cx + 0.045, ground + 0.012, HZ + 0.0775, 0.024, 0.022); win(cx + 0.045, ground + 0.067, HZ + 0.0775, 0.014, 0.03, 1, true);
+  // a polygonal bay window on the main front
+  const bay = new THREE.CylinderGeometry(0.02, 0.02, 0.032, 6, 1, false, -Math.PI / 2, Math.PI); planarUV(bay, 40); hall.add(bay, stone, {p: [cx - 0.035, ground + 0.016, HZ + 0.044]});
+  hall.add(new THREE.ConeGeometry(0.023, 0.014, 6, 1, false, -Math.PI / 2, Math.PI), slate, {p: [cx - 0.035, ground + 0.039, HZ + 0.044]});
+  for (const a of [-0.9, 0, 0.9]) { const g = new THREE.PlaneGeometry(0.009, 0.018); g.translate(0, 0.009, 0); g.rotateY(a); hall.add(g, glass, {p: [cx - 0.035 + Math.sin(a) * 0.0185, ground + 0.007, HZ + 0.044 + Math.cos(a) * 0.0185]}); }
+  // the arched porch over the front door, with steps
+  wall(0.036, 0.04, 0.026, cx + 0.0, ground, HZ + 0.057); gable(0.03, 0.04, 0.03, cx, ground + 0.04, HZ + 0.06, true);
+  const arch = new THREE.Shape(); arch.moveTo(-0.009, 0); arch.lineTo(0.009, 0); arch.lineTo(0.009, 0.018); arch.quadraticCurveTo(0.009, 0.027, 0, 0.031); arch.quadraticCurveTo(-0.009, 0.027, -0.009, 0.018); arch.closePath();
+  hall.add(new THREE.ShapeGeometry(arch, 4), door, {p: [cx, ground, HZ + 0.0705]});
+  hall.add(new THREE.CircleGeometry(0.004, 10, 0, Math.PI), glass, {p: [cx, ground + 0.022, HZ + 0.0708]});
+  for (let k = 0; k < 2; k++) hall.add(new THREE.BoxGeometry(0.03 - k * 0.006, 0.004, 0.012 - k * 0.004), trim, {p: [cx, ground + 0.002 + k * 0.004, HZ + 0.077 - k * 0.002]});
+  // the square tower with a steep pyramid roof, and the round tower with a cone
+  wall(0.04, 0.118, 0.04, cx - 0.098, ground, HZ + 0.03);
+  hall.add(new THREE.ConeGeometry(0.034, 0.07, 4, 1), slate, {p: [cx - 0.098, ground + 0.153, HZ + 0.03], r: [0, Math.PI / 4, 0]});
+  for (const y of [0.014, 0.05, 0.088]) win(cx - 0.098, ground + y, HZ + 0.0505, 0.01, y > 0.08 ? 0.018 : 0.016, 1, y > 0.08);
+  hall.add(new THREE.BoxGeometry(0.044, 0.004, 0.044), trim, {p: [cx - 0.098, ground + 0.118, HZ + 0.03]});
+  const round = new THREE.CylinderGeometry(0.022, 0.022, 0.104, 14); planarUV(round, 40); hall.add(round, stone, {p: [cx + 0.098, ground + 0.052, HZ - 0.03]});
+  hall.add(new THREE.ConeGeometry(0.027, 0.06, 14), slate, {p: [cx + 0.098, ground + 0.134, HZ - 0.03]});
+  hall.add(new THREE.CylinderGeometry(0.0012, 0.0012, 0.018, 5), brass, {p: [cx + 0.098, ground + 0.172, HZ - 0.03]});
+  for (const a of [0.3, 1.2]) { const g = new THREE.PlaneGeometry(0.009, 0.015); g.translate(0, 0.0075, 0); g.rotateY(a); hall.add(g, glass, {p: [cx + 0.098 + Math.sin(a) * 0.0222, ground + 0.06, HZ - 0.03 + Math.cos(a) * 0.0222]}); }
+  // a dormer and tall stone chimneys with caps
+  wall(0.02, 0.018, 0.02, cx - 0.06, ground + 0.07, HZ + 0.022); gable(0.026, 0.024, 0.016, cx - 0.06, ground + 0.088, HZ + 0.026, true);
+  win(cx - 0.06, ground + 0.073, HZ + 0.0325, 0.009, 0.011);
+  for (const [x, z, h] of [[-0.04, HZ - 0.01, 0.065], [0.075, HZ, 0.06], [0.045, HZ + 0.06, 0.052]]) { wall(0.012, h, 0.014, cx + x, ground + 0.07, z); hall.add(new THREE.BoxGeometry(0.016, 0.004, 0.018), trim, {p: [cx + x, ground + 0.072 + h, z]}); }
+  // autumn maples and fallen leaves
+  const leafMats = [['#c4462a', 'ny-maple-red'], ['#e08a2e', 'ny-maple-orange'], ['#e8b83a', 'ny-maple-gold']].map(([c, n]) => material(resources, n, c, {roughness: 0.85}));
+  const bark = material(resources, 'ny-bark', '#4a3526', {roughness: 0.9});
+  for (const [x, z, s, m] of [[-0.175, -0.07, 1.1, 0], [0.18, 0.04, 1.0, 1], [-0.16, 0.085, 0.8, 2], [0.165, -0.095, 0.9, 0]]) {
+    kit.add(new THREE.CylinderGeometry(0.0035 * s, 0.005 * s, 0.06 * s, 6), bark, {p: [x, ground + 0.03 * s, z]});
+    for (let k = 0; k < 6; k++) { const a = k * 1.1 + x * 10; kit.add(new THREE.IcosahedronGeometry(0.022 * s * (0.8 + (k % 3) * 0.15), 1), leafMats[(m + (k % 2)) % 3], {p: [x + Math.cos(a) * 0.017 * s, ground + (0.07 + (k % 3) * 0.016) * s, z + Math.sin(a) * 0.017 * s]}); }
+  }
+  for (let k = 0; k < (low ? 20 : 40); k++) { const a = k * 2.39996, r = 0.06 + (k % 9) * 0.017; const px = Math.cos(a) * r * 1.5, pz = Math.sin(a) * r; if (Math.abs(px) < 0.12 && pz < 0.03 && pz > -0.1) continue; kit.add(new THREE.CircleGeometry(0.0035, 5), leafMats[k % 3], {p: [px, ground + 0.0008, pz], r: [-Math.PI / 2, 0, a]}); }
+  // the pennant, red and purple, on a brass pole
+  kit.add(new THREE.CylinderGeometry(0.0011, 0.0011, 0.05, 6), brass, {p: [cx - 0.098, ground + 0.205, HZ + 0.03]});
+  const penUV = L.custom((c, w, h) => { c.fillStyle = '#9b1f2e'; c.fillRect(0, 0, w, h / 2); c.fillStyle = '#5b2a86'; c.fillRect(0, h / 2, w, h / 2); c.fillStyle = '#fbeedb'; c.font = '700 44px Georgia, serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('HOOSAC', w * 0.42, h / 2); });
+  const penGeo = L.geometry(penUV, 0.06, 0.026); { const p = penGeo.attributes.position; for (let i = 0; i < p.count; i++) { const u = (p.getX(i) + 0.03) / 0.06; p.setY(i, p.getY(i) * (1 - u * 0.92)); } } penGeo.translate(0.03, 0, 0);
+  resources?.add(penGeo);
+  const pennant = new THREE.Mesh(penGeo, L.mat); pennant.position.set(cx - 0.098, ground + 0.218, HZ + 0.03); pennant.scale.setScalar(0.7); pennant.castShadow = true; root.add(pennant);
+  // a stone owl on a little plinth by the drive, for the school mascot
+  const owlStone = material(resources, 'ny-owl-stone', '#9a958c', {roughness: 0.8});
+  friendsKit.add(planarUV(new THREE.BoxGeometry(0.022, 0.024, 0.022), 40), stone, {p: [-0.072, ground + 0.012, 0.1]});
+  const owlLight = material(resources, 'ny-owl-face', '#c8c2b6', {roughness: 0.8}), owlEye = material(resources, 'ny-owl-eye', '#e7c46a', {emissive: '#7a5a10', emissiveIntensity: 0.4}), owlDark = material(resources, 'ny-owl-pupil', '#2a2622', {roughness: 0.5});
+  const ox = -0.072, oz = 0.1, oy = ground + 0.024;
+  friendsKit.add(new THREE.SphereGeometry(0.0105, 14, 10), owlStone, {p: [ox, oy + 0.014, oz], s: [1, 1.35, 0.9]});
+  friendsKit.add(new THREE.SphereGeometry(0.0092, 14, 10), owlStone, {p: [ox, oy + 0.031, oz], s: [1.08, 0.9, 0.95]});
+  for (const e of [-1, 1]) {
+    friendsKit.add(new THREE.SphereGeometry(0.0085, 10, 8), owlStone, {p: [ox + e * 0.0085, oy + 0.014, oz - 0.001], s: [0.45, 1.25, 0.9], r: [0, 0, e * 0.15]});
+    friendsKit.add(new THREE.CircleGeometry(0.0046, 14), owlLight, {p: [ox + e * 0.0043, oy + 0.032, oz + 0.0086]});
+    friendsKit.add(new THREE.CircleGeometry(0.0026, 12), owlEye, {p: [ox + e * 0.0043, oy + 0.032, oz + 0.0089]});
+    friendsKit.add(new THREE.CircleGeometry(0.0012, 8), owlDark, {p: [ox + e * 0.0043, oy + 0.032, oz + 0.0091]});
+    friendsKit.add(new THREE.ConeGeometry(0.0016, 0.0045, 4), owlStone, {p: [ox + e * 0.0062, oy + 0.0395, oz + 0.002], r: [0, 0, -e * 0.5]});
+    friendsKit.add(new THREE.ConeGeometry(0.0012, 0.004, 4), owlStone, {p: [ox + e * 0.003, oy + 0.0015, oz + 0.008], r: [Math.PI / 2, 0, 0]});
+  }
+  friendsKit.add(new THREE.ConeGeometry(0.0014, 0.0045, 5), owlDark, {p: [ox, oy + 0.0285, oz + 0.009], r: [Math.PI * 0.62, 0, 0]});
+  // two students walking up the drive, one with books
+  const skin = material(resources, 'ny-skin', '#efd2b6', {roughness: 0.7}), hair = material(resources, 'ny-hair', '#2a1d16', {roughness: 0.7});
+  const figures = [];
+  for (const [x, z, coat, books] of [[-0.03, 0.105, '#7a2433', false], [-0.012, 0.118, '#4f3478', true]]) {
+    const f = makeKit('keepsake-hoosac-student', resources), g = new THREE.Group(); g.position.set(x, ground, z); root.add(g);
+    const c = material(resources, 'ny-blazer-' + coat, coat, {roughness: 0.7});
+    f.add(new THREE.CylinderGeometry(0.0022, 0.0022, 0.012, 6), material(resources, 'ny-trousers', '#2c2f3a'), {p: [-0.0022, 0.006, 0]}); f.add(new THREE.CylinderGeometry(0.0022, 0.0022, 0.012, 6), material(resources, 'ny-trousers', '#2c2f3a'), {p: [0.0022, 0.006, 0]});
+    f.add(new THREE.CapsuleGeometry(0.0052, 0.011, 3, 8), c, {p: [0, 0.019, 0]});
+    f.add(new THREE.SphereGeometry(0.0048, 10, 8), skin, {p: [0, 0.033, 0]}); f.add(new THREE.SphereGeometry(0.005, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), hair, {p: [0, 0.0338, -0.0006]});
+    if (books) f.add(new THREE.BoxGeometry(0.008, 0.002, 0.006), material(resources, 'ny-books', '#c9a24f'), {p: [0.006, 0.02, 0.003]});
+    figures.push(g, ...f.build(g));
+  }
+  // the far city: a painted backdrop of the hills and the road, the skyline small on the horizon, and a road sign
+  const backUV = L.custom((c, w, h) => {
+    const sky = c.createLinearGradient(0, 0, 0, h); sky.addColorStop(0, '#2c3a64'); sky.addColorStop(0.55, '#c98d8a'); sky.addColorStop(1, '#f1c38e'); c.fillStyle = sky; c.fillRect(0, 0, w, h);
+    c.fillStyle = '#ffe9b0'; for (let k = 0; k < 14; k++) c.fillRect((k * 37) % w, (k * 11) % (h * 0.35), 1.5, 1.5);
+    c.fillStyle = '#1c2340'; const sx = w * 0.78, base = h * 0.66;
+    [[0, 16, 30], [12, 10, 44], [20, 12, 60], [31, 9, 38], [38, 11, 50], [48, 8, 34], [-10, 9, 26]].forEach(([dx, bw, bh]) => c.fillRect(sx + dx, base - bh * 0.5, bw * 0.6, bh * 0.5));
+    c.fillRect(sx + 24, base - 40, 4, 10); c.fillRect(sx + 25.2, base - 47, 1.6, 8);
+    c.fillStyle = '#ffd98a'; for (let k = 0; k < 22; k++) c.fillRect(sx - 6 + (k * 7) % 58, base - 4 - (k * 5) % 22, 1.2, 1.2);
+    c.fillStyle = '#56603e'; c.beginPath(); c.moveTo(0, h * 0.62); for (let x = 0; x <= w; x += 8) c.lineTo(x, h * 0.66 - Math.sin(x / 40) * 10 - Math.sin(x / 17) * 4); c.lineTo(w, h); c.lineTo(0, h); c.fill();
+    c.fillStyle = '#3f4a2c'; c.beginPath(); c.moveTo(0, h * 0.78); for (let x = 0; x <= w; x += 8) c.lineTo(x, h * 0.8 - Math.sin(x / 55 + 1) * 8); c.lineTo(w, h); c.lineTo(0, h); c.fill();
+    c.fillStyle = '#8a7f6a'; c.beginPath(); c.moveTo(w * 0.42, h); c.quadraticCurveTo(w * 0.55, h * 0.78, sx + 6, base + 2); c.lineTo(sx + 9, base + 2); c.quadraticCurveTo(w * 0.6, h * 0.8, w * 0.52, h); c.fill();
+  });
+  cityKit.add(L.geometry(backUV, 0.44, 0.12), L.mat, {p: [0, ground + 0.06, -0.146]});
+  cityKit.add(new THREE.BoxGeometry(0.448, 0.008, 0.008), walnut, {p: [0, ground + 0.124, -0.148]});
+  for (const sx of [-1, 1]) cityKit.add(new THREE.BoxGeometry(0.008, 0.124, 0.008), walnut, {p: [sx * 0.222, ground + 0.062, -0.148]});
+  const signUV = L.custom((c, w, h) => { c.fillStyle = '#1f6b3d'; c.fillRect(0, 0, w, h); c.strokeStyle = '#ffffff'; c.lineWidth = 5; c.strokeRect(6, 6, w - 12, h - 12); c.fillStyle = '#ffffff'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.font = '700 30px Arial, sans-serif'; c.fillText('NEW YORK CITY', w / 2, h * 0.36); c.font = '700 40px Arial, sans-serif'; c.fillText('3½ h  →', w / 2, h * 0.72); });
+  cityKit.add(new THREE.CylinderGeometry(0.0016, 0.0016, 0.06, 6), material(resources, 'ny-sign-post', '#b9bec4', {metalness: 0.6, roughness: 0.35}), {p: [0.15, ground + 0.03, 0.11]});
+  cityKit.add(L.geometry(signUV, 0.05, 0.025), L.mat, {p: [0.15, ground + 0.06, 0.1112], r: [0, -0.25, 0]});
+  cityKit.add(new THREE.BoxGeometry(0.052, 0.027, 0.002), material(resources, 'ny-sign-back', '#1a5732'), {p: [0.15, ground + 0.06, 0.1098], r: [0, -0.25, 0]});
+  kit.build(root); const hallMeshes = hall.build(root), friendMeshes = friendsKit.build(root), cityMeshes = cityKit.build(root);
+  function animate(t, dt, page) {
+    const pulse = reduced ? 1 : 0.7 + 0.3 * Math.sin(t * 2.4);
+    glass.emissiveIntensity = page === 'tibbits' ? 1.1 * pulse : 0.35;
+    if (!reduced) { const p = penGeo.attributes.position; for (let i = 0; i < p.count; i++) { const u = p.getX(i) / 0.06; p.setZ(i, Math.sin(t * 5 - u * 5) * 0.004 * u); } p.needsUpdate = true; }
+    figures.forEach((f, i) => { if (f.isGroup && !reduced) f.position.y = ground + Math.abs(Math.sin(t * 4 + i)) * (page === 'friends' ? 0.0025 : 0.0008); });
+  }
+  animate(0, 0, null);
+  return {root, objects: {tibbits: hallMeshes, friends: [...friendMeshes, pennant, ...figures.filter(f => f.isMesh)], city: cityMeshes}, animate};
+}

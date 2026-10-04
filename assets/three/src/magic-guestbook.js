@@ -21,15 +21,35 @@ export function getTalkNoteTopics(data={}){
   return topics;
 }
 
-/** A client-side draft link. It never sends email or claims that mail was sent. */
+/** A client-side draft link for the visitor's own email app, kept as a fallback. */
 export function createReflectionMailto({email,topic,text}={}){
   const address=literalInk(email,254).trim(),message=literalInk(text,MAX_INPUT).trim();
   if(!/^[^\s@<>?&#:]+@[^\s@<>?&#:]+\.[^\s@<>?&#:]+$/.test(address)||!message)return null;
   const title=literalInk(topic?.title||'A question',350).replace(/[\r\n]+/g,' ');
   const subject='Reflection on '+title;
-  const body='Hello Hanjing,\n\n'+message+'\n\nAbout: '+(topic?.kind||'Question')+' — '+title+'\n\nFrom your Lantern Theatre.';
+  const body='Hello Hanjing,\n\n'+message+'\n\nAbout: '+(topic?.kind||'Question')+', '+title+'\n\nFrom your Lantern Theatre.';
   const recipient=address.split('@').map(encodeURIComponent).join('@');
   return'mailto:'+recipient+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body);
+}
+
+/**
+ * Sends a note straight to Hanjing's inbox through FormSubmit (a form relay for
+ * static sites; GitHub Pages cannot send mail by itself). The first note ever
+ * sent asks the inbox owner to click an activation link once. Resolves to
+ * {ok:true} or {ok:false, reason:'activation'|'network'|'invalid'}.
+ */
+export async function sendReflection({email,topic,text,name,replyTo,fetchImpl=globalThis.fetch}={}){
+  const address=literalInk(email,254).trim(),message=literalInk(text,MAX_INPUT).trim();
+  if(!/^[^\s@<>?&#:/]+@[^\s@<>?&#:/]+\.[^\s@<>?&#:/]+$/.test(address)||!message)return{ok:false,reason:'invalid'};
+  const title=literalInk(topic?.title||'A question',350).replace(/[\r\n]+/g,' '),from=literalInk(name,80).trim(),reply=literalInk(replyTo,254).trim();
+  const body={_subject:'A note from your Lantern Theatre: '+title,_template:'table',_captcha:'false',
+    about:(topic?.kind||'Question')+': '+title,message,name:from||'A visitor',...(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(reply)?{email:reply,_replyto:reply}:{})};
+  try{
+    const response=await fetchImpl('https://formsubmit.co/ajax/'+encodeURIComponent(address).replace('%40','@'),{method:'POST',headers:{'Content-Type':'application/json',Accept:'application/json'},body:JSON.stringify(body)});
+    const result=await response.json().catch(()=>({}));
+    if(response.ok&&String(result.success)==='true')return{ok:true};
+    return{ok:false,reason:/activat/i.test(String(result.message||''))?'activation':'network'};
+  }catch{return{ok:false,reason:'network'};}
 }
 
 /** A real sheet resting on the original sloped lectern, and a readable paper
@@ -60,10 +80,11 @@ export function createTalkNotes({station,quality='high',reduced=false,onOverlay,
   marker.name='talks-reflection-attached-gold-corner';marker.position.set(.218,.0351,.151);root.add(marker);
 
   const element=doc.createElement('section');element.className='talk-note';element.hidden=true;element.setAttribute('role','dialog');element.setAttribute('aria-modal','true');element.setAttribute('aria-labelledby',uid+'-title');
-  element.innerHTML=`<article class="talk-note-sheet"><header class="talk-note-header"><div><p class="talk-note-eyebrow">LANTERN THEATRE · A PAPER THOUGHT</p><h2 id="${uid}-title" tabindex="-1">Leave a thought</h2></div><button type="button" class="talk-note-close" aria-label="Close the note and return to the theatre">×</button></header><p class="talk-note-intro">Something stayed with you? A question, a connection, or a little disagreement is welcome.</p><form class="talk-note-form"><label for="${uid}-topic">About</label><select id="${uid}-topic"></select><label for="${uid}-message">Your note to Hanjing</label><textarea id="${uid}-message" maxlength="${MAX_INPUT}" rows="5" autocomplete="off" spellcheck="true" placeholder="I was thinking about…"></textarea><div class="talk-note-meta"><span class="talk-note-count">0 / ${MAX_INPUT}</span><span>Draft kept only on this page</span></div><p class="talk-note-feedback" role="status" aria-live="polite" hidden></p><footer class="talk-note-footer"><a class="talk-note-email" aria-disabled="true">Email Hanjing</a><p>Opens your email app; you decide when to send.</p></footer></form></article>`;
+  element.innerHTML=`<article class="talk-note-sheet"><header class="talk-note-header"><div><p class="talk-note-eyebrow">LANTERN THEATRE · A PAPER THOUGHT</p><h2 id="${uid}-title" tabindex="-1">Leave a thought</h2></div><button type="button" class="talk-note-close" aria-label="Close the note and return to the theatre">×</button></header><p class="talk-note-intro">Something stayed with you? A question, a connection, or a little disagreement is welcome.</p><form class="talk-note-form"><label for="${uid}-topic">About</label><select id="${uid}-topic"></select><label for="${uid}-message">Your note to Hanjing</label><textarea id="${uid}-message" maxlength="${MAX_INPUT}" rows="5" autocomplete="off" spellcheck="true" placeholder="I was thinking about…"></textarea><div class="talk-note-meta"><span class="talk-note-count">0 / ${MAX_INPUT}</span></div><div class="talk-note-from"><div><label for="${uid}-name">Your name <small>(optional)</small></label><input id="${uid}-name" type="text" maxlength="80" autocomplete="name"></div><div><label for="${uid}-reply">Email for a reply <small>(optional)</small></label><input id="${uid}-reply" type="email" maxlength="254" autocomplete="email" inputmode="email"></div></div><label class="talk-note-honey" aria-hidden="true">Leave this empty<input type="text" name="_honey" tabindex="-1" autocomplete="off"></label><p class="talk-note-feedback" role="status" aria-live="polite" hidden></p><footer class="talk-note-footer"><button type="submit" class="talk-note-send"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M3 11.5 21 3l-6.5 18-3-7.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m11.5 13.5 4-4" stroke="currentColor" stroke-width="1.5"/></svg><span>Send to Hanjing</span></button><p>Your note goes straight to Hanjing’s inbox. Nothing is published here. <a class="talk-note-email" aria-disabled="true">Or use your email app</a></p></footer></form></article>`;
   mount.append(element);
   const heading=element.querySelector('h2'),input=element.querySelector('textarea'),select=element.querySelector('select'),emailLink=element.querySelector('.talk-note-email'),feedback=element.querySelector('.talk-note-feedback'),background=new Map();
-  let draft='',topic=topics[0],opened=false,disposed=false,composing=false,lastFocus=null,clock=0,launchCooldown=0,paperState={text:'',lines:[]};
+  const nameInput=element.querySelector(`#${uid}-name`),replyInput=element.querySelector(`#${uid}-reply`),honey=element.querySelector('[name=_honey]'),sendButton=element.querySelector('.talk-note-send'),sheet=element.querySelector('.talk-note-sheet');
+  let draft='',topic=topics[0],opened=false,disposed=false,composing=false,lastFocus=null,clock=0,launchCooldown=0,paperState={text:'',lines:[]},sending=false,sentCount=0,sendCooldown=0,sentFlash=0;
   const focus=node=>node?.focus?.({preventScroll:true});
   for(const [label,entries]of [['A general thought',topics.filter(t=>t.general)],['Talks',topics.filter(t=>!t.general&&t.kind==='Talk')],['Posters',topics.filter(t=>!t.general&&t.kind==='Poster')]]){
     if(!entries.length)continue;const group=doc.createElement('optgroup');group.label=label;
@@ -86,7 +107,7 @@ export function createTalkNotes({station,quality='high',reduced=false,onOverlay,
     const w=canvas.width,h=canvas.height,pad=w*.09;ctx.fillStyle='#f4e8cd';ctx.fillRect(0,0,w,h);ctx.fillStyle='#8a704b';ctx.font=`500 ${h*.039}px sans-serif`;ctx.textBaseline='alphabetic';ctx.fillText('LANTERN THEATRE',pad,h*.13);
     ctx.fillStyle='#493b2d';ctx.font=`600 ${h*.085}px "Magic Hand", cursive`;ctx.fillText('Leave a thought',pad,h*.25);
     ctx.font=`500 ${h*.032}px sans-serif`;const topicLines=wrapped(topic.title,w-pad*2,2);topicLines.forEach((line,i)=>ctx.fillText(line,pad,h*(.34+i*.045)));
-    ctx.font=`600 ${h*.069}px "Magic Hand", cursive`;const text=draft||'A talk, a poster, a question. A little ink is enough.',lines=wrapped(text,w-pad*2,4);lines.forEach((line,i)=>ctx.fillText(line,pad,h*(.51+i*.10)));
+    ctx.font=`600 ${h*.069}px "Magic Hand", cursive`;const text=draft||(sentFlash>0?'Sent. Thank you for the thought.':'A talk, a poster, a question. A little ink is enough.'),lines=wrapped(text,w-pad*2,4);lines.forEach((line,i)=>ctx.fillText(line,pad,h*(.51+i*.10)));
     texture.needsUpdate=true;paperState={text:draft,preview:lines.join('\n'),lines,topic:topic.title,width:w,height:h};
   }
   function isolate(){let current=element;while(current.parentElement&&current.parentElement!==doc.documentElement){for(const sibling of current.parentElement.children){if(sibling===current||background.has(sibling))continue;background.set(sibling,{inert:sibling.inert,aria:sibling.getAttribute('aria-hidden')});sibling.inert=true;sibling.setAttribute('aria-hidden','true');}current=current.parentElement;}}
@@ -119,20 +140,40 @@ export function createTalkNotes({station,quality='high',reduced=false,onOverlay,
     if(!href){event.preventDefault();say(email?'Write a little thought before opening an email draft.':'The email address is unavailable. Your note is still here.');focus(input);return false;}
     emailLink.href=href;launchCooldown=1.5;say('Your email app can open a draft. You decide when to send.');return true;
   }
+  async function send(){
+    if(sending||composing)return false;
+    if(!draft.trim()){say('Write a little thought first.');focus(input);return false;}
+    sheet.classList.remove('is-sent');
+    if(honey.value){say('Thank you.');return false;}
+    if(sendCooldown>0||sentCount>=5){say(sentCount>=5?'That is plenty of ink for one visit. Thank you! The email link below still works.':'One moment. The last note is still on its way.');return false;}
+    const reply=replyInput.value.trim();
+    if(reply&&!replyInput.checkValidity()){say('That reply address looks unfinished. Leave it empty or fix it.');focus(replyInput);return false;}
+    sending=true;sendButton.disabled=true;sendButton.querySelector('span').textContent='Sending…';say('');
+    const result=await sendReflection({email,topic,text:draft,name:nameInput.value,replyTo:reply});
+    sending=false;sendButton.disabled=false;sendButton.querySelector('span').textContent='Send to Hanjing';
+    if(result.ok){
+      sentCount++;sendCooldown=20;sentFlash=8;draft='';input.value='';
+      sheet.classList.add('is-sent');
+      if(!reduced){const plane=doc.createElement('span');plane.className='talk-note-plane';plane.setAttribute('aria-hidden','true');plane.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 11.5 21 3l-6.5 18-3-7.5z" fill="#fbeedb" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="m11.5 13.5 4-4" stroke="currentColor" stroke-width="1.3"/></svg>';sheet.append(plane);win.setTimeout(()=>plane.remove(),1800);}
+      say('Sent. Your note is on its way to Hanjing. Thank you for the thought!');sync();return true;
+    }
+    say(result.reason==='activation'?'The owl post is still waking up, so this note could not be delivered yet. Your words are still here. You can use your email app below.':result.reason==='invalid'?'The address for notes is unavailable right now. Your words are still here.':'The note could not fly this time (maybe the connection). Your words are still here. Try again, or use your email app below.');
+    return false;
+  }
   input.addEventListener('input',()=>{draft=literalInk(input.value,MAX_INPUT);say('');sync();});input.addEventListener('compositionstart',()=>composing=true);input.addEventListener('compositionend',()=>composing=false);
   emailLink.addEventListener('pointerdown',event=>{if(event.isPrimary!==false&&doc.activeElement===input)event.preventDefault();});
   select.addEventListener('change',()=>{topic=topics.find(t=>t.id===select.value)||topics[0];say('');sync();});emailLink.addEventListener('click',requestEmail);
-  element.querySelector('form').addEventListener('submit',event=>event.preventDefault());element.querySelector('.talk-note-close').addEventListener('click',()=>close());
+  element.querySelector('form').addEventListener('submit',event=>{event.preventDefault();send();});element.querySelector('.talk-note-close').addEventListener('click',()=>close());
   doc.fonts?.load('600 32px "Magic Hand"').then(()=>{if(!disposed)paintPaper();}).catch(()=>{});
   sync();root.updateMatrixWorld(true);const localPoint=paper.position.clone().applyEuler(root.rotation).add(root.position).toArray();
   const point=station.worldPoint?station.worldPoint(localPoint):station.root.localToWorld(new THREE.Vector3(...localPoint)).toArray();
   const interactables=[{id:'talks-reflection-paper',type:'talkNote',station:'talks',chapter:'talks',title:'Leave a thought',point,object:paper,onInteract:()=>open()}];
   return{
-    root,element,paper,interactables,open,close,get isOpen(){return opened;},
-    update(dt){if(disposed)return;const step=Math.max(0,Math.min(1,Number(dt)||0));clock+=step;launchCooldown=Math.max(0,launchCooldown-step);markerMaterial.emissiveIntensity=reduced?.18:.16+.07*Math.sin(clock*1.9);},
+    root,element,paper,interactables,open,close,send,get isOpen(){return opened;},
+    update(dt){if(disposed)return;const step=Math.max(0,Math.min(1,Number(dt)||0));clock+=step;launchCooldown=Math.max(0,launchCooldown-step);sendCooldown=Math.max(0,sendCooldown-step);if(sentFlash>0){sentFlash=Math.max(0,sentFlash-step);if(!sentFlash)paintPaper();}markerMaterial.emissiveIntensity=reduced?.18:.16+.07*Math.sin(clock*1.9);},
     getState:()=>({open:opened,text:draft,topic:{...topic},topics:topics.map(t=>({...t})),maxInput:MAX_INPUT,mailto:createReflectionMailto({email,topic,text:draft}),saved:false}),
     getPaperState:()=>({...paperState,lines:paperState.lines.slice()}),
-    metadata:{surface:'Existing closed lectern, top .12 rad slope, 2 mm paper fully supported; no route or collision changes.',paperDimensions:[.48,.002,.35],draftStorage:'Session memory only; email delivery is decided in the visitor’s email app.'},
+    metadata:{surface:'Existing closed lectern, top .12 rad slope, 2 mm paper fully supported; no route or collision changes.',paperDimensions:[.48,.002,.35],draftStorage:'Session memory only. Send posts the note to FormSubmit, which emails it to the site address; the email app link stays as a fallback.'},
     dispose(){if(disposed)return;close('dispose');disposed=true;draft='';input.value='';paperState={text:'',lines:[]};root.removeFromParent();paper.geometry.dispose();marker.geometry.dispose();texture.dispose();paperMaterial.dispose();edgeMaterial.dispose();markerMaterial.dispose();element.remove();}
   };
 }
