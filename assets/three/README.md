@@ -72,6 +72,17 @@ landscape and garden exist. It builds
   `patchWallpaper`, limited to the inner wall faces by the room bounds);
 * a Chinese Chippendale railing on the promenade and the porcelain pagoda (`PAGODA`).
 
+`src/magic-casebook.js` is a small detective case, *The Case of the Toppled
+Teacup*. Three numbered evidence markers hide in the cats' house, on the ink
+studio's inkstone and at the Contact mailbox; the Casebook button keeps the
+clues, the six cats as suspects (photos and facts from `data.js`), alibis and
+the accusation. Progress is kept in `localStorage` (`hj-crystal-case-v1`).
+
+The diary in the ink studio drinks your ink as you write and answers in a
+glowing hand (`src/magic-diary.js`, `magic-diary.css`). The invitation letter
+carries a whale stamp, a Dalian to San Francisco postmark, an owl feather and a
+P.S. that points to the casebook.
+
 `src/magic-keepsakes.js` builds the two detailed keepsakes that live inside
 rooms: the Dalian and San Francisco box with the 2013 flight, and the map of the
 cats' two drives across America. `magic-stories.js` opens them.
@@ -81,6 +92,7 @@ corners). The whale path, the pagoda position and the sea level are constants
 near the top of their sections.
 
 With `?qa`, `window.__CRYSTAL_QA__` exposes `pause`, `renderOnce`,
-`finishCamera`, `scene`, `camera`, `renderer` and `enchant.diagnostics` for
+`finishCamera`, `scene`, `camera`, `renderer`, `diary`, `casebook`, `caseClues` and
+`enchant.diagnostics` for
 headless screenshots and renderer counts.
 

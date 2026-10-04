@@ -61,11 +61,18 @@ export function createInvitation({
             <path d="m112 239 3-7 3 7 7 3-7 3-3 7-3-7-7-3zM441 197l3-7 3 7 7 3-7 3-3 7-3-7-7-3z"/>
             <circle cx="356" cy="231" r="3"/>
           </svg>
+          <svg class="magic-envelope-rule" viewBox="0 0 560 340" fill="none" aria-hidden="true"><path d="M14 10 280 190 546 10" /><path d="M24 10 280 180 536 10" /></svg>
+          <svg class="magic-envelope-feather" viewBox="0 0 30 96" aria-hidden="true"><path class="shade" transform="translate(1.5 2)" d="M15 2C6 14 3 30 4 46c1 8 3 14 6 20l-2 4 4-2 3 24 3-24 4 2-2-4c3-6 5-12 6-20 1-16-2-32-11-44z" /><path d="M15 2C6 14 3 30 4 46c1 8 3 14 6 20l-2 4 4-2 3 24 3-24 4 2-2-4c3-6 5-12 6-20 1-16-2-32-11-44z" /><path class="spine" d="M15 6v86" /><path class="barbs" d="M15 18l-6 5M15 26l-8 6M15 36l-9 6M15 46l-8 6M15 56l-6 5M15 22l6 5M15 31l8 6M15 41l9 6M15 51l8 6M15 60l5 4" /><circle cx="9" cy="34" r="1.1"/><circle cx="21" cy="46" r="1"/><circle cx="10" cy="54" r=".9"/><circle cx="20" cy="27" r=".9"/></svg>
           <span class="magic-wax-seal" aria-hidden="true"><span>HS</span></span>
+          <span class="magic-envelope-stamp" aria-hidden="true"><svg viewBox="0 0 60 40"><path class="sea" d="M0 30c6-3 10 3 16 0s10-3 16 0 10 3 16 0 9-3 12 0v10H0z"/><path class="whale" d="M8 21c4-7 15-10 27-8 7 1 12 4 15 8l5-4c1 3 0 6-2 8l3 3c-3 1-6 0-8-2-5 3-13 5-22 4-11-1-16-4-18-9z"/><path class="spout" d="M18 12c-1-3 0-5 2-6M18 12c1-3 3-4 5-4"/><circle cx="15" cy="20" r="1"/></svg><b lang="zh">鲸</b></span>
+          <svg class="magic-envelope-postmark" viewBox="0 0 120 70" aria-hidden="true"><defs><path id="${uid}-ring" d="M35 35m-24 0a24 24 0 1 1 48 0a24 24 0 1 1-48 0"/></defs><circle cx="35" cy="35" r="27"/><circle cx="35" cy="35" r="20"/><text><textPath href="#${uid}-ring">DALIAN · SAN FRANCISCO ·</textPath></text><text class="date" x="35" y="38" text-anchor="middle">2013</text><path d="M66 24c8-5 14 5 22 0s14 5 22 0M66 35c8-5 14 5 22 0s14 5 22 0M66 46c8-5 14 5 22 0s14 5 22 0"/></svg>
+          <svg class="magic-envelope-paw" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14.5" cy="6.5" r="2"/><circle cx="18.5" cy="10" r="2"/></svg>
+          <span class="magic-envelope-sparkles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
         </button>
         <button class="magic-read-letter" type="button">Read the letter <svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M5 15 15 5M5 5h10v10"/></svg></button>
       </div>
       <article id="${uid}-paper" class="magic-letter-paper" hidden aria-labelledby="${uid}-greeting">
+        <svg class="magic-letter-watermark" viewBox="0 0 100 200" aria-hidden="true"><path d="M50 4v14M44 22h12l-2 6H46zM38 30h24l6 8H32zM40 38h20v16H40zM32 54h36l7 9H25zM36 63h28v18H36zM28 81h44l8 10H20zM33 91h34v20H33zM24 111h52l9 11H15zM30 122h40v22H30zM20 144h60l10 12H10zM26 156h48v26H26zM14 182h72v8H14z"/></svg>
         <svg class="magic-letter-flourish" viewBox="0 0 520 65" fill="none" aria-hidden="true">
           <path d="M8 46c43 0 32-29 60-29s16 27 44 27h96m104 0h96c28 0 16-27 44-27s17 29 60 29"/>
           <path d="m247 35 13-22 13 22-13 18zM251 35h18M260 20v25"/>
@@ -76,12 +83,14 @@ export function createInvitation({
           <p>I’m Hanjing. I study how people stay meaningfully in charge when AI becomes a teammate, an agent, or a persona.</p>
           <p>Building things is my way of asking questions. Here you’ll find a little ink, a little starlight, and pieces of the places I’ve called home. And yes, my household belongs to six cats.</p>
           <p>I have a big LEGO collection, and I’ve loved building with blocks since I was little. Building is still how I explore. Piece by piece, I step into the little world taking shape in my hands, especially with the Harry Potter sets. That is why this world is made of bricks, candlelight, and a little magic.</p>
-          <p>Chinese traditions are close to my heart, and I’ve lived in the US since high school. That mix finds its way here, in ink courtyards, castle-like rooftops, the sea of my seaside hometown, and little echoes of my travels.</p>
+          <p>Chinese traditions are close to my heart, and I’ve lived in the US since high school. That mix finds its way here, in ink courtyards, porcelain rooftops, the sea of my seaside hometown, and little echoes of my travels.</p>
           <p>Look closer at whatever catches your eye. Open a book or linger by the water. JinBingBing and XiaoHei are here, too. Explore in any order. You can always read my work without solving anything first.</p>
           <p>I’m glad you’re here.</p>
         </div>
         <p class="magic-letter-signature">Hanjing<span class="magic-signature-stroke" aria-hidden="true"></span></p>
+        <p class="magic-letter-ps">P.S. Something happened to a teacup in the cats’ house last night. If you love a good mystery as much as I do, the casebook is waiting.</p>
         <span class="magic-letter-stamp" aria-hidden="true">HS</span>
+        <svg class="magic-letter-paw" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10" r="2"/><circle cx="10" cy="6.5" r="2"/><circle cx="14.5" cy="6.5" r="2"/><circle cx="18.5" cy="10" r="2"/></svg>
       </article>
     </div>
     <footer class="magic-invitation-footer">

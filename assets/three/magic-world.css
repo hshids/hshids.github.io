@@ -200,3 +200,43 @@
   .magic-envelope, .magic-enter-world { transition: none; }
   .magic-envelope:hover, .magic-envelope:active, .magic-enter-world:hover:not(:disabled), .magic-enter-world:active:not(:disabled) { transform: none; }
 }
+
+/* Invitation details: a double rule on the flap, a whale stamp with a Dalian to San Francisco postmark,
+   a snowy owl feather under the seal, a little gold paw, floating sparkles, and a pagoda watermark. */
+.magic-envelope-rule { position: absolute; inset: 0; width: 100%; height: 100%; stroke: #2a56b4; stroke-width: 1; opacity: .5; pointer-events: none; }
+.magic-envelope-rule path + path { stroke: #c9a55a; opacity: .9; }
+.magic-envelope-feather { position: absolute; left: 51%; top: 28%; width: 30px; height: 96px; transform: rotate(38deg); transform-origin: 50% 80%; pointer-events: none; }
+.magic-envelope-feather path { fill: #fbfaf6; stroke: #b9b3a6; stroke-width: .8; }
+.magic-envelope-feather .shade { fill: #6b4f2a; stroke: none; opacity: .18; }
+.magic-envelope-feather .spine { fill: none; stroke: #9c9486; stroke-width: .8; }
+.magic-envelope-feather .barbs { fill: none; stroke: #cfc9bc; stroke-width: .6; }
+.magic-envelope-feather circle { fill: #7d7a74; }
+.magic-envelope-stamp { position: absolute; right: 5%; top: 7%; width: 74px; height: 58px; padding: 5px; transform: rotate(3deg); pointer-events: none;
+  background: radial-gradient(circle at 0 0,transparent 2.5px,#fbf6ea 3px) -4px -4px/8px 8px; }
+.magic-envelope-stamp svg { display: block; width: 100%; height: 100%; box-shadow: 0 0 0 1px #e8dcc0; background: linear-gradient(170deg,#1f3f70,#2c6a8f 70%,#3f8aa0); }
+.magic-envelope-stamp .sea { fill: #8fc6d3; opacity: .55; }
+.magic-envelope-stamp .whale { fill: #eef4f6; }
+.magic-envelope-stamp .spout { fill: none; stroke: #eef4f6; stroke-width: 1.2; stroke-linecap: round; }
+.magic-envelope-stamp circle { fill: #1f3f70; }
+.magic-envelope-stamp b { position: absolute; right: 9px; top: 7px; color: #f2c230; font: 700 12px/1 serif; }
+.magic-envelope-postmark { position: absolute; right: 9%; top: 13%; width: 120px; height: 70px; fill: none; stroke: #4a3f6a; stroke-width: 1.1; opacity: .55; transform: rotate(-11deg); pointer-events: none; }
+.magic-envelope-postmark text { fill: #4a3f6a; stroke: none; font: 600 6.4px/1 "Courier New",monospace; letter-spacing: .06em; }
+.magic-envelope-postmark .date { font-size: 8px; }
+.magic-envelope-paw { position: absolute; left: 7%; bottom: 9%; width: 26px; height: 26px; fill: #c9a55a; opacity: .7; transform: rotate(-18deg); pointer-events: none; }
+.magic-envelope-sparkles { position: absolute; inset: -18px; pointer-events: none; }
+.magic-envelope-sparkles i { position: absolute; width: 7px; height: 7px; background: radial-gradient(circle,#fff6d2,#f2c96a 45%,transparent 70%); border-radius: 50%; opacity: 0; animation: magic-twinkle 3.2s ease-in-out infinite; }
+.magic-envelope-sparkles i:nth-child(1){left:2%;top:12%;animation-delay:.1s}.magic-envelope-sparkles i:nth-child(2){left:96%;top:22%;animation-delay:.7s}.magic-envelope-sparkles i:nth-child(3){left:88%;top:94%;animation-delay:1.3s}.magic-envelope-sparkles i:nth-child(4){left:8%;top:84%;animation-delay:1.9s}
+.magic-envelope-sparkles i:nth-child(5){left:48%;top:-2%;animation-delay:2.4s}.magic-envelope-sparkles i:nth-child(6){left:99%;top:62%;animation-delay:.4s}.magic-envelope-sparkles i:nth-child(7){left:-1%;top:48%;animation-delay:1.6s}.magic-envelope-sparkles i:nth-child(8){left:60%;top:101%;animation-delay:2.8s}
+/* opacity only: animating a transform inside the tilted envelope upsets some compositors */
+@keyframes magic-twinkle { 0%,100% { opacity: 0; } 45% { opacity: 1; } 60% { opacity: .7; } }
+.magic-letter-watermark { position: absolute; left: 50%; top: 50%; width: 46%; max-width: 230px; transform: translate(-50%,-50%); fill: none; stroke: #8a6a3a; stroke-width: 1.2; opacity: .07; pointer-events: none; }
+.magic-letter-ink, .magic-letter-greeting, .magic-letter-signature { position: relative; }
+.magic-letter-ps { position: relative; margin: 18px 0 0; padding-top: 10px; border-top: 1px dashed #b6934566; font: 600 clamp(21px,3vw,24px)/1.25 "Magic Hand", cursive; color: #6a4f33; }
+.magic-letter-paw { position: absolute; right: 82px; bottom: 26px; width: 30px; height: 30px; fill: #a04f3c; opacity: .45; transform: rotate(16deg); pointer-events: none; }
+@media (max-width: 700px) {
+  .magic-envelope-stamp { width: 56px; height: 44px; }
+  .magic-envelope-postmark { width: 92px; height: 54px; right: 6%; }
+  .magic-envelope-feather { width: 22px; height: 70px; }
+  .magic-letter-paw { right: 68px; bottom: 22px; }
+}
+@media (prefers-reduced-motion: reduce) { .magic-envelope-sparkles i { animation: none; opacity: .6; } }

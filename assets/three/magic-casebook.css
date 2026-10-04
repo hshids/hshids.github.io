@@ -1,0 +1,62 @@
+/* The casebook: a detective's file in green leather and kraft paper. */
+.magic-casebook-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:44px;padding:9px 12px;border:1px solid #6d5a2e;border-radius:2px 5px 2px 5px;color:#f3e6c4;background:linear-gradient(160deg,#2c4034,#1f2e26);font:600 12px/1.4 Inter,sans-serif;box-shadow:0 2px 7px #17292033,inset 0 0 0 1px #c9a55a33;cursor:pointer;}
+.magic-casebook-button svg{width:17px;height:17px;fill:none;stroke:#e2c27a;stroke-width:1.8;stroke-linecap:round;}
+.magic-casebook-button small{min-width:20px;padding:1px 5px;border-radius:9px;background:#f2c230;color:#1d1d1b;font:700 10px/1.4 Inter,sans-serif;}
+.magic-casebook-button small:empty{display:none;}
+.magic-casebook-button.has-new{animation:case-glow 2.4s ease-in-out infinite;}
+@keyframes case-glow{50%{box-shadow:0 0 0 3px #f2c23055,0 2px 7px #17292033;}}
+.magic-casebook-button:focus-visible,.magic-casebook :is(button,a):focus-visible{outline:2px solid #f2c230;outline-offset:3px;}
+.magic-casebook{position:absolute;z-index:52;right:max(18px,env(safe-area-inset-right));top:22px;bottom:calc(136px + env(safe-area-inset-bottom));width:min(450px,calc(100% - 36px));display:flex;flex-direction:column;color:#2e2a22;background:#eee1c2;border:1px solid #6d5a2e;border-radius:3px 6px 6px 3px;box-shadow:0 14px 38px #0b161a66;font:400 13px/1.55 Inter,sans-serif;overflow:hidden;}
+.magic-casebook[hidden]{display:none;}
+.magic-casebook-header{position:relative;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:20px 22px 16px;background:linear-gradient(160deg,#2c4034,#1d2b24);color:#f3e6c4;border-bottom:3px double #c9a55a;}
+.magic-casebook-header::before,.magic-casebook-header::after{content:"";position:absolute;top:6px;width:16px;height:16px;border:2px solid #c9a55a;}
+.magic-casebook-header::before{left:6px;border-right:0;border-bottom:0;}.magic-casebook-header::after{right:6px;border-left:0;border-bottom:0;}
+.magic-casebook-header>div{flex:1;min-width:0;}
+.case-file{margin:0 0 5px;font:600 10px/1.3 "Courier New",ui-monospace,monospace;letter-spacing:.16em;color:#d9bd7c;}
+.case-file span{color:#f2c230;}
+.magic-casebook h2{margin:0;font:600 22px/1.15 Fraunces,Georgia,serif;}
+.magic-casebook-close{flex:none;min-width:44px;min-height:44px;margin:-10px -12px 0 0;border:0;background:none;color:#f3e6c4;font:300 26px/1 Georgia,serif;cursor:pointer;}
+.magic-casebook-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 22px 18px;background:repeating-linear-gradient(to bottom,transparent 0 23px,#9c86581a 23px 24px),linear-gradient(170deg,#f1e6c9,#e8d8b2);}
+.magic-casebook h3{margin:18px 0 8px;font:700 11px/1.3 "Courier New",ui-monospace,monospace;letter-spacing:.18em;text-transform:uppercase;color:#6d5a2e;}
+.case-intro{margin:0;font:400 13.5px/1.6 "Courier New",ui-monospace,monospace;color:#2e2a22;}
+.case-progress,.case-ready{margin:12px 0 0;padding:8px 10px;border-left:3px solid #f2c230;background:#f7efd9;font-size:12px;}
+.case-ready{font-weight:600;}
+.case-clues{margin:0;padding:0;list-style:none;display:grid;gap:9px;}
+.case-clue{display:flex;gap:11px;align-items:flex-start;padding:9px 10px;background:#f6eedb;border:1px dashed #b89c61;}
+.case-clue.is-found{border-style:solid;background:#fbf5e6;}
+.case-clue-number{flex:none;display:grid;place-items:center;width:26px;height:26px;background:#f2c230;color:#1d1d1b;font:700 14px/1 Georgia,serif;clip-path:polygon(50% 0,100% 100%,0 100%);padding-top:7px;}
+.case-clue h4{margin:0 0 2px;font:600 14px/1.3 Fraunces,Georgia,serif;}
+.case-clue:not(.is-found) h4{color:#7c6a48;font-style:italic;}
+.case-clue p{margin:0;font-size:12px;}
+.case-go{margin-top:4px;min-height:32px;padding:0;border:0;background:none;color:#6d4f1d;font:600 12px/1.4 Inter,sans-serif;text-decoration:underline;text-underline-offset:3px;cursor:pointer;}
+.case-suspects{margin:0;padding:0;list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 10px;}
+.case-suspect{position:relative;padding:6px 6px 8px;background:#fdfaf2;box-shadow:0 2px 5px #4a3a1a33;transform:rotate(-1.2deg);}
+.case-suspect:nth-child(even){transform:rotate(1.1deg);}
+.case-suspect::before{content:"";position:absolute;top:-6px;left:50%;width:22px;height:12px;margin-left:-11px;border:2px solid #9a9a9a;border-bottom:0;border-radius:6px 6px 0 0;}
+.case-suspect figure{margin:0;}
+.case-suspect img{display:block;width:100%;aspect-ratio:1;object-fit:cover;filter:sepia(.18) contrast(1.02);}
+.case-suspect figcaption{margin-top:5px;font-size:11px;line-height:1.3;}
+.case-suspect figcaption b{font:600 13px/1.2 Fraunces,Georgia,serif;}
+.case-suspect figcaption small{display:block;color:#6a5a3e;font-size:10px;}
+.case-suspect.is-cleared img{filter:grayscale(1) opacity(.55);}
+.case-accuse{display:block;width:100%;margin-top:6px;min-height:34px;padding:4px;border:1px solid #8c2a22;background:#f7e7df;color:#8c2a22;font:600 11px/1.2 Inter,sans-serif;cursor:pointer;}
+.case-accuse:hover{background:#8c2a22;color:#fff3e8;}
+.case-stamp{position:absolute;top:34%;left:50%;padding:2px 8px;border:3px double currentColor;font:700 14px/1.2 "Courier New",ui-monospace,monospace;letter-spacing:.12em;transform:translateX(-50%) rotate(-14deg);background:#fdfaf2cc;pointer-events:none;}
+.case-stamp-alibi{color:#2f5f8a;}.case-stamp-guilty{color:#b3261e;}
+.case-verdict{position:relative;margin:12px 0 0;padding:12px 12px 10px;background:#fbf5e6;border:1px solid #b89c61;box-shadow:0 2px 4px #4a3a1a22;}
+.case-verdict p{margin:0 0 6px;}
+.case-verdict.is-solved{padding-top:44px;}
+.case-stamp-closed{top:6px;left:auto;right:10px;transform:rotate(-8deg);color:#b3261e;}
+.case-coda{font-size:12px;color:#4a3e2c;}
+.case-sign{margin:4px 0 0!important;text-align:right;font:600 22px/1 "Magic Hand",cursive;}
+.case-footer{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px;padding-top:8px;border-top:1px solid #b89c6155;}
+.case-footer p{margin:0;font-size:10px;color:#6a5a3e;max-width:180px;text-align:right;}
+.case-reset{min-height:36px;padding:0;border:0;background:none;color:#6d4f1d;font:400 11px/1.4 Inter,sans-serif;text-decoration:underline;cursor:pointer;}
+@media(max-width:700px){
+  .magic-casebook{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));width:auto;top:66px;bottom:calc(120px + env(safe-area-inset-bottom));}
+  .case-suspects{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .magic-casebook h2{font-size:19px;}
+  .magic-casebook-header{padding:16px 16px 12px;}
+  .magic-casebook-button span{display:none;}
+}
+@media(prefers-reduced-motion:reduce){.magic-casebook-button.has-new{animation:none;box-shadow:0 0 0 3px #f2c23055;}}
