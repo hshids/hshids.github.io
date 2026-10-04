@@ -757,7 +757,7 @@ function mergeStill(group, exclude = []) {
     if (!bins.has(o.material)) bins.set(o.material, []); bins.get(o.material).push(g); originals.push(o);
   });
   originals.forEach(o => { o.removeFromParent(); o.geometry.dispose(); });
-  for (const [m, list] of bins) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = group.name + '-' + m.name; mesh.castShadow = true; group.add(mesh); }
+  for (const [m, list] of bins) { const g = mergeGeometries(list, false); list.forEach(x => x.dispose()); const mesh = new THREE.Mesh(g, m); mesh.name = group.name + '-' + m.name; mesh.castShadow = !m.transparent; group.add(mesh); }
 }
 
 /** A snowy owl on the post box: white plumage, sparse dark speckles, golden
@@ -822,6 +822,16 @@ function buildOwl() {
     ball(0.006, plume, [1, 1, 0.5], [s * 0.06 + 0.009, 0.029, 0.177], eyes, 6);
     const brow = new THREE.Mesh(new THREE.TorusGeometry(0.042, 0.009, 6, 14, Math.PI * 0.7), plume); brow.position.set(s * 0.06, 0.022, 0.158); brow.rotation.set(0.2, 0, Math.PI * 0.15); head.add(brow);
   }
+  // little round wire spectacles: two gold rims with faint lenses, a bridge over the beak, temples into the feathers
+  const wire = new THREE.MeshStandardMaterial({name: 'owl-spectacle-gold-wire', color: '#d4ac55', roughness: 0.28, metalness: 0.85});
+  const lens = new THREE.MeshStandardMaterial({name: 'owl-spectacle-lens', color: '#e8f4ff', roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.16, depthWrite: false});
+  mats.push(wire, lens);
+  for (const s of [-1, 1]) {
+    const rim = new THREE.Mesh(new THREE.TorusGeometry(0.041, 0.0035, 6, 36), wire); rim.position.set(s * 0.061, 0.018, 0.186); rim.rotation.y = s * 0.16; head.add(rim);
+    const glass = new THREE.Mesh(new THREE.CircleGeometry(0.04, 28), lens); glass.position.set(s * 0.061, 0.018, 0.185); glass.rotation.y = s * 0.16; glass.renderOrder = 2; head.add(glass);
+    const temple = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(s * 0.101, 0.022, 0.178), new THREE.Vector3(s * 0.13, 0.03, 0.15), new THREE.Vector3(s * 0.158, 0.035, 0.095)]), 8, 0.0028, 5, false), wire); head.add(temple);
+  }
+  const bridge = new THREE.Mesh(new THREE.TorusGeometry(0.0145, 0.003, 6, 14, Math.PI), wire); bridge.position.set(0, 0.022, 0.19); head.add(bridge);
   const beak = new THREE.Mesh(new THREE.ConeGeometry(0.016, 0.045, 8), dark); beak.position.set(0, -0.03, 0.17); beak.rotation.x = Math.PI * 0.62; head.add(beak);
   for (const s of [-1, 0, 1]) lay(scale(0.022, 0.045, 0.008), plume, [s * 0.017, 0.012, 0.172], [-0.5, 0, s * 0.35], head);
   for (let i = 0; i < 6; i++) ball(0.007, speck, [1.4, 0.7, 0.5], [(i - 2.5) * 0.035, 0.13 - Math.abs(i - 2.5) * 0.012, 0.05 - Math.abs(i - 2.5) * 0.028], head, 6);

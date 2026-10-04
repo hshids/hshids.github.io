@@ -3,6 +3,7 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {acquirePaintTexture,releasePaintTexture,worldAssetURL} from './fidelity-assets.js';
 import {createRoomKit} from './fidelity-room-kit.js';
 import {px,createHWLProps,createWritingInk} from './fidelity-hwl-geometry.js';
+import {createCatCinema} from './life-cinema.js';
 
 /** Complete gatehall, study and three-bay home. Original chapter/content IDs
  * survive; only supported art and family photos are two-dimensional prints. */
@@ -243,16 +244,13 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     for(const dx of[-.25,.25]){solid(s,'life-case-complete-leather-strap-'+dx,[.058,.68,.367],[tx+dx,floorY+.35,tz],'darkWood');solid(s,'life-case-brass-buckle-'+dx,[.09,.10,.022],[tx+dx,floorY+.43,tz+.194],'brass');}
     for(const dx of[-.35,.35])for(const dz of[-.12,.12])solid(s,'life-case-brass-grounded-foot-'+dx+'-'+dz,[.12,.04,.095],[tx+dx,floorY+.02,tz+dz],'brass');
     s.props.tube('life-case-carry-handle-left',[tx-.14,floorY+.68,tz],[tx-.14,floorY+.79,tz],.024,'darkWood');s.props.tube('life-case-carry-handle-top',[tx-.14,floorY+.79,tz],[tx+.14,floorY+.79,tz],.024,'darkWood');s.props.tube('life-case-carry-handle-right',[tx+.14,floorY+.79,tz],[tx+.14,floorY+.68,tz],.024,'darkWood');obstacle(s,'life-travel-case-solid',[.91,.82,.39],[tx,floorY+.41,tz]);
-    // Full photo-screen frame stands on its own two bearing feet.
+    // The six-cat picture house: stage, masked screen, velvet curtains, pelmet, marquee and a front row.
     const gx=2.90,gz=-3.10,gy=floorY+1.08;
-    solid(s,'life-gallery-complete-opaque-linen-board',[1.28,1.51,.10],[gx,gy,gz],'ivory');
-    for(const dx of[-.71,.71]){solid(s,'life-gallery-full-grounded-carved-post-'+dx,[.095,1.95,.13],[gx+dx,floorY+.975,gz],'wood');solid(s,'life-gallery-solid-bearing-foot-'+dx,[.26,.09,.40],[gx+dx,floorY+.045,gz],'darkWood');}
-    for(const dy of[-.81,.81])solid(s,'life-gallery-full-horizontal-frame-'+dy,[1.52,.095,.15],[gx,gy+dy,gz],'wood');
-    s.kit.sign('life-gallery-inlaid-name','6 CATS',[.86,.20,.06],[gx,floorY+2.0,gz+.085],'darkWood');
+    const cinema=createCatCinema({root:s.root,resources:s.kit.resources,floorY,x:gx,z:gz,screenY:1.08,low:quality==='low'});
+    cinema.obstacles.forEach(o=>obstacle(s,o.id,o.size,o.position));
     const photos=(data?.cats||[]).map(cat=>({src:quality==='low'?cat.photos?.[0]?.replace('images/cats/','images/cats/thumbs/'):cat.photos?.[0],name:cat.name,id:cat.id})),cv=document.createElement('canvas');cv.width=768;cv.height=676;const pc=cv.getContext('2d');pc.fillStyle='#e8deca';pc.fillRect(0,0,768,676);const photoFailures=[];
     await Promise.all(photos.map((cat,i)=>new Promise(resolve=>{const image=new Image();image.onload=()=>{const x=i%3*256,y=Math.floor(i/3)*338,w=256,h=338,scale=Math.max(w/image.width,h/image.height);pc.save();pc.beginPath();pc.rect(x,y,w,h);pc.clip();pc.drawImage(image,x+(w-image.width*scale)/2,y+(h-image.height*scale)/2,image.width*scale,image.height*scale);pc.restore();resolve();};image.onerror=()=>{photoFailures.push(cat.src);resolve();};image.src=worldAssetURL(cat.src);})));const texture=new THREE.CanvasTexture(cv);texture.colorSpace=THREE.SRGBColorSpace;s.kit.resources.add(texture);
-    const photo=s.props.print('life-supported-actual-cat-photograph',texture,1.15,1.43,[gx,gy,gz+.052]),pg=photo.geometry;let photoIndex=-1;animated.push(t=>{const index=Math.floor(t/2.5)%Math.max(1,photos.length);if(index===photoIndex)return;photoIndex=index;const uv=pg.attributes.uv,base=[[0,1],[1,1],[0,0],[1,0]];for(let i=0;i<uv.count;i++)uv.setXY(i,(index%3+base[i][0])/3,1-(Math.floor(index/3)+1-base[i][1])/2);uv.needsUpdate=true;});
-    obstacle(s,'life-gallery-bearing-frame',[1.65,2.09,.42],[gx,floorY+1.045,gz]);
+    const photo=s.props.print('life-supported-actual-cat-photograph',texture,1.15,1.43,[gx,gy,gz+.052]),pg=photo.geometry;cinema.patchScreen(photo.material,[1.15,1.43]);let photoIndex=-1,cutAt=0;animated.push(t=>{const index=Math.floor(t/2.5)%Math.max(1,photos.length);if(index!==photoIndex)cutAt=t;cinema.update(t,dark,t-cutAt);if(index===photoIndex)return;photoIndex=index;const uv=pg.attributes.uv,base=[[0,1],[1,1],[0,0],[1,0]];for(let i=0;i<uv.count;i++)uv.setXY(i,(index%3+base[i][0])/3,1-(Math.floor(index/3)+1-base[i][1])/2);uv.needsUpdate=true;});
     // A vintage 16 mm film projector: an enamel body with chrome trim, a vented lamp house, two spoked
     // reels on arms with film threaded down into the gate, a ringed lens, a crank, and a soft beam of
     // light that reaches the six-cat gallery. The reels turn, the beam flickers, dust drifts in it.
