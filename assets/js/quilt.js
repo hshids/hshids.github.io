@@ -70,7 +70,7 @@
     host.setAttribute("viewBox", "0 0 " + w + " " + h);
     host.innerHTML =
       '<defs><linearGradient id="qSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-sky-1)"/><stop offset=".78" style="stop-color:var(--w-sky-2)"/></linearGradient>' +
-      '<pattern id="qWeave" width="160" height="160" patternUnits="userSpaceOnUse"><image href="assets/art/fabric/weave.webp" width="160" height="160"/></pattern>' +
+      '<pattern id="qWeave" width="192" height="192" patternUnits="userSpaceOnUse"><image href="assets/art/fabric/silk.webp" width="192" height="192"/></pattern>' +
       '<clipPath id="qClip"><path d="' + outline + '"/></clipPath></defs>' +
       '<path class="quilt-shadow" d="' + outline + '"/>' +
       '<path class="quilt-sky" d="' + outline + '" fill="url(#qSky)"/>' +

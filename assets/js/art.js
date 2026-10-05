@@ -931,7 +931,7 @@
       '<linearGradient id="gNear" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-near);stop-opacity:.95"/><stop offset=".7" style="stop-color:var(--w-near);stop-opacity:.45"/><stop offset="1" style="stop-color:var(--w-near);stop-opacity:.05"/></linearGradient>' +
       '<linearGradient id="gMist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mist);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--w-mist);stop-opacity:.85"/><stop offset="1" style="stop-color:var(--w-mist);stop-opacity:0"/></linearGradient>' +
       (ARTDIR ? '<pattern id="gTulle" width="6" height="5.2" patternUnits="userSpaceOnUse"><path class="tulle-mesh" d="M0 2.6L1.5 0H4.5L6 2.6L4.5 5.2H1.5Z"/></pattern>' : '') +
-      (ARTDIR ? '<pattern id="gWeave" width="160" height="160" patternUnits="userSpaceOnUse"><image href="assets/art/' + ARTDIR + 'weave.webp" width="160" height="160"/></pattern>' : '') +
+      (ARTDIR ? '<pattern id="gWeave" width="192" height="192" patternUnits="userSpaceOnUse"><image href="assets/art/' + ARTDIR + 'silk.webp" width="192" height="192"/></pattern>' + clothDefs() : '') +
       '<linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-ground-1)"/><stop offset="1" style="stop-color:var(--w-ground-2)"/></linearGradient>' +
       '<radialGradient id="gPouf" cx=".4" cy=".25" r=".8"><stop stop-color="var(--w-note)"/><stop offset=".7" stop-color="var(--w-fill)"/><stop offset="1" stop-color="var(--w-stone)"/></radialGradient>' +
       '<radialGradient id="gGlow"><stop offset="0" style="stop-color:var(--w-glow)"/><stop offset="1" style="stop-color:var(--w-glow);stop-opacity:0"/></radialGradient>' +
@@ -978,6 +978,62 @@
     }
     return '<g fill="url(#' + opt.grad + ')">' + out + "</g>" +
       (tex ? '<path class="cun" d="' + tex + '"/>' : "");
+  }
+
+  // The cloth world's shared definitions: twisted thread for sewn lines, satin-stitched letters,
+  // and mother-of-pearl for the inlaid water.
+  function clothDefs() {
+    var nacre = [["gNacre1", 35, ["#f8e4ef", "#b9e6da", "#d6c8f3", "#fbf1d2", "#b7d6f2", "#f4d6e6"]],
+      ["gNacre2", 120, ["#c4ecdf", "#f5d5e6", "#c9d3f6", "#fff4d8", "#bfe8e0", "#e7d4f4"]],
+      ["gNacre3", 75, ["#f2d2e2", "#fff7e2", "#b3e2dc", "#d9cdf6", "#f7e0ea", "#c6e0f5"]]].map(function (g) {
+      return '<linearGradient id="' + g[0] + '" gradientTransform="rotate(' + g[1] + ' .5 .5)">' + g[2].map(function (c, i) { return '<stop offset="' + (i / (g[2].length - 1)).toFixed(2) + '" stop-color="' + c + '"/>'; }).join("") + '</linearGradient>';
+    }).join("");
+    return '<pattern id="gTwist" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(42)"><rect width="2.4" height="2.4" style="fill:var(--thread)"/><rect width=".8" height="2.4" style="fill:var(--thread-shade)"/><rect x="1.4" width=".35" height="2.4" style="fill:var(--thread-light);opacity:.45"/></pattern>' +
+      '<pattern id="gSatinLetters" width="1.5" height="1.5" patternUnits="userSpaceOnUse" patternTransform="rotate(-58)"><rect width="1.5" height="1.5" fill="#f2e3c1"/><rect width=".42" height="1.5" fill="#c4a46b"/><rect x=".9" width=".2" height="1.5" fill="#fff8e6" opacity=".7"/></pattern>' +
+      '<filter id="gRaisedThread" x="-10%" y="-30%" width="120%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation=".35"/><feOffset dx=".35" dy=".6" result="drop"/><feFlood flood-color="#24160a" flood-opacity=".6"/><feComposite in2="drop" operator="in" result="shade"/><feMerge><feMergeNode in="shade"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+      nacre;
+  }
+
+  // Mother-of-pearl inlaid in the water, a few motifs at a time: wave scales, cloud scrolls,
+  // plum blossoms and lotus petals, each piece of shell edged with a fine groove.
+  function luodian(width) {
+    var r = rng(509), out = "";
+    function piece(d, g) { return '<path class="nacre" d="' + d + '" fill="url(#gNacre' + g + ')"/>'; }
+    function scales(x, y, s) {
+      var d = "", k, i;
+      for (k = 0; k < 4; k++) {
+        var cx = x + (k % 2 ? 11 : 0) * s + (k > 1 ? 5.5 : 0) * s, cy = y - (k > 1 ? 7 : 0) * s, R = 7 * s;
+        d += piece("M" + f1(cx - R) + " " + f1(cy) + "A" + f1(R) + " " + f1(R) + " 0 0 1 " + f1(cx + R) + " " + f1(cy) + "Z", 1 + k % 3);
+        for (i = 1; i < 3; i++) d += '<path class="nacre-groove" d="M' + f1(cx - R * (1 - i * .3)) + " " + f1(cy) + "A" + f1(R * (1 - i * .3)) + " " + f1(R * (1 - i * .3)) + " 0 0 1 " + f1(cx + R * (1 - i * .3)) + " " + f1(cy) + '"/>';
+      }
+      return d;
+    }
+    function cloud(x, y, s) {
+      return piece("M" + f1(x) + " " + f1(y) + "c" + f1(-6 * s) + " " + f1(-1 * s) + " " + f1(-7 * s) + " " + f1(-8 * s) + " " + f1(-1 * s) + " " + f1(-9 * s) +
+        "c" + f1(2 * s) + " " + f1(-6 * s) + " " + f1(10 * s) + " " + f1(-6 * s) + " " + f1(11 * s) + " " + f1(0) + "c" + f1(4 * s) + " " + f1(-4 * s) + " " + f1(11 * s) + " " + f1(-2 * s) + " " + f1(10 * s) + " " + f1(4 * s) +
+        "c" + f1(5 * s) + " " + f1(1 * s) + " " + f1(5 * s) + " " + f1(6 * s) + " " + f1(0) + " " + f1(6 * s) + "Z", 2) +
+        '<path class="nacre-groove" d="M' + f1(x + 3 * s) + " " + f1(y - 4 * s) + "c" + f1(2 * s) + " " + f1(-3 * s) + " " + f1(6 * s) + " " + f1(-2 * s) + " " + f1(6 * s) + " " + f1(1 * s) + '"/>';
+    }
+    function blossom(x, y, s) {
+      var d = "";
+      for (var k = 0; k < 5; k++) {
+        var a = k * Math.PI * 2 / 5 - Math.PI / 2, px = x + Math.cos(a) * 4.2 * s, py = y + Math.sin(a) * 4.2 * s * .62;
+        d += piece("M" + f1(x) + " " + f1(y) + "Q" + f1(px + Math.cos(a + 1) * 3 * s) + " " + f1(py + Math.sin(a + 1) * 2 * s) + " " + f1(px + Math.cos(a) * 1.5 * s) + " " + f1(py + Math.sin(a) * s) + "Q" + f1(px + Math.cos(a - 1) * 3 * s) + " " + f1(py + Math.sin(a - 1) * 2 * s) + " " + f1(x) + " " + f1(y) + "Z", 1 + k % 3);
+      }
+      return d + '<circle class="nacre-heart" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(1.1 * s) + '"/>';
+    }
+    function petals(x, y, s) {
+      return piece("M" + f1(x) + " " + f1(y) + "q" + f1(-6 * s) + " " + f1(-9 * s) + " " + f1(0) + " " + f1(-16 * s) + "q" + f1(6 * s) + " " + f1(7 * s) + " " + f1(0) + " " + f1(16 * s) + "Z", 3) +
+        piece("M" + f1(x + 2 * s) + " " + f1(y) + "q" + f1(2 * s) + " " + f1(-10 * s) + " " + f1(11 * s) + " " + f1(-12 * s) + "q" + f1(-2 * s) + " " + f1(9 * s) + " " + f1(-11 * s) + " " + f1(12 * s) + "Z", 1) +
+        '<path class="nacre-groove" d="M' + f1(x) + " " + f1(y - 2 * s) + "v" + f1(-11 * s) + '"/>';
+    }
+    var makers = [scales, cloud, blossom, petals];
+    for (var x = 260; x < width - 120; x += 420 + r() * 520) {
+      var g = "", n = 3 + Math.floor(r() * 3);
+      for (var i = 0; i < n; i++) g += makers[Math.floor(r() * makers.length)](x + i * (30 + r() * 26), 716 + r() * 66, 1.4 + r() * .9);
+      out += '<g class="luodian-cluster" style="--nacre-delay:-' + f1(r() * 9) + 's">' + g + '</g>';
+    }
+    return '<g class="luodian" aria-hidden="true">' + out + '</g>';
   }
 
   function mist(width, y, h) {
@@ -1203,7 +1259,7 @@
       }
     }
     return '<path class="pond-bank" d="' + bank + 'L' + width + ' 800H0Z"/><path class="bank-grain" d="' + bank + 'L' + width + ' 800H0Z"/><g class="bank-grasses">' + bankGrass + '</g>' +
-      '<g class="lotus-pond"><path class="pond" d="' + waterShape + '"/><path class="pond-shallows" d="' + waterShape + '"/>' + (ARTDIR ? '<path class="cloth-weave" d="' + waterShape + '" fill="url(#gWeave)"/>' : '') + '<path class="pond-edge" d="' + shore + '"/>' +
+      '<g class="lotus-pond"><path class="pond" d="' + waterShape + '"/><path class="pond-shallows" d="' + waterShape + '"/>' + (ARTDIR ? '<path class="pond-lacquer" d="' + waterShape + '"/><path class="cloth-weave" d="' + waterShape + '" fill="url(#gWeave)"/>' + luodian(width) : '') + '<path class="pond-edge" d="' + shore + '"/>' +
       '<path class="shore-waterline" d="' + shoreMarks + '"/><path class="submerged-stems" d="' + bed + '"/>' + waterLines +
       '<g id="water-light" class="water-light"><ellipse cx="0" cy="756" rx="115" ry="40" fill="url(#gWaterLight)"/><g class="water-sparkle">' + lightLines + '</g></g>' + reflections +
       '<g class="pond-koi" transform="translate(420 763)">' + koi() + '</g>' +

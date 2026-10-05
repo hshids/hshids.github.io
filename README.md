@@ -145,9 +145,15 @@ The walk reads as one handscroll: a title, a prologue for Dalian, the gate, the 
 
 ## The fabric collage look (2D world)
 
-The 2D world is appliqué and embroidery together. Every painting is rebuilt offline: its plain areas (walls, pillars, doors, coat) become pieces of plain dyed cloth, cut along the painted outlines, slightly padded and softly folded, each with a raw fraying edge where it lies on a larger piece and sewn down with a blanket stitch; its detailed parts are embroidered instead. Each material gets its own stitch: roof tiles and leaves are filled with thick satin-like floss that follows the tile rows and leaves, with the cloth showing between stitches and a chain stitch along their edges; windows, brackets and carving are worked in fine stitches in the painting's own colours, so their detail stays; hair is worked in fine, dense split stitches along its flow; the cats are covered in short fine stitches that make them fluffy, with their eyes and noses left clear. Hanjing's clothes are in matching cloth: gabardine twill for the trench coat, silk with a soft sheen for the shirt, herringbone suiting for the trousers, grained leather for the shoes, and at night black silk for the qipao with its leaves in gold thread. Her face keeps the painting itself, one even skin tone with clear features; where a face is drawn large, only the eyes, brows, nose and mouth are worked in tiny stitches (nothing on jaw lines or shading, which would age her). Outer edges are frayed with a few loose threads, and a couple of gingham patches have cross-stitched corners. Stitches are seeded by position, so the walking frames get matching stitches.
+The 2D world is appliqué and embroidery together: large areas of colour are cut from plain cloth, the detail is embroidered on top.
 
-The sky is a soft linen quilt on a burlap backing (felt at night) with torn edges, and the drawn ground and water get the same linen. Depth comes from layering, as in a fabric shadow box: the far, middle and near bands of scenery each cast a soft shadow on the band behind, the mist is torn strips of sheer tulle, and a place lifts slightly off the cloth when you point at it.
+- **Scenery.** Each painting is cut into a few large pieces along its painted outlines. Each piece is plain dyed cloth (linen, cotton, denim, burlap or felt), slightly padded and creased, casting a soft shadow on the piece below and edged with a fine blanket stitch in a muted thread. Roof tiles and leaves are filled with satin floss that follows the tiles and leaves, with a chain stitch round them. Everything detailed (windows, carving, brackets, the audience in the lecture hall, the kitchen pot) is worked in fine silk thread in the painting's own colours, standing a little off the cloth.
+- **Background.** The mountains and distant trees are Suzhou-style thread painting, and the sky is plain silk with a torn edge on a burlap backing (felt at night).
+- **Hanjing.** Her shape stays exact, so the animation still fits. Each garment is in its own cloth: gabardine coat, silk shirt, herringbone trousers, leather shoes, and at night a black silk qipao with leaves in gold thread. Her hair is fine silk thread along its flow. A back stitch runs round her outline, hair and shirt included, so she reads as one piece sewn onto the scene. Her face is the painting itself while she moves; when she stands still facing us it is embroidered in very fine silk, with the eyes, brows, nose and lips in finer, slightly raised stitches.
+- **Cats.** Short fine stitches that follow the fur, with the eyes and nose left clear.
+- **Page.** The station names are satin-stitched letters. Sewn lines on the page are twisted thread, and the water is inlaid with mother-of-pearl (wave scales, cloud scrolls, plum blossoms, lotus petals) that catches the light.
+
+The fine silk is drawn by line integral convolution: thread-sized noise smeared along the direction of the painting's own structure, so the threads bend with hair, fur and carving. The sheen changes with the thread direction, as it does on real silk. Stitches are seeded by position, so the walking frames get matching stitches.
 
 After changing or adding a painting in `assets/art/`, rebuild the cloth versions:
 
@@ -155,10 +161,10 @@ After changing or adding a painting in `assets/art/`, rebuild the cloth versions
 pip install numpy opencv-python-headless
 python3 tools/fabricize.py                 # every image (a few minutes)
 python3 tools/fabricize.py buildings-painted pine   # or just some
-python3 tools/fabricize.py --tiles         # the weave, burlap and felt swatches
+python3 tools/fabricize.py --tiles         # the silk, weave, burlap and felt swatches
 ```
 
-`SCALE` at the top of the script records how large each sheet appears on screen, so stitches and weave come out the same size everywhere; sheets shown enlarged are sewn at 1.5x their size. The look is tuned with the constants below it: piece size, stitch length and thread width, and for the embroidery (`EMB_*`) floss width, stitch length, coverage and which pieces count as busy.
+`SCALE` at the top of the script records how large each sheet appears on screen, so stitches and weave come out the same size everywhere; sheets shown enlarged are sewn at 1.5x their size. The look is tuned with the constants below it: piece size, blanket and chain stitch, satin floss (`EMB_*`), the silk thread painting for each use (`SILK_*`: thread width, stitch length, contrast, sheen, relief), Hanjing's outline, and which sheets are background silk, figures or cats.
 
 Mini-Hanjing answers like a conversation: a few sentences and a follow-up question, with any long list folded under a "Show me" button (`fold()` in `assets/js/guide.js`).
 

@@ -59,6 +59,7 @@
     ancientOpen: ["scholar",26,629,612,924], bamboo: ["scholar",615,610,1178,950], scrollBundle: ["scholar",1199,571,1518,954],
     talkHall: ["talks",16,84,1574,920], posterFrame: ["finishes",737,88,1428,675]
   };
+  crops.kitchenWindow=['buildings',1079,742,1163,824];
   crops.writingLow=['lowWriting',81,57,860,533]; crops.writingCushion=['keepsakes',298,443,523,511];
   crops.dayWrite=['writers',88,18,925,882]; crops.nightWrite=['writers',978,29,1707,876];
   crops.theaterCurtain=['talks',371,420,433,743];
@@ -774,6 +775,8 @@
   });
   A.stations.life = function(catThumbs) {
     var body = forecourt(-358,364,552,560,7)+sprite('house',-371,243,742,317)+label(0,357,'LIFE',95);
+    // a lit lattice window in the kitchen wall, behind the pot
+    body += sprite('kitchenWindow',-280,383,75,73,'kitchen-window');
     body += '<g class="life-item suitcase" data-life="travel">'+sprite('case',151,493,77,67)+sourceHint('case',[151,493,77,67],[['M',87,191],['L',103,192],['L',103,202]],'hint-metal',2.4)+'<rect class="hit" x="151" y="493" width="77" height="67"/></g>';
     body += '<g class="life-item stove" data-life="food" transform="translate(-238 560)">'+jointedProp('stove',[-40,-92,80,92],[{path:'M-32 -95H33V-74Q0 -68 -32 -74Z',cls:'pot-lid-group',pivot:'0px -76px'}])+sourceHint('stove',[-40,-92,80,92],[['M',490,163],['Q',536,171,588,166]],'hint-metal',.8)+'<rect class="hit" x="-40" y="-92" width="80" height="92"/><g class="steam"><path d="M-8 -92c-8 -10 8 -16 0 -28"/><path d="M6 -92c-8 -10 8 -16 0 -28"/></g></g>';
     body += '<g class="life-item nap" data-life="cats" transform="translate(0 -6)">'+sprite('pouf',-24,542,94,21)+sleeper()+'<path class="pouf-piping" d="M-20 553Q23 565 66 553"/></g>';
