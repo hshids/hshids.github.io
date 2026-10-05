@@ -145,7 +145,7 @@ The walk reads as one handscroll: a title, a prologue for Dalian, the gate, the 
 
 ## The fabric collage look (2D world)
 
-The 2D world is a patchwork of cloth: every painting is rebuilt offline as pieces of cotton, linen, washed burlap, plaid brocade, printed cloth and satin embroidery, each piece dyed with the painting's own colour and printed with its detail, sewn down with running stitches along the edges where it lies on top, with frayed outer edges, loose threads and a few patches with cross-stitched corners. The sky is a linen quilt on a burlap backing (felt at night) with torn edges, and the drawn ground and water get the same weave.
+The 2D world is a patchwork of cloth: every painting is rebuilt offline as a few large pieces of fabric whose edges follow the painted outlines (a whole roof is one piece). Each piece is flat dyed cloth with a faint print of the painting, padded so it rises from its edges, lit from the upper left, and casts a soft shadow on the piece below. Pieces are cotton, linen, washed burlap, navy denim, gingham, a little red plaid, or felt for leaves; the main ones are sewn down with unbleached cotton running stitches, outer edges are frayed with a few loose threads, and a couple of gingham patches have cross-stitched corners. The sky is a soft linen quilt on a burlap backing (felt at night) with torn edges, and the drawn ground and water get the same linen.
 
 After changing or adding a painting in `assets/art/`, rebuild the cloth versions:
 

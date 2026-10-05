@@ -2,11 +2,9 @@
    cloth versions in assets/art/fabric/ (tools/fabricize.py), and assets/js/quilt.js sews the sky. */
 .fabric .world {
   --thread: #5c4532; --thread-light: #efe2c6; --quilt-panel: rgba(255, 252, 240, .34); --quilt-shadow: rgba(46, 32, 18, .28);
-  --patch-plaid: #d9cdb2; --patch-print: #c9d3cf;
 }
 [data-theme="dark"].fabric .world, .fabric[data-theme="dark"] .world {
   --thread: #d9c8a4; --thread-light: #f1e5c8; --quilt-panel: rgba(70, 86, 110, .22); --quilt-shadow: rgba(0, 0, 0, .5);
-  --patch-plaid: #2c3746; --patch-print: #263241;
 }
 
 /* the backing: washed burlap by day, dark felt at night; the sky quilt lies on it */
@@ -15,30 +13,24 @@
 .quilt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .quilt-shadow { fill: var(--quilt-shadow); transform: translate(2px, 3px); filter: blur(2px); }
 .quilt-panel { fill: var(--quilt-panel); }
-.quilt-weave, .quilt-patch-weave { opacity: .6; }
-.fabric[data-theme="dark"] .quilt-weave { opacity: .45; }
+.quilt-weave { opacity: 1; }
+.fabric[data-theme="dark"] .quilt-weave { opacity: .7; }
 .quilt-seam { fill: none; stroke: rgba(255, 255, 255, .35); stroke-width: 1.2; }
 .quilt-seam-shadow { fill: none; stroke: rgba(40, 28, 16, .16); stroke-width: 3; transform: translateY(1.6px); filter: blur(1.2px); }
 .fabric[data-theme="dark"] .quilt-seam { stroke: rgba(255, 255, 255, .08); }
 .fabric[data-theme="dark"] .quilt-seam-shadow { stroke: rgba(0, 0, 0, .45); }
 .quilt-stitch { fill: none; stroke: var(--thread); stroke-width: 1.7; stroke-linecap: round; stroke-dasharray: 6.4 4.4; opacity: .75; }
-.quilt-cross { fill: none; stroke: var(--thread); stroke-width: 1.8; stroke-linecap: round; }
 .quilt-fringe { fill: none; stroke: var(--thread-light); stroke-width: 1; stroke-linecap: round; opacity: .75; }
 .fabric[data-theme="dark"] .quilt-fringe { stroke: #8e9bb0; opacity: .5; }
 .quilt-loose { fill: none; stroke: var(--thread-light); stroke-width: 1.1; stroke-linecap: round; opacity: .85; }
 .fabric[data-theme="dark"] .quilt-loose { stroke: #a9b3c4; opacity: .55; }
-.quilt-patch-shadow { fill: rgba(40, 28, 16, .2); transform: translate(1.5px, 2px); filter: blur(1px); }
-.plaid-a { stroke: rgba(150, 62, 48, .42); stroke-width: 3; }
-.plaid-b { stroke: rgba(52, 74, 110, .34); stroke-width: 2.2; }
-.plaid-c { stroke: rgba(255, 250, 235, .5); stroke-width: .9; }
-.print-cloud { fill: none; stroke: rgba(52, 74, 110, .45); stroke-width: 1; }
 
 /* the sun and moon lean out past the torn top edge */
 .fabric .sun { top: 0; }
 
 /* drawn parts of the scenery get the same weave and are sewn instead of drawn */
-.cloth-weave { pointer-events: none; opacity: .55; }
-[data-theme="dark"] .cloth-weave { opacity: .45; }
+.cloth-weave { pointer-events: none; opacity: .9; }
+[data-theme="dark"] .cloth-weave { opacity: .6; }
 .fabric .ground-edge { stroke: var(--thread); stroke-width: 1.7; stroke-dasharray: 6.4 4.4; stroke-linecap: round; opacity: .7; }
 .fabric .paving { stroke-dasharray: 5 3.6; stroke-linecap: round; }
 .fabric .water-line { stroke-dasharray: 5 4; stroke-linecap: round; }

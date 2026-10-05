@@ -2,8 +2,7 @@
  * The cloth base of the 2D world (only when the world uses the fabric paintings, see
  * window.HJArtDir): the sky is a quilt of linen panels sewn together with running stitches, its
  * edges torn and frayed with loose threads, on a backing of washed burlap (dark felt at night).
- * A couple of patches with cross-stitched corners are sewn onto it. The scenery and the sun sit in
- * front of it, so they can reach past its torn edge.
+ * The scenery and the sun sit in front of it, so they can reach past its torn edge.
  */
 (function () {
   "use strict";
@@ -56,21 +55,6 @@
     while (x < w + 20) { var nx = x + 160 + r() * 160, ny = y + (r() - .5) * 14; d += "Q" + f1((x + nx) / 2) + " " + f1((yy + ny) / 2 + (r() - .5) * 10) + " " + f1(nx) + " " + f1(ny); x = nx; yy = ny; }
     return d;
   }
-  // A patch: a slightly crooked rectangle, stitched round, with a cross stitch at each corner.
-  function patch(r, cx, cy, pw, ph, fill) {
-    var a = (r() - .5) * .22, c = Math.cos(a), s = Math.sin(a), corners = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(function (k) {
-      var x = k[0] * pw / 2 + (r() - .5) * 4, y = k[1] * ph / 2 + (r() - .5) * 4;
-      return [cx + x * c - y * s, cy + x * s + y * c];
-    });
-    var edge = [];
-    corners.forEach(function (p, i) { var q = corners[(i + 1) % 4]; edge = edge.concat(torn(r, p[0], p[1], q[0], q[1], 1.6)); });
-    var inner = corners.map(function (p) { return [cx + (p[0] - cx) * .86, cy + (p[1] - cy) * .82]; });
-    var xs = corners.map(function (p) { return "M" + f1(p[0] - 4) + " " + f1(p[1] - 4) + "l8 8m0 -8l-8 8"; }).join("");
-    return '<g class="quilt-patch"><path class="quilt-patch-shadow" d="' + line(edge) + 'Z"/><path class="quilt-patch-cloth" d="' + line(edge) + 'Z" fill="url(#' + fill + ')"/>' +
-      '<path class="quilt-patch-weave" d="' + line(edge) + 'Z" fill="url(#qWeave)"/>' +
-      '<path class="quilt-stitch" d="' + line(inner) + 'Z"/><path class="quilt-cross" d="' + xs + '"/></g>';
-  }
-
   function build() {
     var w = sky.clientWidth, h = sky.clientHeight;
     if (!w || !h) return;
@@ -83,13 +67,10 @@
     var seam1 = seamPath(r, w, y1), seam2 = seamPath(r, w, y2);
     var band = seam1 + "L" + (w + 40) + " " + f1(y2 + 60) + "L-20 " + f1(y2 + 60) + "Z";
     var binding = line(torn(r, side + 8, top + 8, w - side - 8, top + 8, .6));
-    var patches = w > 700 ? patch(r, w * .2, h * .37, 84, 60, "qPlaid") + patch(r, w * .62, h * .17, 62, 46, "qPrint") : patch(r, w * .3, h * .3, 56, 42, "qPlaid");
     host.setAttribute("viewBox", "0 0 " + w + " " + h);
     host.innerHTML =
       '<defs><linearGradient id="qSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-sky-1)"/><stop offset=".78" style="stop-color:var(--w-sky-2)"/></linearGradient>' +
-      '<pattern id="qWeave" width="132" height="132" patternUnits="userSpaceOnUse"><image href="assets/art/fabric/weave.webp" width="132" height="132"/></pattern>' +
-      '<pattern id="qPlaid" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(4)"><rect width="18" height="18" style="fill:var(--patch-plaid)"/><path d="M0 4.5h18M0 13.5h18" class="plaid-a"/><path d="M4.5 0v18M13.5 0v18" class="plaid-b"/><path d="M0 9h18M9 0v18" class="plaid-c"/></pattern>' +
-      '<pattern id="qPrint" width="20" height="16" patternUnits="userSpaceOnUse"><rect width="20" height="16" style="fill:var(--patch-print)"/><path d="M3 9q2 -4 5 -1q2 -3 4 0q2 1 0 3h-8q-2 -1 -1 -2ZM13 3q1 -2 3 -1q1 -1 2 0" class="print-cloud"/></pattern>' +
+      '<pattern id="qWeave" width="160" height="160" patternUnits="userSpaceOnUse"><image href="assets/art/fabric/weave.webp" width="160" height="160"/></pattern>' +
       '<clipPath id="qClip"><path d="' + outline + '"/></clipPath></defs>' +
       '<path class="quilt-shadow" d="' + outline + '"/>' +
       '<path class="quilt-sky" d="' + outline + '" fill="url(#qSky)"/>' +
@@ -97,7 +78,7 @@
       '<path class="quilt-seam-shadow" d="' + seam1 + '"/><path class="quilt-seam-shadow" d="' + seam2 + '"/>' +
       '<path class="quilt-seam" d="' + seam1 + '"/><path class="quilt-seam" d="' + seam2 + '"/>' +
       '<path class="quilt-stitch" d="' + seam1 + '" transform="translate(0 -5)"/><path class="quilt-stitch" d="' + seam2 + '" transform="translate(0 -5)"/>' +
-      '<path class="quilt-stitch" d="' + binding + '"/>' + patches +
+      '<path class="quilt-stitch" d="' + binding + '"/>' +
       '<path class="quilt-weave" d="' + outline + '" fill="url(#qWeave)"/></g>' +
       '<path class="quilt-fringe" d="' + fringe(r, tTop, 0, -1, 1) + fringe(r, tRight, 1, 0, 1) + fringe(r, tLeft, -1, 0, 1) + '"/>' +
       '<path class="quilt-loose" d="' + looseThreads(r, tTop, 0, -1, Math.round(w / 260)) + looseThreads(r, tRight, 1, 0, 2) + looseThreads(r, tLeft, -1, 0, 2) + '"/>';
