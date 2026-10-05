@@ -2,11 +2,11 @@
    cloth versions in assets/art/fabric/ (tools/fabricize.py), and assets/js/quilt.js sews the sky. */
 .fabric .world, .fabric .defs {
   --thread: #6e5539; --thread-shade: #46331f; --thread-light: #efe2c6; --quilt-shadow: rgba(46, 32, 18, .28);
-  --sea-far: #57707a; --sea-mid: #475f6b; --sea-near: #394f5c; --sea-deep: #2d424f;
+  --sea-far: #4f6b5c; --sea-mid: #405b4d; --sea-near: #334b3f; --sea-deep: #273c32;
 }
 [data-theme="dark"].fabric .world, .fabric[data-theme="dark"] .world, .fabric[data-theme="dark"] .defs {
   --thread: #cbb894; --thread-shade: #8a7858; --thread-light: #f6ecd4; --quilt-shadow: rgba(0, 0, 0, .5);
-  --sea-far: #253441; --sea-mid: #1e2b37; --sea-near: #18232e; --sea-deep: #121b24;
+  --sea-far: #1e2c26; --sea-mid: #19251f; --sea-near: #141e19; --sea-deep: #0f1713;
 }
 
 /* the backing: washed burlap by day, dark felt at night; the sky quilt lies on it */
@@ -37,22 +37,29 @@
   fill: url(#gSatinLetters); stroke: #3a2616; stroke-width: .32; paint-order: stroke; filter: url(#gRaisedThread);
 }
 
-/* the water is dark cotton appliqué, each swell shading the one behind and sewn along its top; the
+/* plaques are madder cotton, padded, with a running stitch round them; the letters on them are satin */
+.cloth-plaque-shadow { fill: rgba(30, 18, 8, .35); }
+.cloth-plaque { stroke: #3e1a0f; stroke-width: .5; }
+.cloth-plaque-stitch { fill: none; stroke: #e6c991; stroke-width: .75; stroke-dasharray: 2.6 1.7; stroke-linecap: round; opacity: .85; }
+[data-theme="dark"] .cloth-plaque { opacity: .85; }
+[data-theme="dark"] .emb-shelf, [data-theme="dark"] .emb-book { opacity: .72; }
+
+/* the water is a river of dark green cotton appliqué, each long low swell shading the one behind and sewn along its top; the
    mother-of-pearl along the crests is the highlight, set in a dark seat with a glint on its edge */
 .luodian { pointer-events: none; }
-.fabric .pond-lacquer { fill: #5f777f; }
-.sea-thread { fill: none; stroke: #7f969d; stroke-width: .7; stroke-linecap: round; opacity: .6; }
+.fabric .pond-lacquer { fill: #58715f; }
+.sea-thread { fill: none; stroke: #7c9783; stroke-width: .7; stroke-linecap: round; opacity: .6; }
 .sea-shadow { fill: #0d171e; opacity: .42; }
-.sea-cloth { stroke: #1f2e37; stroke-width: .4; }
-.sea-stitch { fill: none; stroke: #8ea6ad; stroke-width: .7; stroke-dasharray: 3.2 2.4; stroke-linecap: round; opacity: .8; }
-.sea-groove { fill: none; stroke: #121c23; stroke-linecap: round; opacity: .85; }
+.sea-cloth { stroke: #1d2c24; stroke-width: .4; }
+.sea-stitch { fill: none; stroke: #93ab98; stroke-width: .7; stroke-dasharray: 3.2 2.4; stroke-linecap: round; opacity: .8; }
+.sea-groove { fill: none; stroke: #111b16; stroke-linecap: round; opacity: .85; }
 .sea-strip { fill: none; stroke-linecap: round; }
 .sea-glint { fill: none; stroke: url(#gSea-glint); stroke-width: .7; stroke-linecap: round; }
-.sea-spray { stroke: #4d6570; stroke-width: .35; }
-.fabric[data-theme="dark"] .pond-lacquer { fill: #22303c; }
-[data-theme="dark"] .sea-thread { stroke: #3b4f5e; }
+.sea-spray { stroke: #4e6857; stroke-width: .35; }
+.fabric[data-theme="dark"] .pond-lacquer { fill: #1c2924; }
+[data-theme="dark"] .sea-thread { stroke: #34493d; }
 [data-theme="dark"] .sea-shadow { fill: #000; opacity: .55; }
-[data-theme="dark"] .sea-stitch { stroke: #536b78; }
+[data-theme="dark"] .sea-stitch { stroke: #4e6858; }
 [data-theme="dark"] .sea-strip, [data-theme="dark"] .sea-spray { opacity: .82; }
 .fabric .water-line, .fabric .water-light, .fabric .submerged-stems, .fabric .flower-reflection { display: none; }
 

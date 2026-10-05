@@ -987,10 +987,32 @@
     return '<pattern id="gTwist" width="2.4" height="2.4" patternUnits="userSpaceOnUse" patternTransform="rotate(42)"><rect width="2.4" height="2.4" style="fill:var(--thread)"/><rect width=".8" height="2.4" style="fill:var(--thread-shade)"/><rect x="1.4" width=".35" height="2.4" style="fill:var(--thread-light);opacity:.45"/></pattern>' +
       '<pattern id="gSatinLetters" width="1.5" height="1.5" patternUnits="userSpaceOnUse" patternTransform="rotate(-58)"><rect width="1.5" height="1.5" fill="#f2e3c1"/><rect width=".42" height="1.5" fill="#c4a46b"/><rect x=".9" width=".2" height="1.5" fill="#fff8e6" opacity=".7"/></pattern>' +
       '<filter id="gRaisedThread" x="-10%" y="-30%" width="120%" height="170%"><feGaussianBlur in="SourceAlpha" stdDeviation=".35"/><feOffset dx=".35" dy=".6" result="drop"/><feFlood flood-color="#24160a" flood-opacity=".6"/><feComposite in2="drop" operator="in" result="shade"/><feMerge><feMergeNode in="shade"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
-      seaDefs();
+      seaDefs() + preciousDefs();
   }
 
-  // The water is dark cloth, appliquéd: rolling swells cut from muted slate, indigo and teal cotton,
+  // Precious materials for small things worked in mixed media: couched gold and silver thread,
+  // mother-of-pearl and abalone inlay, seed pearls, and satin floss in the colours of old book cloth.
+  function preciousDefs() {
+    function lin(id, stops, attrs) {
+      return '<linearGradient id="' + id + '" ' + attrs + '>' + stops.map(function (c, i) { return '<stop offset="' + (i / (stops.length - 1)).toFixed(2) + '" stop-color="' + c + '"/>'; }).join("") + '</linearGradient>';
+    }
+    var out = lin("gGoldThread", ["#7a5418", "#d3a443", "#fbe7a1", "#b5832c", "#fff3c9", "#8f6520"], 'gradientUnits="userSpaceOnUse" spreadMethod="reflect" x1="0" y1="0" x2="5" y2="2.4"') +
+      lin("gSilverThread", ["#6f7882", "#cfd6dd", "#ffffff", "#98a2ad", "#eef2f5"], 'gradientUnits="userSpaceOnUse" spreadMethod="reflect" x1="0" y1="0" x2="4.4" y2="2"') +
+      lin("gNacreSmall", ["#fffdf8", "#f3d6e6", "#ffffff", "#d3f0e7", "#fdf6ea", "#d9e0fa", "#ffffff"], 'x1="0" y1="0" x2="1" y2="1"') +
+      lin("gAbaloneSmall", ["#b9ece2", "#93b4ef", "#e4bff0", "#a9ead1", "#f5dcb8"], 'x1="0" y1="1" x2="1" y2="0"') +
+      '<radialGradient id="gPearlBead" cx=".35" cy=".32" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#f6eef2"/><stop offset=".8" stop-color="#d9d3e2"/><stop offset="1" stop-color="#a9a2b6"/></radialGradient>' +
+      '<pattern id="gPlaqueCloth" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#7a3826"/><path d="M0 .75h3" stroke="#fff" stroke-opacity=".1" stroke-width=".7"/><path d="M2.25 0v3" stroke="#000" stroke-opacity=".2" stroke-width=".7"/></pattern>' +
+      '<radialGradient id="gSilverKnob" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9d1d9"/><stop offset="1" stop-color="#5f6872"/></radialGradient>';
+    // satin floss: close parallel stitches, a lighter and a darker thread in each repeat
+    [["indigo", "#26385f", "#3d5487", "#16223e"], ["jade", "#2f6352", "#4b8a73", "#1d4236"], ["ochre", "#9a6a28", "#c38e43", "#6c4718"],
+     ["plum", "#6b2f4a", "#8f4a68", "#45182e"], ["vermilion", "#a23a2a", "#c95a43", "#6e2115"], ["ivory", "#e9dcc0", "#f8efdc", "#c8b894"],
+     ["celadon", "#9cbca8", "#bfd8c7", "#6f9581"], ["leaf", "#4f7a3c", "#6f9d55", "#33552a"]].forEach(function (c) {
+      out += '<pattern id="gSatin-' + c[0] + '" width="1.3" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(' + (c[0] === "leaf" ? 38 : 0) + ')"><rect width="1.3" height="5" fill="' + c[1] + '"/><rect x=".15" width=".5" height="5" fill="' + c[2] + '" opacity=".55"/><rect x="1.05" width=".22" height="5" fill="' + c[3] + '" opacity=".6"/></pattern>';
+    });
+    return out;
+  }
+
+  // The water is a river of dark cloth, appliquéd: long low swells cut from deep green cottons,
   // each laid over the one behind with its own shadow and a running stitch along its top, a second
   // cloth in its hollow. Mother-of-pearl is set only where the light catches, as the highlight: thin
   // strips of white shell along each crest and into its curl, and a spray of pearls. The shell keeps
@@ -1017,8 +1039,9 @@
     });
     out += '<pattern id="gSeaThreads" width="16" height="3.4" patternUnits="userSpaceOnUse"><path class="sea-thread" d="M1 1.2h9M9 2.9h6"/></pattern>';
     var r = rng(4417);
-    return out + seaWave("gSeaFront1", 250, 100, "near", "deep", r) + seaWave("gSeaFront2", 300, 92, "deep", "near", r) + seaWave("gSeaFront3", 220, 108, "near", "mid", r) +
-      seaWave("gSeaBack1", 200, 64, "mid", "far", r) + seaWave("gSeaBack2", 240, 58, "far", "mid", r);
+    // a river, not the sea: long low swells with a small curl at the crest
+    return out + seaWave("gSeaFront1", 360, 46, "near", "deep", r, 11) + seaWave("gSeaFront2", 420, 40, "deep", "near", r, 10) + seaWave("gSeaFront3", 320, 52, "near", "mid", r, 12) +
+      seaWave("gSeaBack1", 300, 30, "mid", "far", r, 8) + seaWave("gSeaBack2", 340, 26, "far", "mid", r, 7);
   }
   // A dense line through control points (Catmull-Rom).
   function spline(pts, step) {
@@ -1054,31 +1077,31 @@
   function thin(pts, k) { return pts.filter(function (p, i) { return i % k === 0 || i === pts.length - 1; }); }
   // One wave standing on (0, 0) and rising to the right: a swell of cloth with a second cloth in its
   // hollow, and shell along its crest. The back of the wave runs along c; "inside" is to its right.
-  function seaWave(id, W, H, cloth, inner, r) {
+  function seaWave(id, W, H, cloth, inner, r, k) {
     var c = spline([[-.3 * W, 8], [.12 * W, -.06 * H], [.44 * W, -.27 * H], [.72 * W, -.62 * H], [.89 * W, -.9 * H], [W, -H],
-      [1.1 * W, -.97 * H], [1.16 * W, -.85 * H], [1.14 * W, -.73 * H], [1.08 * W, -.71 * H], [1.06 * W, -.77 * H]], 3), out = "";
+      [W + .9 * k, -H + .15 * k], [W + 1.4 * k, -H + .75 * k], [W + 1.2 * k, -H + 1.3 * k], [W + .6 * k, -H + 1.4 * k], [W + .45 * k, -H + 1.0 * k]], 3), out = "";
     var edge = offsetLine(c, -1.6, 0, .8);
-    var face = spline([edge[edge.length - 1], [1.03 * W, -.66 * H], [1.0 * W, -.42 * H], [1.05 * W, -.16 * H], [1.2 * W, 0], [1.3 * W, 12]], 4);
+    var face = spline([edge[edge.length - 1], [W + .3 * k, -.66 * H], [W + .1 * k, -.42 * H], [W + .8 * k, -.16 * H], [W + 3 * k, 0], [W + 5 * k, 12]], 4);
     var body = smoothPath(thin(edge.concat(face), 2)) + "L" + f1(-.3 * W) + " 12Z";
-    var hollowEdge = offsetLine(c, 15, .1, .6), he = hollowEdge[hollowEdge.length - 1];
-    var hollow = smoothPath(thin(hollowEdge.concat(spline([he, [he[0] + .06 * W, he[1] + .25 * H], [he[0] + .1 * W, -.05 * H], [he[0] + .22 * W, 12]], 4)), 2)) + "L" + f1(hollowEdge[0][0]) + " 12Z";
+    var hollowEdge = offsetLine(c, 13, .1, .66), he = hollowEdge[hollowEdge.length - 1];
+    var hollow = smoothPath(thin(hollowEdge.concat(spline([he, [he[0] + .05 * W, he[1] + .3 * H], [he[0] + .08 * W, -.05 * H], [he[0] + .16 * W, 12]], 4)), 2)) + "L" + f1(hollowEdge[0][0]) + " 12Z";
     out += '<path class="sea-shadow" transform="translate(1.6 2.4)" d="' + body + '"/><path class="sea-cloth" fill="url(#gSeaCloth-' + cloth + ')" d="' + body + '"/>' +
       '<path class="sea-shadow" transform="translate(1.1 1.7)" d="' + hollow + '"/><path class="sea-cloth" fill="url(#gSeaCloth-' + inner + ')" d="' + hollow + '"/>' +
-      '<path class="sea-stitch" d="' + smoothPath(thin(offsetLine(c, 3.4, .03, .4), 3)) + smoothPath(thin(offsetLine(c, 18.4, .14, .56), 3)) + '"/>';
+      '<path class="sea-stitch" d="' + smoothPath(thin(offsetLine(c, 3.4, .03, .45), 3)) + smoothPath(thin(offsetLine(c, 16.4, .14, .6), 3)) + '"/>';
     // the shell: [nacre, offset inside the crest, from, to, width]
     var glint = "";
-    [["pearl", 0, .4, 1, 3], ["silver", 4.3, .5, .94, 2.3], ["abalone", 7.9, .58, .86, 1.7], ["pearl", 11, .65, .8, 1.3]].forEach(function (n) {
+    [["pearl", 0, .5, 1, 2.6], ["silver", 3.9, .6, .94, 2], ["abalone", 7, .68, .86, 1.5]].forEach(function (n) {
       var d = smoothPath(thin(offsetLine(c, n[1], n[2], n[3]), 3));
       out += '<path class="sea-groove" stroke-width="' + f1(n[4] + 1.1) + '" transform="translate(.3 .6)" d="' + d + '"/><path class="sea-strip" stroke="url(#gSea-' + n[0] + ')" stroke-width="' + n[4] + '" d="' + d + '"/>';
       glint += smoothPath(thin(offsetLine(c, n[1] - n[4] * .22, n[2] + .03, n[3] - .02), 3));
     });
-    var fd = smoothPath(thin(offsetLine(face, 2.6, .04, .34), 3));
+    var fd = smoothPath(thin(offsetLine(face, 2.4, .04, .3), 3));
     out += '<path class="sea-groove" stroke-width="2.6" transform="translate(.3 .6)" d="' + fd + '"/><path class="sea-strip" stroke="url(#gSea-silver)" stroke-width="1.5" d="' + fd + '"/>' +
       '<path class="sea-glint" d="' + glint + '"/>';
     // spray: pearls thrown off the crest
     var spray = "";
-    for (var p = 0; p < 7; p++) {
-      var a = -.5 + r() * 2.1, rad = .1 * W + r() * .14 * W, pr = .9 + r() * 1.7, px = 1.05 * W + Math.cos(a) * rad * .8, py = -.88 * H - Math.sin(a) * rad * .45;
+    for (var p = 0; p < 9; p++) {
+      var a = -.5 + r() * 2.1, rad = 4 + r() * 2.2 * k, pr = .7 + r() * 1.3, px = W + .8 * k + Math.cos(a) * rad, py = -H - Math.sin(a) * rad * .6;
       spray += "M" + f1(px - pr) + " " + f1(py) + "a" + f1(pr) + " " + f1(pr) + " 0 1 0 " + f1(2 * pr) + " 0a" + f1(pr) + " " + f1(pr) + " 0 1 0 " + f1(-2 * pr) + " 0";
     }
     return '<g id="' + id + '">' + out + '<path class="sea-spray" fill="url(#gSea-pearl)" d="' + spray + '"/></g>';
@@ -1086,9 +1109,9 @@
   function luodian(width, waterShape) {
     var r = rng(5150), back = "", mid = "", front = "";
     function place(id, x, y, sx, sy) { return '<use href="#' + id + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + f1(sx) + ' ' + f1(sy) + ')"/>'; }
-    for (var x = -160; x < width + 200; x += 150 + r() * 90) back += place("gSeaBack" + (1 + Math.floor(r() * 2)), x, 760 + r() * 10, .85 + r() * .3, .85 + r() * .3);
-    for (x = -100; x < width + 200; x += 330 + r() * 260) mid += place("gSeaFront" + (1 + Math.floor(r() * 3)), x, 786 + r() * 8, .62 + r() * .14, .6 + r() * .14);
-    for (x = -60; x < width + 200; x += 210 + r() * 120) front += place("gSeaFront" + (1 + Math.floor(r() * 3)), x, 808 + r() * 6, .88 + r() * .26, .86 + r() * .2);
+    for (var x = -200; x < width + 300; x += 220 + r() * 120) back += place("gSeaBack" + (1 + Math.floor(r() * 2)), x, 736 + r() * 10, .85 + r() * .3, .85 + r() * .3);
+    for (x = -140; x < width + 300; x += 300 + r() * 200) mid += place("gSeaFront" + (1 + Math.floor(r() * 3)), x, 770 + r() * 8, .7 + r() * .2, .7 + r() * .2);
+    for (x = -100; x < width + 300; x += 280 + r() * 140) front += place("gSeaFront" + (1 + Math.floor(r() * 3)), x, 806 + r() * 6, .9 + r() * .25, .9 + r() * .2);
     return '<defs><clipPath id="gPondClip"><path d="' + waterShape + '"/></clipPath></defs><g class="luodian" aria-hidden="true" clip-path="url(#gPondClip)">' +
       '<rect class="sea-threads" x="0" y="660" width="' + width + '" height="150" fill="url(#gSeaThreads)"/>' + back + mid + front + '</g>';
   }

@@ -481,6 +481,9 @@
     return materialHint(path,kind,delay);
   }
   function label(x,y,text,width) {
+    // in the cloth world a plaque is a piece of madder cotton, padded, with a running stitch round it
+    if (window.HJArtDir) return '<g class="paint-label cloth-label" transform="translate('+x+' '+y+')"><rect class="cloth-plaque-shadow" x="'+(-width/2+1.2)+'" y="-11" width="'+width+'" height="24" rx="3"/>'+
+      '<rect class="cloth-plaque" x="'+(-width/2)+'" y="-12.5" width="'+width+'" height="24" rx="3" style="fill:url(#gPlaqueCloth)"/><rect class="cloth-plaque-stitch" x="'+(-width/2+2.6)+'" y="-9.9" width="'+(width-5.2)+'" height="18.8" rx="1.8"/><text text-anchor="middle" y="4">'+text+'</text></g>';
     return '<g class="paint-label" transform="translate('+x+' '+y+')">'+sprite('plaquePanel',-width/2,-13,width,26)+materialHint('M'+(-width*.18)+' 9.2q'+(width*.18)+' -.35 '+(width*.36)+' 0','hint-wood',width/25)+'<text text-anchor="middle" y="4">'+text+'</text></g>';
   }
   // A shared painted wood sample gives the narrow support beams the same material as the carved signs.
@@ -519,19 +522,60 @@
     return station('home',forecourt(-313,155,542,560,8)+sprite('gate',-333,288.668,510,272)+label(-78,405,'WELCOME',122)+
       '<g class="board" data-open="news">'+sprite('board',153,420.347,112,140)+sourceHint('board',[153,420.347,112,140],[['M',744,701],['Q',772,699,801,701]],'hint-wood',1.7)+'<rect class="hit" x="153" y="420.347" width="112" height="140"/><g class="paint-board-heading" transform="translate(209.2 460.7) skewX(-1.1)"><text class="paint-board-title" text-anchor="middle">NEWS</text></g></g>'+glow(51,454.668,50),[-350,280,640,283]);
   };
+  // In the cloth world the Research shelves hold small things in mixed media: books in satin floss
+  // with couched gold bands and a mother-of-pearl label, a mother-of-pearl vase with an abalone inlay,
+  // a gold rim and seed pearls holding an embroidered plant, bamboo slips tied with gold thread, and
+  // silk scrolls with silver knobs. Inline styles, so the plain world's book colours do not apply.
+  function q(n) { return Math.round(n*10)/10; }
+  function clothBook(i,w,h) {
+    var c=['indigo','jade','ochre','plum','vermilion'][i%5];
+    return '<g class="emb-book"><rect x="0" y="'+q(-h)+'" width="'+q(w)+'" height="'+q(h)+'" rx=".7" style="fill:url(#gSatin-'+c+');stroke:#2a1d12;stroke-width:.35"/>'+
+      '<path d="M.6 '+q(-h+1.5)+'H'+q(w-.6)+'M.6 '+q(-1.7)+'H'+q(w-.6)+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:.85;stroke-linecap:round"/>'+
+      '<rect x="'+q(w*.2)+'" y="'+q(-h*.8)+'" width="'+q(w*.6)+'" height="'+q(Math.min(6.5,h*.26))+'" rx=".5" style="fill:url(#gNacreSmall);stroke:#b08a3e;stroke-width:.3"/>'+
+      '<circle cx="'+q(w/2)+'" cy="'+q(-h*.34)+'" r="'+q(Math.min(1.05,w*.09))+'" style="fill:url(#gPearlBead);stroke:#8d8496;stroke-width:.15"/></g>';
+  }
+  function pearlVase(x,y) {
+    var leaves='', pearls='';
+    [[-34,13],[-14,15.5],[6,16.5],[26,14],[44,11.5]].forEach(function(l){ var a=l[0]*Math.PI/180, len=l[1], ex=Math.sin(a)*len, ey=-15.4-Math.cos(a)*len;
+      leaves+='<path d="M0 -15.4Q'+q(ex*.5-Math.cos(a)*2.6)+' '+q((ey-15.4)/2-Math.sin(a)*2.6)+' '+q(ex)+' '+q(ey)+'Q'+q(ex*.5+Math.cos(a)*2.6)+' '+q((ey-15.4)/2+Math.sin(a)*2.6)+' 0 -15.4Z" style="fill:url(#gSatin-leaf);stroke:#2b4520;stroke-width:.3"/>'+
+        '<path d="M0 -15.4L'+q(ex*.92)+' '+q(-15.4+(ey+15.4)*.92)+'" style="fill:none;stroke:#a9c98c;stroke-width:.3;opacity:.8"/>'; });
+    for (var k=-4;k<=4;k++) pearls+='<circle cx="'+q(k*1.25)+'" cy="'+q(-11.6+Math.abs(k)*.18)+'" r=".55" style="fill:url(#gPearlBead)"/>';
+    return '<g class="emb-vase" transform="translate('+x+' '+y+')"><ellipse cx="0" cy="0" rx="8" ry="1.2" style="fill:#2a1a0e;opacity:.35"/>'+leaves+
+      '<path d="M-3.6 0C-7.6 -2 -8.3 -8 -5.7 -11.5C-4.3 -13.2 -3.1 -14.2 -3.3 -15.6H3.3C3.1 -14.2 4.3 -13.2 5.7 -11.5C8.3 -8 7.6 -2 3.6 0Z" style="fill:url(#gNacreSmall);stroke:#3b2c22;stroke-width:.45"/>'+
+      '<path d="M-4.6 -4.2Q0 -9.6 4.6 -4.2Q0 -6.4 -4.6 -4.2Z" style="fill:url(#gAbaloneSmall);stroke:#3b2c22;stroke-width:.25"/>'+
+      '<path d="M-2.2 -13.6Q-5.2 -9 -3.6 -2.4" style="fill:none;stroke:#fff;stroke-width:.5;opacity:.7"/>'+
+      '<path d="M-3.5 -15.6H3.5M-3.9 -.3H3.9" style="fill:none;stroke:url(#gGoldThread);stroke-width:1.1;stroke-linecap:round"/>'+pearls+'</g>';
+  }
+  function bambooSlips(x,y,w) {
+    var slips='', n=13, sw=(w-10)/n;
+    for (var k=0;k<n;k++) slips+='<rect x="'+q(8+k*sw)+'" y="-15" width="'+q(sw-.5)+'" height="15" rx=".4" style="fill:url(#gSatin-ivory);stroke:#8a7650;stroke-width:.25"/>';
+    return '<g class="emb-slips" transform="translate('+x+' '+y+')"><ellipse cx="'+q(w/2)+'" cy="0" rx="'+q(w/2)+'" ry="1.1" style="fill:#2a1a0e;opacity:.3"/>'+
+      '<rect x="0" y="-15.6" width="9" height="15.6" rx="4.2" style="fill:url(#gNacreSmall);stroke:#3b2c22;stroke-width:.4"/>'+slips+
+      '<path d="M2 -10.6H'+q(w-1)+'M2 -4.6H'+q(w-1)+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9;stroke-linecap:round"/>'+
+      '<circle cx="'+q(w-.6)+'" cy="-10.6" r=".8" style="fill:url(#gPearlBead)"/><circle cx="'+q(w-.6)+'" cy="-4.6" r=".8" style="fill:url(#gPearlBead)"/></g>';
+  }
+  function scrollStack(x,y) {
+    var rolls='';
+    [['celadon',-4.6,0],['plum',-10,1.2],['ivory',-15.4,-.6]].forEach(function(r){ var cy=r[1], dx=r[2];
+      rolls+='<rect x="'+q(-10+dx)+'" y="'+q(cy-2.6)+'" width="20" height="5.2" rx="2.6" style="fill:url(#gSatin-'+r[0]+');stroke:#3b2c22;stroke-width:.35"/>'+
+        '<circle cx="'+q(-10.6+dx)+'" cy="'+q(cy)+'" r="1.7" style="fill:url(#gSilverKnob)"/><circle cx="'+q(10.6+dx)+'" cy="'+q(cy)+'" r="1.7" style="fill:url(#gSilverKnob)"/>'; });
+    return '<g class="emb-scrolls" transform="translate('+x+' '+y+')"><ellipse cx="0" cy="0" rx="12" ry="1.1" style="fill:#2a1a0e;opacity:.3"/>'+rolls+
+      '<path d="M1.5 -18.2Q3 -9 1.6 -1.6" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9;stroke-linecap:round"/><circle cx="1.6" cy="-1.4" r=".9" style="fill:url(#gPearlBead)"/></g>';
+  }
+
   A.stations.research = function (pubs,themes) {
     var root = parsed(old.research(pubs,themes)), body = forecourt(-280,282,549,560,7)+sprite('researchHouse',-300,177.235,600,384), rowX=[-120,-120,-120];
     all(root,'.book').forEach(function(b,i) {
       var n=['ancientBlue','ancientJade','ancientOchre'][i%3];
       var dims = b.querySelector('rect'), w = +dims.getAttribute('width'), h = +dims.getAttribute('height');
       var bw=w*.73, bh=Math.min(28,h*.7);
-      b.querySelector('.book-in').innerHTML = sprite(n,0,-bh,bw,bh)+materialHint('M'+(bw*.17)+' '+(-bh*.81)+'L'+(bw*.82)+' '+(-bh*.81)+'M'+(bw*.22)+' '+(-bh*.22)+'L'+(bw*.78)+' '+(-bh*.22),'hint-book',i*.41)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
+      b.querySelector('.book-in').innerHTML = (window.HJArtDir ? clothBook(i,bw,bh) : sprite(n,0,-bh,bw,bh))+materialHint('M'+(bw*.17)+' '+(-bh*.81)+'L'+(bw*.82)+' '+(-bh*.81)+'M'+(bw*.22)+' '+(-bh*.22)+'L'+(bw*.78)+' '+(-bh*.22),'hint-book',i*.41)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
       // Shelves in the painting are shallow and spaced evenly through the interior.
       var tr = b.getAttribute('transform'), row = tr.match(/translate\((-?[\d.]+) ([\d.]+)/);
       if (row) { var ri={436:0,482:1,528:2}[row[2]], y=[436.435,467.435,500.935][ri]; b.setAttribute('transform','translate('+rowX[ri]+' '+y+')'); rowX[ri]+=bw+2; }
       body += html(b);
     });
-    body += sprite('plant',84,472.235,28,28)+sprite('bamboo',-37,481.235,69,20)+sprite('scrollBundle',46,474.235,25,27)+'<text class="paint-inset-title" x="0" y="288.235" text-anchor="middle">RESEARCH</text>';
+    body += (window.HJArtDir ? '<g class="emb-shelf">'+pearlVase(98,500.235)+bambooSlips(-37,501.235,69)+scrollStack(58,501.235)+'</g>' : sprite('plant',84,472.235,28,28)+sprite('bamboo',-37,481.235,69,20)+sprite('scrollBundle',46,474.235,25,27))+'<text class="paint-inset-title" x="0" y="288.235" text-anchor="middle">RESEARCH</text>';
     return station('research',body+glow(-182,473.235,45)+glow(182,473.235,45)+glow(-93,291.235,32)+glow(93,291.235,32),[-300,170,600,393]);
   };
   A.stations.talks = function (videos,posters) {
