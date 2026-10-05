@@ -1847,7 +1847,7 @@
   S.life = function (catThumbs) {
     var y = GY;
     var slides = (catThumbs || []).map(function (src, i, all) {
-      return '<image class="cat-slide" href="' + esc(src) + '" x="74" y="' + (y - 152) + '" width="82" height="76" preserveAspectRatio="xMidYMid slice" style="animation-duration:' + (all.length * 2.5) + 's;animation-delay:' + (i * 2.5) + 's"/>';
+      return '<image class="cat-slide" href="' + esc(src) + '" x="74" y="' + (y - 152) + '" width="82" height="76" preserveAspectRatio="xMidYMid slice" style="animation-duration:' + (all.length * 2.5) + 's;animation-delay:' + (i * 2.5) + 's;--slide-dur:' + (all.length * 2.5) + 's;--slide-delay:' + (i * 2.5) + 's"/>';
     }).join("");
     return '<g class="st st-life" data-station="life">' +
       '<rect class="hit" x="-372" y="265" width="744" height="297"/>' + lifeHouse() +

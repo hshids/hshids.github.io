@@ -11186,7 +11186,7 @@ function v0() {
   };
 }
 const th = /* @__PURE__ */ new Q(), nh = /* @__PURE__ */ new Q(), cd = /* @__PURE__ */ new v0(), dd = /* @__PURE__ */ new v0(), ud = /* @__PURE__ */ new v0();
-class Wn extends No {
+class Hn extends No {
   /**
    * Constructs a new Catmull-Rom curve.
    *
@@ -11567,7 +11567,7 @@ class Xf extends No {
 var Xl = /* @__PURE__ */ Object.freeze({
   __proto__: null,
   ArcCurve: Jm,
-  CatmullRomCurve3: Wn,
+  CatmullRomCurve3: Hn,
   CubicBezierCurve: Gf,
   CubicBezierCurve3: Wf,
   EllipseCurve: g0,
@@ -11965,7 +11965,7 @@ function Wr(i, e) {
   e || (e = i);
   let t = i, n;
   do
-    if (n = !1, !t.steiner && (Cs(t, t.next) || Un(t.prev, t, t.next) === 0)) {
+    if (n = !1, !t.steiner && (Cs(t, t.next) || Bn(t.prev, t, t.next) === 0)) {
       if (Da(t), t = e = t.prev, t === t.next) break;
       n = !0;
     } else
@@ -11991,30 +11991,30 @@ function Ia(i, e, t, n, r, o, s) {
 }
 function ag(i) {
   const e = i.prev, t = i, n = i.next;
-  if (Un(e, t, n) >= 0) return !1;
+  if (Bn(e, t, n) >= 0) return !1;
   const r = e.x, o = t.x, s = n.x, a = e.y, l = t.y, c = n.y, d = Math.min(r, o, s), u = Math.min(a, l, c), f = Math.max(r, o, s), h = Math.max(a, l, c);
   let m = n.next;
   for (; m !== e; ) {
-    if (m.x >= d && m.x <= f && m.y >= u && m.y <= h && ba(r, a, o, l, s, c, m.x, m.y) && Un(m.prev, m, m.next) >= 0) return !1;
+    if (m.x >= d && m.x <= f && m.y >= u && m.y <= h && ba(r, a, o, l, s, c, m.x, m.y) && Bn(m.prev, m, m.next) >= 0) return !1;
     m = m.next;
   }
   return !0;
 }
 function lg(i, e, t, n) {
   const r = i.prev, o = i, s = i.next;
-  if (Un(r, o, s) >= 0) return !1;
+  if (Bn(r, o, s) >= 0) return !1;
   const a = r.x, l = o.x, c = s.x, d = r.y, u = o.y, f = s.y, h = Math.min(a, l, c), m = Math.min(d, u, f), x = Math.max(a, l, c), b = Math.max(d, u, f), g = Vd(h, m, e, t, n), v = Vd(x, b, e, t, n);
   let _ = i.prevZ, y = i.nextZ;
   for (; _ && _.z >= g && y && y.z <= v; ) {
-    if (_.x >= h && _.x <= x && _.y >= m && _.y <= b && _ !== r && _ !== s && ba(a, d, l, u, c, f, _.x, _.y) && Un(_.prev, _, _.next) >= 0 || (_ = _.prevZ, y.x >= h && y.x <= x && y.y >= m && y.y <= b && y !== r && y !== s && ba(a, d, l, u, c, f, y.x, y.y) && Un(y.prev, y, y.next) >= 0)) return !1;
+    if (_.x >= h && _.x <= x && _.y >= m && _.y <= b && _ !== r && _ !== s && ba(a, d, l, u, c, f, _.x, _.y) && Bn(_.prev, _, _.next) >= 0 || (_ = _.prevZ, y.x >= h && y.x <= x && y.y >= m && y.y <= b && y !== r && y !== s && ba(a, d, l, u, c, f, y.x, y.y) && Bn(y.prev, y, y.next) >= 0)) return !1;
     y = y.nextZ;
   }
   for (; _ && _.z >= g; ) {
-    if (_.x >= h && _.x <= x && _.y >= m && _.y <= b && _ !== r && _ !== s && ba(a, d, l, u, c, f, _.x, _.y) && Un(_.prev, _, _.next) >= 0) return !1;
+    if (_.x >= h && _.x <= x && _.y >= m && _.y <= b && _ !== r && _ !== s && ba(a, d, l, u, c, f, _.x, _.y) && Bn(_.prev, _, _.next) >= 0) return !1;
     _ = _.prevZ;
   }
   for (; y && y.z <= v; ) {
-    if (y.x >= h && y.x <= x && y.y >= m && y.y <= b && y !== r && y !== s && ba(a, d, l, u, c, f, y.x, y.y) && Un(y.prev, y, y.next) >= 0) return !1;
+    if (y.x >= h && y.x <= x && y.y >= m && y.y <= b && y !== r && y !== s && ba(a, d, l, u, c, f, y.x, y.y) && Bn(y.prev, y, y.next) >= 0) return !1;
     y = y.nextZ;
   }
   return !0;
@@ -12096,7 +12096,7 @@ function pg(i, e) {
   return s;
 }
 function mg(i, e) {
-  return Un(i.prev, i, e.prev) < 0 && Un(e.next, i, i.next) < 0;
+  return Bn(i.prev, i, e.prev) < 0 && Bn(e.next, i, i.next) < 0;
 }
 function gg(i, e, t, n) {
   let r = i;
@@ -12144,17 +12144,17 @@ function ba(i, e, t, n, r, o, s, a) {
 function xg(i, e) {
   return i.next.i !== e.i && i.prev.i !== e.i && !yg(i, e) && // doesn't intersect other edges
   (La(i, e) && La(e, i) && wg(i, e) && // locally visible
-  (Un(i.prev, i, e.prev) || Un(i, e.prev, e)) || // does not create opposite-facing sectors
-  Cs(i, e) && Un(i.prev, i, i.next) > 0 && Un(e.prev, e, e.next) > 0);
+  (Bn(i.prev, i, e.prev) || Bn(i, e.prev, e)) || // does not create opposite-facing sectors
+  Cs(i, e) && Bn(i.prev, i, i.next) > 0 && Bn(e.prev, e, e.next) > 0);
 }
-function Un(i, e, t) {
+function Bn(i, e, t) {
   return (e.y - i.y) * (t.x - e.x) - (e.x - i.x) * (t.y - e.y);
 }
 function Cs(i, e) {
   return i.x === e.x && i.y === e.y;
 }
 function $f(i, e, t, n) {
-  const r = Al(Un(i, e, t)), o = Al(Un(i, e, n)), s = Al(Un(t, n, i)), a = Al(Un(t, n, e));
+  const r = Al(Bn(i, e, t)), o = Al(Bn(i, e, n)), s = Al(Bn(t, n, i)), a = Al(Bn(t, n, e));
   return !!(r !== o && s !== a || r === 0 && Tl(i, t, e) || o === 0 && Tl(i, n, e) || s === 0 && Tl(t, i, n) || a === 0 && Tl(t, e, n));
 }
 function Tl(i, e, t) {
@@ -12172,7 +12172,7 @@ function yg(i, e) {
   return !1;
 }
 function La(i, e) {
-  return Un(i.prev, i, i.next) < 0 ? Un(i, e, i.next) >= 0 && Un(i, i.prev, e) >= 0 : Un(i, e, i.prev) < 0 || Un(i, i.next, e) < 0;
+  return Bn(i.prev, i, i.next) < 0 ? Bn(i, e, i.next) >= 0 && Bn(i, i.prev, e) >= 0 : Bn(i, e, i.prev) < 0 || Bn(i, i.next, e) < 0;
 }
 function wg(i, e) {
   let t = i, n = !1;
@@ -27375,7 +27375,7 @@ class ry {
       const Rt = We.uniforms;
       return (!ae.isShaderMaterial && !ae.isRawShaderMaterial || ae.clipping === !0) && (Rt.clippingPlanes = ge.uniform), ao(ae, ht), We.needsLights = Di(ae), We.lightsStateVersion = _t, We.needsLights && (Rt.ambientLightColor.value = He.state.ambient, Rt.lightProbe.value = He.state.probe, Rt.directionalLights.value = He.state.directional, Rt.directionalLightShadows.value = He.state.directionalShadow, Rt.spotLights.value = He.state.spot, Rt.spotLightShadows.value = He.state.spotShadow, Rt.rectAreaLights.value = He.state.rectArea, Rt.ltc_1.value = He.state.rectAreaLTC1, Rt.ltc_2.value = He.state.rectAreaLTC2, Rt.pointLights.value = He.state.point, Rt.pointLightShadows.value = He.state.pointShadow, Rt.hemisphereLights.value = He.state.hemi, Rt.directionalShadowMatrix.value = He.state.directionalShadowMatrix, Rt.spotLightMatrix.value = He.state.spotLightMatrix, Rt.spotLightMap.value = He.state.spotLightMap, Rt.pointShadowMatrix.value = He.state.pointShadowMatrix), We.lightProbeGrid = R.state.lightProbeGridArray.length > 0, We.currentProgram = Bt, We.uniformsList = null, Bt;
     }
-    function On(ae) {
+    function zn(ae) {
       if (ae.uniformsList === null) {
         const Fe = ae.currentProgram.getUniforms();
         ae.uniformsList = Ol.seqWithValue(Fe.seq, ae.uniforms);
@@ -27438,9 +27438,9 @@ class ry {
           const en = St.lightProbeGrid;
           An.probesSH.value = en.texture, An.probesMin.value.copy(en.boundingBox.min), An.probesMax.value.copy(en.boundingBox.max), An.probesResolution.value.copy(en.resolution);
         }
-        Ol.upload(N, On(St), An, C);
+        Ol.upload(N, zn(St), An, C);
       }
-      if (We.isShaderMaterial && We.uniformsNeedUpdate === !0 && (Ol.upload(N, On(St), An, C), We.uniformsNeedUpdate = !1), We.isSpriteMaterial && sn.setValue(N, "center", He.center), sn.setValue(N, "modelViewMatrix", He.modelViewMatrix), sn.setValue(N, "normalMatrix", He.normalMatrix), sn.setValue(N, "modelMatrix", He.matrixWorld), We.uniformsGroups !== void 0) {
+      if (We.isShaderMaterial && We.uniformsNeedUpdate === !0 && (Ol.upload(N, zn(St), An, C), We.uniformsNeedUpdate = !1), We.isSpriteMaterial && sn.setValue(N, "center", He.center), sn.setValue(N, "modelViewMatrix", He.modelViewMatrix), sn.setValue(N, "normalMatrix", He.normalMatrix), sn.setValue(N, "modelMatrix", He.matrixWorld), We.uniformsGroups !== void 0) {
         const en = We.uniformsGroups;
         for (let Wi = 0, Hi = en.length; Wi < Hi; Wi++) {
           const Va = en[Wi];
@@ -28558,9 +28558,9 @@ function Sy({ root: i, resources: e, floorY: t, x: n, z: r, screenY: o = 1.08, l
   u(ne, c.velvet, [0, R, z - 0.015]);
   for (const F of [-1, 1]) f([0.03, 0.2, 0.26], c.velvet, [F * (E + 0.01), R - 0.1, z - 0.12]);
   f([2 * E + 0.05, 0.02, 0.05], c.gilt, [0, R + 5e-3, z + 4e-3]), f([2 * E, 8e-3, 8e-3], c.gilt, [0, R - 0.035, z + 0.022]), H.reverse();
-  const P = new Qn(new Wn(H.map((F) => new Q(F.x, F.y + R, z + 0.023))), s ? 60 : 120, 7e-3, 5, !1);
+  const P = new Qn(new Hn(H.map((F) => new Q(F.x, F.y + R, z + 0.023))), s ? 60 : 120, 7e-3, 5, !1);
   u(P, c.gilt);
-  const q = new Qe(22e-4, 22e-4, 0.03, 3), X = s ? 70 : 140, I = new Wn(H);
+  const q = new Qe(22e-4, 22e-4, 0.03, 3), X = s ? 70 : 140, I = new Hn(H);
   for (let F = 0; F <= X; F++) {
     const T = I.getPoint(F / X);
     u(q.clone(), c.gilt, [T.x, R + T.y - 0.018, z + 0.02]);
@@ -28842,7 +28842,7 @@ function Ey({ root: i, resources: e, floorY: t, x: n, z: r, low: o = !1 }) {
   for (const L of [-0.12, 0.12])
     u(new Io(0.06, 0.07, 0.012, 2, 6e-3), l.brass, [L, b - 0.06, m / 2 + 6e-3]), u(new Ge(0.022, 0.035, 0.01), l.brass, [L, b - 0.02, m / 2 + 0.012]);
   u(new Qe(0.018, 0.018, 0.01, 16), l.brass, [0, b - 0.06, m / 2 + 6e-3], [Math.PI / 2, 0, 0]), u(new Ge(4e-3, 0.012, 4e-3), l.dark, [0, b - 0.062, m / 2 + 0.012]);
-  const y = new Wn([[-0.12, b + 0.02, 0], [-0.1, b + 0.08, 0], [0, b + 0.1, 0], [0.1, b + 0.08, 0], [0.12, b + 0.02, 0]].map((L) => new Q(...L)));
+  const y = new Hn([[-0.12, b + 0.02, 0], [-0.1, b + 0.08, 0], [0, b + 0.1, 0], [0.1, b + 0.08, 0], [0.12, b + 0.02, 0]].map((L) => new Q(...L)));
   u(new Qn(y, 24, 0.017, 8, !1), l.dark);
   for (const L of [-0.12, 0.12])
     u(new Ge(0.06, 0.01, 0.05), l.brass, [L, b + 5e-3, 0]), u(new Ht(0.016, 5e-3, 6, 14), l.brass, [L, b + 0.022, 0]);
@@ -28852,7 +28852,7 @@ function Ey({ root: i, resources: e, floorY: t, x: n, z: r, low: o = !1 }) {
   u(Il(4, 0.2, 0.13), l.sticker, [f / 2 + 35e-4, g + 0.08, 0.02], [0, Math.PI / 2, 0.08]), u(Il(5, 0.18, 0.12), l.sticker, [f / 2 + 35e-4, g - 0.14, -0.04], [0, Math.PI / 2, -0.1]);
   const z = Il(7, 0.075, 0.1);
   u(z, l.sticker, [0.075, b - 0.04, m / 2 + 0.03], [-0.15, 0, 0.12]), u(new Ge(0.075, 0.1, 4e-3), l.dark, [0.075, b - 0.04, m / 2 + 0.027], [-0.15, 0, 0.12]);
-  const S = new Wn([[0.1, b + 0.08, 0], [0.1, b + 0.06, 0.12], [0.085, b + 0.02, 0.19], [0.077, b + 5e-3, 0.2]].map((L) => new Q(...L)));
+  const S = new Hn([[0.1, b + 0.08, 0], [0.1, b + 0.06, 0.12], [0.085, b + 0.02, 0.19], [0.077, b + 5e-3, 0.2]].map((L) => new Q(...L)));
   u(new Qn(S, 12, 4e-3, 5, !1), l.dark);
   for (const [L, H] of d) {
     const ne = on(H, !1);
@@ -28891,9 +28891,9 @@ function xn(i, e) {
     o.fromBufferAttribute(t, s), e(o, r), n[s * 3] = r.r, n[s * 3 + 1] = r.g, n[s * 3 + 2] = r.b;
   return i.setAttribute("color", new $t(n, 3)), i;
 }
-const In = (i) => (e, t) => t.set(i), an = (i, e = [0, 0, 0], t = [0, 0, 0], n = [1, 1, 1]) => i.applyMatrix4(new xt().compose(new Q(...e), new Qt().setFromEuler(new _n(...t)), new Q(...n)));
+const Dn = (i) => (e, t) => t.set(i), an = (i, e = [0, 0, 0], t = [0, 0, 0], n = [1, 1, 1]) => i.applyMatrix4(new xt().compose(new Q(...e), new Qt().setFromEuler(new _n(...t)), new Q(...n)));
 function wd(i, e, t, { segs: n = 28, radial: r = 12, up: o = [0, 1, 0] } = {}) {
-  const s = new Wn(i.map((g) => new Q(...g))), a = new Q(...o), l = [], c = [], d = [], u = new et(), f = new Q(), h = new Q(), m = new Q(), x = new Q();
+  const s = new Hn(i.map((g) => new Q(...g))), a = new Q(...o), l = [], c = [], d = [], u = new et(), f = new Q(), h = new Q(), m = new Q(), x = new Q();
   for (let g = 0; g <= n; g++) {
     const v = g / n, _ = s.getPointAt(v);
     s.getTangentAt(v, h), m.crossVectors(h, a), m.lengthSq() < 1e-6 && m.set(1, 0, 0), m.normalize(), x.crossVectors(m, h).normalize();
@@ -28947,17 +28947,17 @@ function Cy({ root: i, resources: e, position: t, low: n = !1 }) {
       { segs: n ? 24 : 40, radial: n ? 8 : 12 }
     ));
     const oe = G[0], he = G[8];
-    A.push(xn(an(new hn(4e-3, 0.034, 5), [oe[0] + 0.012, oe[1] + 8e-3, oe[2] - 0.018], [-Math.PI / 2 + 0.2, 0, -0.5]), In(Vt.shrimp)));
+    A.push(xn(an(new hn(4e-3, 0.034, 5), [oe[0] + 0.012, oe[1] + 8e-3, oe[2] - 0.018], [-Math.PI / 2 + 0.2, 0, -0.5]), Dn(Vt.shrimp)));
     for (const $ of [-1, 1]) {
-      A.push(xn(an(new yt(4e-3, 6, 4), [oe[0] + $ * 8e-3, oe[1] + 0.012, oe[2] - 8e-3]), In(Vt.eye)));
-      const ee = new Wn([[oe[0], oe[1] + 8e-3, oe[2] - 0.01], [oe[0] + 0.03 + $ * 0.012, 0.024, oe[2] - 0.06], [oe[0] + 0.08 + $ * 0.02, 0.012, oe[2] - 0.09]].map((me) => new Q(...me)));
-      A.push(xn(new Qn(ee, 10, 11e-4, 3, !1), In(Vt.shrimp)));
+      A.push(xn(an(new yt(4e-3, 6, 4), [oe[0] + $ * 8e-3, oe[1] + 0.012, oe[2] - 8e-3]), Dn(Vt.eye)));
+      const ee = new Hn([[oe[0], oe[1] + 8e-3, oe[2] - 0.01], [oe[0] + 0.03 + $ * 0.012, 0.024, oe[2] - 0.06], [oe[0] + 0.08 + $ * 0.02, 0.012, oe[2] - 0.09]].map((me) => new Q(...me)));
+      A.push(xn(new Qn(ee, 10, 11e-4, 3, !1), Dn(Vt.shrimp)));
     }
     for (let $ = 0; $ < 5; $++) {
       const ee = G[1 + $];
-      A.push(xn(an(new Qe(13e-4, 13e-4, 0.016, 3), [ee[0] * 0.75, 3e-3, ee[2] * 0.75], [Math.PI / 2, 0, $ * 0.4]), In(Vt.shrimpBelly)));
+      A.push(xn(an(new Qe(13e-4, 13e-4, 0.016, 3), [ee[0] * 0.75, 3e-3, ee[2] * 0.75], [Math.PI / 2, 0, $ * 0.4]), Dn(Vt.shrimpBelly)));
     }
-    for (const $ of [-0.45, 0, 0.45]) A.push(xn(an(new hn(9e-3, 0.026, 4), [he[0] * 0.8, 7e-3, he[2] * 0.8 - 4e-3], [Math.PI / 2 - 0.1, 0, Math.PI * 0.55 + $], [1, 1, 0.28]), In(Vt.shrimp)));
+    for (const $ of [-0.45, 0, 0.45]) A.push(xn(an(new hn(9e-3, 0.026, 4), [he[0] * 0.8, 7e-3, he[2] * 0.8 - 4e-3], [Math.PI / 2 - 0.1, 0, Math.PI * 0.55 + $], [1, 1, 0.28]), Dn(Vt.shrimp)));
     return A;
   }, g = () => {
     const A = [], G = [[0, 8e-3, 0.085], [0, 0.011, 0.03], [0, 0.011, -0.03], [0, 8e-3, -0.075]], O = new et(Vt.mantis), W = new et(Vt.mantisEdge), Z = new et("#ead2c4"), oe = ($) => ($ - 0.24) / 0.76 * 7;
@@ -28974,15 +28974,15 @@ function Cy({ root: i, resources: e, position: t, low: n = !1 }) {
     ));
     for (let $ = 0; $ < 7; $++) {
       const ee = 0.085 - (0.24 + ($ + 0.5) / 7 * 0.76) * 0.16;
-      for (const me of [-1, 1]) A.push(xn(an(new hn(28e-4, 0.011, 4), [me * 0.021, 8e-3, ee], [0, 0, me * -Math.PI / 2]), In(Vt.mantisEdge)));
+      for (const me of [-1, 1]) A.push(xn(an(new hn(28e-4, 0.011, 4), [me * 0.021, 8e-3, ee], [0, 0, me * -Math.PI / 2]), Dn(Vt.mantisEdge)));
     }
     const he = -0.078;
-    A.push(xn(an(new yt(1, s, 6), [0, 8e-3, he - 4e-3], [0, 0, 0], [0.015, 4e-3, 0.014]), In(Vt.mantis)));
+    A.push(xn(an(new yt(1, s, 6), [0, 8e-3, he - 4e-3], [0, 0, 0], [0.015, 4e-3, 0.014]), Dn(Vt.mantis)));
     for (const $ of [-1, 1]) {
-      A.push(xn(an(new yt(1, 8, 5), [$ * 0.016, 7e-3, he - 2e-3], [0, $ * 0.5, 0], [0.011, 35e-4, 0.017]), In(Vt.mantis))), A.push(xn(an(new yt(42e-4, 6, 4), [$ * 7e-3, 0.0115, he - 3e-3]), In(Vt.mantisSpot))), A.push(xn(an(new fr(42e-4, 0.034, 3, 6), [$ * 0.022, 6e-3, 0.07], [Math.PI / 2, $ * 0.15, 0]), In(Vt.mantis))), A.push(xn(an(new fr(3e-3, 0.03, 3, 6), [$ * 0.025, 7e-3, 0.058], [Math.PI / 2, $ * 0.35, 0]), In(Vt.mantisEdge))), A.push(xn(an(new Qe(16e-4, 16e-4, 0.012, 4), [$ * 6e-3, 0.014, 0.093], [0.6, 0, $ * 0.4]), In(Vt.mantis))), A.push(xn(an(new yt(38e-4, 6, 4), [$ * 9e-3, 0.018, 0.098]), In(Vt.eye)));
+      A.push(xn(an(new yt(1, 8, 5), [$ * 0.016, 7e-3, he - 2e-3], [0, $ * 0.5, 0], [0.011, 35e-4, 0.017]), Dn(Vt.mantis))), A.push(xn(an(new yt(42e-4, 6, 4), [$ * 7e-3, 0.0115, he - 3e-3]), Dn(Vt.mantisSpot))), A.push(xn(an(new fr(42e-4, 0.034, 3, 6), [$ * 0.022, 6e-3, 0.07], [Math.PI / 2, $ * 0.15, 0]), Dn(Vt.mantis))), A.push(xn(an(new fr(3e-3, 0.03, 3, 6), [$ * 0.025, 7e-3, 0.058], [Math.PI / 2, $ * 0.35, 0]), Dn(Vt.mantisEdge))), A.push(xn(an(new Qe(16e-4, 16e-4, 0.012, 4), [$ * 6e-3, 0.014, 0.093], [0.6, 0, $ * 0.4]), Dn(Vt.mantis))), A.push(xn(an(new yt(38e-4, 6, 4), [$ * 9e-3, 0.018, 0.098]), Dn(Vt.eye)));
       for (const ee of [0, 1]) {
-        const me = new Wn([[$ * 4e-3, 0.01, 0.09], [$ * (0.015 + ee * 0.01), 0.012, 0.125], [$ * (0.03 + ee * 0.02), 6e-3, 0.15]].map((te) => new Q(...te)));
-        A.push(xn(new Qn(me, 6, 9e-4, 3, !1), In(Vt.mantis)));
+        const me = new Hn([[$ * 4e-3, 0.01, 0.09], [$ * (0.015 + ee * 0.01), 0.012, 0.125], [$ * (0.03 + ee * 0.02), 6e-3, 0.15]].map((te) => new Q(...te)));
+        A.push(xn(new Qn(me, 6, 9e-4, 3, !1), Dn(Vt.mantis)));
       }
     }
     return A;
@@ -29002,12 +29002,12 @@ function Cy({ root: i, resources: e, position: t, low: n = !1 }) {
       oe.y > 0.012 && $ > 0.7 && he.set(Vt.crabSpot);
     }));
     for (const oe of [-1, 1]) {
-      A.push(xn(an(new fr(7e-3, 0.05, 3, 8), [oe * 0.06, 6e-3, -0.06], [Math.PI / 2, oe * -0.7, 0]), In(Vt.claw))), A.push(xn(an(new fr(9e-3, 0.04, 3, 8), [oe * 0.04, 8e-3, -0.105], [Math.PI / 2, oe * 0.35, 0]), (he, $) => $.set(Vt.claw))), A.push(xn(an(new hn(5e-3, 0.035, 6), [oe * 0.022, 9e-3, -0.137], [-Math.PI / 2, 0, oe * -0.4]), (he, $) => $.set(he.z < -0.145 ? Vt.tip : Vt.claw))), A.push(xn(an(new hn(4e-3, 0.03, 6), [oe * 0.03, 6e-3, -0.135], [-Math.PI / 2, 0, oe * -0.15]), (he, $) => $.set(he.z < -0.142 ? Vt.tip : Vt.claw)));
+      A.push(xn(an(new fr(7e-3, 0.05, 3, 8), [oe * 0.06, 6e-3, -0.06], [Math.PI / 2, oe * -0.7, 0]), Dn(Vt.claw))), A.push(xn(an(new fr(9e-3, 0.04, 3, 8), [oe * 0.04, 8e-3, -0.105], [Math.PI / 2, oe * 0.35, 0]), (he, $) => $.set(Vt.claw))), A.push(xn(an(new hn(5e-3, 0.035, 6), [oe * 0.022, 9e-3, -0.137], [-Math.PI / 2, 0, oe * -0.4]), (he, $) => $.set(he.z < -0.145 ? Vt.tip : Vt.claw))), A.push(xn(an(new hn(4e-3, 0.03, 6), [oe * 0.03, 6e-3, -0.135], [-Math.PI / 2, 0, oe * -0.15]), (he, $) => $.set(he.z < -0.142 ? Vt.tip : Vt.claw)));
       for (let he = 0; he < 3; he++) {
-        const $ = -0.012 + he * 0.016, ee = new Wn([[oe * 0.06, 6e-3, $], [oe * 0.1, 0.012, $ + 8e-3], [oe * 0.13, 2e-3, $ + 0.03]].map((me) => new Q(...me)));
-        A.push(xn(new Qn(ee, 6, 35e-4, 4, !1), In(Vt.claw)));
+        const $ = -0.012 + he * 0.016, ee = new Hn([[oe * 0.06, 6e-3, $], [oe * 0.1, 0.012, $ + 8e-3], [oe * 0.13, 2e-3, $ + 0.03]].map((me) => new Q(...me)));
+        A.push(xn(new Qn(ee, 6, 35e-4, 4, !1), Dn(Vt.claw)));
       }
-      A.push(xn(an(new fr(35e-4, 0.04, 3, 5), [oe * 0.075, 5e-3, 0.045], [Math.PI / 2, oe * 0.9, 0]), In(Vt.claw))), A.push(xn(an(new yt(1, 8, 5), [oe * 0.1, 5e-3, 0.065], [0, oe * 0.6, 0], [0.014, 3e-3, 9e-3]), In(Vt.claw))), A.push(xn(an(new yt(4e-3, 6, 4), [oe * 0.014, 0.022, -0.05]), In(Vt.eye)));
+      A.push(xn(an(new fr(35e-4, 0.04, 3, 5), [oe * 0.075, 5e-3, 0.045], [Math.PI / 2, oe * 0.9, 0]), Dn(Vt.claw))), A.push(xn(an(new yt(1, 8, 5), [oe * 0.1, 5e-3, 0.065], [0, oe * 0.6, 0], [0.014, 3e-3, 9e-3]), Dn(Vt.claw))), A.push(xn(an(new yt(4e-3, 6, 4), [oe * 0.014, 0.022, -0.05]), Dn(Vt.eye)));
     }
     return A;
   }, _ = () => {
@@ -29034,7 +29034,7 @@ function Cy({ root: i, resources: e, position: t, low: n = !1 }) {
       me.copy(Math.sin(he * 90) > 0.5 ? Z : W), te > 0.7 && me.lerp(new et("#f2e2c8"), 0.4);
     }, { segs: n ? 48 : 90, radial: n ? 8 : 10, up: [0, 0, 1] }));
     const oe = O[40];
-    return A.push(xn(an(new yt(1, 10, 6), [oe[0], oe[1], oe[2] + 2e-3], [0, 0, 0], [0.014, 0.014, 6e-3]), In(Vt.aperture))), A.forEach((he) => {
+    return A.push(xn(an(new yt(1, 10, 6), [oe[0], oe[1], oe[2] + 2e-3], [0, 0, 0], [0.014, 0.014, 6e-3]), Dn(Vt.aperture))), A.forEach((he) => {
       he.rotateX(-Math.PI / 2 + 0.25), he.translate(0, 0.016, 0);
     }), A;
   };
@@ -29042,9 +29042,9 @@ function Cy({ root: i, resources: e, position: t, low: n = !1 }) {
   for (const [A, G, O] of [[-0.14, 0.06, 0.3], [-0.1, 0.12, 1.6], [-0.03, 0.15, 2.4], [-0.17, -0.02, -0.6]]) f(b(), [A, x + 4e-3, G], [0, O, 0], 1.15);
   for (const [A, G, O] of [[0.05, 0.1, 0.4], [0.02, 0.06, 2.2], [0.09, 0.15, -1], [-0.06, 0.03, 1.2], [0.12, -0.08, 0.2], [0.07, -0.13, 2.8], [-0.12, -0.11, -0.4]]) f(_(), [A, x + 6e-3, G], [0, O, 0], 1.3);
   for (const [A, G, O] of [[-0.1, -0.15, 0.8], [0, -0.17, -0.4], [0.16, -0.12, 2.1]]) f(y(), [A, x + 2e-3, G], [0.15, O, 0], 1.05);
-  u(l, an(new Li([[0, 0], [0.03, 0], [0.042, 0.016], [0.04, 0.018], [0.028, 4e-3], [0, 4e-3]].map((A) => new qe(...A)), 20), [-0.06, x + 4e-3, 0.18])), u(a, xn(an(new Qe(0.034, 0.034, 2e-3, 18), [-0.06, x + 0.016, 0.18]), In(Vt.vinegar)));
-  for (let A = 0; A < 7; A++) u(a, xn(an(new Ge(0.03, 2e-3, 3e-3), [-0.06 + Math.sin(A * 2.1) * 0.012, x + 0.0185, 0.18 + Math.cos(A * 1.7) * 0.012], [0, A * 0.9, 0]), In(Vt.ginger)));
-  for (let A = 0; A < 10; A++) u(a, xn(an(new Qe(4e-3, 4e-3, 8e-3, 6), [Math.sin(A * 2.4) * 0.15, x + 0.03, Math.cos(A * 2.4) * 0.12], [Math.PI / 2, A, 0]), In(Vt.scallion)));
+  u(l, an(new Li([[0, 0], [0.03, 0], [0.042, 0.016], [0.04, 0.018], [0.028, 4e-3], [0, 4e-3]].map((A) => new qe(...A)), 20), [-0.06, x + 4e-3, 0.18])), u(a, xn(an(new Qe(0.034, 0.034, 2e-3, 18), [-0.06, x + 0.016, 0.18]), Dn(Vt.vinegar)));
+  for (let A = 0; A < 7; A++) u(a, xn(an(new Ge(0.03, 2e-3, 3e-3), [-0.06 + Math.sin(A * 2.1) * 0.012, x + 0.0185, 0.18 + Math.cos(A * 1.7) * 0.012], [0, A * 0.9, 0]), Dn(Vt.ginger)));
+  for (let A = 0; A < 10; A++) u(a, xn(an(new Qe(4e-3, 4e-3, 8e-3, 6), [Math.sin(A * 2.4) * 0.15, x + 0.03, Math.cos(A * 2.4) * 0.12], [Math.PI / 2, A, 0]), Dn(Vt.scallion)));
   const E = {
     sea: r(new it({ name: "seafood-steamed-glossy", vertexColors: !0, roughness: 0.36, metalness: 0, side: 2 })),
     porcelain: r(new it({ name: "seafood-porcelain-plate", color: "#f5f2ea", roughness: 0.18 })),
@@ -29340,7 +29340,7 @@ async function Ry({ data: i = window.HJ_DATA, quality: e = "high" } = {}) {
     A.name = "life-real-opening-pot-lid", A.position.set(I, 0.24 + 0.845, U), P.root.add(A), P.props.lathe("life-complete-domed-pot-lid", [[0, 0], [0.343, 0], [0.28, 0.06], [0.1, 0.105], [0, 0.11]], [0, 0, 0], "ink", A), P.props.sphere("life-pot-lid-handle", [0.05, 0.04, 0.05], [0, 0.125, 0], "darkWood", A);
     const G = [];
     for (let Ne = 0; Ne < 2; Ne++) {
-      const $e = new Wn([new Q(I + (Ne - 0.5) * 0.09, 1.21, U), new Q(I - 0.035 + (Ne - 0.5) * 0.09, 1.36, U), new Q(I + 0.02 + (Ne - 0.5) * 0.09, 1.53, U)]), wt = new it({ color: "#eee9de", roughness: 1, transparent: !0, opacity: 0.08, depthWrite: !1 }), at = P.props.mesh("life-subtle-actual-pot-steam-" + Ne, new Qn($e, 14, 8e-3, 5, !1), wt);
+      const $e = new Hn([new Q(I + (Ne - 0.5) * 0.09, 1.21, U), new Q(I - 0.035 + (Ne - 0.5) * 0.09, 1.36, U), new Q(I + 0.02 + (Ne - 0.5) * 0.09, 1.53, U)]), wt = new it({ color: "#eee9de", roughness: 1, transparent: !0, opacity: 0.08, depthWrite: !1 }), at = P.props.mesh("life-subtle-actual-pot-steam-" + Ne, new Qn($e, 14, 8e-3, 5, !1), wt);
       at.castShadow = !1, at.userData.roomSolid = !1, P.kit.resources.add(wt), G.push(at);
     }
     const O = Cy({ root: P.root, resources: P.kit.resources, position: [I, 0.24 + 0.65, U], low: e === "low" });
@@ -29441,7 +29441,7 @@ async function Ry({ data: i = window.HJ_DATA, quality: e = "high" } = {}) {
       });
     }
     const ue = (Ne, $e) => {
-      const wt = new Wn($e.map((lt) => new Q(...lt))), at = new Qn(wt, 24, 4e-3, 4, !1);
+      const wt = new Hn($e.map((lt) => new Q(...lt))), at = new Qn(wt, 24, 4e-3, 4, !1);
       T.mesh(Ne, at, xe, [0, 0, 0], B);
     };
     ue("life-projector-film-feed", [[0, 1.42 - 0.105, 0.13], [0, 1.22, 0.14], [0, 1.12, 0.125], [0, 1.06, 0.122]]), ue("life-projector-film-takeup", [[0, 1, -0.122], [0, 1.12, -0.15], [0, 1.38 - 0.07, -0.17]]), T.cylinder("life-projector-full-optical-lens", 0.055, 0.16, [0, 1, 0.19], ge, B, 24).rotation.x = Math.PI / 2;
@@ -29897,15 +29897,15 @@ async function ky({ data: i = globalThis.window?.HJ_DATA, quality: e = "high" } 
         const gt = Tt.getContext("2d");
         gt.fillStyle = "#d7c8a4", gt.fillRect(0, 0, 256, 256), gt.fillStyle = "#eee5cb", gt.beginPath(), gt.arc(128, 128, 109, 0, Math.PI * 2), gt.fill(), gt.strokeStyle = "#5d5546", gt.lineWidth = 8, gt.stroke(), gt.lineWidth = 5;
         for (let rn = 0; rn < 12; rn++) {
-          const On = rn * Math.PI / 6;
-          gt.beginPath(), gt.moveTo(128 + Math.sin(On) * 85, 128 - Math.cos(On) * 85), gt.lineTo(128 + Math.sin(On) * 101, 128 - Math.cos(On) * 101), gt.stroke();
+          const zn = rn * Math.PI / 6;
+          gt.beginPath(), gt.moveTo(128 + Math.sin(zn) * 85, 128 - Math.cos(zn) * 85), gt.lineTo(128 + Math.sin(zn) * 101, 128 - Math.cos(zn) * 101), gt.stroke();
         }
         gt.lineWidth = 9, gt.beginPath(), gt.moveTo(128, 62), gt.lineTo(128, 128), gt.lineTo(180, 153), gt.stroke();
         const Gt = new cn(Tt);
         Gt.colorSpace = Ft, n.add(Gt);
         const Mn = u("healy-clock-face", "#ffffff", { map: Gt, roughness: 0.82 });
-        for (const [rn, On, ao] of [["front", je, 0], ["back", Ze, Math.PI]])
-          Re(W, `georgetown-clock-${rn}-rim`, 0.079, 0.079, 0.018, [$e, ue.Y(157), On], R, c, [Math.PI / 2, 0, 0]), Ee(W, `georgetown-clock-${rn}-printed-face`, [$e - 0.069, ue.Y(157) - 0.069, On + (ao ? -0.011 : 7e-3)], [$e + 0.069, ue.Y(157) + 0.069, On + (ao ? -7e-3 : 0.011)], Mn);
+        for (const [rn, zn, ao] of [["front", je, 0], ["back", Ze, Math.PI]])
+          Re(W, `georgetown-clock-${rn}-rim`, 0.079, 0.079, 0.018, [$e, ue.Y(157), zn], R, c, [Math.PI / 2, 0, 0]), Ee(W, `georgetown-clock-${rn}-printed-face`, [$e - 0.069, ue.Y(157) - 0.069, zn + (ao ? -0.011 : 7e-3)], [$e + 0.069, ue.Y(157) + 0.069, zn + (ao ? -7e-3 : 0.011)], Mn);
       }
     }
     for (let Me = 0; Me < 4; Me++) Ee(W, `georgetown-grounded-door-step-${Me}`, [ue.X(332) - 0.16 - Me * 0.018, 0, 0.047 + Me * 0.04], [ue.X(332) + 0.16 + Me * 0.018, Ie - Me * 0.026, 0.088 + Me * 0.04], h);
@@ -30116,10 +30116,10 @@ async function Iy({ data: i, quality: e = "high" } = {}) {
       return new Q(...T[De][Pe]).lerp(new Q(...T[De + 1][Pe]), (Ce - B[De]) / (B[De + 1] - B[De]));
     }
     for (let Pe = 0; Pe < 4; Pe++) for (let Ce = 0; Ce < de; Ce++) {
-      const De = (Ce + 0.5) / de, je = Math.min(B.length - 2, B.findIndex((On) => On > De) - 1), Ze = (De - B[je]) / (B[je + 1] - B[je]), tt = new Q(...T[je][Pe]).lerp(new Q(...T[je + 1][Pe]), Ze), Ne = new Q(...T[je][(Pe + 1) % 4]).lerp(new Q(...T[je + 1][(Pe + 1) % 4]), Ze), $e = Ne.clone().sub(tt).normalize(), wt = new Q(...T[je + 1][Pe]).sub(new Q(...T[je][Pe])).normalize(), at = wt.clone().cross($e).normalize();
+      const De = (Ce + 0.5) / de, je = Math.min(B.length - 2, B.findIndex((zn) => zn > De) - 1), Ze = (De - B[je]) / (B[je + 1] - B[je]), tt = new Q(...T[je][Pe]).lerp(new Q(...T[je + 1][Pe]), Ze), Ne = new Q(...T[je][(Pe + 1) % 4]).lerp(new Q(...T[je + 1][(Pe + 1) % 4]), Ze), $e = Ne.clone().sub(tt).normalize(), wt = new Q(...T[je + 1][Pe]).sub(new Q(...T[je][Pe])).normalize(), at = wt.clone().cross($e).normalize();
       at.y < 0 && at.negate();
       const lt = $e.clone().cross(at).normalize(), ft = new Qt().setFromRotationMatrix(new xt().makeBasis($e, at, lt)), ot = Math.ceil(tt.distanceTo(Ne) / 0.3), vt = tt.clone().add(Ne).multiplyScalar(0.5), Tt = Te(Pe, Ce / de).add(Te((Pe + 1) % 4, Ce / de)).multiplyScalar(0.5), gt = Te(Pe, (Ce + 1) / de).add(Te((Pe + 1) % 4, (Ce + 1) / de)).multiplyScalar(0.5), Gt = Math.min(Math.abs(vt.clone().sub(Tt).dot(lt)), Math.abs(gt.clone().sub(vt).dot(lt))), Mn = Gt * 1.8, rn = tt.distanceTo(Ne) / ot - 4e-3;
-      for (let On = 0; On < ot; On++) Ie.push(new xt().compose(tt.clone().lerp(Ne, (On + 0.5) / ot).addScaledVector(at, 0.019), ft, new Q(rn / 0.225, 1, Mn / 0.235)));
+      for (let zn = 0; zn < ot; zn++) Ie.push(new xt().compose(tt.clone().lerp(Ne, (zn + 0.5) / ot).addScaledVector(at, 0.019), ft, new Q(rn / 0.225, 1, Mn / 0.235)));
     }
     const Me = yp({ quality: e, width: 0.225, height: 0.04, depth: 0.235 });
     r.add(Me);
@@ -31057,7 +31057,7 @@ function Xy({
     };
   });
 }
-const Yy = { home: [0, 0], research: [-12, -10], talks: [0, -22], education: [13, -23], writing: [13, -9], life: [22, 0], contact: [32, -11] }, Ln = 10.5, li = -14, ci = 35, di = 24, bi = -0.48;
+const Yy = { home: [0, 0], research: [-12, -10], talks: [0, -22], education: [13, -23], writing: [13, -9], life: [22, 0], contact: [32, -11] }, Nn = 10.5, li = -14, ci = 35, di = 24, bi = -0.48;
 async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extraBlockers: n = [], floorAt: r, isPassable: o } = {}) {
   const s = new pt();
   s.name = "Opened crystal world — jade island and lantern courtyards";
@@ -31100,7 +31100,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   function fe(K, we = [1, 1, 1], Le = 0) {
     return new xt().compose(new Q(...K), new Qt().setFromAxisAngle(Ae, Le), new Q(...we));
   }
-  const Re = (K, we) => ((K - Ln) / ci) ** 2 + ((we - li) / di) ** 2, pe = (K) => li + di * Math.sqrt(Math.max(0, 1 - ((K - Ln) / ci) ** 2)), _e = (K) => Math.min(8.3, pe(K) - 0.75), M = -10, V = 31, N = 3.16, se = 4.32;
+  const Re = (K, we) => ((K - Nn) / ci) ** 2 + ((we - li) / di) ** 2, pe = (K) => li + di * Math.sqrt(Math.max(0, 1 - ((K - Nn) / ci) ** 2)), _e = (K) => Math.min(8.3, pe(K) - 0.75), M = -10, V = 31, N = 3.16, se = 4.32;
   function le(K = N, we = 0.3) {
     const Le = [[M, K], [V, K]];
     for (let Oe = 0; Oe <= 48; Oe++) {
@@ -31120,17 +31120,17 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     return ut.position.y = Le - Oe, ut;
   }
   const ve = new Ot();
-  ve.absellipse(Ln, -li, ci, di, 0, Math.PI * 2, !1, 0), ve.holes.push(new ji(le().map(([K, we]) => new qe(K, -we))));
+  ve.absellipse(Nn, -li, ci, di, 0, Math.PI * 2, !1, 0), ve.holes.push(new ji(le().map(([K, we]) => new qe(K, -we))));
   const j = J("whole-closed-island-core-with-real-pond-cutout", ve, -0.04, 0.8, q);
   j.userData.groundTop = 0, J("whole-closed-pond-bottom", re(le()), -0.67, 0.24, I);
   const C = [[0, -26], [9, -25.5], [18, -22.8], [26, -17.4], [31.5, -11.2], [34, -5.6], [35, -0.78], [0, -0.78]], p = ee("complete-solid-curved-lower-jade-globe", new Li(C.map((K) => new qe(...K)), a ? 72 : 112), X);
-  p.position.set(Ln, 0, li), p.scale.z = di / ci, [{ rx: 35.1, rz: 24.1, top: -0.72, h: 0.23, m: U }, { rx: 35.02, rz: 24.02, top: -0.95, h: 0.3, m: I }, { rx: 9.9, rz: 7, top: -25.55, h: 0.3, m: U }, { rx: 10.12, rz: 7.15, top: -25.85, h: 1.1, m: I }].forEach((K, we) => {
+  p.position.set(Nn, 0, li), p.scale.z = di / ci, [{ rx: 35.1, rz: 24.1, top: -0.72, h: 0.23, m: U }, { rx: 35.02, rz: 24.02, top: -0.95, h: 0.3, m: I }, { rx: 9.9, rz: 7, top: -25.55, h: 0.3, m: U }, { rx: 10.12, rz: 7.15, top: -25.85, h: 1.1, m: I }].forEach((K, we) => {
     const Le = ee("closed-inward-stepped-crystal-socket-" + we, new Qe(1, 1, 1, a ? 64 : 96, 1, !1), K.m);
-    Le.scale.set(K.rx, K.h, K.rz), Le.position.set(Ln, K.top - K.h / 2, li);
+    Le.scale.set(K.rx, K.h, K.rz), Le.position.set(Nn, K.top - K.h / 2, li);
   });
   const k = [];
   for (let K = 0; K < 128; K++) {
-    const we = K / 128 * Math.PI * 2, Le = Ln + 34.68 * Math.cos(we), Oe = li + 23.7 * Math.sin(we), Xe = -34.68 * Math.sin(we), Ye = 23.7 * Math.cos(we);
+    const we = K / 128 * Math.PI * 2, Le = Nn + 34.68 * Math.cos(we), Oe = li + 23.7 * Math.sin(we), Xe = -34.68 * Math.sin(we), Ye = 23.7 * Math.cos(we);
     k.push(fe([Le, -0.59, Oe], [1.07, 0.35, 0.44], -Math.atan2(Ye, Xe)));
   }
   ye("stacked-real-jade-socket-edge-blocks", new Ge(1, 1, 1), X, k);
@@ -31214,14 +31214,14 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     }
     return Le;
   }
-  const vt = [], Tt = [], gt = [], Gt = [], Mn = /* @__PURE__ */ new Map(), rn = a ? 0.9 : 0.65, On = Math.ceil(ci * 2 / rn), ao = Math.ceil(di * 2 / rn), Mr = ci * 2 / On, bo = di * 2 / ao, zi = (K) => K.map((we) => Math.round(we * 1e5)).join(",");
+  const vt = [], Tt = [], gt = [], Gt = [], Mn = /* @__PURE__ */ new Map(), rn = a ? 0.9 : 0.65, zn = Math.ceil(ci * 2 / rn), ao = Math.ceil(di * 2 / rn), Mr = ci * 2 / zn, bo = di * 2 / ao, zi = (K) => K.map((we) => Math.round(we * 1e5)).join(",");
   function Di(K, we) {
     const Le = vt.length / 3, Oe = 0.055 * Math.sin(K[0] * 0.17 + K[1] * 0.12) + 0.035 * Math.cos(K[1] * 0.23 - K[0] * 0.08);
     return vt.push(K[0], we, K[1]), gt.push(K[0] * 0.12, K[1] * 0.12), Tt.push(1 + Oe * 0.7, 1 + Oe, 1 + Oe * 0.85), Le;
   }
   const Xr = [], Ue = /* @__PURE__ */ new Map(), Je = /* @__PURE__ */ new Map();
-  for (let K = 0; K < ao; K++) for (let we = 0; we < On; we++) {
-    const Le = Ln - ci + we * Mr, Oe = li - di + K * bo;
+  for (let K = 0; K < ao; K++) for (let we = 0; we < zn; we++) {
+    const Le = Nn - ci + we * Mr, Oe = li - di + K * bo;
     let Xe = [[Le, Oe], [Le + Mr, Oe], [Le + Mr, Oe + bo], [Le, Oe + bo]];
     if (Xe.some((Ye) => Re(...Ye) > 0.996)) for (let Ye = 0; Ye < lt.length && Xe.length >= 3; Ye++) Xe = at(Xe, lt[Ye], lt[(Ye + 1) % lt.length]);
     if (!(Xe.length < 3))
@@ -31242,11 +31242,11 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     const we = [];
     for (let rt = 0; rt < K.length; rt++) {
       const Mt = K[rt], Et = K[(rt + 1) % K.length], Lt = Et[0] - Mt[0], Dt = Et[1] - Mt[1], Pt = Lt * Lt + Dt * Dt, bn = /* @__PURE__ */ new Map([[zi(Mt), { p: Mt, t: 0 }]]);
-      for (let En = Math.floor(Math.min(Mt[0], Et[0]) - 1e-6); En <= Math.floor(Math.max(Mt[0], Et[0]) + 1e-6); En++) for (let kn = Math.floor(Math.min(Mt[1], Et[1]) - 1e-6); kn <= Math.floor(Math.max(Mt[1], Et[1]) + 1e-6); kn++) for (const ni of Je.get(En + "," + kn) || []) {
+      for (let En = Math.floor(Math.min(Mt[0], Et[0]) - 1e-6); En <= Math.floor(Math.max(Mt[0], Et[0]) + 1e-6); En++) for (let In = Math.floor(Math.min(Mt[1], Et[1]) - 1e-6); In <= Math.floor(Math.max(Mt[1], Et[1]) + 1e-6); In++) for (const ni of Je.get(En + "," + In) || []) {
         const Ki = ((ni[0] - Mt[0]) * Lt + (ni[1] - Mt[1]) * Dt) / Pt;
         Ki > 1e-7 && Ki < 1 - 1e-7 && Math.abs($e(Mt, Et, ni)) < 1e-7 && bn.set(zi(ni), { p: ni, t: Ki });
       }
-      we.push(...[...bn.values()].sort((En, kn) => En.t - kn.t).map((En) => En.p));
+      we.push(...[...bn.values()].sort((En, In) => En.t - In.t).map((En) => En.p));
     }
     const Le = [we.reduce((rt, Mt) => rt + Mt[0], 0) / we.length, we.reduce((rt, Mt) => rt + Mt[1], 0) / we.length], Oe = Di(Le, Ne(...Le)), Xe = Di(Le, -0.042), Ye = we.map((rt) => Di(rt, Ne(...rt))), ut = we.map((rt) => Di(rt, -0.042));
     for (let rt = 0; rt < we.length; rt++) {
@@ -31298,7 +31298,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   const Cn = [Jt], Sn = new w0(), vn = new Q(0, -1, 0), ei = new Q();
   function St(K) {
     const we = Array.isArray(K) ? K : [K?.x, K?.y, K?.z];
-    if (!Number.isFinite(we[0]) || !Number.isFinite(we[2]) || we[0] < Ln - ci || we[0] > Ln + ci || we[2] < li - di || we[2] > li + di) return null;
+    if (!Number.isFinite(we[0]) || !Number.isFinite(we[2]) || we[0] < Nn - ci || we[0] > Nn + ci || we[2] < li - di || we[2] > li + di) return null;
     Jt.updateWorldMatrix(!0, !1), ei.set(we[0], 0.16, we[2]), Sn.set(ei, vn), Sn.near = 0, Sn.far = 0.24;
     const Le = Sn.intersectObject(Jt, !1).find((Mt) => Mt.point.y >= -0.025);
     if (!Le) return null;
@@ -31308,8 +31308,8 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     for (const Mt of be) {
       const Et = Mt.samples;
       for (let Lt = 0; Lt < Et.length - 1; Lt++) {
-        const Dt = Et[Lt], Pt = Et[Lt + 1], bn = Pt.x - Dt.x, En = Pt.z - Dt.z, kn = nt.clamp(((Oe.x - Dt.x) * bn + (Oe.z - Dt.z) * En) / (bn * bn + En * En), 0, 1), ni = Dt.x + bn * kn, Ki = Dt.z + En * kn, Er = (Oe.x - ni) ** 2 + (Oe.z - Ki) ** 2;
-        Er < Ye && (Ye = Er, Xe = { route: Mt, progress: (Lt + kn) / (Et.length - 1) });
+        const Dt = Et[Lt], Pt = Et[Lt + 1], bn = Pt.x - Dt.x, En = Pt.z - Dt.z, In = nt.clamp(((Oe.x - Dt.x) * bn + (Oe.z - Dt.z) * En) / (bn * bn + En * En), 0, 1), ni = Dt.x + bn * In, Ki = Dt.z + En * In, Er = (Oe.x - ni) ** 2 + (Oe.z - Ki) ** 2;
+        Er < Ye && (Ye = Er, Xe = { route: Mt, progress: (Lt + In) / (Et.length - 1) });
       }
     }
     if (!Xe || Ye > (Xe.route.width / 2 + 0.2) ** 2) return null;
@@ -31344,7 +31344,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   } });
   const Gi = a ? 0.82 : 0.62, lo = Math.ceil(ci * 2 / Gi), Fo = Math.ceil(di * 2 / Gi), sn = ci * 2 / lo, An = di * 2 / Fo;
   for (let K = 0; K < Fo; K++) for (let we = 0; we < lo; we++) {
-    const Le = Ln - ci + (we + 0.5) * sn, Oe = li - di + (K + 0.5) * An;
+    const Le = Nn - ci + (we + 0.5) * sn, Oe = li - di + (K + 0.5) * An;
     [[-1, -1], [-1, 1], [1, -1], [1, 1]].some(([Xe, Ye]) => Re(Le + Xe * sn / 2, Oe + Ye * An / 2) > 0.997) || Le + sn / 2 >= M && Le - sn / 2 <= V && Oe + An / 2 >= N && Oe - An / 2 <= _e(Le) + 0.3 || y();
   }
   const [co, en] = await Promise.all(["water-continuous-painted", "materials-painted"].map((K) => gp(Na(`assets/art/${K}.webp`), { quality: i })));
@@ -31363,7 +31363,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     F0.push(K, we, Le, K, Le, Oe);
   }
   for (let K = 0; K < 2; K++) for (let we = 0; we < Xa; we++) {
-    const Le = M + (V - M) * we / Xa, Oe = M + (V - M) * (we + 1) / Xa, Xe = (kn) => K ? _e(kn) + 0.3 : N, Ye = (kn) => K ? _e(kn) : se, ut = (kn, ni, Ki, Er) => K ? O0(kn, ni, Ki, Er) : O0(kn, Er, Ki, ni), rt = nr(Le, 0, Xe(Le)), Mt = nr(Oe, 0, Xe(Oe)), Et = nr(Oe, bi - 0.025, Ye(Oe)), Lt = nr(Le, bi - 0.025, Ye(Le));
+    const Le = M + (V - M) * we / Xa, Oe = M + (V - M) * (we + 1) / Xa, Xe = (In) => K ? _e(In) + 0.3 : N, Ye = (In) => K ? _e(In) : se, ut = (In, ni, Ki, Er) => K ? O0(In, ni, Ki, Er) : O0(In, Er, Ki, ni), rt = nr(Le, 0, Xe(Le)), Mt = nr(Oe, 0, Xe(Oe)), Et = nr(Oe, bi - 0.025, Ye(Oe)), Lt = nr(Le, bi - 0.025, Ye(Le));
     ut(rt, Mt, Et, Lt);
     const Dt = nr(Le, -0.87, Xe(Le)), Pt = nr(Oe, -0.87, Xe(Oe)), bn = nr(Oe, -0.87, Ye(Oe)), En = nr(Le, -0.87, Ye(Le));
     ut(Dt, En, bn, Pt), ut(rt, Dt, Pt, Mt), ut(Lt, Et, bn, En), we === 0 && ut(rt, Lt, En, Dt), we === Xa - 1 && ut(Mt, Pt, bn, Et);
@@ -31442,12 +31442,12 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   T.forEach(([K, we, Le, Oe, Xe], Ye) => {
     const ut = Ye === 1 ? 7 : 8, rt = [], Mt = [];
     for (let Pt = 0; Pt < 4; Pt++) for (let bn = 0; bn < ut; bn++) {
-      const En = bn / ut * Math.PI * 2 + 0.13 * Ye, kn = 1 + 0.13 * Math.sin(bn * 2.3 + Ye), ni = [1, 1.02, 0.72, Ye === 2 ? 0.45 : 0.2][Pt], Ki = Ye === 2 && Pt === 3 ? 0 : Pt * 0.11 * Le * Math.sin(Ye + 1), Er = Ye === 2 && Pt === 3 ? 0 : Pt * 0.07 * Oe * Math.cos(Ye + 1), em = Pt === 0 ? 0 : Xe * [0, 0.29, 0.69, 1][Pt] + (Ye === 2 && Pt === 3 ? 0 : Xe * 0.045 * Math.sin(bn * 1.7 + Pt));
-      rt.push(K + Le * ni * kn * Math.cos(En) + Ki, em, we + Oe * ni * kn * Math.sin(En) + Er);
+      const En = bn / ut * Math.PI * 2 + 0.13 * Ye, In = 1 + 0.13 * Math.sin(bn * 2.3 + Ye), ni = [1, 1.02, 0.72, Ye === 2 ? 0.45 : 0.2][Pt], Ki = Ye === 2 && Pt === 3 ? 0 : Pt * 0.11 * Le * Math.sin(Ye + 1), Er = Ye === 2 && Pt === 3 ? 0 : Pt * 0.07 * Oe * Math.cos(Ye + 1), em = Pt === 0 ? 0 : Xe * [0, 0.29, 0.69, 1][Pt] + (Ye === 2 && Pt === 3 ? 0 : Xe * 0.045 * Math.sin(bn * 1.7 + Pt));
+      rt.push(K + Le * ni * In * Math.cos(En) + Ki, em, we + Oe * ni * In * Math.sin(En) + Er);
     }
     for (let Pt = 0; Pt < 3; Pt++) for (let bn = 0; bn < ut; bn++) {
-      const En = Pt * ut + bn, kn = (Pt + 1) * ut + bn, ni = (Pt + 1) * ut + (bn + 1) % ut, Ki = Pt * ut + (bn + 1) % ut;
-      Mt.push(En, kn, ni, En, ni, Ki);
+      const En = Pt * ut + bn, In = (Pt + 1) * ut + bn, ni = (Pt + 1) * ut + (bn + 1) % ut, Ki = Pt * ut + (bn + 1) % ut;
+      Mt.push(En, In, ni, En, ni, Ki);
     }
     const Et = rt.length / 3;
     rt.push(K, 0, we);
@@ -31470,8 +31470,8 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     for (let rt = 0; rt < 5; rt++) {
       const Mt = Xe + rt * 2.39, Et = Le * (0.18 + 0.035 * Math.sin(rt * 1.7 + Oe)), Lt = K + Math.cos(Mt) * Et, Dt = we + Math.sin(Mt) * Et * 0.82, Pt = Le * (0.49 + rt * 0.075 + 0.025 * Math.sin(Oe + rt)), bn = [Lt, Pt, Dt];
       Ee(rt < 2 ? Ye : ut, bn, 0.046, D, 0.017);
-      const En = (Oe + rt) % 3, kn = Le * (0.25 + 0.015 * Math.sin(rt + Oe));
-      if (Sc[En].push(fe([Lt, Pt + 0.12, Dt], [kn * (1.12 + 0.12 * Math.sin(Mt)), Le * (0.125 + 0.013 * (rt % 2)), kn * 0.82], Mt)), Tc[En].push(new et().setRGB(0.97 + 0.03 * Math.sin(Oe + rt), 1, 0.96 + 0.025 * Math.cos(rt))), rt === 1 || rt === 3) {
+      const En = (Oe + rt) % 3, In = Le * (0.25 + 0.015 * Math.sin(rt + Oe));
+      if (Sc[En].push(fe([Lt, Pt + 0.12, Dt], [In * (1.12 + 0.12 * Math.sin(Mt)), Le * (0.125 + 0.013 * (rt % 2)), In * 0.82], Mt)), Tc[En].push(new et().setRGB(0.97 + 0.03 * Math.sin(Oe + rt), 1, 0.96 + 0.025 * Math.cos(rt))), rt === 1 || rt === 3) {
         const ni = (En + 1) % 3;
         Sc[ni].push(fe([Lt + Math.cos(Mt + 0.9) * Le * 0.1, Pt - 0.04, Dt + Math.sin(Mt + 0.9) * Le * 0.09], [Le * 0.17, Le * 0.11, Le * 0.155], Mt + 0.8)), Tc[ni].push(new et().setRGB(0.96, 1, 0.95));
       }
@@ -31512,9 +31512,9 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   const $0 = new mi({ name: "thin-opening-crystal-arcs-not-a-full-globe-overlay", color: "#83b9c7", roughness: 0.18, metalness: 0, transparent: !0, opacity: 0.25, clearcoat: 0.65, clearcoatRoughness: 0.12, depthWrite: !1 });
   l.add($0);
   const Hp = [[0, -26.3], [9.14, -25.75], [18.16, -23], [26.18, -17.6], [31.7, -11.36], [34.23, -5.74], [35.28, -0.78]], Vp = [...C.slice(1, -1)].reverse(), Ec = ee("closed-thin-crystal-lower-half-globe", new Li([...Hp, ...Vp, [0, -26]].map((K) => new qe(...K)), a ? 72 : 112), $0);
-  Ec.position.set(Ln, 0, li), Ec.scale.z = di / ci, Ec.castShadow = !1;
+  Ec.position.set(Nn, 0, li), Ec.scale.z = di / ci, Ec.castShadow = !1;
   for (let K = 0; K < 8; K++) {
-    const we = K / 8 * Math.PI * 2 + 0.16, Le = C.slice(1, -1).map(([Et, Lt]) => new Q(Ln + (Et + 0.12) * Math.cos(we), Lt - 0.08, li + (Et + 0.12) * di / ci * Math.sin(we))), Oe = new Qn(new Wn(Le), 24, 0.065, 6, !1), Xe = Array.from(Oe.attributes.position.array), Ye = Array.from(Oe.attributes.normal.array), ut = Array.from(Oe.attributes.uv.array), rt = Array.from(Oe.index.array), Mt = Oe.parameters.path;
+    const we = K / 8 * Math.PI * 2 + 0.16, Le = C.slice(1, -1).map(([Et, Lt]) => new Q(Nn + (Et + 0.12) * Math.cos(we), Lt - 0.08, li + (Et + 0.12) * di / ci * Math.sin(we))), Oe = new Qn(new Hn(Le), 24, 0.065, 6, !1), Xe = Array.from(Oe.attributes.position.array), Ye = Array.from(Oe.attributes.normal.array), ut = Array.from(Oe.attributes.uv.array), rt = Array.from(Oe.index.array), Mt = Oe.parameters.path;
     for (const Et of [0, 1]) {
       const Lt = Et ? 168 : 0, Dt = Xe.length / 3;
       Xe.push(...Le[Et ? Le.length - 1 : 0].toArray()), Ye.push(...Mt.getTangent(Et).multiplyScalar(Et ? 1 : -1).toArray()), ut.push(0.5, 0.5);
@@ -31531,15 +31531,15 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   const xo = a ? 52 : 88, yo = a ? 10 : 16, Uo = [], Z0 = [], Rc = [], K0 = xo + 1, Xp = K0 * (yo + 1), Yp = 0.035, jp = Math.PI - 0.035;
   for (let K = 0; K < 2; K++) for (let we = 0; we <= yo; we++) for (let Le = 0; Le <= xo; Le++) {
     const Oe = nt.lerp(Yp, jp, Le / xo), Xe = we / yo * (0.06 + 0.51 * Math.pow(Math.sin(Oe), 1.5)), Ye = ci + (K ? 0.16 : 0.26), ut = di + (K ? 0.11 : 0.18);
-    Uo.push(Ln + Ye * Math.cos(Xe) * Math.cos(Oe), -0.78 + (26 + (K ? -0.04 : 0.04)) * Math.sin(Xe), li - ut * Math.cos(Xe) * Math.sin(Oe)), Z0.push(Le / xo, we / yo);
+    Uo.push(Nn + Ye * Math.cos(Xe) * Math.cos(Oe), -0.78 + (26 + (K ? -0.04 : 0.04)) * Math.sin(Xe), li - ut * Math.cos(Xe) * Math.sin(Oe)), Z0.push(Le / xo, we / yo);
   }
-  const Yr = (K, we, Le, Oe) => Rc.push(K, we, Le, K, Le, Oe), Pn = (K, we, Le) => K * Xp + Le * K0 + we;
+  const Yr = (K, we, Le, Oe) => Rc.push(K, we, Le, K, Le, Oe), kn = (K, we, Le) => K * Xp + Le * K0 + we;
   for (let K = 0; K < yo; K++) for (let we = 0; we < xo; we++)
-    Yr(Pn(0, we, K), Pn(0, we + 1, K), Pn(0, we + 1, K + 1), Pn(0, we, K + 1)), Yr(Pn(1, we, K), Pn(1, we, K + 1), Pn(1, we + 1, K + 1), Pn(1, we + 1, K));
+    Yr(kn(0, we, K), kn(0, we + 1, K), kn(0, we + 1, K + 1), kn(0, we, K + 1)), Yr(kn(1, we, K), kn(1, we, K + 1), kn(1, we + 1, K + 1), kn(1, we + 1, K));
   for (let K = 0; K < xo; K++)
-    Yr(Pn(0, K, 0), Pn(1, K, 0), Pn(1, K + 1, 0), Pn(0, K + 1, 0)), Yr(Pn(0, K, yo), Pn(0, K + 1, yo), Pn(1, K + 1, yo), Pn(1, K, yo));
+    Yr(kn(0, K, 0), kn(1, K, 0), kn(1, K + 1, 0), kn(0, K + 1, 0)), Yr(kn(0, K, yo), kn(0, K + 1, yo), kn(1, K + 1, yo), kn(1, K, yo));
   for (let K = 0; K < yo; K++)
-    Yr(Pn(0, 0, K), Pn(0, 0, K + 1), Pn(1, 0, K + 1), Pn(1, 0, K)), Yr(Pn(0, xo, K), Pn(1, xo, K), Pn(1, xo, K + 1), Pn(0, xo, K + 1));
+    Yr(kn(0, 0, K), kn(0, 0, K + 1), kn(1, 0, K + 1), kn(1, 0, K)), Yr(kn(0, xo, K), kn(1, xo, K), kn(1, xo, K + 1), kn(0, xo, K + 1));
   const js = new Ut();
   js.setAttribute("position", new st(Uo, 3)), js.setAttribute("uv", new st(Z0, 2)), js.setIndex(Rc), js.computeVertexNormals();
   const Pc = ee("closed-thin-open-rear-crystal-crescent", js, ja);
@@ -31554,7 +31554,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
       const Xe = jr() * Math.PI * 2, Ye = -0.94 + jr() * 1.88, ut = 420 + jr() * 44, rt = Math.sqrt(1 - Ye * Ye);
       we = [ut * rt * Math.cos(Xe), ut * Ye, ut * rt * Math.sin(Xe)];
     }
-    qa.push(Ln + we[0], we[1], li + we[2]);
+    qa.push(Nn + we[0], we[1], li + we[2]);
     const Le = jr(), Oe = new et(Le < 0.22 ? "#e7cfa0" : Le > 0.7 ? "#b5c9ef" : "#d8deee");
     eu.push(Oe.r, Oe.g, Oe.b), tu.push(1.2 + jr() * 1.5), nu.push(jr() * Math.PI * 2);
   }
@@ -31576,7 +31576,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   const $s = new Of(kc, su);
   $s.name = "three-small-deep-sky-constellations", $s.userData.excludeFromOverviewBounds = !0, $s.userData.nonInteractive = !0, $s.raycast = () => {
   }, s.add($s);
-  const Zs = new Wn([[-220, -65, -400], [-125, -74, -430], [-3, -84, -450], [120, -95, -430], [225, -107, -400]].map((K) => new Q(Ln + K[0], K[1], li + K[2])));
+  const Zs = new Hn([[-220, -65, -400], [-125, -74, -430], [-3, -84, -450], [120, -95, -430], [225, -107, -400]].map((K) => new Q(Nn + K[0], K[1], li + K[2])));
   Zs.getLengths(200);
   const au = { value: 0 }, $a = { value: 0 }, Za = 2.6, lu = 41, Ic = 12;
   let Lc = -1e9;
@@ -31622,17 +31622,17 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
     Le.position.set(K.x, K.y + 0.07, K.z), d.push({ id: "lotus-" + we, type: "lotus", title: "A lotus in the crystal pond", object: Le, point: [K.x, K.y, K.z], stand: [K.x, 0, 2.2], onInteract() {
       bu([K.x, K.y, K.z], b), Ja([K.x, bi, K.z], b);
     } });
-  }), d.push({ id: "river-water", type: "river", title: "A koi beneath the water", object: W0, point: [Ln, bi, 5.5], stand: [Ln, 0, 2.5], onInteract() {
-    Ja([Ln, bi, 5.5], b);
+  }), d.push({ id: "river-water", type: "river", title: "A koi beneath the water", object: W0, point: [Nn, bi, 5.5], stand: [Nn, 0, 2.5], onInteract() {
+    Ja([Nn, bi, 5.5], b);
   } });
   for (const [K, we] of f) {
     const Le = on(we, !1);
     we.forEach((Oe) => Oe.dispose()), ee("merged-magic-landscape-" + K.name, Le, K);
   }
   f.clear();
-  let Bo = [Ln, bi, 5.5];
+  let Bo = [Nn, bi, 5.5];
   function Ja(K, we = b) {
-    const Le = Array.isArray(K) ? K : [K?.x, K?.y, K?.z], Oe = nt.clamp(Number.isFinite(Le[0]) ? Le[0] : Ln, M + 1.8, V - 1.8), Xe = nt.clamp(Number.isFinite(Le[2]) ? Le[2] : 5.5, se + 0.23, _e(Oe) - 0.23);
+    const Le = Array.isArray(K) ? K : [K?.x, K?.y, K?.z], Oe = nt.clamp(Number.isFinite(Le[0]) ? Le[0] : Nn, M + 1.8, V - 1.8), Xe = nt.clamp(Number.isFinite(Le[2]) ? Le[2] : 5.5, se + 0.23, _e(Oe) - 0.23);
     return Bo = [Oe, bi, Xe], g = Number.isFinite(we) ? we : b, Bo;
   }
   function bu(K, we = b) {
@@ -31670,7 +31670,7 @@ async function jy({ quality: i = "high", reduced: e = !1, stations: t = [], extr
   s.traverse((K) => {
     K.isMesh && K.material.visible !== !1 && (wu++, yu += (K.geometry.index?.count ?? K.geometry.attributes.position.count) / 3 * (K.isInstancedMesh ? K.count : 1));
   });
-  const Qp = { theme: "Fixed deep night opened crystal world; daytime internal compatibility only", units: "metres", overviewBounds: { min: [Ln - ci - 0.4, -27.1, li - di - 0.4], max: [Ln + ci + 0.4, 14.5, li + di + 0.4] }, island: { centre: [Ln, 0, li], radii: [ci, di], groundY: 0, closedCore: !0, steppedClosedSocket: !0, lowerGlobeBottomY: -26.3, opening: "True closed lower jade globe and crystal bowl; opened top with a closed thin rear glass crescent" }, cosmos: { stars: Q0, constellations: 3, skyDrawCalls: 2, meteorDrawCalls: 2, starSphereRadiusMetres: [420, 510], outsideMaximumCameraRadius: 250, requiredCameraFar: 900, meteor: { firstSeconds: Ic, periodSeconds: lu, durationSeconds: Za, tailRadiusMetres: 0.35, headRadiusMetres: 0.7, headToneMapped: !1, manualTrigger: "showMeteor(startTime)", reducedMotionDisabled: !!e, geometryBuffersImmutable: !0 }, lightsAdded: 0, renderTargetsAdded: 0 }, glass: { upperShell: "Closed inner and outer crescent surfaces, four sealed boundary edges", thicknessMetres: [0.07, 0.1], upperTriangles: Rc.length / 3, insideBuildingBounds: J0, centreOpacity: 0, grazingOpacity: 0.0793, inspectionStrength: 0.04, inspectionGrazingOpacity: 3172e-6, frontPane: !1, transmissionRenderTargets: 0 }, ground: { soilBlocks: 0, continuousTerrain: !0, pavingBlocks: We.length, minimumPavingGap: It, orientedPavingCollision: !0, pathTopY: 2e-3, maximumAuthoredHill: 0.15, topY: 0, recessedCoreY: -0.04, peripheralRockTerraces: T.length }, trees: m, pond: { x: [M, V], z: [se, 8.3], minimumWidth: Math.min(_e(M), _e(V)) - se, waterY: bi, closedBottomY: -0.67, connected: !0, analyticalNormals: !0, flowers: _c.length, reedClumps: 5 }, routes: ze.map(([K, we]) => [K, we]), walkRoads: { routes: be.length, picking: "Real paver triangle ray hit only; grass and pond excluded", groundY: 2e-3, routeEndpoints: "Shared flat exterior forecourts checked against actual room and fixture colliders", fullCorridorHalfWidth: 0.98, arcValidationMetres: 0.025, externalWorldBlockers: n.length, fixedGardenBlockers: ge.length, standalonePreview: t.length === 0, geometryAdded: 0 }, sourceTexturesRetained: c.size, derivedTextures: 1, staticTriangles: yu, staticDrawCalls: wu, practicalLights: h.length, reducedMotion: !!e, limitations: ["The miniature is an authored magical garden, not an exact recovered original 2D landscape.", "Ambient flow and plant motion are shader-driven; no expensive screen-space reflections.", "Very short-range near-wall lanterns provide fixture glow, not whole-courtyard ground illumination.", "No bridge or changed walking elevation is introduced. Whole building placement and camera integration remain root-owned."] };
+  const Qp = { theme: "Fixed deep night opened crystal world; daytime internal compatibility only", units: "metres", overviewBounds: { min: [Nn - ci - 0.4, -27.1, li - di - 0.4], max: [Nn + ci + 0.4, 14.5, li + di + 0.4] }, island: { centre: [Nn, 0, li], radii: [ci, di], groundY: 0, closedCore: !0, steppedClosedSocket: !0, lowerGlobeBottomY: -26.3, opening: "True closed lower jade globe and crystal bowl; opened top with a closed thin rear glass crescent" }, cosmos: { stars: Q0, constellations: 3, skyDrawCalls: 2, meteorDrawCalls: 2, starSphereRadiusMetres: [420, 510], outsideMaximumCameraRadius: 250, requiredCameraFar: 900, meteor: { firstSeconds: Ic, periodSeconds: lu, durationSeconds: Za, tailRadiusMetres: 0.35, headRadiusMetres: 0.7, headToneMapped: !1, manualTrigger: "showMeteor(startTime)", reducedMotionDisabled: !!e, geometryBuffersImmutable: !0 }, lightsAdded: 0, renderTargetsAdded: 0 }, glass: { upperShell: "Closed inner and outer crescent surfaces, four sealed boundary edges", thicknessMetres: [0.07, 0.1], upperTriangles: Rc.length / 3, insideBuildingBounds: J0, centreOpacity: 0, grazingOpacity: 0.0793, inspectionStrength: 0.04, inspectionGrazingOpacity: 3172e-6, frontPane: !1, transmissionRenderTargets: 0 }, ground: { soilBlocks: 0, continuousTerrain: !0, pavingBlocks: We.length, minimumPavingGap: It, orientedPavingCollision: !0, pathTopY: 2e-3, maximumAuthoredHill: 0.15, topY: 0, recessedCoreY: -0.04, peripheralRockTerraces: T.length }, trees: m, pond: { x: [M, V], z: [se, 8.3], minimumWidth: Math.min(_e(M), _e(V)) - se, waterY: bi, closedBottomY: -0.67, connected: !0, analyticalNormals: !0, flowers: _c.length, reedClumps: 5 }, routes: ze.map(([K, we]) => [K, we]), walkRoads: { routes: be.length, picking: "Real paver triangle ray hit only; grass and pond excluded", groundY: 2e-3, routeEndpoints: "Shared flat exterior forecourts checked against actual room and fixture colliders", fullCorridorHalfWidth: 0.98, arcValidationMetres: 0.025, externalWorldBlockers: n.length, fixedGardenBlockers: ge.length, standalonePreview: t.length === 0, geometryAdded: 0 }, sourceTexturesRetained: c.size, derivedTextures: 1, staticTriangles: yu, staticDrawCalls: wu, practicalLights: h.length, reducedMotion: !!e, limitations: ["The miniature is an authored magical garden, not an exact recovered original 2D landscape.", "Ambient flow and plant motion are shader-driven; no expensive screen-space reflections.", "Very short-range near-wall lanterns provide fixture glow, not whole-courtyard ground illumination.", "No bridge or changed walking elevation is introduced. Whole building placement and camera integration remain root-owned."] };
   return {
     root: s,
     interactables: d,
@@ -34492,9 +34492,9 @@ function zw({ low: i = !1, reduced: e = !1, onFound: t } = {}) {
   z.translate(-0.11, 4e-3, 0.07);
   const S = new Ke(a(on([x(v, "#f6f7fb"), _, y, E, ...R, z].map((I) => I.index ? I.toNonIndexed() : I), !1)), c);
   S.name = "case-broken-blue-and-white-teacup", g.add(S);
-  const L = new Wn([[-0.04, 9e-3, -0.02], [-0.01, 0.011, 0], [0.02, 0.01, -5e-3], [0.045, 0.012, 0.015]].map((I) => new Q(...I))), H = new Ke(a(new Qn(L, 16, 15e-4, 4)), d);
+  const L = new Hn([[-0.04, 9e-3, -0.02], [-0.01, 0.011, 0], [0.02, 0.01, -5e-3], [0.045, 0.012, 0.015]].map((I) => new Q(...I))), H = new Ke(a(new Qn(L, 16, 15e-4, 4)), d);
   H.name = "case-shaded-hair", g.add(H), n.add(g);
-  const ne = new Wn([[-0.12, 0, -0.05], [-0.06, 2e-3, 0.03], [0, 1e-3, -0.02], [0.06, 2e-3, 0.04], [0.12, 0, -0.01]].map((I) => new Q(...I))), P = new Ke(a(new Qn(ne, 32, 18e-4, 4)), d);
+  const ne = new Hn([[-0.12, 0, -0.05], [-0.06, 2e-3, 0.03], [0, 1e-3, -0.02], [0.06, 2e-3, 0.04], [0.12, 0, -0.01]].map((I) => new Q(...I))), P = new Ke(a(new Qn(ne, 32, 18e-4, 4)), d);
   P.name = "case-long-golden-hair", P.position.set(...Dl.inkstone.item), n.add(P);
   const q = new Ke(a(new Ge(0.1, 0.065, 3e-3)), h);
   q.name = "case-folded-note", q.position.set(...Dl.note.item), q.rotation.z = 0.12, n.add(q);
@@ -35149,7 +35149,7 @@ function Qw({ station: i, quality: e = "high", reduced: t = !1, onOverlay: n, mo
   };
 }
 const e_ = -96, t_ = 38.4, Rd = Math.cos(nt.degToRad(38));
-function Bn(i, e) {
+function Gn(i, e) {
   const t = /* @__PURE__ */ new Map();
   return {
     add(n, r, { p: o = [0, 0, 0], r: s = [0, 0, 0], s: a = [1, 1, 1] } = {}) {
@@ -35220,7 +35220,7 @@ function i0(i, { x0: e, x1: t, z: n, y: r, towerH: o, color: s, cable: a, deck: 
       const y = e + d * _ / 24;
       v.push(new Q(y, b(y), n + g * f));
     }
-    i.add(new Qn(new Wn(v), 40, 7e-4 * c, 4, !1), a);
+    i.add(new Qn(new Hn(v), 40, 7e-4 * c, 4, !1), a);
     for (let _ = h[0] + 6e-3 * c; _ < h[1]; _ += 6e-3 * c) {
       const y = b(_) - r;
       y > 1e-3 && i.add(new Ge(4e-4, y, 4e-4), a, { p: [_, r + y / 2, n + g * f] });
@@ -35234,7 +35234,7 @@ function Nl(i, e, { y: t, h: n, mat: r, inset: o = 0 }) {
 function n_(i, e) {
   const t = ct(i, "plane-white", "#f4f3f0", { roughness: 0.35, metalness: 0.1 }), n = ct(i, "plane-wing-grey", "#c9ccd1", { roughness: 0.45, metalness: 0.2 }), r = ct(i, "plane-windows", "#202833", { roughness: 0.15, metalness: 0.4 }), o = ct(i, "plane-seal-red", "#b8352c", { roughness: 0.4 }), s = ct(i, "plane-navy-stripe", "#22365e", { roughness: 0.4 }), a = ct(i, "plane-engine", "#9aa0a8", { metalness: 0.6, roughness: 0.3 }), l = ct(i, "plane-intake", "#15171a", { roughness: 0.6 }), c = new pt();
   c.name = "keepsake-model-airliner";
-  const d = Bn("keepsake-model-airliner", i), u = [[0, 0], [0.012, 4e-3], [0.024, 0.014], [0.031, 0.03], [0.034, 0.06], [0.034, 0.36], [0.031, 0.42], [0.022, 0.48], [0.012, 0.52], [4e-3, 0.54], [0, 0.545]], f = new Li(u.map(([g, v]) => new qe(g, v)), 32);
+  const d = Gn("keepsake-model-airliner", i), u = [[0, 0], [0.012, 4e-3], [0.024, 0.014], [0.031, 0.03], [0.034, 0.06], [0.034, 0.36], [0.031, 0.42], [0.022, 0.48], [0.012, 0.52], [4e-3, 0.54], [0, 0.545]], f = new Li(u.map(([g, v]) => new qe(g, v)), 32);
   f.rotateZ(Math.PI / 2), f.translate(0.27, 0, 0), d.add(f, t);
   for (const g of [-1, 1])
     d.add(new Ge(0.36, 5e-3, 12e-4), s, { p: [-0.015, -6e-3, g * 0.0338] }), d.add(new Ge(0.36, 22e-4, 12e-4), o, { p: [-0.015, -0.0105, g * 0.0335] });
@@ -35290,7 +35290,7 @@ function o_(i, e, t) {
 function r_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   const r = new pt();
   r.name = "keepsake-two-shores-box", i.add(r);
-  const o = gc(e), s = ct(e, "walnut-box", "#5a3822", { roughness: 0.55 }), a = ct(e, "brass", "#c9a24f", { metalness: 0.7, roughness: 0.32 }), l = ct(e, "beach-sand", "#d9c597", { roughness: 0.9 }), c = ct(e, "hill-green", "#5f8a4e", { roughness: 0.85 }), d = ct(e, "shore-rocks", "#7d7f80", { roughness: 0.9, flatShading: !0 }), u = ct(e, "white-stone", "#f2efe8", { roughness: 0.6 }), f = ct(e, "international-orange", "#c4482c", { roughness: 0.5 }), h = ct(e, "cable", "#e9e4da", { roughness: 0.5 }), m = ct(e, "deck-grey", "#7d7b78", { roughness: 0.8 }), x = ct(e, "liner-hull", "#1e1f24", { roughness: 0.5 }), b = ct(e, "liner-red", "#b3302a", { roughness: 0.5 }), g = ct(e, "lit-window", "#ffd99a", { emissive: "#ffb35c", emissiveIntensity: 0.7 }), v = ["#e8b4b8", "#b8d8c8", "#f3d9a4", "#a8c4e0", "#e0c4e8"].map((se, le) => ct(e, "painted-lady-" + le, se, { roughness: 0.7 })), _ = Bn("keepsake-two-shores-box", e);
+  const o = gc(e), s = ct(e, "walnut-box", "#5a3822", { roughness: 0.55 }), a = ct(e, "brass", "#c9a24f", { metalness: 0.7, roughness: 0.32 }), l = ct(e, "beach-sand", "#d9c597", { roughness: 0.9 }), c = ct(e, "hill-green", "#5f8a4e", { roughness: 0.85 }), d = ct(e, "shore-rocks", "#7d7f80", { roughness: 0.9, flatShading: !0 }), u = ct(e, "white-stone", "#f2efe8", { roughness: 0.6 }), f = ct(e, "international-orange", "#c4482c", { roughness: 0.5 }), h = ct(e, "cable", "#e9e4da", { roughness: 0.5 }), m = ct(e, "deck-grey", "#7d7b78", { roughness: 0.8 }), x = ct(e, "liner-hull", "#1e1f24", { roughness: 0.5 }), b = ct(e, "liner-red", "#b3302a", { roughness: 0.5 }), g = ct(e, "lit-window", "#ffd99a", { emissive: "#ffb35c", emissiveIntensity: 0.7 }), v = ["#e8b4b8", "#b8d8c8", "#f3d9a4", "#a8c4e0", "#e0c4e8"].map((se, le) => ct(e, "painted-lady-" + le, se, { roughness: 0.7 })), _ = Gn("keepsake-two-shores-box", e);
   _.add(new Ge(0.42, 0.012, 0.26), s, { p: [0, 6e-3, 0] }), _.add(new Ge(0.42, 0.046, 0.012), s, { p: [0, 0.029, 0.124] }), _.add(new Ge(0.42, 0.046, 0.012), s, { p: [0, 0.029, -0.124] });
   for (const se of [-1, 1]) _.add(new Ge(0.012, 0.046, 0.236), s, { p: [se * 0.204, 0.029, 0] });
   for (const se of [-1, 1]) for (const le of [-1, 1]) _.add(new Ge(0.018, 0.05, 0.018), a, { p: [se * 0.205, 0.027, le * 0.125] });
@@ -35300,7 +35300,7 @@ function r_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   _.build(r);
   const y = new pt();
   y.position.set(0, 0.054, -0.132), y.rotation.x = -0.22, r.add(y);
-  const E = Bn("keepsake-two-shores-lid", e);
+  const E = Gn("keepsake-two-shores-lid", e);
   E.add(new Ge(0.42, 0.26, 0.012), s, { p: [0, 0.13, -6e-3] });
   for (const se of [-1, 1]) for (const le of [4e-3, 0.256]) E.add(new Ge(0.02, 8e-3, 0.014), a, { p: [se * 0.2, le, -6e-3] });
   const R = o.custom((se, le, re) => s_(se, le, re));
@@ -35315,7 +35315,7 @@ transformed.z += 0.0016 * sin(position.x * 90.0 + uTime * 2.2) + 0.001 * sin(pos
   L.rotateX(-Math.PI / 2);
   const H = new Ke(L, S);
   H.position.y = 0.031, H.name = "keepsake-two-shores-sea", H.receiveShadow = !0, r.add(H), e?.add(L);
-  const ne = Bn("keepsake-dalian-shore", e);
+  const ne = Gn("keepsake-dalian-shore", e);
   Nl(ne, [[-0.196, -0.114], [-0.09, -0.114], [-0.072, -0.07], [-0.088, -0.02], [-0.07, 0.02], [-0.096, 0.07], [-0.12, 0.112], [-0.196, 0.114]], { y: 0.026, h: 0.012, mat: l }), Nl(ne, [[-0.196, -0.112], [-0.1, -0.112], [-0.086, -0.07], [-0.1, -0.02], [-0.085, 0.015], [-0.108, 0.06], [-0.13, 0.1], [-0.196, 0.1]], { y: 0.038, h: 6e-3, mat: c }), [[-0.18, -0.09, 0.034], [-0.165, -0.07, 0.022], [-0.15, -0.095, 0.046], [-0.135, -0.075, 0.03], [-0.172, -0.045, 0.026], [-0.152, -0.05, 0.038], [-0.128, -0.045, 0.02], [-0.118, -0.085, 0.028]].forEach(([se, le, re], J) => {
     ne.add(new Ge(0.012, re, 0.012), J % 3 ? u : ct(e, "dalian-cream", "#e7dcc4"), { p: [se, 0.046 + re / 2, le] });
     for (let ve = 0; ve < Math.floor(re / 8e-3); ve++) ne.add(new Ge(0.0125, 18e-4, 4e-3), g, { p: [se, 0.05 + ve * 8e-3, le + 45e-4] });
@@ -35323,7 +35323,7 @@ transformed.z += 0.0016 * sin(position.x * 90.0 + uTime * 2.2) + 0.001 * sin(pos
   for (let se = 0; se < 7; se++) ne.add(new ko(4e-3 + se % 3 * 2e-3, 0), d, { p: [-0.085 - se % 4 * 6e-3, 0.034, 0.03 + se * 0.012], r: [se, se * 2, 0] });
   const q = new ki(8e-3, 10, 0, Math.PI);
   q.rotateX(-Math.PI / 2 + 0.25), ne.add(q, ct(e, "scallop-shell", "#f0c3a2", { side: 2 }), { p: [-0.15, 0.0462, 0.09] }), i0(ne, { x0: -0.128, x1: -0.03, z: 0.085, y: 0.038, towerH: 0.034, color: u, cable: h, deck: m }), ne.add(new ko(8e-3, 0), d, { p: [-0.03, 0.032, 0.085] });
-  const X = ne.build(r), I = Bn("keepsake-san-francisco-shore", e);
+  const X = ne.build(r), I = Gn("keepsake-san-francisco-shore", e);
   Nl(I, [[0.196, -0.114], [0.095, -0.114], [0.08, -0.06], [0.094, -0.01], [0.078, 0.03], [0.1, 0.075], [0.13, 0.112], [0.196, 0.114]], { y: 0.026, h: 0.012, mat: l }), Nl(I, [[0.196, -0.112], [0.104, -0.112], [0.092, -0.06], [0.104, -0.01], [0.09, 0.028], [0.11, 0.07], [0.135, 0.1], [0.196, 0.1]], { y: 0.038, h: 6e-3, mat: c });
   for (const [se, le, re, J] of [[0.16, -0.07, 0.035, 0.022], [0.125, -0.04, 0.025, 0.014], [0.175, 0.01, 0.03, 0.018]]) {
     const ve = new yt(re, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2);
@@ -35337,7 +35337,7 @@ transformed.z += 0.0016 * sin(position.x * 90.0 + uTime * 2.2) + 0.001 * sin(pos
   }), I.add(new Ge(0.06, 8e-4, 15e-4), m, { p: [0.14, 0.053, 0.072], r: [0, 0, 0.24] });
   const U = ct(e, "cable-car-red", "#a8322b");
   I.add(new Ge(0.014, 8e-3, 7e-3), U, { p: [0.15, 0.06, 0.072], r: [0, 0, 0.24] }), I.add(new Ge(0.013, 35e-4, 72e-4), ct(e, "cable-car-cream", "#efe0b8"), { p: [0.1505, 0.063, 0.072], r: [0, 0, 0.24] }), i0(I, { x0: 0.03, x1: 0.125, z: 0.088, y: 0.038, towerH: 0.042, color: f, cable: f, deck: m }), I.add(new ko(9e-3, 0), d, { p: [0.03, 0.032, 0.088] });
-  const D = I.build(r), A = new Wn([new Q(-0.12, 0.072, -0.03), new Q(-0.06, 0.135, -0.055), new Q(0, 0.152, -0.06), new Q(0.06, 0.135, -0.055), new Q(0.125, 0.074, -0.03)]), G = Bn("keepsake-flight-route", e);
+  const D = I.build(r), A = new Hn([new Q(-0.12, 0.072, -0.03), new Q(-0.06, 0.135, -0.055), new Q(0, 0.152, -0.06), new Q(0.06, 0.135, -0.055), new Q(0.125, 0.074, -0.03)]), G = Gn("keepsake-flight-route", e);
   G.add(new Qn(A, 64, 9e-4, 5, !1), a);
   for (let se = 1; se < 30; se += 2) {
     const le = A.getPointAt(se / 30), re = A.getPointAt((se + 0.8) / 30), J = re.clone().sub(le), ve = new Qe(16e-4, 16e-4, J.length(), 6);
@@ -35349,7 +35349,7 @@ transformed.z += 0.0016 * sin(position.x * 90.0 + uTime * 2.2) + 0.001 * sin(pos
   }
   const O = G.build(r), W = n_(e, o), Z = W.plane;
   Z.scale.setScalar(0.12), r.add(Z);
-  const oe = o.custom(o_), he = Bn("keepsake-shore-flags", e);
+  const oe = o.custom(o_), he = Gn("keepsake-shore-flags", e);
   for (const [se, le, re] of [[-1, -0.178, 0.02], [1, 0.182, -0.03]]) {
     he.add(new Qe(7e-4, 7e-4, 0.05, 6), a, { p: [le, 0.069, re] });
     const J = o.geometry([oe[0] + (se < 0 ? 0 : oe[2] / 2), oe[1], oe[2] / 2, oe[3]], 0.026, 0.017);
@@ -35362,7 +35362,7 @@ transformed.z += 0.0016 * sin(position.x * 90.0 + uTime * 2.2) + 0.001 * sin(pos
   ee.position.copy($.position), ee.rotation.copy($.rotation), ee.translateZ(-6e-4), r.add(ee), e?.add(ee.geometry);
   const me = new pt();
   me.name = "keepsake-1920s-ocean-liner", r.add(me);
-  const te = Bn("keepsake-ocean-liner", e), ce = new Ot();
+  const te = Gn("keepsake-ocean-liner", e), ce = new Ot();
   ce.moveTo(-0.026, 0), ce.lineTo(0.022, 0), ce.lineTo(0.03, 9e-3), ce.lineTo(-0.028, 9e-3), ce.closePath();
   const Se = new Wt(ce, { depth: 0.01, bevelEnabled: !1 });
   Se.translate(0, 0, -5e-3), te.add(Se, x), te.add(new Ge(0.05, 25e-4, 0.0102), b, { p: [0, 1e-3, 0] }), te.add(new Ge(0.03, 6e-3, 8e-3), u, { p: [-2e-3, 0.012, 0] }), te.add(new Ge(0.018, 4e-3, 6e-3), u, { p: [-4e-3, 0.017, 0] });
@@ -35373,7 +35373,7 @@ transformed.z += 0.0016 * sin(position.x * 90.0 + uTime * 2.2) + 0.001 * sin(pos
   const Ae = te.build(me), Ee = ct(e, "liner-smoke", "#cfd3d8", { transparent: !0, opacity: 0.6, roughness: 1 }), ye = [0, 1, 2].map((se) => {
     const le = new Ke(new yt(3e-3 + se * 12e-4, 8, 6), Ee);
     return me.add(le), e?.add(le.geometry), le;
-  }), fe = new Wn([new Q(-0.07, 0.034, -0.02), new Q(-0.02, 0.034, -0.045), new Q(0.03, 0.034, -0.04), new Q(0.075, 0.034, -0.015)]), Re = Bn("keepsake-two-shores-plates", e);
+  }), fe = new Hn([new Q(-0.07, 0.034, -0.02), new Q(-0.02, 0.034, -0.045), new Q(0.03, 0.034, -0.04), new Q(0.075, 0.034, -0.015)]), Re = Gn("keepsake-two-shores-plates", e);
   Re.add(o.geometry(o.plate("DALIAN", { sub: "my hometown" }), 0.12, 0.03), o.mat, { p: [-0.11, 0.029, 0.1306] }), Re.add(o.geometry(o.plate("SAN FRANCISCO", { size: 27, sub: "a familiar feeling" }), 0.12, 0.03), o.mat, { p: [0.11, 0.029, 0.1306] }), Re.build(r);
   let pe = 0, _e = 0;
   const M = new Q(), V = new Q();
@@ -35478,7 +35478,7 @@ const a_ = [
 function u_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   const r = new pt();
   r.name = "keepsake-un-crossroads", i.add(r);
-  const o = gc(e), s = ct(e, "fork-walnut", "#5a3822", { roughness: 0.55 }), a = ct(e, "fork-brass", "#c9a24f", { metalness: 0.7, roughness: 0.32 }), l = ct(e, "fork-plaza", "#d8d2c4", { roughness: 0.85 }), c = ct(e, "fork-lawn", "#6f9a5e", { roughness: 0.9 }), d = ct(e, "fork-marble", "#f1eee6", { roughness: 0.5 }), u = ct(e, "fork-roof", "#9aa3a8", { roughness: 0.6 }), f = ct(e, "fork-flagpole", "#d7d9dc", { metalness: 0.6, roughness: 0.3 }), h = ct(e, "fork-pages", "#f6efdc", { roughness: 0.9 }), m = ct(e, "fork-book-cover", "#2f4f7a", { roughness: 0.6 }), x = ct(e, "fork-cap", "#1f2329", { roughness: 0.7 }), b = ct(e, "fork-path-un", "#e3c477", { emissive: "#8a6a1c", emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4 }), g = ct(e, "fork-path-phd", "#e3c477", { emissive: "#8a6a1c", emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4 }), v = Bn("keepsake-un-crossroads", e), _ = Bn("keepsake-un-crossroads-un", e), y = Bn("keepsake-un-crossroads-book", e), E = 0.024;
+  const o = gc(e), s = ct(e, "fork-walnut", "#5a3822", { roughness: 0.55 }), a = ct(e, "fork-brass", "#c9a24f", { metalness: 0.7, roughness: 0.32 }), l = ct(e, "fork-plaza", "#d8d2c4", { roughness: 0.85 }), c = ct(e, "fork-lawn", "#6f9a5e", { roughness: 0.9 }), d = ct(e, "fork-marble", "#f1eee6", { roughness: 0.5 }), u = ct(e, "fork-roof", "#9aa3a8", { roughness: 0.6 }), f = ct(e, "fork-flagpole", "#d7d9dc", { metalness: 0.6, roughness: 0.3 }), h = ct(e, "fork-pages", "#f6efdc", { roughness: 0.9 }), m = ct(e, "fork-book-cover", "#2f4f7a", { roughness: 0.6 }), x = ct(e, "fork-cap", "#1f2329", { roughness: 0.7 }), b = ct(e, "fork-path-un", "#e3c477", { emissive: "#8a6a1c", emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4 }), g = ct(e, "fork-path-phd", "#e3c477", { emissive: "#8a6a1c", emissiveIntensity: 0.1, roughness: 0.4, metalness: 0.4 }), v = Gn("keepsake-un-crossroads", e), _ = Gn("keepsake-un-crossroads-un", e), y = Gn("keepsake-un-crossroads-book", e), E = 0.024;
   v.add(new Ge(0.32, 0.022, 0.22), s, { p: [0, 0.011, 0] });
   for (const M of [-1, 1]) v.add(new Ge(0.322, 6e-3, 6e-3), a, { p: [0, 0.023, M * 0.108] });
   for (const M of [-1, 1]) v.add(new Ge(6e-3, 6e-3, 0.222), a, { p: [M * 0.158, 0.023, 0] });
@@ -35491,7 +35491,7 @@ function u_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
     }
   };
   R(v, l, [0, 0, 0.1], [0, 0, 0.075], [0, 0, 0.05], 4);
-  const z = Bn("keepsake-un-crossroads-paths", e);
+  const z = Gn("keepsake-un-crossroads-paths", e);
   R(z, b, [0, 0, 0.05], [-0.04, 0, 0.04], [-0.075, 0, 0], n ? 7 : 11), R(z, g, [0, 0, 0.05], [0.04, 0, 0.04], [0.075, 0, 0], n ? 7 : 11), v.add(new Qe(22e-4, 26e-4, 0.085, 8), s, { p: [0, E + 0.0425, 0.05] }), v.add(new yt(4e-3, 10, 8), a, { p: [0, E + 0.087, 0.05] });
   const S = (M, V, N) => {
     const se = o.custom((le, re, J) => {
@@ -35551,7 +35551,7 @@ function u_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   A.add(W), e?.add(W.geometry);
   for (const [M, V] of [["#8a3f3a", 0], ["#3f6a4a", 1], ["#2f4f7a", 2]].entries()) y.add(new Ge(0.03 - M * 3e-3, 7e-3, 0.022), ct(e, "fork-stack-" + M, V[0]), { p: [0.12, E + 35e-4 + M * 7e-3, 0.03], r: [0, M * 0.15, 0] });
   y.add(new Ge(0.02, 12e-4, 0.02), x, { p: [0.12, E + 0.025, 0.03], r: [0, 0.6, 0] }), y.add(new Qe(6e-3, 65e-4, 4e-3, 12), x, { p: [0.12, E + 0.0225, 0.03] }), y.add(new Qe(4e-4, 4e-4, 0.01, 4), a, { p: [0.128, E + 0.021, 0.034] });
-  const Z = ct(e, "fork-door-light", "#ffe2a8", { emissive: "#ffb75e", emissiveIntensity: 0.4, roughness: 0.6 }), oe = ct(e, "fork-door-leaf", "#6b4a2e", { roughness: 0.55 }), he = Bn("keepsake-un-crossroads-door", e), $ = P.z + P.d / 2 + 6e-4;
+  const Z = ct(e, "fork-door-light", "#ffe2a8", { emissive: "#ffb75e", emissiveIntensity: 0.4, roughness: 0.6 }), oe = ct(e, "fork-door-leaf", "#6b4a2e", { roughness: 0.55 }), he = Gn("keepsake-un-crossroads-door", e), $ = P.z + P.d / 2 + 6e-4;
   he.add(new fn(0.016, 0.026), Z, { p: [P.x, E + 0.013, $] });
   for (const M of [-1, 1]) he.add(new Ge(2e-3, 0.029, 3e-3), a, { p: [P.x + M * 9e-3, E + 0.0145, $ + 1e-3] });
   he.add(new Ge(0.02, 2e-3, 3e-3), a, { p: [P.x, E + 0.0285, $ + 1e-3] });
@@ -35561,7 +35561,7 @@ function u_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   me.position.set(8e-3, 0.013, 0), ee.add(me), e?.add(me.geometry);
   const te = new Ke(new yt(12e-4, 8, 6), a);
   te.position.set(0.0135, 0.012, 12e-4), ee.add(te), e?.add(te.geometry), he.add(new Ge(0.03, 15e-4, 0.012), d, { p: [P.x, E + 75e-5, $ + 6e-3] });
-  const ce = Bn("keepsake-un-crossroads-badges", e), Se = ct(e, "fork-lanyard", "#3a78c2", { roughness: 0.7 }), Ae = ct(e, "fork-badge-back", "#e9ecef", { roughness: 0.4 }), Ee = (M, V, N, se, le) => {
+  const ce = Gn("keepsake-un-crossroads-badges", e), Se = ct(e, "fork-lanyard", "#3a78c2", { roughness: 0.7 }), Ae = ct(e, "fork-badge-back", "#e9ecef", { roughness: 0.4 }), Ee = (M, V, N, se, le) => {
     const re = o.custom((ie, ge, xe) => {
       ie.fillStyle = "#fbfbf8", ie.fillRect(0, 0, ge, xe), ie.fillStyle = "#3a78c2", ie.fillRect(0, 0, ge, xe * 0.36), ie.fillStyle = "#fff", ie.textAlign = "center", ie.textBaseline = "middle", ie.font = `700 ${V.length > 8 ? 26 : 36}px Georgia, serif`, ie.fillText(V, ge / 2, xe * 0.19), ie.fillStyle = "#c9ccd2", ie.fillRect(20, xe * 0.46, 44, 56), ie.fillStyle = "#2a2a2a", ie.font = "700 58px Georgia, serif", ie.fillText(M, ge * 0.6, xe * 0.7), ie.strokeStyle = "#3a78c2", ie.lineWidth = 6, ie.strokeRect(3, 3, ge - 6, xe - 6);
     }), J = 0.038, ve = 0.019, j = 0.28, C = ve / 2 * Math.cos(j) + 4e-4, p = o.geometry(re, J, ve);
@@ -35578,7 +35578,7 @@ function u_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
       [9e-3, 5e-3, B - 0.013],
       [6e-3, k + 3e-3, B - 4e-3],
       [2e-3, k + 6e-4, B]
-    ].map((ie) => new Q(...ie)), T = new Qn(new Wn(F), 40, 8e-4, 4, !1);
+    ].map((ie) => new Q(...ie)), T = new Qn(new Hn(F), 40, 8e-4, 4, !1);
     T.scale(1, 0.7, 1), T.rotateY(le), ce.add(T, Se, { p: [N, E, se] });
     const Y = new Ge(4e-3, 25e-4, 16e-4);
     Y.translate(0, k, B), Y.rotateY(le), ce.add(Y, a, { p: [N, E, se] });
@@ -35599,7 +35599,7 @@ function u_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
 function h_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   const r = new pt();
   r.name = "keepsake-two-crossings-map", i.add(r);
-  const o = gc(e), s = 0.4 / (58 * Rd), a = 0.027, l = 0.0293, c = ([J, ve], j = a) => new Q((J - e_) * Rd * s, j, -(ve - t_) * s), d = ct(e, "map-board-walnut", "#5a3822", { roughness: 0.55 }), u = ct(e, "map-brass", "#c9a24f", { metalness: 0.7, roughness: 0.32 }), f = ct(e, "map-ocean", "#2f5f78", { roughness: 0.75 }), h = ct(e, "map-parchment-land", "#e6d6ad", { roughness: 0.85 }), m = ct(e, "map-lakes", "#4f86a0", { roughness: 0.5 }), x = ct(e, "route-2021-blue", "#3c6fb4", { emissive: "#1d3b66", emissiveIntensity: 0.3 }), b = ct(e, "route-2025-green", "#3f9a62", { emissive: "#1b4a2e", emissiveIntensity: 0.3 }), g = ct(e, "map-pin-red", "#b3302a", { roughness: 0.4 }), v = Bn("keepsake-map-board", e);
+  const o = gc(e), s = 0.4 / (58 * Rd), a = 0.027, l = 0.0293, c = ([J, ve], j = a) => new Q((J - e_) * Rd * s, j, -(ve - t_) * s), d = ct(e, "map-board-walnut", "#5a3822", { roughness: 0.55 }), u = ct(e, "map-brass", "#c9a24f", { metalness: 0.7, roughness: 0.32 }), f = ct(e, "map-ocean", "#2f5f78", { roughness: 0.75 }), h = ct(e, "map-parchment-land", "#e6d6ad", { roughness: 0.85 }), m = ct(e, "map-lakes", "#4f86a0", { roughness: 0.5 }), x = ct(e, "route-2021-blue", "#3c6fb4", { emissive: "#1d3b66", emissiveIntensity: 0.3 }), b = ct(e, "route-2025-green", "#3f9a62", { emissive: "#1b4a2e", emissiveIntensity: 0.3 }), g = ct(e, "map-pin-red", "#b3302a", { roughness: 0.4 }), v = Gn("keepsake-map-board", e);
   v.add(new Ge(0.5, 0.02, 0.3), d, { p: [0, 0.01, 0] }), v.add(new Ge(0.47, 4e-3, 0.27), f, { p: [0, 0.021, 0] });
   for (const J of [-1, 1])
     v.add(new Ge(0.5, 8e-3, 0.012), u, { p: [0, 0.024, J * 0.144] }), v.add(new Ge(0.012, 8e-3, 0.3), u, { p: [J * 0.244, 0.024, 0] });
@@ -35676,7 +35676,7 @@ function h_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   })();
   e?.add(me);
   for (const [J, ve] of Object.entries(c_)) {
-    const j = new Wn(ve.map((T) => c(T, l + 16e-4 + (J === "south" ? 4e-4 : 0))), !1, "centripetal"), C = new Ke(new Qn(j, n ? 60 : 120, 14e-4, 6, !1), J === "north" ? x : b);
+    const j = new Hn(ve.map((T) => c(T, l + 16e-4 + (J === "south" ? 4e-4 : 0))), !1, "centripetal"), C = new Ke(new Qn(j, n ? 60 : 120, 14e-4, 6, !1), J === "north" ? x : b);
     C.name = "keepsake-route-" + J, C.castShadow = !0, r.add(C), e?.add(C.geometry);
     const p = n ? 14 : 24, w = new Yi(me, J === "north" ? x : b, p);
     w.name = "keepsake-paw-prints-" + J;
@@ -35694,7 +35694,7 @@ function h_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   }
   const te = new pt();
   te.name = "keepsake-road-trip-car", r.add(te);
-  const ce = Bn("keepsake-road-trip-car", e), Se = ct(e, "car-body", "#c94f3d", { roughness: 0.35, metalness: 0.25 }), Ae = ct(e, "car-glass", "#9cc3d5", { roughness: 0.1, metalness: 0.3 }), Ee = ct(e, "car-tyres", "#1b1b1d", { roughness: 0.8 });
+  const ce = Gn("keepsake-road-trip-car", e), Se = ct(e, "car-body", "#c94f3d", { roughness: 0.35, metalness: 0.25 }), Ae = ct(e, "car-glass", "#9cc3d5", { roughness: 0.1, metalness: 0.3 }), Ee = ct(e, "car-tyres", "#1b1b1d", { roughness: 0.8 });
   ce.add(new Ge(0.03, 7e-3, 0.014), Se, { p: [0, 55e-4, 0] }), ce.add(new Ge(0.019, 7e-3, 0.0125), Ae, { p: [-3e-3, 0.0125, 0] }), ce.add(new Ge(0.02, 12e-4, 0.013), Se, { p: [-3e-3, 0.0162, 0] }), ce.add(new Ge(0.016, 2e-3, 0.01), ct(e, "roof-rack", "#3b3b3f"), { p: [-3e-3, 0.0178, 0] });
   for (const J of [-1, 1]) for (const ve of [-1, 1]) {
     const j = new Qe(34e-4, 34e-4, 25e-4, 12);
@@ -35777,7 +35777,7 @@ function f_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
       const ve = J * le + re % 2 * le / 2, j = re * se, C = 70 + (re * 5 + J * 3) % 7 * 6, p = re % 4 === 1 ? 12 : 0;
       M.fillStyle = `rgb(${C + p},${C + 2},${C + 12 + p})`, M.beginPath(), re % 4 === 1 || re % 4 === 2 ? (M.moveTo(ve - le / 2 + 1, j), M.lineTo(ve + le / 2 - 1, j), M.lineTo(ve + le / 2 - 1, j + se * 0.6), M.arc(ve, j + se * 0.6, le / 2 - 1, 0, Math.PI)) : M.rect(ve - le / 2 + 1, j, le - 2, se - 1.5), M.fill();
     }
-  }), f = ct(e, "ny-ashlar-sandstone", "#ffffff", { map: d, roughness: 0.85 }), h = ct(e, "ny-fishscale-slate", "#ffffff", { map: u, roughness: 0.6 }), m = ct(e, "ny-stone-trim", "#c9bca2", { roughness: 0.8 }), x = ct(e, "ny-lit-windows", "#ffdf9e", { emissive: "#ffb554", emissiveIntensity: 0.35, roughness: 0.3 }), b = ct(e, "ny-oak-door", "#4a2f1d", { roughness: 0.6 }), g = Bn("keepsake-hoosac-tibbits-hall", e), v = Bn("keepsake-hoosac-tibbits-grounds", e), _ = Bn("keepsake-hoosac-tibbits-friends", e), y = Bn("keepsake-hoosac-tibbits-city", e), E = 0.026;
+  }), f = ct(e, "ny-ashlar-sandstone", "#ffffff", { map: d, roughness: 0.85 }), h = ct(e, "ny-fishscale-slate", "#ffffff", { map: u, roughness: 0.6 }), m = ct(e, "ny-stone-trim", "#c9bca2", { roughness: 0.8 }), x = ct(e, "ny-lit-windows", "#ffdf9e", { emissive: "#ffb554", emissiveIntensity: 0.35, roughness: 0.3 }), b = ct(e, "ny-oak-door", "#4a2f1d", { roughness: 0.6 }), g = Gn("keepsake-hoosac-tibbits-hall", e), v = Gn("keepsake-hoosac-tibbits-grounds", e), _ = Gn("keepsake-hoosac-tibbits-friends", e), y = Gn("keepsake-hoosac-tibbits-city", e), E = 0.026;
   v.add(new Ge(0.46, E, 0.3), s, { p: [0, E / 2, 0] });
   for (const M of [-1, 1]) v.add(new Ge(0.462, 6e-3, 6e-3), a, { p: [0, E + 1e-3, M * 0.148] });
   for (const M of [-1, 1]) v.add(new Ge(6e-3, 6e-3, 0.302), a, { p: [M * 0.228, E + 1e-3, 0] });
@@ -35866,7 +35866,7 @@ function f_(i, { resources: e, reduced: t = !1, low: n = !1 } = {}) {
   _.add(new hn(14e-4, 45e-4, 5), $, { p: [ee, te + 0.0285, me + 9e-3], r: [Math.PI * 0.62, 0, 0] });
   const ce = ct(e, "ny-skin", "#efd2b6", { roughness: 0.7 }), Se = ct(e, "ny-hair", "#2a1d16", { roughness: 0.7 }), Ae = [];
   for (const [M, V, N, se] of [[-0.03, 0.105, "#7a2433", !1], [-0.012, 0.118, "#4f3478", !0]]) {
-    const le = Bn("keepsake-hoosac-student", e), re = new pt();
+    const le = Gn("keepsake-hoosac-student", e), re = new pt();
     re.position.set(M, S, V), r.add(re);
     const J = ct(e, "ny-blazer-" + N, N, { roughness: 0.7 });
     le.add(new Qe(22e-4, 22e-4, 0.012, 6), ct(e, "ny-trousers", "#2c2f3a"), { p: [-22e-4, 6e-3, 0] }), le.add(new Qe(22e-4, 22e-4, 0.012, 6), ct(e, "ny-trousers", "#2c2f3a"), { p: [22e-4, 6e-3, 0] }), le.add(new fr(52e-4, 0.011, 3, 8), J, { p: [0, 0.019, 0] }), le.add(new yt(48e-4, 10, 8), ce, { p: [0, 0.033, 0] }), le.add(new yt(5e-3, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), Se, { p: [0, 0.0338, -6e-4] }), se && le.add(new Ge(8e-3, 2e-3, 6e-3), ct(e, "ny-books", "#c9a24f"), { p: [6e-3, 0.02, 3e-3] }), Ae.push(re, ...le.build(re));
@@ -38835,7 +38835,7 @@ ${Hr}`).replace("#include <color_fragment>", `#include <color_fragment>
     I.translate(4.4, -0.32, q * 1.22), b.push(I);
     const U = new Ht(0.17, 0.035, 6, 14, Math.PI);
     U.rotateY(q > 0 ? 0 : Math.PI), U.translate(4.4, -0.3, q * 1.2), b.push(U);
-    const D = new Qn(new Wn([new Q(6.45, -0.05, q * 0.3), new Q(5.6, -0.3, q * 0.95), new Q(4.6, -0.42, q * 1.2), new Q(4.2, -0.55, q * 1.22)]), 20, 0.035, 5, !1);
+    const D = new Qn(new Hn([new Q(6.45, -0.05, q * 0.3), new Q(5.6, -0.3, q * 0.95), new Q(4.6, -0.42, q * 1.2), new Q(4.2, -0.55, q * 1.22)]), 20, 0.035, 5, !1);
     b.push(D);
   }
   const v = new yt(0.38, 12, 8);
@@ -39104,7 +39104,7 @@ function z_() {
     I.position.set(X * 0.061, 0.018, 0.186), I.rotation.y = X * 0.16, _.add(I);
     const U = new Ke(new ki(0.04, 28), z);
     U.position.set(X * 0.061, 0.018, 0.185), U.rotation.y = X * 0.16, U.renderOrder = 2, _.add(U);
-    const D = new Ke(new Qn(new Wn([new Q(X * 0.101, 0.022, 0.178), new Q(X * 0.13, 0.03, 0.15), new Q(X * 0.158, 0.035, 0.095)]), 8, 28e-4, 5, !1), R);
+    const D = new Ke(new Qn(new Hn([new Q(X * 0.101, 0.022, 0.178), new Q(X * 0.13, 0.03, 0.15), new Q(X * 0.158, 0.035, 0.095)]), 8, 28e-4, 5, !1), R);
     _.add(D);
   }
   const S = new Ke(new Ht(0.0145, 3e-3, 6, 14, Math.PI), R);
@@ -39978,10 +39978,10 @@ function $_({ scene: i, renderer: e, landscape: t, garden: n, quality: r = "high
     }), We = new qo(Fe, Ve);
     We.name = "enchantment-discovery-burst-" + Ue, We.frustumCulled = !1, We.visible = !1, m.add(We), rn.push({ pts: We, mat: Ve }), x.add(Fe), x.add(Ve);
   }
-  let On = 0;
+  let zn = 0;
   function ao(Ue) {
     if (o || !Ue) return;
-    const Je = rn[On++ % rn.length];
+    const Je = rn[zn++ % rn.length];
     Je.mat.uniforms.uOrigin.value.copy(Ue.isVector3 ? Ue : new Q().fromArray(Ue)), Je.mat.uniforms.uAge.value = 0, Je.pts.visible = !0;
   }
   const Mr = ["keepsake-two-shores-box", "keepsake-two-crossings-map", "keepsake-un-crossroads", "keepsake-hoosac-tibbits"].map((Ue) => i.getObjectByName(Ue)).filter(Boolean).map((Ue) => ({ o: Ue, p: Ue.getWorldPosition(new Q()) }));
@@ -40036,8 +40036,8 @@ function $_({ scene: i, renderer: e, landscape: t, garden: n, quality: r = "high
     }
   };
 }
-const Ct = (i) => document.querySelector(i), $l = (i) => [...document.querySelectorAll(i)], Nn = Ct("#world-canvas"), mo = Ct("#world"), pi = matchMedia("(max-width:700px)").matches, To = pi ? "low" : "high", yi = matchMedia("(prefers-reduced-motion:reduce)").matches, Fn = A_(), Be = { mode: "overview", near: "home", dark: !0, time: 0, overlay: null, yaw: -0.12, pitch: 0.92, distance: 90, roomId: null, ready: !1 };
-let Ts, Bl, go, Dn, Hn, zn, tn, Yn, Oi, ii, Rn, so, wi, Kn, Zl, qi, Mi, Kl, Wa, Jo, jo, Xn, Vr, r0, mr = 0, yr = 0, Jl = !1, s0 = !1, dn = null, Ei = null, Rp = null, ys = 0, Ql = 0, wf = !1, ec = !1, Br = !1;
+const Ct = (i) => document.querySelector(i), $l = (i) => [...document.querySelectorAll(i)], Fn = Ct("#world-canvas"), mo = Ct("#world"), pi = matchMedia("(max-width:700px)").matches, To = pi ? "low" : "high", yi = matchMedia("(prefers-reduced-motion:reduce)").matches, Un = A_(), Be = { mode: "overview", near: "home", dark: !0, time: 0, overlay: null, yaw: -0.12, pitch: 0.92, distance: 90, roomId: null, ready: !1 };
+let Ts, Bl, go, Rn, Ln, On, tn, Yn, Oi, ii, Pn, so, wi, Kn, Zl, qi, Mi, Kl, Wa, Jo, jo, Xn, Vr, r0, mr = 0, yr = 0, Jl = !1, s0 = !1, dn = null, Ei = null, Rp = null, ys = 0, Ql = 0, wf = !1, ec = !1, Br = !1;
 const xi = /* @__PURE__ */ new Map(), Po = new w0(), tc = new qe(), nc = new Q(10.5, -0.65, -12), mn = nc.clone(), ln = nc.clone(), Vn = new Q(), Ao = new Q(), ws = new Q();
 let Si = 90, Ea = 0, hr = 0, Fa = 62, ic = "", _s = null;
 const vs = new Q(), _f = new Q(), Mf = /* @__PURE__ */ new Map();
@@ -40052,7 +40052,7 @@ const Ii = _0({
     Oi && so && br(Oi.discover("home", { notify: !1 }));
   },
   onClose() {
-    Yo(Rn?.overlay || null);
+    Yo(Pn?.overlay || null);
   },
   onEnter() {
     Gr(), Xw({ reduced: yi });
@@ -40090,7 +40090,7 @@ function zs() {
     return;
   }
   Ct("#world-prompt").disabled = !1;
-  const i = Be.mode === "interior" && Be.near === "writing" ? "Write to the diary" : Be.mode === "interior" && Be.near === "talks" ? "Leave a thought" : Be.near === "home" ? "Read Hanjing’s letter" : "Read " + (Gn()?.label || "this place");
+  const i = Be.mode === "interior" && Be.near === "writing" ? "Write to the diary" : Be.mode === "interior" && Be.near === "talks" ? "Leave a thought" : Be.near === "home" ? "Read Hanjing’s letter" : "Read " + (Wn()?.label || "this place");
   Ct("#prompt-label").textContent = i;
 }
 function A0() {
@@ -40101,7 +40101,7 @@ function K_() {
 }
 function J_() {
   return [...Oi.colliders, ...Kn.colliders].map((i) => {
-    const e = Gn(i.station), t = { ...i, min: e.worldPoint(i.min), max: e.worldPoint(i.max), world: !0 };
+    const e = Wn(i.station), t = { ...i, min: e.worldPoint(i.min), max: e.worldPoint(i.max), world: !0 };
     return Object.defineProperty(t, "disabled", { enumerable: !0, get: () => !!i.disabled }), t;
   });
 }
@@ -40109,8 +40109,8 @@ function bc(i) {
   if (!i || !Be.ready) return !1;
   if (Be.mode === "interior")
     return hi("Return to the miniature, then choose a stone path outside."), !1;
-  const e = Mi.begin({ ...i, cameraPosition: zn.position, cameraTarget: mn });
-  return e.ok ? (vc(), Rn.closePanel(), Rn.expandGuide(!1), so?.close(), Be.mode = "walk", Be.roomId = null, Ea = hr = 0, Fa = pi ? 68 : 62, ic = "", _s = null, mo.classList.remove("is-inside-room"), mo.classList.add("is-walking"), tn.setActive("overview"), ii.bingbing.visible = !1, ii.xiaohei.visible = !0, Ct("#walk-reverse-btn").hidden = !1, Ct("#walk-next").hidden = !0, Ct("#chapter-eyebrow").textContent = "ON THE PATH · DRAG TO LOOK AROUND", kp(Mi.getState()), Nn.focus({ preventScroll: !0 }), history.replaceState(null, "", location.pathname + location.search), !0) : (hi(e.message), !1);
+  const e = Mi.begin({ ...i, cameraPosition: On.position, cameraTarget: mn });
+  return e.ok ? (vc(), Pn.closePanel(), Pn.expandGuide(!1), so?.close(), Be.mode = "walk", Be.roomId = null, Ea = hr = 0, Fa = pi ? 68 : 62, ic = "", _s = null, mo.classList.remove("is-inside-room"), mo.classList.add("is-walking"), tn.setActive("overview"), ii.bingbing.visible = !1, ii.xiaohei.visible = !0, Ct("#walk-reverse-btn").hidden = !1, Ct("#walk-next").hidden = !0, Ct("#chapter-eyebrow").textContent = "ON THE PATH · DRAG TO LOOK AROUND", kp(Mi.getState()), Fn.focus({ preventScroll: !0 }), history.replaceState(null, "", location.pathname + location.search), !0) : (hi(e.message), !1);
 }
 function Ef() {
   const i = Mi.getState();
@@ -40128,7 +40128,7 @@ function kp(i) {
   const o = [_s, i.phase, i.paused, i.done, i.blocked, i.arrivedAt, i.routeId].join("|");
   if (o === ic) return;
   ic = o;
-  const s = Gn(i.direction > 0 ? i.to : i.from)?.label || "the next place";
+  const s = Wn(i.direction > 0 ? i.to : i.from)?.label || "the next place";
   Ct("#chapter-sub").textContent = i.blocked ? "The path is obstructed. Turn back or return to the whole world." : i.done ? i.arrivedAt ? "At " + s + ". Look inside, or choose the next path." : "A quiet stopping place. Turn back or choose a nearby path." : i.phase === "arriving" ? "Descending to the stone path…" : (i.paused ? "Take your time. " : "Walking toward " + s + ". ") + "Drag to look around.", zs();
   const a = Ct("#walk-next");
   if (a.replaceChildren(), a.hidden = !i.done, i.done) {
@@ -40136,23 +40136,23 @@ function kp(i) {
       const c = new Q(...l.startPoint), d = new Q(...l.endPoint), u = Math.hypot(e.x - c.x, e.z - c.z), f = Math.hypot(e.x - d.x, e.z - d.z);
       if (Math.min(u, f) > 1.4) continue;
       const h = u <= f, m = document.createElement("button");
-      m.type = "button", m.textContent = "To " + Gn(h ? l.to : l.from).label, m.onclick = () => bc({ routeId: l.id, point: (h ? c : d).toArray(), progress: h ? 0 : 1, direction: h ? 1 : -1 }), a.append(m);
+      m.type = "button", m.textContent = "To " + Wn(h ? l.to : l.from).label, m.onclick = () => bc({ routeId: l.id, point: (h ? c : d).toArray(), progress: h ? 0 : 1, direction: h ? 1 : -1 }), a.append(m);
     }
     a.hidden = !a.children.length;
   }
 }
 function E0() {
-  if ((Be.near !== "writing" || Be.mode === "overview") && Bi("writing"), tr("writing"), Rn.closePanel(), Rn.expandGuide(!1), so?.close(), Kn?.close(), qi?.close(), ys = 0, Gn("writing").root.userData.setWritingActive?.(!1), Jo.root.visible = !1, pi) {
+  if ((Be.near !== "writing" || Be.mode === "overview") && Bi("writing"), tr("writing"), Pn.closePanel(), Pn.expandGuide(!1), so?.close(), Kn?.close(), qi?.close(), ys = 0, Wn("writing").root.userData.setWritingActive?.(!1), Jo.root.visible = !1, pi) {
     const i = wi.interactables[0].point;
     Ha({ worldAnchor: [i[0] - 0.7, i[1] - 0.54, i[2]] }), Lp();
   }
-  wi.open({ trigger: Nn }), Fn.play("bell");
+  wi.open({ trigger: Fn }), Un.play("bell");
 }
 function Ip() {
   if (!qi) return;
-  (Be.near !== "talks" || Be.mode === "overview") && Bi("talks"), tr("talks"), Rn.closePanel(), Rn.expandGuide(!1), so?.close(), wi?.close(), Kn?.close();
+  (Be.near !== "talks" || Be.mode === "overview") && Bi("talks"), tr("talks"), Pn.closePanel(), Pn.expandGuide(!1), so?.close(), wi?.close(), Kn?.close();
   const i = qi.interactables[0].point;
-  Ha({ worldAnchor: [i[0], i[1] - 0.54, i[2]] }), pi && Lp(), qi.open({ trigger: Nn }), Fn.play("wood");
+  Ha({ worldAnchor: [i[0], i[1] - 0.54, i[2]] }), pi && Lp(), qi.open({ trigger: Fn }), Un.play("wood");
 }
 function Lp() {
   ln.y -= 0.52, mn.copy(ln);
@@ -40183,13 +40183,13 @@ function zl(i, e, t = {}) {
 function rc() {
   zr = null, oc = !1;
   const i = Ct("#object-tip");
-  i && (i.hidden = !0), Nn && (Nn.style.cursor = "");
+  i && (i.hidden = !0), Fn && (Fn.style.cursor = "");
 }
 function eM(i) {
   if (!oc || !zr || Be.overlay || dn || i - Sf < 100) return;
   oc = !1, Sf = i;
   const e = P0(zr.x, zr.y), t = Ct("#object-tip");
-  if (Nn.style.cursor = e ? "pointer" : "", !e) {
+  if (Fn.style.cursor = e ? "pointer" : "", !e) {
     t.hidden = !0;
     return;
   }
@@ -40202,7 +40202,7 @@ function hi(i) {
   const e = Ct("#speech");
   e.textContent = i, e.hidden = !0, e.offsetWidth, e.hidden = !1, Ql = setTimeout(() => e.hidden = !0, Math.max(6500, String(i).length * 60));
 }
-function Gn(i = Be.near) {
+function Wn(i = Be.near) {
   return tn?.stations.find((e) => e.id === i);
 }
 function Dp(i) {
@@ -40211,7 +40211,7 @@ function Dp(i) {
 function tM(i) {
   const t = Kn?.metadata.entries.find((r) => (r.discoveryId || r.id) === (i.discoveryId || i.id))?.getWorldAnchor?.();
   if (t) return new Q(...t).add(new Q(0, 0.35, 0));
-  const n = Gn(i.station || i.id);
+  const n = Wn(i.station || i.id);
   return n ? n.root.getWorldPosition(new Q()).add(new Q(0, 2.2, 0)) : null;
 }
 function br(i) {
@@ -40219,7 +40219,7 @@ function br(i) {
 }
 function C0(i) {
   const e = Dp(i);
-  Ct("#chapter-title").textContent = e?.title || Gn(i)?.label || "A world within", Ct("#chapter-sub").textContent = e?.subtitle || "A little ink. A little starlight. Pieces of places I’ve called home.", $l("[data-go]").forEach((t) => {
+  Ct("#chapter-title").textContent = e?.title || Wn(i)?.label || "A world within", Ct("#chapter-sub").textContent = e?.subtitle || "A little ink. A little starlight. Pieces of places I’ve called home.", $l("[data-go]").forEach((t) => {
     const n = Be.mode !== "overview" && t.dataset.go === i;
     t.classList.toggle("is-here", n), n ? t.setAttribute("aria-current", "page") : t.removeAttribute("aria-current");
   }), Pp();
@@ -40227,10 +40227,10 @@ function C0(i) {
 function nM(i) {
   if (!go?.overviewBounds) return a0(i);
   i.getSize(ws);
-  const e = Math.atan(Math.tan(nt.degToRad(44 / 2)) * zn.aspect);
+  const e = Math.atan(Math.tan(nt.degToRad(44 / 2)) * On.aspect);
   return Math.max(a0(i) * 0.78, ws.x / 2 / Math.sin(e) * 1.03);
 }
-function a0(i, e = zn.aspect) {
+function a0(i, e = On.aspect) {
   i.getSize(ws);
   const t = Math.tan(nt.degToRad(44 / 2));
   return Math.max(ws.x / (2 * t * e), Math.hypot(ws.z, ws.y) / (2 * t)) * (pi ? 1.16 : 1.32);
@@ -40239,7 +40239,7 @@ function Gr() {
   if (!Be.ready) return;
   Ti = null, jn.clear();
   const i = Be.mode === "walk";
-  A0(), vc(), Rn.closePanel(), Rn.expandGuide(!1), so?.close(), Be.mode = "overview", Be.roomId = null, Be.near = "home", Be.yaw = -0.12, Be.pitch = 0.5, tn.setActive("overview"), Vr?.set(!0), mo.classList.remove("is-inside-room"), Xn.shadow.needsUpdate = !0;
+  A0(), vc(), Pn.closePanel(), Pn.expandGuide(!1), so?.close(), Be.mode = "overview", Be.roomId = null, Be.near = "home", Be.yaw = -0.12, Be.pitch = 0.5, tn.setActive("overview"), Vr?.set(!0), mo.classList.remove("is-inside-room"), Xn.shadow.needsUpdate = !0;
   const e = go?.overviewBounds || Yn.diagnostics?.overviewBounds, t = e ? new gn(new Q(...e.min), new Q(...e.max)) : new gn(new Q(-24, -8, -36), new Q(46, 7, 12));
   t.getCenter(ln), ln.y += 4, Si = nt.clamp(nM(t), 72, 260), (yi || i) && (mn.copy(ln), Be.distance = Si), Ct("#chapter-title").textContent = "A world within", Ct("#chapter-sub").textContent = "Ink, starlight, and places I’ve called home. " + (pi ? "Tap" : "Click") + " a miniature to look closer, or a stone path to walk.", Ct("#chapter-eyebrow").textContent = "HANJING’S OPENED CRYSTAL WORLD", Pp(), Ct("#room-btn").hidden = !0, Ct("#prompt-label").textContent = "Read the invitation", $l("[data-go]").forEach((n) => {
     n.classList.remove("is-here"), n.removeAttribute("aria-current");
@@ -40247,18 +40247,18 @@ function Gr() {
 }
 function Bi(i, e = {}) {
   if (!Be.ready) return;
-  const t = Gn(i);
+  const t = Wn(i);
   if (!t) return;
   Ti = null, jn.clear();
   const n = Be.mode === "walk";
-  A0(), vc(), Rn.closePanel(), so?.close(), e.fromChat || Rn.expandGuide(!1), Be.mode = "chapter", Be.near = i, Be.roomId = null, Be.yaw = 0.28, Be.pitch = 0.36, Vr?.set(!1), tn.setActive(i), mo.classList.remove("is-inside-room");
+  A0(), vc(), Pn.closePanel(), so?.close(), e.fromChat || Pn.expandGuide(!1), Be.mode = "chapter", Be.near = i, Be.roomId = null, Be.yaw = 0.28, Be.pitch = 0.36, Vr?.set(!1), tn.setActive(i), mo.classList.remove("is-inside-room");
   const r = new gn().setFromObject(t.root);
-  ln.copy(r.getCenter(new Q())), ln.y = Math.max(0.8, ln.y - 0.1), Si = nt.clamp(a0(r), pi ? 13 : 10, 42), (yi || n) && (mn.copy(ln), Be.distance = Si), ii.placeAtChapter(t, tn), ii.bingbing.visible = !0, ii.xiaohei.visible = Gn("life").root.visible, Ct("#chapter-eyebrow").textContent = "A PLACE TO LOOK CLOSER", C0(i), Ct("#room-btn").hidden = !t.rooms?.length, Ct("#room-btn").textContent = "Look inside", Ct("#prompt-label").textContent = i === "home" ? "Read Hanjing’s letter" : "Read " + t.label, history.replaceState(null, "", location.pathname + location.search + "#" + i), (e.open || e.focus) && Rn.openPanel(i, e.focus, e.fromChat);
+  ln.copy(r.getCenter(new Q())), ln.y = Math.max(0.8, ln.y - 0.1), Si = nt.clamp(a0(r), pi ? 13 : 10, 42), (yi || n) && (mn.copy(ln), Be.distance = Si), ii.placeAtChapter(t, tn), ii.bingbing.visible = !0, ii.xiaohei.visible = Wn("life").root.visible, Ct("#chapter-eyebrow").textContent = "A PLACE TO LOOK CLOSER", C0(i), Ct("#room-btn").hidden = !t.rooms?.length, Ct("#room-btn").textContent = "Look inside", Ct("#prompt-label").textContent = i === "home" ? "Read Hanjing’s letter" : "Read " + t.label, history.replaceState(null, "", location.pathname + location.search + "#" + i), (e.open || e.focus) && Pn.openPanel(i, e.focus, e.fromChat);
 }
 function tr(i = Be.near) {
-  const e = Gn(i), t = e?.rooms?.[0];
+  const e = Wn(i), t = e?.rooms?.[0];
   if (!t) return !1;
-  Ti = null, jn.clear(), Ua = !1, A0(), vc(), Rn.closePanel(), Vr?.set(!1), Be.mode = "interior", Be.near = i, Be.roomId = t.id, tn.setActive(i), t.openEntrance?.(), t.onEnter?.(), mo.classList.add("is-inside-room"), ln.fromArray(t.camera?.target || [(t.bounds.min[0] + t.bounds.max[0]) / 2, t.bounds.min[1] + 1.1, (t.bounds.min[2] + t.bounds.max[2]) / 2]), Vn.copy(ln).add(new Q(...t.camera?.offset || [0, 0.35, 1.5]));
+  Ti = null, jn.clear(), Ua = !1, A0(), vc(), Pn.closePanel(), Vr?.set(!1), Be.mode = "interior", Be.near = i, Be.roomId = t.id, tn.setActive(i), t.openEntrance?.(), t.onEnter?.(), mo.classList.add("is-inside-room"), ln.fromArray(t.camera?.target || [(t.bounds.min[0] + t.bounds.max[0]) / 2, t.bounds.min[1] + 1.1, (t.bounds.min[2] + t.bounds.max[2]) / 2]), Vn.copy(ln).add(new Q(...t.camera?.offset || [0, 0.35, 1.5]));
   const n = t.bounds;
   i === "writing" && (ln.fromArray(e.worldPoint([0.25, 0.7, -1.55])), Vn.fromArray(e.worldPoint([0.25, 2.35, 0.4]))), i === "life" && (ln.fromArray(e.worldPoint([0, 0.9, -2.1])), Vn.fromArray(e.worldPoint([0, 1.7, -0.28]))), Vn.x = nt.clamp(Vn.x, n.min[0] + 0.18, n.max[0] - 0.18), Vn.y = nt.clamp(Vn.y, n.min[1] + 0.4, n.max[1] - 0.18), Vn.z = nt.clamp(Vn.z, n.min[2] + 0.18, n.max[2] - 0.18), mn.copy(ln), Be.distance = Vn.distanceTo(ln), Si = Be.distance;
   const r = Vn.clone().sub(ln).normalize();
@@ -40282,7 +40282,7 @@ function Np(i) {
 }
 function iM(i) {
   const e = i.bounds, t = [];
-  Hn.updateMatrixWorld(!0);
+  Ln.updateMatrixWorld(!0);
   for (const n of [...go?.interactables || [], ...Kn?.interactables || [], ...wi?.interactables || [], ...qi?.interactables || []])
     for (const r of (n.objects || [n.object]).filter((o) => o?.isObject3D && Up(o))) {
       const o = new gn().setFromObject(r);
@@ -40299,13 +40299,13 @@ function xs(i, e) {
   mn.set(n - Math.sin(Be.yaw) * s, r - Math.sin(Be.pitch) * Be.distance, o - Math.cos(Be.yaw) * s), ln.copy(mn);
 }
 function oM(i) {
-  const e = Gn(i.station), t = i.seat;
+  const e = Wn(i.station), t = i.seat;
   if (!e || !t) return;
   (Be.mode !== "interior" || Be.near !== i.station) && tr(i.station), jn.clear();
   const n = new Q(...e.worldPoint(t.eye)), r = new Q(...e.worldPoint(t.look));
   Ti = { eye: n, look: r, stand: new Q(...e.worldPoint(t.stand)) }, ln.copy(r), mn.copy(r);
   const o = n.clone().sub(r);
-  Si = Be.distance = o.length(), o.normalize(), Be.yaw = Math.atan2(o.x, o.z), Be.pitch = Math.asin(o.y), Fn.play("wood"), hi(t.line), zs();
+  Si = Be.distance = o.length(), o.normalize(), Be.yaw = Math.atan2(o.x, o.z), Be.pitch = Math.asin(o.y), Un.play("wood"), hi(t.line), zs();
 }
 function wa() {
   if (!Ti) return !1;
@@ -40317,31 +40317,31 @@ function wa() {
 function l0(i) {
   const e = String(i || "").toLowerCase();
   if (["night", "day", "wave", "bow"].includes(e)) {
-    Fn.play("bell");
+    Un.play("bell");
     return;
   }
   if (["write", "ink"].includes(e)) {
-    Bi("writing"), tr("writing"), Gn("writing").root.userData.setWritingActive?.(!0), ys = Be.time + 14, Fn.play("wood");
+    Bi("writing"), tr("writing"), Wn("writing").root.userData.setWritingActive?.(!0), ys = Be.time + 14, Un.play("wood");
     return;
   }
   if (["pet", "purr", "pounce"].includes(e)) {
-    ii.interact(e === "pet" ? "xiaohei" : "jinbingbing"), Fn.play("cat");
+    ii.interact(e === "pet" ? "xiaohei" : "jinbingbing"), Un.play("cat");
     return;
   }
   if (["simmer", "food"].includes(e)) {
-    Gn("life").root.userData.setCooking?.(!0), Fn.play("wood");
+    Wn("life").root.userData.setCooking?.(!0), Un.play("wood");
     return;
   }
   if (["talk", "projector"].includes(e)) {
-    Rn.openTheater(0);
+    Pn.openTheater(0);
     return;
   }
-  ["cap", "mail", "read"].includes(e) && (Rn.openPanel(e === "cap" ? "education" : e === "mail" ? "contact" : "research"), Fn.play("wood"));
+  ["cap", "mail", "read"].includes(e) && (Pn.openPanel(e === "cap" ? "education" : e === "mail" ? "contact" : "research"), Un.play("wood"));
 }
 function Fp(i) {
   if (!i) return;
   if (i.type === "enchant") {
-    i.onInteract?.(), Fn.play("bell");
+    i.onInteract?.(), Un.play("bell");
     return;
   }
   if (i.type === "road") {
@@ -40367,15 +40367,15 @@ function Fp(i) {
   if (i.type === "magic") {
     const t = i.onInteract?.();
     if (i.story) {
-      t?.complete !== !1 && br(t), Fn.play("bell");
+      t?.complete !== !1 && br(t), Un.play("bell");
       return;
     }
-    t?.complete === !1 ? hi(t.note) : t && (clearTimeout(Ql), Ct("#speech").hidden = !0, br(t)), i.station === "home" && Ii.open({ replay: !0, trigger: Ct("#letter-btn") }), Fn.play("bell");
+    t?.complete === !1 ? hi(t.note) : t && (clearTimeout(Ql), Ct("#speech").hidden = !0, br(t)), i.station === "home" && Ii.open({ replay: !0, trigger: Ct("#letter-btn") }), Un.play("bell");
     return;
   }
   if (i.type === "cat") {
-    const t = ii.interact(i.catId, { point: i.point, camera: zn.position, action: i.action });
-    Fn.play("cat"), hi(t?.line || (i.catId === "xiaohei" ? "XiaoHei, our oldest brother. Still acting like a baby." : "JinBingBing, the youngest. Of course she runs the place."));
+    const t = ii.interact(i.catId, { point: i.point, camera: On.position, action: i.action });
+    Un.play("cat"), hi(t?.line || (i.catId === "xiaohei" ? "XiaoHei, our oldest brother. Still acting like a baby." : "JinBingBing, the youngest. Of course she runs the place."));
     return;
   }
   if (i.type === "seat") {
@@ -40383,9 +40383,9 @@ function Fp(i) {
     return;
   }
   if (i.type === "food") {
-    const t = Gn("life").root.userData.setCooking?.();
-    if (Fn.play("wood"), t === "again") {
-      Rn.openPanel(i.station || Be.near, i.focus);
+    const t = Wn("life").root.userData.setCooking?.();
+    if (Un.play("wood"), t === "again") {
+      Pn.openPanel(i.station || Be.near, i.focus);
       return;
     }
     hi("Steamed seafood, the taste of home in Dalian. Mantis shrimp, a swimming crab (we call it a flying crab), clams, sea snails and shrimp. Still my favourite food.");
@@ -40398,7 +40398,7 @@ function Fp(i) {
     return;
   }
   if (["river", "lotus"].includes(i.type)) {
-    Yn.stir?.(i.point, Be.time), Fn.play("water");
+    Yn.stir?.(i.point, Be.time), Un.play("water");
     return;
   }
   if (i.type === "tree") {
@@ -40406,11 +40406,11 @@ function Fp(i) {
     return;
   }
   if (i.type === "book") {
-    i.object?.userData?.wiggle?.(), Fn.play("wood"), Rn.openPanel("research", i.focus);
+    i.object?.userData?.wiggle?.(), Un.play("wood"), Pn.openPanel("research", i.focus);
     return;
   }
   if (["talk", "projection"].includes(i.type)) {
-    Rn.openTheater(0);
+    Pn.openTheater(0);
     return;
   }
   if (["write", "ink"].includes(i.type)) {
@@ -40418,18 +40418,18 @@ function Fp(i) {
     return;
   }
   if (["screen", "crane", "star"].includes(i.type)) {
-    Fn.play("bell");
+    Un.play("bell");
     return;
   }
   if (i.type === "pet") {
-    ii.interact("xiaohei"), Fn.play("cat");
+    ii.interact("xiaohei"), Un.play("cat");
     return;
   }
   if (i.url || i.href) {
     window.open(i.url || i.href, "_blank", "noopener");
     return;
   }
-  Rn.openPanel(e, i.focus);
+  Pn.openPanel(e, i.focus);
 }
 function Up(i) {
   for (let e = i; e; e = e.parent) if (e.visible === !1) return !1;
@@ -40440,8 +40440,8 @@ function Ca(i) {
   return Up(e ? i.parent : i);
 }
 function c0(i, e) {
-  const t = Nn.getBoundingClientRect();
-  return tc.set((i - t.left) / t.width * 2 - 1, -(e - t.top) / t.height * 2 + 1), Po.setFromCamera(tc, zn), Po.ray.clone();
+  const t = Fn.getBoundingClientRect();
+  return tc.set((i - t.left) / t.width * 2 - 1, -(e - t.top) / t.height * 2 + 1), Po.setFromCamera(tc, On), Po.ray.clone();
 }
 function rM(i, e) {
   const t = c0(i, e);
@@ -40456,14 +40456,14 @@ function rM(i, e) {
 }
 function sM(i) {
   if (!i) {
-    Fn.play("wood");
+    Un.play("wood");
     return;
   }
-  Fn.play(i.complete ? "bell" : "wood"), i.complete ? (br(i), hi(i.note)) : i.note && hi(i.note);
+  Un.play(i.complete ? "bell" : "wood"), i.complete ? (br(i), hi(i.note)) : i.note && hi(i.note);
 }
 function P0(i, e) {
-  const t = Nn.getBoundingClientRect();
-  if (tc.set((i - t.left) / t.width * 2 - 1, -(e - t.top) / t.height * 2 + 1), Po.setFromCamera(tc, zn), Be.mode === "overview") {
+  const t = Fn.getBoundingClientRect();
+  if (tc.set((i - t.left) / t.width * 2 - 1, -(e - t.top) / t.height * 2 + 1), Po.setFromCamera(tc, On), Be.mode === "overview") {
     let a = null, l = 1 / 0;
     for (const c of tn.stations) {
       const d = Po.intersectObject(c.root, !0).find((u) => u.object.material?.visible !== !1);
@@ -40482,7 +40482,7 @@ function P0(i, e) {
   let n = null, r = 1 / 0, o = null;
   const s = T0();
   for (const a of s) {
-    if (a.station && !Gn(a.station)?.root.visible) continue;
+    if (a.station && !Wn(a.station)?.root.visible) continue;
     const l = (a.objects || [a.object]).filter((d) => d?.isObject3D && Ca(d));
     if (!l.length) continue;
     const c = Po.intersectObjects(l, !0)[0];
@@ -40510,13 +40510,13 @@ function bs(i) {
   Be.mode === "interior" ? Si = nt.clamp(Si * i, 0.75, 3) : Si = nt.clamp(Si * i, Be.mode === "overview" ? 42 : 4, 250);
 }
 function Op() {
-  ec = !1, Dn.setPixelRatio(Math.min(devicePixelRatio || 1, pi ? 1.1 : 1.65)), Dn.setSize(mo.clientWidth, mo.clientHeight, !1), Wa?.resize(), zn.aspect = mo.clientWidth / mo.clientHeight, zn.updateProjectionMatrix(), Be.ready && Be.mode === "overview" && Gr();
+  ec = !1, Rn.setPixelRatio(Math.min(devicePixelRatio || 1, pi ? 1.1 : 1.65)), Rn.setSize(mo.clientWidth, mo.clientHeight, !1), Wa?.resize(), On.aspect = mo.clientWidth / mo.clientHeight, On.updateProjectionMatrix(), Be.ready && Be.mode === "overview" && Gr();
 }
 function aM() {
   const i = /* @__PURE__ */ new Map(), e = (n) => {
-    n?.isTexture && Dn.properties.get(n).__webglTexture && i.set(n.uuid, n);
+    n?.isTexture && Rn.properties.get(n).__webglTexture && i.set(n.uuid, n);
   };
-  e(Kl), e(Wa?.texture), e(Xn.shadow.map?.texture), Hn.traverse((n) => {
+  e(Kl), e(Wa?.texture), e(Xn.shadow.map?.texture), Ln.traverse((n) => {
     e(n.skeleton?.boneTexture);
     for (const r of n.material ? Array.isArray(n.material) ? n.material : [n.material] : [])
       Object.values(r).forEach(e), Object.values(r.userData || {}).forEach(e), Object.values(r.uniforms || {}).forEach((o) => e(o.value));
@@ -40540,7 +40540,7 @@ function Ra(i) {
   }
   const e = s0 ? 0 : Math.min(0.08, mr ? (i - mr) / 1e3 : 1 / 60);
   mr = i, Be.time += e, tn.update(Be.time, e, !0), Oi.update(Be.time, e), Zl?.update(Be.time, e), Kn?.update(Be.time, e), wi?.update(e), qi?.update(e), Yn.setInspection?.(Be.mode !== "overview"), Yn.update(e, Be.time, !0, mn.x, mn.z), ii.update(e, Be.time);
-  const t = Gn("writing");
+  const t = Wn("writing");
   ys && Be.time > ys && (t.root.userData.setWritingActive?.(!1), ys = 0), Jo.root.visible = ys > Be.time && t.root.visible;
   const n = Jo.root.visible ? t.root.userData.getWritingTip?.() : null;
   if (n && (Jo.root.position.copy(t.root.localToWorld(new Q(...n.position))), n.active || (Jo.root.position.y += 0.025)), Be.mode === "walk") {
@@ -40552,19 +40552,19 @@ function Ra(i) {
     }
   } else
     Be.mode === "interior" ? Np(e) : jn.clear(), mn.lerp(ln, yi ? 1 : 1 - Math.exp(-e * 5)), Be.distance = nt.damp(Be.distance, Si, yi ? 1e3 : 5, e || 1 / 60), Ti && (mn.copy(Ti.eye).sub(new Q(Math.sin(Be.yaw) * Math.cos(Be.pitch) * Be.distance, Math.sin(Be.pitch) * Be.distance, Math.cos(Be.yaw) * Math.cos(Be.pitch) * Be.distance)), ln.copy(mn)), Ao.copy(mn).add(new Q(Math.sin(Be.yaw) * Math.cos(Be.pitch) * Be.distance, Math.sin(Be.pitch) * Be.distance, Math.cos(Be.yaw) * Math.cos(Be.pitch) * Be.distance));
-  const r = Be.mode === "walk" ? Fa : Be.mode === "interior" ? Ti ? pi ? 80 : 70 : pi ? 72 : 62 : 44, o = Be.mode === "walk" && !yi ? nt.damp(zn.fov, r, 5, e || 1 / 60) : r;
-  Math.abs(zn.fov - o) > 1e-3 && (zn.fov = o, zn.updateProjectionMatrix());
+  const r = Be.mode === "walk" ? Fa : Be.mode === "interior" ? Ti ? pi ? 80 : 70 : pi ? 72 : 62 : 44, o = Be.mode === "walk" && !yi ? nt.damp(On.fov, r, 5, e || 1 / 60) : r;
+  Math.abs(On.fov - o) > 1e-3 && (On.fov = o, On.updateProjectionMatrix());
   const s = xc();
   if (s) {
     const d = s.bounds;
     Ao.x = nt.clamp(Ao.x, d.min[0] + 0.16, d.max[0] - 0.16), Ao.y = nt.clamp(Ao.y, d.min[1] + 0.35, d.max[1] - 0.18), Ao.z = nt.clamp(Ao.z, d.min[2] + 0.16, d.max[2] - 0.16);
   }
-  if (zn.position.copy(Ao), zn.lookAt(mn), jo.visible = !!s, s) {
+  if (On.position.copy(Ao), On.lookAt(mn), jo.visible = !!s, s) {
     const d = s.bounds;
     jo.position.set((d.min[0] + d.max[0]) / 2, d.max[1] - 0.3, (d.min[2] + d.max[2]) / 2), jo.distance = Math.hypot(d.max[0] - d.min[0], d.max[2] - d.min[2]);
   }
-  const a = Be.mode === "walk" ? Ao : Be.mode === "overview" ? nc : Gn()?.exploreTarget || nc, l = a.isVector3 ? a : new Q(...a), c = Be.mode === "overview" ? 43 : 9;
-  Xn.target.position.copy(l), Xn.position.copy(l).add(new Q(-28, 38, 32)), Xn.target.updateMatrixWorld(), Xn.shadow.autoUpdate = Be.mode !== "overview", (Xn.shadow.camera.right !== c || Xn.shadow.camera.top !== c) && (Object.assign(Xn.shadow.camera, { left: -c, right: c, top: c, bottom: -c }), Xn.shadow.camera.updateProjectionMatrix(), Xn.shadow.needsUpdate = !0), go?.update(e, Be.time, zn, Dn), Ts?.update(Be.time), eM(i), Dn.info.reset(), Dn.render(Hn, zn), Wa?.render(), ec = Ii.isOpen, yr = requestAnimationFrame(Ra);
+  const a = Be.mode === "walk" ? Ao : Be.mode === "overview" ? nc : Wn()?.exploreTarget || nc, l = a.isVector3 ? a : new Q(...a), c = Be.mode === "overview" ? 43 : 9;
+  Xn.target.position.copy(l), Xn.position.copy(l).add(new Q(-28, 38, 32)), Xn.target.updateMatrixWorld(), Xn.shadow.autoUpdate = Be.mode !== "overview", (Xn.shadow.camera.right !== c || Xn.shadow.camera.top !== c) && (Object.assign(Xn.shadow.camera, { left: -c, right: c, top: c, bottom: -c }), Xn.shadow.camera.updateProjectionMatrix(), Xn.shadow.needsUpdate = !0), go?.update(e, Be.time, On, Rn), Ts?.update(Be.time), eM(i), Rn.info.reset(), Rn.render(Ln, On), Wa?.render(), ec = Ii.isOpen, yr = requestAnimationFrame(Ra);
 }
 function lM() {
   const i = Ct(".chapter-caption");
@@ -40573,26 +40573,26 @@ function lM() {
   }), r0.observe(i, { box: "border-box" }), $l("[data-go]").forEach((t) => t.addEventListener("click", () => {
     Bi(t.dataset.go), Ct("#places").classList.remove("is-open"), Ct("#places-btn").setAttribute("aria-expanded", "false");
   })), Ct("#world-prompt").onclick = () => {
-    wa() || (Be.mode === "walk" ? Ef() : Be.mode === "overview" || Be.near === "home" ? Ii.open({ replay: !0, trigger: Ct("#world-prompt") }) : Be.mode === "interior" && Be.near === "writing" ? E0() : Be.mode === "interior" && Be.near === "talks" ? Ip() : Rn.openPanel(Be.near));
+    wa() || (Be.mode === "walk" ? Ef() : Be.mode === "overview" || Be.near === "home" ? Ii.open({ replay: !0, trigger: Ct("#world-prompt") }) : Be.mode === "interior" && Be.near === "writing" ? E0() : Be.mode === "interior" && Be.near === "talks" ? Ip() : Pn.openPanel(Be.near));
   }, Ct("#letter-btn").onclick = () => {
     so.close(), Ii.open({ replay: !0, trigger: Ct("#letter-btn") });
   }, Ct("#room-btn").onclick = () => Be.mode === "interior" ? R0() : tr(), Ct("#walk-start-btn").onclick = () => {
     const t = Yn.walkRoutes.find((n) => n.from === "home") || Yn.walkRoutes[0];
     bc({ routeId: t.id, point: t.startPoint, progress: 0, direction: 1 });
-  }, Ct("#walk-reverse-btn").onclick = Q_, Ct("#keepsake-btn").onclick = Z_, Ct("#view-btn").onclick = Gr, Ct("#overview-btn").onclick = Gr, Ct("#zoom-in-btn").onclick = () => bs(0.83), Ct("#zoom-out-btn").onclick = () => bs(1 / 0.83), Ct("#sound-btn").onclick = () => Ct("#sound-btn").setAttribute("aria-pressed", String(Fn.toggle())), Ct("#help-btn").onclick = () => hi("Click a stone path to walk through the world. Drag to look around, and press E to pause or carry on. Click a miniature to look closer, then Look inside. Inside a room, walk with W A S D or the arrow pad. The crystal icon brings you back to the whole world. Many things answer when you click them, so be curious."), Ct("#recover-btn").onclick = () => location.reload(), Ct("#places-btn").onclick = () => {
+  }, Ct("#walk-reverse-btn").onclick = Q_, Ct("#keepsake-btn").onclick = Z_, Ct("#view-btn").onclick = Gr, Ct("#overview-btn").onclick = Gr, Ct("#zoom-in-btn").onclick = () => bs(0.83), Ct("#zoom-out-btn").onclick = () => bs(1 / 0.83), Ct("#sound-btn").onclick = () => Ct("#sound-btn").setAttribute("aria-pressed", String(Un.toggle())), Ct("#help-btn").onclick = () => hi("Click a stone path to walk through the world. Drag to look around, and press E to pause or carry on. Click a miniature to look closer, then Look inside. Inside a room, walk with W A S D or the arrow pad. The crystal icon brings you back to the whole world. Many things answer when you click them, so be curious."), Ct("#recover-btn").onclick = () => location.reload(), Ct("#places-btn").onclick = () => {
     const t = Ct("#places-btn").getAttribute("aria-expanded") === "true";
     Ct("#places-btn").setAttribute("aria-expanded", String(!t)), Ct("#places").classList.toggle("is-open", !t);
-  }, Nn.addEventListener("wheel", (t) => {
+  }, Fn.addEventListener("wheel", (t) => {
     Be.overlay || (t.preventDefault(), bs(Math.exp(nt.clamp(t.deltaY, -100, 100) * 2e-3)));
-  }, { passive: !1 }), Nn.addEventListener("pointerdown", (t) => {
+  }, { passive: !1 }), Fn.addEventListener("pointerdown", (t) => {
     if (!Be.overlay)
-      if (rc(), Nn.focus(), Nn.setPointerCapture(t.pointerId), xi.set(t.pointerId, { x: t.clientX, y: t.clientY }), xi.size === 1) {
+      if (rc(), Fn.focus(), Fn.setPointerCapture(t.pointerId), xi.set(t.pointerId, { x: t.clientX, y: t.clientY }), xi.size === 1) {
         dn = { x: t.clientX, y: t.clientY, startX: t.clientX, startY: t.clientY, moved: !1 };
         const n = Be.mode === "interior" ? rM(t.clientX, t.clientY) : null;
         Ei = n ? { item: n, started: !1 } : null;
       } else
         dn && (dn.moved = !0), Ei = null;
-  }), Nn.addEventListener("pointerleave", rc), Nn.addEventListener("pointermove", (t) => {
+  }), Fn.addEventListener("pointerleave", rc), Fn.addEventListener("pointermove", (t) => {
     if (!xi.has(t.pointerId) && t.pointerType === "mouse" && !Be.overlay && (zr = { x: t.clientX, y: t.clientY }, oc = !0), Be.overlay || !xi.has(t.pointerId)) return;
     const n = [...xi.values()];
     if (xi.set(t.pointerId, { x: t.clientX, y: t.clientY }), xi.size === 2) {
@@ -40600,8 +40600,8 @@ function lM() {
       o > 0 && s > 0 && bs(o / s), dn && (dn.moved = !0);
       return;
     }
-    if (Ei && dn && xi.size === 1 && (!Ei.started && Math.hypot(t.clientX - dn.startX, t.clientY - dn.startY) > 6 && (Ei.item.drag.begin?.() === !1 ? Ei = null : (Ei.started = !0, Fn.play("wood"))), Ei?.started)) {
-      dn.moved = !0, Nn.style.cursor = "grabbing", Ei.item.drag.move(c0(t.clientX, t.clientY));
+    if (Ei && dn && xi.size === 1 && (!Ei.started && Math.hypot(t.clientX - dn.startX, t.clientY - dn.startY) > 6 && (Ei.item.drag.begin?.() === !1 ? Ei = null : (Ei.started = !0, Un.play("wood"))), Ei?.started)) {
+      dn.moved = !0, Fn.style.cursor = "grabbing", Ei.item.drag.move(c0(t.clientX, t.clientY));
       return;
     }
     dn && (dn.moved || (dn.moved = Math.hypot(t.clientX - dn.startX, t.clientY - dn.startY) > 6), dn.moved && (Be.mode === "walk" ? (Ea -= (t.clientX - dn.x) * 4e-3, hr = nt.clamp(hr + (t.clientY - dn.y) * 3e-3, -0.6, 0.6)) : Be.mode === "interior" && !Ua ? xs(-(t.clientX - dn.x) * 4e-3, (t.clientY - dn.y) * 3e-3) : (Be.yaw -= (t.clientX - dn.x) * 4e-3, Be.pitch = nt.clamp(Be.pitch + (t.clientY - dn.y) * 3e-3, Be.mode === "interior" ? -0.12 : 0.15, 1.38))), dn.x = t.clientX, dn.y = t.clientY);
@@ -40609,7 +40609,7 @@ function lM() {
   const e = (t) => {
     if (Ei) {
       const o = Ei;
-      if (Ei = null, Nn.style.cursor = "", o.started) {
+      if (Ei = null, Fn.style.cursor = "", o.started) {
         const s = o.item.drag.end(t.type === "pointerup" ? c0(t.clientX, t.clientY) : null);
         sM(s);
       }
@@ -40620,7 +40620,7 @@ function lM() {
       Rp = o?.id, Fp(o);
     }
   };
-  ["pointerup", "pointercancel", "lostpointercapture"].forEach((t) => Nn.addEventListener(t, e)), addEventListener("keydown", (t) => {
+  ["pointerup", "pointercancel", "lostpointercapture"].forEach((t) => Fn.addEventListener(t, e)), addEventListener("keydown", (t) => {
     if (!(Be.overlay || Ii.isOpen || /INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName) || document.activeElement?.isContentEditable)) {
       if (Be.mode === "interior" && !t.ctrlKey && !t.metaKey && !t.altKey) {
         const n = Tf[t.code];
@@ -40629,7 +40629,7 @@ function lM() {
           return;
         }
       }
-      document.activeElement === Nn && (t.key === "Escape" ? (wa() || Gr(), t.preventDefault()) : t.key === "+" || t.key === "=" ? (bs(0.83), t.preventDefault()) : t.key === "-" ? (bs(1 / 0.83), t.preventDefault()) : t.key === "Enter" || t.key === "e" ? (Ct("#world-prompt").click(), t.preventDefault()) : t.key === " " && Be.mode === "walk" ? (Ef(), t.preventDefault()) : t.key.startsWith("Arrow") && (Be.mode === "walk" ? (t.key === "ArrowLeft" && (Ea += 0.1), t.key === "ArrowRight" && (Ea -= 0.1), t.key === "ArrowUp" && (hr = Math.min(0.6, hr + 0.08)), t.key === "ArrowDown" && (hr = Math.max(-0.6, hr - 0.08))) : Be.mode === "interior" && !Ua ? (t.key === "ArrowLeft" && xs(0.1, 0), t.key === "ArrowRight" && xs(-0.1, 0), t.key === "ArrowUp" && xs(0, -0.08), t.key === "ArrowDown" && xs(0, 0.08)) : (t.key === "ArrowLeft" && (Be.yaw += 0.1), t.key === "ArrowRight" && (Be.yaw -= 0.1), t.key === "ArrowUp" && (Be.pitch = Math.min(1.38, Be.pitch + 0.08)), t.key === "ArrowDown" && (Be.pitch = Math.max(0.15, Be.pitch - 0.08))), t.preventDefault()));
+      document.activeElement === Fn && (t.key === "Escape" ? (wa() || Gr(), t.preventDefault()) : t.key === "+" || t.key === "=" ? (bs(0.83), t.preventDefault()) : t.key === "-" ? (bs(1 / 0.83), t.preventDefault()) : t.key === "Enter" || t.key === "e" ? (Ct("#world-prompt").click(), t.preventDefault()) : t.key === " " && Be.mode === "walk" ? (Ef(), t.preventDefault()) : t.key.startsWith("Arrow") && (Be.mode === "walk" ? (t.key === "ArrowLeft" && (Ea += 0.1), t.key === "ArrowRight" && (Ea -= 0.1), t.key === "ArrowUp" && (hr = Math.min(0.6, hr + 0.08)), t.key === "ArrowDown" && (hr = Math.max(-0.6, hr - 0.08))) : Be.mode === "interior" && !Ua ? (t.key === "ArrowLeft" && xs(0.1, 0), t.key === "ArrowRight" && xs(-0.1, 0), t.key === "ArrowUp" && xs(0, -0.08), t.key === "ArrowDown" && xs(0, 0.08)) : (t.key === "ArrowLeft" && (Be.yaw += 0.1), t.key === "ArrowRight" && (Be.yaw -= 0.1), t.key === "ArrowUp" && (Be.pitch = Math.min(1.38, Be.pitch + 0.08)), t.key === "ArrowDown" && (Be.pitch = Math.max(0.15, Be.pitch - 0.08))), t.preventDefault()));
     }
   }), addEventListener("keyup", (t) => {
     const n = Tf[t.code];
@@ -40641,23 +40641,44 @@ function lM() {
     }), ["pointerup", "pointercancel", "lostpointercapture"].forEach((o) => t.addEventListener(o, r)), t.addEventListener("contextmenu", (o) => o.preventDefault());
   }), addEventListener("blur", () => {
     jn.clear(), Ei?.started && Ei.item.drag.end(null), Ei = null, dn = null, xi.clear();
-  }), Nn.addEventListener("webglcontextlost", (t) => {
+  }), Fn.addEventListener("webglcontextlost", (t) => {
     t.preventDefault(), Jl = !0, cancelAnimationFrame(yr), Ct("#world-error").hidden = !1;
   }), document.addEventListener("visibilitychange", () => {
-    Fn.pause(document.hidden), document.hidden ? (cancelAnimationFrame(yr), mr = 0, dn = null, xi.clear()) : Jl || (mr = 0, yr = requestAnimationFrame(Ra));
+    Un.pause(document.hidden), document.hidden ? (cancelAnimationFrame(yr), mr = 0, dn = null, xi.clear()) : Jl || (mr = 0, yr = requestAnimationFrame(Ra));
   }), addEventListener("resize", Op), addEventListener("pagehide", (t) => {
     t.persisted || cM();
   });
 }
 function cM() {
-  wf || (wf = !0, Jl = !0, cancelAnimationFrame(yr), clearTimeout(Ql), r0?.disconnect(), Mi?.dispose(), Ii.destroy(), so?.destroy(), Rn?.dispose(), Vr?.dispose(), wi?.dispose(), qi?.dispose(), Kn?.dispose(), Zl?.dispose(), ii?.dispose(), Oi?.dispose(), Yn?.dispose(), tn?.dispose(), Jo?.dispose(), Wa?.dispose(), Kl?.dispose(), Fn.dispose(), Dn?.dispose());
+  wf || (wf = !0, Jl = !0, cancelAnimationFrame(yr), clearTimeout(Ql), r0?.disconnect(), Mi?.dispose(), Ii.destroy(), so?.destroy(), Pn?.dispose(), Vr?.dispose(), wi?.dispose(), qi?.dispose(), Kn?.dispose(), Zl?.dispose(), ii?.dispose(), Oi?.dispose(), Yn?.dispose(), tn?.dispose(), Jo?.dispose(), Wa?.dispose(), Kl?.dispose(), Un.dispose(), Rn?.dispose());
 }
-async function dM() {
-  Dn = new ry({ canvas: Nn, antialias: !1, powerPreference: "default" }), Dn.outputColorSpace = Ft, Dn.toneMapping = 4, Dn.toneMappingExposure = 1.1, Dn.info.autoReset = !1, Dn.shadowMap.enabled = !0, Dn.shadowMap.type = 2, Wa = S_(Dn), Hn = new kf(), Hn.background = new et("#0a172a"), Hn.fog = new f0("#0a172a", 180, 400), zn = new Pi(44, 1, 0.07, 900);
-  const i = new qd(Dn), e = new sy();
-  Kl = i.fromScene(e, 0.04, 0.1, 100, { size: pi ? 64 : 128 }).texture, Hn.environment = Kl, Hn.environmentIntensity = 0.3, i.dispose(), e.dispose(), Xn = new Yl("#c5d6eb", 0.88), Xn.position.set(-18, 38, 19), Xn.target.position.set(10, 0, -13), Xn.castShadow = !0, Xn.shadow.mapSize.set(pi ? 512 : 1024, pi ? 512 : 1024), Object.assign(Xn.shadow.camera, { left: -43, right: 43, top: 40, bottom: -32, near: 0.1, far: 130 }), Xn.shadow.bias = -6e-5, Xn.shadow.normalBias = 9e-3;
+function dM() {
+  const i = [], e = /* @__PURE__ */ new Set(), t = [];
+  Ln.traverse((o) => {
+    for (const s of [].concat(o.material || [])) for (const a in s) {
+      const l = s[a];
+      l && l.isTexture && !e.has(l) && (e.add(l), i.push(l));
+    }
+  });
+  for (const o of Ln.children) t.push(o);
+  const n = window.requestIdleCallback ? (o) => window.requestIdleCallback(o, { timeout: 400 }) : (o) => setTimeout(o, 80), r = () => {
+    try {
+      for (let s = 0; s < 3 && i.length; s++) Rn.initTexture(i.shift());
+      const o = i.length ? null : t.shift();
+      o && Rn.compile(o, On, Ln);
+    } catch (o) {
+      console.warn("Warm-up step skipped:", o);
+    }
+    (i.length || t.length) && n(r);
+  };
+  n(r);
+}
+async function uM() {
+  Rn = new ry({ canvas: Fn, antialias: !1, powerPreference: "default" }), Rn.outputColorSpace = Ft, Rn.toneMapping = 4, Rn.toneMappingExposure = 1.1, Rn.info.autoReset = !1, Rn.shadowMap.enabled = !0, Rn.shadowMap.type = 2, Wa = S_(Rn), Ln = new kf(), Ln.background = new et("#0a172a"), Ln.fog = new f0("#0a172a", 180, 400), On = new Pi(44, 1, 0.07, 900);
+  const i = new qd(Rn), e = new sy();
+  Kl = i.fromScene(e, 0.04, 0.1, 100, { size: pi ? 64 : 128 }).texture, Ln.environment = Kl, Ln.environmentIntensity = 0.3, i.dispose(), e.dispose(), Xn = new Yl("#c5d6eb", 0.88), Xn.position.set(-18, 38, 19), Xn.target.position.set(10, 0, -13), Xn.castShadow = !0, Xn.shadow.mapSize.set(pi ? 512 : 1024, pi ? 512 : 1024), Object.assign(Xn.shadow.camera, { left: -43, right: 43, top: 40, bottom: -32, near: 0.1, far: 130 }), Xn.shadow.bias = -6e-5, Xn.shadow.normalBias = 9e-3;
   const t = new Vg("#a3bccd", "#574b3e", 0.36), n = new Yl("#e5c7a2", 0.12);
-  n.position.set(35, 12, 8), n.target.position.set(10, 0, -13), Hn.environmentIntensity = 0.23, Hn.add(Xn, Xn.target, t, n, n.target), jo = new wr("#ffd298", 4.2, 8, 2), jo.castShadow = !0, jo.shadow.mapSize.set(pi ? 128 : 256, pi ? 128 : 256), jo.shadow.normalBias = 0.012, jo.visible = !1, Hn.add(jo), [tn, ii] = await Promise.all([By({ data: window.HJ_DATA, quality: To }), Uw({ quality: To, reduced: yi })]), Hn.add(tn.root, ii.root), tn.setTheme(!0), Oi = $y({ stations: tn.stations, data: window.HJ_DATA, quality: To, reduced: yi, onDiscover: br }), Oi.setTheme(!0), Hn.add(Oi.root), Zl = g_({ stations: tn.stations, quality: To, reduced: yi }), Kn = m_({ stations: tn.stations, quality: To, reduced: yi, onDiscover: br, onOverlay: Yo, onGo: zl }), wi = $w({ station: Gn("writing"), quality: To, reduced: yi, onOverlay: Yo, onDiscover: br }), qi = Qw({ station: Gn("talks"), data: window.HJ_DATA, quality: To, reduced: yi, onOverlay: Yo }), Yn = await jy({ quality: To, reduced: yi, stations: tn.stations, extraBlockers: J_(), floorAt: tn.floorAt, isPassable: tn.passable }), Yn.setTheme(!0), Hn.add(Yn.root), go = $_({ scene: Hn, renderer: Dn, landscape: Yn, garden: tn, quality: To, reduced: yi, onStory: (o, s) => zl(o, s), onOwl() {
+  n.position.set(35, 12, 8), n.target.position.set(10, 0, -13), Ln.environmentIntensity = 0.23, Ln.add(Xn, Xn.target, t, n, n.target), jo = new wr("#ffd298", 4.2, 8, 2), jo.castShadow = !0, jo.shadow.mapSize.set(pi ? 128 : 256, pi ? 128 : 256), jo.shadow.normalBias = 0.012, jo.visible = !1, Ln.add(jo), [tn, ii] = await Promise.all([By({ data: window.HJ_DATA, quality: To }), Uw({ quality: To, reduced: yi })]), Ln.add(tn.root, ii.root), tn.setTheme(!0), Oi = $y({ stations: tn.stations, data: window.HJ_DATA, quality: To, reduced: yi, onDiscover: br }), Oi.setTheme(!0), Ln.add(Oi.root), Zl = g_({ stations: tn.stations, quality: To, reduced: yi }), Kn = m_({ stations: tn.stations, quality: To, reduced: yi, onDiscover: br, onOverlay: Yo, onGo: zl }), wi = $w({ station: Wn("writing"), quality: To, reduced: yi, onOverlay: Yo, onDiscover: br }), qi = Qw({ station: Wn("talks"), data: window.HJ_DATA, quality: To, reduced: yi, onOverlay: Yo }), Yn = await jy({ quality: To, reduced: yi, stations: tn.stations, extraBlockers: J_(), floorAt: tn.floorAt, isPassable: tn.passable }), Yn.setTheme(!0), Ln.add(Yn.root), go = $_({ scene: Ln, renderer: Rn, landscape: Yn, garden: tn, quality: To, reduced: yi, onStory: (o, s) => zl(o, s), onOwl() {
     Bi("contact"), hi("Hoo hoo! The owl post runs day and night. Leave Hanjing a letter anytime.");
   }, onWhiteboard() {
     hi("A little nod to The Big Bang Theory. It was my first glimpse of research life, and I have watched it more times than I can count. Somewhere between the whiteboards and the takeout, research started to look like a wonderful way to live. These days my own board mixes the physics with attention, gradients and a few questions that keep me up at night.");
@@ -40669,23 +40690,23 @@ async function dM() {
     hi("A porcelain pagoda, after the Porcelain Tower of Nanjing. Stories of that tower reached France and inspired the Trianon de Porcelaine at Versailles, with its blue and white roof. I love that kind of dream, East and West imagining each other, so it became the style of this whole little world.");
   }, onWhale() {
     hi("A whale in the deep. My name, Hanjing, sounds a little like the Chinese word for whale. Whales carry an ancient kind of wisdom and keep diving toward the unknown. And there is only one whale here, because the search for answers can be a little lonely. I keep swimming anyway.");
-  } }), Hn.add(go.root), Ts = zw({ low: pi, reduced: yi, onFound(o, s) {
+  } }), Ln.add(go.root), Ts = zw({ low: pi, reduced: yi, onFound(o, s) {
     const a = Bl?.find(o);
     a?.fresh && go?.burst(s), hi(a?.line || o.say);
-  } }), Hn.add(Ts.root), Mi = v_({ routes: Yn.walkRoutes, reduced: yi, eyeHeight: 1.55, speed: 1.6, arrivalDuration: 1.3, blockers: K_, aerialBlockers: tn.stations.map((o) => {
+  } }), Ln.add(Ts.root), Mi = v_({ routes: Yn.walkRoutes, reduced: yi, eyeHeight: 1.55, speed: 1.6, arrivalDuration: 1.3, blockers: K_, aerialBlockers: tn.stations.map((o) => {
     o.root.updateWorldMatrix(!0, !0);
     const s = new gn().setFromObject(o.root);
     return { id: o.id + "-roof", min: s.min.toArray(), max: s.max.toArray() };
-  }), groundAt: (o, s) => Math.max(2e-3, tn.floorAt(o, s)), isPassable: tn.passable }), ii.placeXiaoHei(Gn("life")), ii.placeAtChapter(Gn("home"), tn), Jo = x_(), Jo.root.visible = !1, Hn.add(Jo.root), Rn = T_({ go: Bi, action: l0, say: hi, talk() {
+  }), groundAt: (o, s) => Math.max(2e-3, tn.floorAt(o, s)), isPassable: tn.passable }), ii.placeXiaoHei(Wn("life")), ii.placeAtChapter(Wn("home"), tn), Jo = x_(), Jo.root.visible = !1, Ln.add(Jo.root), Pn = T_({ go: Bi, action: l0, say: hi, talk() {
   }, setOverlay: Yo, theater() {
-  } }), Rn.expandGuide(!1), so = Ow({ metadata: { chapters: [...Oi.metadata.chapters, ...Kn.metadata.entries, wi.metadata.entry] }, onRead: (o) => Rn.openPanel(o), onGo: zl, onOverlay: Yo }), Bl = Gw({ data: window.HJ_DATA, onOverlay: Yo, onGo: (o) => Bi(o) });
+  } }), Pn.expandGuide(!1), so = Ow({ metadata: { chapters: [...Oi.metadata.chapters, ...Kn.metadata.entries, wi.metadata.entry] }, onRead: (o) => Pn.openPanel(o), onGo: zl, onOverlay: Yo }), Bl = Gw({ data: window.HJ_DATA, onOverlay: Yo, onGo: (o) => Bi(o) });
   for (const o of so.ids) {
     const s = Oi.discover(o, { notify: !1 }) || Kn.discover(o, { notify: !1 }) || (o === wi.metadata.entry.id ? wi.metadata.entry : null);
     s && Yn.discover?.(s.station);
   }
   Ii.isOpen && Ii.element.classList.contains("magic-invitation-has-read") && br(Oi.discover("home", { notify: !1 })), Vr = b_(tn.stations);
   const r = location.hash.slice(1);
-  lM(), Be.ready = !0, Op(), Ct("#loading").hidden = !0, Gr(), Ii.isOpen && Yo("invitation"), Ii.setReady(!0), Gn(r) && Bi(r), yr = requestAnimationFrame(Ra), window.__HANJING_3D__ = {
+  lM(), Be.ready = !0, Op(), Ct("#loading").hidden = !0, Gr(), Ii.isOpen && Yo("invitation"), yr = requestAnimationFrame(Ra), Ii.setReady(!0), Wn(r) && Bi(r), dM(), window.__HANJING_3D__ = {
     state: Be,
     go: Bi,
     overview: Gr,
@@ -40705,9 +40726,9 @@ async function dM() {
     perform: l0,
     pick: P0,
     interact: Fp,
-    renderer: Dn,
-    scene: Hn,
-    camera: zn,
+    renderer: Rn,
+    scene: Ln,
+    camera: On,
     garden: tn,
     cats: ii,
     actors: ii,
@@ -40724,14 +40745,14 @@ async function dM() {
     },
     textureMemory: aM,
     overviewBatches: Vr,
-    metrics: () => ({ calls: Dn.info.render.calls, triangles: Dn.info.render.triangles, textures: Dn.info.memory.textures, geometries: Dn.info.memory.geometries, quality: To, humanModels: 0 }),
+    metrics: () => ({ calls: Rn.info.render.calls, triangles: Rn.info.render.triangles, textures: Rn.info.memory.textures, geometries: Rn.info.memory.geometries, quality: To, humanModels: 0 }),
     get lastTap() {
       return Rp;
     },
     getInteractionTargets() {
-      return Hn.updateMatrixWorld(!0), T0().map((o) => {
+      return Ln.updateMatrixWorld(!0), T0().map((o) => {
         const s = (o.objects || [o.object]).filter((l) => l?.isObject3D), a = s.length ? new gn().setFromObject(s[0]).getCenter(new Q()) : new Q(...o.point);
-        return a.project(zn), { id: o.id, type: o.type, station: o.station, x: (a.x * 0.5 + 0.5) * Nn.clientWidth, y: (-0.5 * a.y + 0.5) * Nn.clientHeight + Nn.getBoundingClientRect().top, visible: s.some(Ca) && a.z < 1 && Math.abs(a.x) < 1 && Math.abs(a.y) < 1 };
+        return a.project(On), { id: o.id, type: o.type, station: o.station, x: (a.x * 0.5 + 0.5) * Fn.clientWidth, y: (-0.5 * a.y + 0.5) * Fn.clientHeight + Fn.getBoundingClientRect().top, visible: s.some(Ca) && a.z < 1 && Math.abs(a.x) < 1 && Math.abs(a.y) < 1 };
       });
     }
   }, new URLSearchParams(location.search).has("qa") && (window.__CRYSTAL_QA__ = { pause: (o) => {
@@ -40749,17 +40770,17 @@ async function dM() {
     const a = Math.cos(Be.pitch) * Be.distance;
     return [mn.x + Math.sin(Be.yaw) * a, mn.z + Math.cos(Be.yaw) * a];
   }, finishCamera() {
-    Be.mode !== "walk" ? (mn.copy(ln), Be.distance = Si) : (zn.fov = Fa, zn.updateProjectionMatrix()), Br = !0;
+    Be.mode !== "walk" ? (mn.copy(ln), Be.distance = Si) : (On.fov = Fa, On.updateProjectionMatrix()), Br = !0;
   }, get content() {
-    return Rn;
+    return Pn;
   }, get scene() {
-    return Hn;
+    return Ln;
   }, get enchant() {
     return go;
   }, get renderer() {
-    return Dn;
+    return Rn;
   }, get camera() {
-    return zn;
+    return On;
   }, get diary() {
     return wi;
   }, get casebook() {
@@ -40770,6 +40791,6 @@ async function dM() {
     return qi;
   } });
 }
-dM().catch((i) => {
+uM().catch((i) => {
   console.error("The crystal world could not open:", i), Ct("#loading").hidden = !0, Ct("#world-error").hidden = !1, Ii.setReady(!1), Ii.element.querySelector(".magic-enter-label").textContent = "3D is unavailable here", Ii.element.querySelector(".magic-invitation-status").textContent = "You can still read the invitation, or use Interactive 2D and Basic above.";
 });

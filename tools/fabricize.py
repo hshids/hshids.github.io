@@ -92,7 +92,14 @@ GROUND_TREES = {'pine-ground': 'pine', 'willow-ground': 'willow'}   # the trees 
                                                    # a cloth trunk under foliage worked in satin floss
 TILED = {'materials-painted'}                      # material swatches the page repeats as patterns
 LAND_RIDGE = 7.0                                   # spacing of the damask lines that follow the hills' outlines
-BRANCHES = {'branch-signs-painted'}                # the sign trees: cloth trunks, embroidered lettering and knots
+BRANCHES = {'branch-signs-painted', 'contact-tree'}   # the sign trees: cloth trunks, embroidered lettering and knots
+# Parts of a sheet shown at a very different size from the rest are sewn on their own, at their own
+# scale, and laid back in: (part name, rect in the sheet, screen scale). The big tree at Contact is
+# drawn at about .65 while the rest of its sheet (the sun and moon) is drawn at 1.4.
+SUBSHEETS = {'details-painted': [('contact-tree', (6, 411, 644, 870), .655)]}
+# Trees whose leaves are layered cloth: each clump a padded piece in its own green, lying over the
+# branches with a shadow, the leaves in it picked out in satin floss. 'patch' or 'satin' leaves.
+FOLIAGE = {'contact-tree': 'satin'}
 BRANCH_DARK = 7.0                                  # painted marks this much darker than around them are embroidered
 CHARACTER_SHEETS = {'writing-grip-painted', 'reading-painted', 'mailing-painted'}
 OUTLINED = ('hanjing-', 'human-bind-', 'writing-grip', 'reading-painted', 'mailing-painted')
@@ -142,6 +149,9 @@ def oversample(name):
 
 
 def scale_of(name):
+    for parts in SUBSHEETS.values():
+        for part, _, sc in parts:
+            if part == name: return sc
     if name in SCALE: return SCALE[name]
     if name.startswith(HUMAN) or name.startswith(FUR): return .16
     return .6
@@ -1099,6 +1109,10 @@ def fabricize(name, img, over=1):
     if kind == 'figure':
         return figure(name, bgr_f, alpha, solid, lab_o, src, u, rng)
     res = appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over)
+    for part, rect, _ in SUBSHEETS.get(name, ()):
+        x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
+        y1 = min(y1, img.shape[0]); x1 = min(x1, img.shape[1])
+        res[y0:y1, x0:x1] = fabricize(part, img[y0:y1, x0:x1], over)
     for rect, sc, motif in EMB_REGIONS.get(name, ()):
         x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
         res[y0:y1, x0:x1] = distant_embroidery(img[y0:y1, x0:x1], over / sc, rng, x0 + y0, motif)
@@ -1313,7 +1327,7 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     p = max(WEAVE * u, 2.6)
     branch = name in BRANCHES
     land = name in LANDSCAPE or branch
-    pid_s, ws = land_pieces(bgr_f, alpha, u, 4 if branch else LAND_K) if land else cut_pieces(bgr_f, alpha, u, False, False, rng)
+    pid_s, ws = land_pieces(bgr_f, alpha, u, (6 if name in FOLIAGE else 4) if branch else LAND_K) if land else cut_pieces(bgr_f, alpha, u, False, False, rng)
     pid = upsample_pieces(pid_s, W, H, ws)
     pid = snap_pieces(pid, np.clip(bgr_f, 0, 255).astype(np.uint8), u)
     n = int(pid.max()) + 1
@@ -1327,7 +1341,8 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     L_fi = cv2.GaussianBlur(L_o, (0, 0), max(.5, .5 * u)) - cv2.GaussianBlur(L_o, (0, 0), 2.5 * u)
     L_lo = cv2.GaussianBlur(L_o, (0, 0), 4 * u)
     out = np.empty_like(lab_o)
-    out[..., 0] = dye[pid, 0] + .15 * (L_lo - mean[pid, 0])
+    if name in FOLIAGE: dye[:, 0] -= 7   # a padded tree keeps more of its bark's light and shade, in a deeper brown
+    out[..., 0] = dye[pid, 0] + (.5 if name in FOLIAGE else .15) * (L_lo - mean[pid, 0])
     out[..., 1:] = dye[pid, 1:]
     out[..., 0] = np.clip(out[..., 0], 6, 96)
     col = cv2.cvtColor(out, cv2.COLOR_Lab2BGR) * 255
@@ -1415,6 +1430,45 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
         lit_s = np.clip(-(sx_ * -.55 + sy_ * -.83) * Rs, -1.6, 1.6)
         col = col * (1 + PUFF_LIGHT * lit_s)[..., None] * (.8 + .2 * np.clip(ds / (2.2 * u), 0, 1) ** .6)[..., None]
         del ds, hs, sx_, sy_, lit_s
+    if name in FOLIAGE:
+        # the leaves: clumps of cloth laid over the branches, each padded on its own and casting its
+        # shadow on what lies under it; inside a clump the darker leaves sink and the lit ones rise
+        Lb = cv2.GaussianBlur(lab_o, (0, 0), max(.8, .6 * u))
+        Cb = np.hypot(Lb[..., 1], Lb[..., 2]); hb = np.degrees(np.arctan2(Lb[..., 2], Lb[..., 1])) % 360
+        leaf = (solid & (hb > 88) & (hb < 160) & (Cb > 10)).astype(np.uint8)   # olive and green, not the brown bark (about 65 degrees)
+        k = max(3, int(round(1.4 * u)) | 1); ker = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+        leaf = cv2.morphologyEx(cv2.morphologyEx(leaf, cv2.MORPH_CLOSE, ker), cv2.MORPH_OPEN, ker)
+        nl, cc, st, _ = cv2.connectedComponentsWithStats(leaf, 8)
+        keep = np.zeros(nl, bool); keep[1:] = st[1:, cv2.CC_STAT_AREA] >= (3 * u) ** 2
+        leaf = keep[cc] & solid
+        # the leaves' own greens, as three cloths (shade, mid and sunlit), each keeping the weave it has
+        ys_, xs_ = np.nonzero(leaf)
+        if len(ys_) > 50:
+            samp = Lb[ys_, xs_].astype(np.float32)
+            _, lab_k, cen = cv2.kmeans(samp, 3, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, .5), 3, cv2.KMEANS_PP_CENTERS)
+            cen[:, 1:] *= 1.12
+            lab_map = np.full(leaf.shape, -1, np.int32); lab_map[ys_, xs_] = lab_k.ravel()
+            lm8 = cv2.medianBlur((lab_map + 1).astype(np.uint8), max(3, int(round(1.6 * u)) | 1)).astype(np.int32) - 1
+            lm8 = np.where(leaf & (lm8 >= 0), lm8, np.maximum(lab_map, 0))
+            cl = cen[lm8].reshape(leaf.shape + (3,)).astype(np.float32)
+            green = cv2.cvtColor(cl, cv2.COLOR_Lab2BGR) * 255
+            tex = col / np.maximum(cv2.GaussianBlur(col, (0, 0), 2.5 * u), 1)
+            col = np.where(leaf[..., None], green * np.clip(tex, .75, 1.25), col)
+            del samp, lab_map, lm8, cl, green, tex
+        lf = leaf.astype(np.float32)
+        dy_, dx_ = max(1, int(round(2.2 * u))), max(1, int(round(1.3 * u)))
+        moved = np.zeros_like(lf); moved[dy_:, dx_:] = lf[:-dy_, :-dx_]
+        col = col * (1 - .4 * cv2.GaussianBlur(moved * (1 - lf), (0, 0), 1.6 * u))[..., None]
+        dl = cv2.distanceTransform(leaf.astype(np.uint8), cv2.DIST_L2, 5)
+        Rl = 6 * u
+        hl = cv2.GaussianBlur(1 - (1 - np.clip(dl / Rl, 0, 1)) ** 2, (0, 0), max(.8, .6 * u))
+        gx_ = cv2.Sobel(hl, cv2.CV_32F, 1, 0, ksize=3) / 8; gy_ = cv2.Sobel(hl, cv2.CV_32F, 0, 1, ksize=3) / 8
+        lit_l = np.clip(-(gx_ * -.55 + gy_ * -.83) * Rl, -1.6, 1.6)
+        rise = np.clip((cv2.GaussianBlur(L_o, (0, 0), max(.8, .8 * u)) - cv2.GaussianBlur(L_o, (0, 0), 4 * u)) / 14, -1, 1)
+        col = np.where(leaf[..., None], col * ((1 + .2 * lit_l) * (.84 + .16 * np.clip(dl / (2 * u), 0, 1) ** .6) * (1 + .12 * rise))[..., None], col)
+        if FOLIAGE[name] == 'satin':
+            col, _ = embroider(col, leaf, src, L_o, u, rng, sum(map(ord, name)) * 29, width=1.0, length=4.0, cover=.92)
+        del Lb, Cb, hb, lf, moved, dl, hl, gx_, gy_, lit_l, rise
     if land and not branch:
         # damask in the hills' cloth: tone-on-tone lines in the weave that follow each piece's outline,
         # like the ridges and folds of a range, fading toward its middle, over faint long wavy bands
@@ -1433,7 +1487,7 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     # embroidery: satin floss on roofs and leaves, fine silk on all the detail
     col, c_satin = embroider(col, satin[pid] & solid, src, L_o, u, rng, sum(map(ord, name)) * 131)
     if branch:
-        dark = (cv2.GaussianBlur(L_o, (0, 0), max(.6, .4 * u)) - cv2.GaussianBlur(L_o, (0, 0), 3.5 * u) < -BRANCH_DARK) & solid
+        dark = (cv2.GaussianBlur(L_o, (0, 0), max(.6, .4 * u)) - cv2.GaussianBlur(L_o, (0, 0), 3.5 * u) < -BRANCH_DARK * (1.6 if name in FOLIAGE else 1)) & solid
         k = max(3, int(round(.8 * u)) | 1)
         dark = cv2.morphologyEx(dark.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
         nl, cc, st, _ = cv2.connectedComponentsWithStats(dark, 8)
@@ -1503,7 +1557,7 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
         x0, y0, x1, y1 = [int(round(v * over)) for v in rect[:4]]
         calm[max(0, y0 - 6):y1 + 6, max(0, x0 - 6):x1 + 6] = True
     sewn = (area_screen >= BLANKET_MIN ** 2) & ~satin & (share < .35) & ~panel; sewn[0] = False
-    if name in TILED: sewn[:] = False   # tiled material: its pieces run on past the crop, so no edging
+    if name in TILED or name in FOLIAGE: sewn[:] = False   # tiled material runs on past the crop; a padded tree shows its pieces by their padding
     for k in range(1, n):
         if not sewn[k]: continue
         ix = order[bounds[k]:bounds[k + 1]]
@@ -1514,7 +1568,7 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
         m_in = cv2.erode(m, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * ri + 1, 2 * ri + 1)))
         cs, _ = cv2.findContours(m_in, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
         base = (cv2.cvtColor(dye[k].astype(np.float32).reshape(1, 1, 3), cv2.COLOR_Lab2BGR) * 255).reshape(3)
-        thr = tone(base, .75, darker=True) if land else tone(base)
+        thr = tone(base, .75, darker=True) if land and name not in FOLIAGE else tone(base, .6)
 
         def outside_ok(pt, nv, k=k):
             X0, Y0 = int(pt[0]) + x0, int(pt[1]) + y0
