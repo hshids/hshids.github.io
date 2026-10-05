@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {createLehighCampus} from './fidelity-campus-lehigh.js';
-import {createCraftMaterials,applyCraftSurface} from './fidelity-surface-materials.js';
+import {createCraftMaterials,applyCraftSurface,worldUV} from './fidelity-surface-materials.js';
 
 /** Complete outdoor keepsakes, with coherent lit materials on every side.
  * Printed lettering is painted on real boards/metal, never an architectural
@@ -16,18 +16,24 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
   const stone=material('stone','#a89c85'),cream=material('limestone','#d5c6ac'),wood=material('oak','#89613e'),darkWood=material('dark-timber','#674a33');
   const bark=material('branch-bark','#846147'),leaf=material('oak-leaves','#7b9660'),leafLight=material('leaf-tips','#94a977');
   const ropeMat=material('hemp-rope','#bfaa82',{roughness:1}),roof=material('slate','#4d6277',{roughness:.66});
-  const gtStone=material('georgetown-brown-sandstone','#a88e73'),gtTrim=material('georgetown-carved-sandstone','#c8b08a');
+  // Healy Hall is Potomac gneiss, a grey stone with blue and brown in it, trimmed in pale sandstone
+  const gtStone=material('georgetown-potomac-gneiss','#7c7d77'),gtTrim=material('georgetown-carved-sandstone','#c4ae88');
+  const gtBlocks=['#7c7d77','#6f6a61','#858b88','#8e8475','#73777a'].map((c,i)=>material('georgetown-gneiss-block-'+i,c));
   const metal=material('davis-painted-metal','#bfc6bb',{metalness:.42,roughness:.40,envMapIntensity:.60});
-  const navy=material('davis-blue','#486e8a'),gold=material('brass','#c6a25d',{metalness:.4,roughness:.48}),rubber=material('bike-rubber','#414448');
+  // UC Davis: Aggie blue and gold
+  const navy=material('davis-aggie-blue','#22426e'),gold=material('brass','#c6a25d',{metalness:.4,roughness:.48}),rubber=material('bike-rubber','#414448');
+  const aggieGold=material('davis-aggie-gold','#d6a630',{roughness:.6});
   const red=material('mailbox-red-enamel','#bf5347',{metalness:.16,roughness:.5,clearcoat:.18,clearcoatRoughness:.60}),mailInside=material('mailbox-interior','#373a3b');
   const glass=material('campus-recessed-glass','#738794',{roughness:.35,emissive:'#ffc979',emissiveIntensity:0});
   const lampMat=material('warm-lamp-glass','#bba573',{roughness:.3,emissive:'#ffe5aa',emissiveIntensity:0});
   const paper=material('letter-paper','#eee0bf'),ink=material('letter-crease','#b2a17f');
-  for(const m of[stone,cream,gtStone,gtTrim])applyCraftSurface(m,surfaces.stone);
+  for(const m of[stone,cream,gtTrim])applyCraftSurface(m,surfaces.stone);
+  for(const m of[gtStone,...gtBlocks])applyCraftSurface(m,surfaces.granite);
+  const realScale=new Set([stone,cream,gtStone,gtTrim,...gtBlocks]);   // these get UVs at a fixed real-world size
   applyCraftSurface(wood,surfaces.wood);applyCraftSurface(darkWood,surfaces.darkWood);applyCraftSurface(bark,surfaces.wood,{preserveRoughness:true});
   applyCraftSurface(roof,surfaces.roof,{preserveRoughness:true});applyCraftSurface(red,surfaces.red,{preserveRoughness:true});
   applyCraftSurface(paper,surfaces.paper);applyCraftSurface(ropeMat,surfaces.cloth,{preserveRoughness:true});applyCraftSurface(navy,surfaces.blue);
-  const bannerFabric=material('campus-blue-fabric-banner','#486e8a');applyCraftSurface(bannerFabric,surfaces.cloth);
+  const bannerFabric=material('campus-aggie-blue-banner','#22426e');applyCraftSurface(bannerFabric,surfaces.cloth);applyCraftSurface(aggieGold,surfaces.cloth,{preserveRoughness:true});
   const e=scene('education'),c=scene('contact');root.add(e.root,c.root);
   function scene(id){const group=new THREE.Group();group.name=`chapter-${id}-faithful`;return {id,root:group,walkAreas:[],colliders:[],interactables:[],actionStand:{},parts:[]};}
   const S=(x,y,w,h,nw,nh)=>({X:n=>(x+n*w/nw)/85,Y:n=>(560-y-n*h/nh)/85,point(n,p,z=0){return[this.X(n),this.Y(p),z];}});
@@ -39,6 +45,7 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     }
     g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(1,1,1)));
     g.computeBoundingBox();const part={name,scene:st.id,min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray(),construction:'closed lit polygonal solid',...extra};parts.push(part);st.parts.push(part);
+    if(realScale.has(m)&&g.getAttribute('normal'))worldUV(g,.3);
     if(!g.getAttribute('uv'))g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
     const key=`${st.id}/${m.uuid}`;if(!batches.has(key))batches.set(key,{st,m,gs:[]});batches.get(key).gs.push(g);return g;
   }
@@ -127,6 +134,7 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     // The banner is a true thick printed fabric slab attached to its mast.
     tube(e,'davis-banner-mast',s.point(533,298,-.17),s.point(603,298,-.17),.009,.009,gold);
     polygon(e,'davis-blue-gold-banner',[[s.X(544),s.Y(304)],[s.X(600),s.Y(304)],[s.X(600),s.Y(443)],[s.X(573),s.Y(425)],[s.X(544),s.Y(443)]],-.17,.012,bannerFabric);
+    polygon(e,'davis-banner-gold-band',[[s.X(544),s.Y(392)],[s.X(600),s.Y(392)],[s.X(600),s.Y(406)],[s.X(544),s.Y(406)]],-.17,.016,aggieGold);
     const wheelR=61*u,wheelY=floor+wheelR,bp=(xx,yy,zz=.19)=>[s.X(xx),s.Y(yy)+(wheelY-s.Y(581)),zz];
     for(const xx of [81,260]) {
       add(e,`davis-bike-tire-${xx}`,new THREE.TorusGeometry(wheelR,.018,6,radial),rubber,[s.X(xx),wheelY,.19]);
@@ -168,7 +176,7 @@ export async function createFaithfulEducationContact({data=globalThis.window?.HJ
     for(let row=0,yy=minY+.005;yy+bh<maxY;row++,yy+=bh)for(let xx=minX-(row%2)*bw/2;xx<maxX;xx+=bw){
       const l=Math.max(minX+.004,xx+.004),r=Math.min(maxX-.004,xx+bw-.004),b=yy,t=yy+bh-.007;
       if(r-l<.025||![[l,b],[r,b],[l,t],[r,t]].every(q=>inside(...q))||blocked.some(q=>l<q.r&&r>q.l&&b<q.t&&t>q.b))continue;
-      const g=new THREE.BoxGeometry(r-l,t-b,.009);g.translate((l+r)/2,(b+t)/2,depth+.0015);g.applyMatrix4(pose);add(st,`${name}-stone-block-${row}-${Math.round(xx*1000)}`,g,gtStone);
+      const g=new THREE.BoxGeometry(r-l,t-b,.009);g.translate((l+r)/2,(b+t)/2,depth+.0015);g.applyMatrix4(pose);add(st,`${name}-stone-block-${row}-${Math.round(xx*1000)}`,g,gtBlocks[((row*7+Math.round(xx*1000)*13)%gtBlocks.length+gtBlocks.length)%gtBlocks.length]);
     }
   }
   function campusWindow(st,name,w,h,p,a,door=false) {

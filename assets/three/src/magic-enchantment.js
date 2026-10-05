@@ -122,7 +122,7 @@ function createSky(reduced) {
 /** LEGO-like studs on the garden ground, drawn in the shader so they cost no geometry. */
 function patchStuds(material) {
   material.onBeforeCompile = shader => {
-    shader.uniforms.uStudSpacing = {value: 0.62};
+    shader.uniforms.uStudSpacing = {value: 0.24};   // fine studs: a delicate plate, not a toy's big baseplate
     shader.vertexShader = shader.vertexShader
       .replace('#include <common>', '#include <common>\nvarying vec3 vEnchWorld; varying vec3 vEnchNormal;')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\nvEnchWorld = (modelMatrix * vec4(transformed, 1.0)).xyz; vEnchNormal = normalize(mat3(modelMatrix) * objectNormal);');
@@ -144,7 +144,7 @@ function patchStuds(material) {
           diffuseColor.rgb *= mix(1.0, shade, top * fade);
         }`);
   };
-  material.customProgramCacheKey = () => 'enchantment-studs-v1';
+  material.customProgramCacheKey = () => 'enchantment-studs-v2';
   material.needsUpdate = true;
 }
 
@@ -160,16 +160,16 @@ function patchBricks(material, ell = ISLAND) {
       .replace('#include <color_fragment>', `#include <color_fragment>
         {
           vec2 q = vec2((vEnchWorld.x - ${ISLAND.cx.toFixed(2)}) / ${(ell.rx || 1).toFixed(1)}, (vEnchWorld.z - (${ISLAND.cz.toFixed(2)})) / ${(ell.rz || 1).toFixed(1)});
-          float course = vEnchWorld.y / 0.95;
+          float course = vEnchWorld.y / 0.34;
           float row = floor(course), v = fract(course);
-          float along = ${straight ? 'vEnchWorld.x / 1.55' : 'atan(q.y, q.x) * 40.0 / 6.2831853'} + mod(row, 2.0) * 0.5;
+          float along = ${straight ? 'vEnchWorld.x / 0.56' : 'atan(q.y, q.x) * 112.0 / 6.2831853'} + mod(row, 2.0) * 0.5;
           float brick = floor(along), u = fract(along);
           float aa = max(fwidth(course), fwidth(along)) * 1.2 + 0.006;
           float joint = (1.0 - smoothstep(0.045, 0.045 + aa, v)) + (1.0 - smoothstep(0.018, 0.018 + aa, min(u, 1.0 - u)));
           float pick = enchHash(vec3(brick, row, 3.1));
           vec3 tint = pick < 0.38 ? vec3(1.0) : pick < 0.60 ? vec3(0.80, 0.88, 0.94) : pick < 0.82 ? vec3(1.22, 1.14, 0.90) : pick < 0.94 ? vec3(0.70, 0.78, 0.74) : vec3(1.40, 1.30, 1.06);
           float bevel = 1.0 + 0.20 * smoothstep(0.80, 0.97, v) - 0.16 * smoothstep(0.26, 0.05, v) - 0.06 * smoothstep(0.12, 0.0, min(u, 1.0 - u));
-          diffuseColor.rgb *= tint * bevel * mix(1.0, 0.36, clamp(joint, 0.0, 1.0));
+          diffuseColor.rgb *= tint * bevel * mix(1.0, 0.5, clamp(joint, 0.0, 1.0));
           enchGlowBrick = step(0.965, enchHash(vec3(brick, row, 9.7))) * (1.0 - clamp(joint, 0.0, 1.0));
         }`)
       .replace('#include <emissivemap_fragment>', '#include <emissivemap_fragment>\n totalEmissiveRadiance += vec3(0.10, 0.42, 0.55) * enchGlowBrick * 0.55;');
@@ -1687,7 +1687,8 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     garden?.root.traverse(o => {
       if (!o.isMesh) return;
       for (const m of (Array.isArray(o.material) ? o.material : [o.material])) {
-        const interior = m && INTERIORS[m.name.replace('-mortar-crafted-surface', '-plaster-crafted-surface')];
+        // brick tints ('...-tint-2') are papered like the wall they belong to
+        const interior = m && INTERIORS[m.name.replace(/-tint-\d+$/, '').replace('-mortar-crafted-surface', '-plaster-crafted-surface')];
         if (!interior || papered.has(m)) continue;
         if (!papers.has(interior.paper)) { const t = wallpaperTexture(interior.paper, low); papers.set(interior.paper, t); disposables.add(t); }
         patchWallpaper(m, rooms, papers.get(interior.paper), interior); papered.add(m);
@@ -1695,7 +1696,7 @@ export function createEnchantment({scene, renderer, landscape, garden, quality =
     });
   }
   // Huizhou walls are limewashed white
-  garden?.root.traverse(o => { if (o.isMesh && o.material?.name === 'HWL-writing-plaster-crafted-surface') o.material.color.set('#f6f4ee'); });
+  garden?.root.traverse(o => { if (o.isMesh && o.material?.name?.replace(/-tint-\d+$/, '') === 'HWL-writing-plaster-crafted-surface') { const k = +(o.material.name.match(/-tint-(\d+)$/)?.[1] ?? -1); o.material.color.set('#f6f4ee'); if (k >= 0) o.material.color.offsetHSL(0, 0, [0, -.03, .015, -.05][k % 4]); } });
 
   // 2b. The crystal ball and the open sea. The old river, its lotus and koi,
   // and the partial glass shell give way to a seaside promenade.

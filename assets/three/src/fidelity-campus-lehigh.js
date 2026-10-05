@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
-import {createCraftMaterials,applyCraftSurface} from './fidelity-surface-materials.js';
+import {createCraftMaterials,applyCraftSurface,worldUV} from './fidelity-surface-materials.js';
 
 /** Small solid Packer Chapel keepsake. Window surrounds intersect their own
  * wall plane; each recess is a real opening with glass set inside it. */
@@ -11,16 +11,18 @@ export function createLehighCampus({source:s,quality='high'}) {
   const surfaces=createCraftMaterials({name:'lehigh-campus',quality,resources});
   const radial=quality==='low'?18:32,curves=quality==='low'?4:8;
   const mat=(name,color,extra={})=>{const m=new THREE.MeshStandardMaterial({color,roughness:.8,...extra});m.name=`lehigh-${name}`;resources.add(m);return m;};
-  const stone=mat('warm-sandstone','#b69c75'),trim=mat('carved-limestone','#d0b88c'),base=mat('grounded-stone-plinth','#958a73');
+  // Packer Chapel: warm brown local sandstone with paler carved trim (Lehigh brown and white)
+  const stone=mat('lehigh-brown-sandstone','#9a7d5f'),trim=mat('carved-limestone','#d3c3a2'),base=mat('grounded-stone-plinth','#857560');
   const roof=mat('soft-slate-roof','#485664',{roughness:.67}),lead=mat('window-lead-and-door-hardware','#45474b',{metalness:.25});
   const wood=mat('recessed-oak-door','#665139'),glass=mat('stained-glass','#667d83',{roughness:.42,emissive:'#ffc46d',emissiveIntensity:0});
   const roseGlass=mat('rose-amber-glass','#c19e73',{roughness:.45,emissive:'#ffd091',emissiveIntensity:0}),greenery=mat('rounded-campus-planting','#71815c');
-  for(const m of[stone,trim,base])applyCraftSurface(m,surfaces.stone);
+  applyCraftSurface(stone,surfaces.granite);applyCraftSurface(base,surfaces.granite);applyCraftSurface(trim,surfaces.stone);
   applyCraftSurface(wood,surfaces.darkWood);applyCraftSurface(roof,surfaces.roof,{preserveRoughness:true});
   const x=n=>s.X(n),y=n=>s.Y(n);
   function add(name,g,m,p=[0,0,0],rotation=[0,0,0],extra={}) {
     g.applyMatrix4(new THREE.Matrix4().compose(new THREE.Vector3(...p),new THREE.Quaternion().setFromEuler(new THREE.Euler(...rotation)),new THREE.Vector3(1,1,1)));
     g.computeBoundingBox();parts.push({name,scene:'education',min:g.boundingBox.min.toArray(),max:g.boundingBox.max.toArray(),construction:'closed polygonal chapel component',...extra});
+    if((m===stone||m===base||m===trim)&&g.getAttribute('normal'))worldUV(g,.3);
     if(!g.getAttribute('uv'))g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(g.attributes.position.count*2),2));
     if(!buckets.has(m))buckets.set(m,[]);buckets.get(m).push(g);return g;
   }

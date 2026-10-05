@@ -8,7 +8,7 @@ import * as THREE from 'three';
  */
 export const CRAFT_COLOURS = Object.freeze({
   wood: '#926344', darkWood: '#5d4031', plaster: '#eadbc0', mortar: '#ded2b9',
-  stone: '#a6a8a1', floor: '#baaa88', roof: '#52616b', red: '#a64c40',
+  stone: '#a6a8a1', granite: '#8a8a84', floor: '#baaa88', roof: '#52616b', red: '#a64c40',
   brass: '#c5a66b', ivory: '#eee3cb', blue: '#6e919c', green: '#8ca77a',
   cloth: '#a88970', glass: '#c7d8d4', paper: '#f3e8cd',
 });
@@ -43,6 +43,14 @@ function woodField(u, v) {
 
 function mineralField(u, v) {
   return .72 * noise(u, v, 2, 2, 31) + .28 * noise(u, v, 5, 4, 37);
+}
+
+// Granite and gneiss for the campus stone: a broad mottle, faint banding along the grain, and
+// small dark and bright mineral flecks, so cut stone reads as stone rather than smooth plastic.
+function graniteField(u, v) {
+  const band = .35 * noise(u * 1.0 + .25 * noise(u, v, 3, 3, 83), v * 3.0, 2, 6, 89);
+  const speck = noise(u, v, 44, 44, 97), fleck = speck > .5 ? -1.6 * (speck - .5) * 2 : speck < -.62 ? .9 : 0;
+  return .45 * noise(u, v, 3, 3, 71) + .25 * noise(u, v, 11, 9, 73) + band + fleck;
 }
 
 function paperField(u, v) {
@@ -84,9 +92,11 @@ function acquireTextures(quality) {
     const maps = {
       wood: texture(colourSize, 'broad-directional-wood-pigment', woodField, 249, 5, true, quality),
       woodRelief: texture(surfaceSize, 'shallow-directional-wood-relief', woodField, 128, 14, false, quality),
-      mineral: texture(surfaceSize, 'soft-lime-and-stone-pigment', mineralField, 250, 3.5, true, quality),
+      mineral: texture(surfaceSize, 'soft-lime-and-stone-pigment', mineralField, 246, 7, true, quality),
       mineralRelief: texture(surfaceSize, 'quiet-mineral-relief', (u, v) =>
-        .70 * mineralField(u, v) + .30 * noise(u, v, 9, 7, 61), 128, 7, false, quality),
+        .70 * mineralField(u, v) + .30 * noise(u, v, 9, 7, 61), 128, 14, false, quality),
+      granite: texture(colourSize, 'granite-and-gneiss-pigment', graniteField, 226, 30, true, quality),
+      graniteRelief: texture(surfaceSize, 'granite-and-gneiss-relief', graniteField, 128, 40, false, quality),
       paper: texture(surfaceSize, 'subtle-paper-pigment', paperField, 250, 3, true, quality),
       paperRelief: texture(detailSize, 'subtle-paper-fibres', paperField, 128, 5, false, quality),
       ceramic: texture(surfaceSize, 'soft-tile-pigment', ceramicField, 249, 4, true, quality),
@@ -128,7 +138,8 @@ export function createCraftMaterials({ name = 'room', quality = 'high', resource
     darkWood: { roughness: .72, map: t.wood, bumpMap: t.woodRelief, bumpScale: .0009 },
     plaster: { roughness: .95, map: t.mineral, bumpMap: t.mineralRelief, bumpScale: .0013 },
     mortar: { roughness: .99, map: t.mineral, bumpMap: t.mineralRelief, bumpScale: .0007 },
-    stone: { roughness: .88, map: t.mineral, bumpMap: t.mineralRelief, bumpScale: .0018 },
+    stone: { roughness: .9, map: t.mineral, bumpMap: t.mineralRelief, bumpScale: .003 },
+    granite: { roughness: .92, map: t.granite, bumpMap: t.graniteRelief, bumpScale: .0045 },
     floor: { roughness: .78, map: t.wood, bumpMap: t.woodRelief, bumpScale: .0007 },
     roof: { roughness: .77, map: t.ceramic, bumpMap: t.ceramicRelief, bumpScale: .0009 },
     red: { roughness: .47, map: t.wood, bumpMap: t.woodRelief, bumpScale: .00035,
@@ -151,7 +162,7 @@ export function createCraftMaterials({ name = 'room', quality = 'high', resource
     });
     material.userData = {
       crafted_surface: true, craft_role: role, texture_quality: quality,
-      texture_pool_count: 8, texture_pool_cpu_bytes: pool.cpuBytes, texture_pool_gpu_bytes: pool.gpuBytes,
+      texture_pool_count: 10, texture_pool_cpu_bytes: pool.cpuBytes, texture_pool_gpu_bytes: pool.gpuBytes,
     };
     const disposed = () => {
       material.removeEventListener('dispose', disposed);
@@ -182,10 +193,28 @@ export function applyCraftSurface(target, template, { preserveMetalness = true, 
   return target;
 }
 
+/**
+ * Planar UVs at a fixed real-world size, so a texture keeps its scale on large walls and small blocks
+ * alike (box faces otherwise stretch one tile over the whole face). Each vertex is projected on the
+ * plane its normal faces most; `period` is metres per tile.
+ */
+export function worldUV(geometry, period = .35) {
+  const p = geometry.getAttribute('position'), n = geometry.getAttribute('normal');
+  if (!p || !n) return geometry;
+  const uv = new Float32Array(p.count * 2);
+  for (let i = 0; i < p.count; i++) {
+    const ax = Math.abs(n.getX(i)), ay = Math.abs(n.getY(i)), az = Math.abs(n.getZ(i));
+    const [a, b] = ax >= ay && ax >= az ? [p.getZ(i), p.getY(i)] : ay >= az ? [p.getX(i), p.getZ(i)] : [p.getX(i), p.getY(i)];
+    uv[i * 2] = a / period; uv[i * 2 + 1] = b / period;
+  }
+  geometry.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
+  return geometry;
+}
+
 /** Read-only diagnostics; shared texture memory is counted once per active tier. */
 export function getCraftTextureBudget() {
   const tiers = [...texturePools].map(([quality, pool]) => ({
-    quality, leases: pool.references, textures: 8, cpuBytes: pool.cpuBytes, gpuBytes: pool.gpuBytes,
+    quality, leases: pool.references, textures: 10, cpuBytes: pool.cpuBytes, gpuBytes: pool.gpuBytes,
   }));
   return { tiers, cpuBytes: tiers.reduce((n, p) => n + p.cpuBytes, 0),
     gpuBytes: tiers.reduce((n, p) => n + p.gpuBytes, 0) };
