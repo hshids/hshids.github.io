@@ -52,6 +52,18 @@
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
 
   var reduced = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // The Writing panel's note on how this world is made: the materials it is sewn from and the
+  // traditions behind them.
+  var INSPIRATION_2D = '<section id="writing-inspiration" class="writing-inspiration"><h3>Website inspiration</h3>' +
+    '<p>This world is sewn rather than drawn. I wanted it to feel like something you could touch, so every part is made from a different material, the way a needlework artist builds a picture from cloth, thread, shell and pearl. Each of them comes from a Chinese craft I love.</p>' +
+    '<ul class="p-cards">' +
+    '<li class="p-card"><span class="p-card-tag">Silk</span><h3>Song brocade</h3><p>Named for the Song dynasty and woven in Suzhou, Song brocade sets small flowers inside geometric lattices, in soft, layered colours. It was used to mount paintings and to cover books. Here it is pieced into the paper crane at the 2013 crossing.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Cloth</span><h3>Coarse cotton and linen</h3><p>The cloth of everyday life: for most of Chinese history people wore hemp and ramie, and cotton spread from around the Song and Yuan dynasties. The mountains, the ground and the clothes are cut from these plain weaves, so the fine work has something humble to rest on.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Thread</span><h3>Su embroidery</h3><p>Suzhou embroidery is one of the Four Famous Embroideries of China. Its embroiderers split a single silk thread into finer filaments and lay them so closely that the stitches read like brushwork. The screen at my writing desk, the lotus in the river and the audience in Talks are worked this way.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Shell</span><h3>Mother-of-pearl inlay</h3><p>Luodian is the art of setting thin slices of shell into lacquer or wood, so they shift from pearl to pink and green as the light moves. Tang craftsmen used it on mirrors and instruments; a five-stringed pipa inlaid with shell still survives in the Shōsōin in Nara. Here it becomes the white crests on the river, the plum vase outside Research and the lacquer boxes on its shelves.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Patchwork</span><h3>Appliqué and pieced cloth</h3><p>Pieced cloth carries a gentle meaning in Chinese folk life. A <i>baijiayi</i>, a “hundred families coat”, is sewn from scraps given by many households as a blessing for a child. Building the scenery from patches felt like gathering a life from many places.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Motifs</span><h3>Plum, orchid, bamboo, chrysanthemum</h3><p>The Four Gentlemen of literati painting, each standing for a kind of quiet integrity. They fill the screen behind my desk, with gold thread, pearls and mother-of-pearl in their hearts.</p></li>' +
+    '</ul><p class="p-muted">Walking from scene to scene also comes from Chinese painting: long handscrolls such as <i>Along the River During the Qingming Festival</i> are made to be unrolled a little at a time, like a walk.</p></section>';
 
   var state = {
     s: 1, cw: 0, ch: 0, viewW: 1000, sceneBottom: 0, mobile: false,
@@ -865,7 +877,7 @@
     writing: function () {
       var rn = D.person.links.rednote;
       return '<h2 id="panel-title" tabindex="-1">Writing</h2>' +
-        '<nav class="writing-index" aria-label="Writing sections"><button type="button" class="link-btn" data-writing-section="writing-tutorials">Tutorials</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-blogs">Blogs</button></nav>' +
+        '<nav class="writing-index" aria-label="Writing sections"><button type="button" class="link-btn" data-writing-section="writing-tutorials">Tutorials</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-blogs">Blogs</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-inspiration">Website inspiration</button></nav>' +
         '<section id="writing-tutorials"><h3>Tutorials</h3><p class="p-muted">Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>' +
         '<ul class="p-cards">' + D.tutorials.map(function (t) {
           return '<li class="p-card" id="tut-' + t.id + '"><span class="p-card-tag">' + esc(t.label) + "</span><h3>" + extLink(t.href, t.title) + "</h3><p>" + esc(t.desc.en) + "</p>" +
@@ -875,7 +887,7 @@
         (rn ? '<p class="p-muted">On ' + extLink(rn, "RedNote") + ', I share everyday experiences and reflections.</p>' : "") +
         '<ul class="p-cards">' + D.writing.map(function (w) {
           return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(w.desc.en) + "</p></li>";
-        }).join("") + "</ul></section>";
+        }).join("") + "</ul></section>" + INSPIRATION_2D;
     },
 
     life: function () {
@@ -1603,7 +1615,11 @@
       goTo("writing", { focus: { tutorial: el.dataset.tutorial } }); return;
     }
     if ((el = t.closest("[data-scroll-hotspot]")) && ART.scroll) {
-      var hs = ART.scroll.hotspot(el.dataset.scrollHotspot);
+      var hs = ART.scroll.hotspot(el.dataset.scrollHotspot), glide = el.dataset.scrollHotspot === "crane" && $(".scroll-crane-glide");
+      if (glide && !reduced) {
+        glide.classList.remove("is-gliding"); void glide.getBoundingClientRect(); glide.classList.add("is-gliding");
+        clearTimeout(glide._glide); glide._glide = setTimeout(function () { glide.classList.remove("is-gliding"); }, 6900);
+      }
       if (hs) { closePanel(); var standX = hs.x - 70; if (Math.abs(state.x - standX) < 40) arrive({ id: null, say: hs.say, chips: hs.chips }); else walkTo(standX, { trip: { id: null, say: hs.say, chips: hs.chips } }); }
       return;
     }

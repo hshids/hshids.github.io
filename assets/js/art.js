@@ -999,15 +999,48 @@
     var out = lin("gGoldThread", ["#7a5418", "#d3a443", "#fbe7a1", "#b5832c", "#fff3c9", "#8f6520"], 'gradientUnits="userSpaceOnUse" spreadMethod="reflect" x1="0" y1="0" x2="5" y2="2.4"') +
       lin("gSilverThread", ["#6f7882", "#cfd6dd", "#ffffff", "#98a2ad", "#eef2f5"], 'gradientUnits="userSpaceOnUse" spreadMethod="reflect" x1="0" y1="0" x2="4.4" y2="2"') +
       lin("gNacreSmall", ["#fffdf8", "#f3d6e6", "#ffffff", "#d3f0e7", "#fdf6ea", "#d9e0fa", "#ffffff"], 'x1="0" y1="0" x2="1" y2="1"') +
+      lin("gVaseNacreA", ["#fbf8f2", "#f1dce6", "#ffffff", "#dcefe8"], 'x1="0" y1="0" x2="1" y2="1"') +
+      lin("gVaseNacreB", ["#e8f3ee", "#cfe1f4", "#f7f2fb", "#e9d6ec"], 'x1="1" y1="0" x2="0" y2="1"') +
+      lin("gVaseNacreC", ["#f4e4ea", "#fff8f2", "#d8e8f6", "#f2ece2"], 'x1="0" y1="1" x2="1" y2="0"') +
+      lin("gVaseNacreD", ["#d9e4f3", "#efe2f2", "#bfe2d8", "#f6f1fa"], 'x1="0" y1="0" x2="1" y2=".6"') +
+      lin("gVaseNacreE", ["#f3e6c8", "#fffaf0", "#e9d6b4", "#f8efe0"], 'x1="0" y1="0" x2="1" y2="1"') +
       lin("gAbaloneSmall", ["#b9ece2", "#93b4ef", "#e4bff0", "#a9ead1", "#f5dcb8"], 'x1="0" y1="1" x2="1" y2="0"') +
       '<radialGradient id="gPearlBead" cx=".35" cy=".32" r=".75"><stop offset="0" stop-color="#ffffff"/><stop offset=".45" stop-color="#f6eef2"/><stop offset=".8" stop-color="#d9d3e2"/><stop offset="1" stop-color="#a9a2b6"/></radialGradient>' +
       '<pattern id="gPlaqueCloth" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#7a3826"/><path d="M0 .75h3" stroke="#fff" stroke-opacity=".1" stroke-width=".7"/><path d="M2.25 0v3" stroke="#000" stroke-opacity=".2" stroke-width=".7"/></pattern>' +
       '<radialGradient id="gSilverKnob" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffffff"/><stop offset=".5" stop-color="#c9d1d9"/><stop offset="1" stop-color="#5f6872"/></radialGradient>';
+    // Patterned cloths for the larger appliqué pieces (the paper crane, the vase's stand): two Song
+    // brocades (an eight-way medallion lattice on teal, a tortoiseshell lattice on ochre), a celadon silk
+    // with ruyi clouds, an ivory silk with a key-fret, a dusty-rose silk with linked coins, and a coarse
+    // cotton-linen.
+    var petal = function (cx, cy, r, fill) {
+      var d = "";
+      for (var i = 0; i < 4; i++) { var a = i * Math.PI / 2, tx = cx + Math.cos(a) * r, ty = cy + Math.sin(a) * r; d += '<ellipse cx="' + tx.toFixed(2) + '" cy="' + ty.toFixed(2) + '" rx="' + (r * .62).toFixed(2) + '" ry="' + (r * .36).toFixed(2) + '" transform="rotate(' + (i * 90) + ' ' + tx.toFixed(2) + ' ' + ty.toFixed(2) + ')"/>'; }
+      return '<g fill="' + fill + '">' + d + '</g>';
+    };
+    var weft = function (w, h, c, o) { var d = ""; for (var y = .6; y < h; y += 1.2) d += "M0 " + y.toFixed(1) + "h" + w; return '<path d="' + d + '" stroke="' + c + '" stroke-width=".45" stroke-opacity="' + o + '"/>'; };
+    out += '<pattern id="gSongTeal" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#2f4c4c"/>' + weft(14, 14, "#0f2324", .35) +
+      '<path d="M4.3 1.6h5.4l2.7 2.7v5.4l-2.7 2.7H4.3L1.6 9.7V4.3z" fill="#3e6461" stroke="#c9a352" stroke-width=".55"/>' + petal(7, 7, 2.1, "#dcbd73") + '<circle cx="7" cy="7" r=".95" fill="#a8452f"/>' +
+      '<path d="M0-1.7L1.7 0 0 1.7-1.7 0zM14-1.7l1.7 1.7-1.7 1.7-1.7-1.7zM0 12.3l1.7 1.7-1.7 1.7-1.7-1.7zM14 12.3l1.7 1.7-1.7 1.7-1.7-1.7z" fill="#a8452f" stroke="#d8b467" stroke-width=".35"/></pattern>';
+    var r = 4.2, hw = r * Math.sqrt(3), hh = r * 3, hex = function (cx, cy) { var d = "M"; for (var i = 0; i < 6; i++) { var a = Math.PI / 6 + i * Math.PI / 3; d += (cx + r * Math.cos(a)).toFixed(2) + " " + (cy + r * Math.sin(a)).toFixed(2) + (i < 5 ? "L" : "Z"); } return d; };
+    out += '<pattern id="gSongOchre" width="' + hw.toFixed(3) + '" height="' + hh + '" patternUnits="userSpaceOnUse"><rect width="' + hw.toFixed(3) + '" height="' + hh + '" fill="#c79f62"/>' + weft(hw.toFixed(3), hh, "#6e4a22", .22) +
+      '<path d="' + [[0, 0], [hw, 0], [hw / 2, r * 1.5], [0, hh], [hw, hh]].map(function (c) { return hex(c[0], c[1]); }).join("") + '" fill="none" stroke="#7a4524" stroke-width=".6"/>' +
+      [[0, 0], [hw, 0], [hw / 2, r * 1.5], [0, hh], [hw, hh]].map(function (c) { return '<circle cx="' + c[0].toFixed(2) + '" cy="' + c[1].toFixed(2) + '" r="1.25" fill="#2f4e6c"/><circle cx="' + c[0].toFixed(2) + '" cy="' + c[1].toFixed(2) + '" r=".45" fill="#f1e2bf"/>'; }).join("") + '</pattern>';
+    var cloud = '<path d="M1.2 4.6c-1.3 0-1.3-2 0-2 .1-1.8 2.5-2.1 3.2-.7.7-1.5 3.2-1.2 3.2.7 1.3 0 1.3 2 0 2z" fill="#eef0e1" stroke="#6f9581" stroke-width=".4"/><path d="M3.3 3.7c.4-.7 1.4-.6 1.5.1" fill="none" stroke="#6f9581" stroke-width=".35"/>';
+    out += '<pattern id="gCloudSilk" width="18" height="12" patternUnits="userSpaceOnUse"><rect width="18" height="12" fill="#a7c1ab"/>' + weft(18, 12, "#ffffff", .12) +
+      '<g transform="translate(1.5 1)">' + cloud + '</g><g transform="translate(10.5 7)">' + cloud + '</g></pattern>';
+    out += '<pattern id="gFretSilk" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#eee2c6"/>' + weft(8, 8, "#8a7350", .15) +
+      '<path d="M1 7V1h6v4.6H3.2V3.1h2.1" fill="none" stroke="#a8432f" stroke-width=".75" stroke-linecap="square"/></pattern>';
+    out += '<pattern id="gCoinRose" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#b4847a"/>' + weft(8, 8, "#4a2620", .2) +
+      '<g fill="none" stroke="#f0d8a8" stroke-width=".45"><circle r="4"/><circle cx="8" r="4"/><circle cy="8" r="4"/><circle cx="8" cy="8" r="4"/><circle cx="4" cy="4" r="4"/></g></pattern>';
+    out += '<pattern id="gWeaveFine" width="1.6" height="1.6" patternUnits="userSpaceOnUse"><path d="M0 .4h1.6" stroke="#fff" stroke-opacity=".22" stroke-width=".5"/><path d="M1.2 0v1.6" stroke="#000" stroke-opacity=".16" stroke-width=".45"/></pattern>';
+    out += '<pattern id="gLinenCoarse" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#dccfb2"/><path d="M0 .7h3M0 2.2h3" stroke="#fff" stroke-opacity=".28" stroke-width=".7"/><path d="M.8 0v3M2.3 0v3" stroke="#6e5c40" stroke-opacity=".2" stroke-width=".6"/></pattern>';
     // satin floss: close parallel stitches, a lighter and a darker thread in each repeat
     [["indigo", "#26385f", "#3d5487", "#16223e"], ["jade", "#2f6352", "#4b8a73", "#1d4236"], ["ochre", "#9a6a28", "#c38e43", "#6c4718"],
      ["plum", "#6b2f4a", "#8f4a68", "#45182e"], ["vermilion", "#a23a2a", "#c95a43", "#6e2115"], ["ivory", "#e9dcc0", "#f8efdc", "#c8b894"],
      ["celadon", "#9cbca8", "#bfd8c7", "#6f9581"], ["leaf", "#4f7a3c", "#6f9d55", "#33552a"],
-     ["slate", "#3e4a55", "#56636f", "#2a333b"], ["sepia", "#5e4530", "#7a5c40", "#3e2c1c"]].forEach(function (c) {
+     ["slate", "#3e4a55", "#56636f", "#2a333b"], ["sepia", "#5e4530", "#7a5c40", "#3e2c1c"],
+     ["blossom", "#e39aa8", "#f6cdd5", "#b45d6e"], ["snow", "#f1ece6", "#ffffff", "#cbc2ba"], ["bamboo", "#b6a259", "#d8c785", "#86733a"],
+     ["lacquer", "#231c1a", "#3c312d", "#0f0b0a"]].forEach(function (c) {
       out += '<pattern id="gSatin-' + c[0] + '" width="1.3" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(' + (c[0] === "leaf" ? 38 : 0) + ')"><rect width="1.3" height="5" fill="' + c[1] + '"/><rect x=".15" width=".5" height="5" fill="' + c[2] + '" opacity=".55"/><rect x="1.05" width=".22" height="5" fill="' + c[3] + '" opacity=".6"/></pattern>';
     });
     return out;

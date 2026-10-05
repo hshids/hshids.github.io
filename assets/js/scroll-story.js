@@ -47,7 +47,7 @@
   // story waits in Ask Me.
   var HOTSPOTS = [];
   CHAPTERS.forEach(function (ch) { if (ch.sign) HOTSPOTS.push({ id: ch.id, x: ch.at + 62, y: 422, w: Math.max(130, ch.width), h: 276, label: ch.label + ": tap to hear the story", say: ch.say, chips: ch.chips }); });
-  HOTSPOTS.push({ id: "crane", x: 3025, y: 365, w: 170, h: 130, label: "The paper crane: tap to hear the 2013 crossing", say: CHAPTERS[3].say, chips: CHAPTERS[3].chips });
+  HOTSPOTS.push({ id: "crane", x: 3025, y: window.HJArtDir ? 322 : 365, w: window.HJArtDir ? 220 : 170, h: window.HJArtDir ? 170 : 130, label: "The paper crane: tap to see it fly east and hear the 2013 crossing", say: CHAPTERS[3].say, chips: CHAPTERS[3].chips });
 
   function defs() {
     return '<radialGradient id="scrollContact"><stop offset="0" stop-color="#2a2016" stop-opacity=".3"/><stop offset=".6" stop-color="#2a2016" stop-opacity=".12"/><stop offset="1" stop-color="#2a2016" stop-opacity="0"/></radialGradient>' +
@@ -79,9 +79,78 @@
       sprite("rock", cx + 40, GY - 46, 120, 52, "garden-stone") + sprite("rock", cx + 140, GY - 30, 78, 36, "garden-stone") + sprite("rock", cx - 60, GY - 26, 64, 30, "garden-stone") +
       sprite("grass", cx + 20, GY - 22, 22, 20) + sprite("grass", cx + 168, GY - 26, 24, 22) + sprite("grass", cx - 70, GY - 20, 18, 16) + '</g>';
   }
-  // The crossing: the painted paper crane in flight, east toward the other shore.
+  // The crossing: the paper crane in flight, east toward the other shore. In the cloth world it is
+  // pieced like a quilt from patterned silks (two Song brocades, a cloud silk, a key-fret silk, a
+  // linked-coin silk and coarse cotton-linen), one cloth to each folded face, each piece edged with a
+  // running stitch; gold thread is couched along the folds, a red satin crown, a pearl eye and a row of
+  // seed pearls on the wing. Tapping it sends it gliding east.
+  var CRANE = 1.3;   // the cloth crane is drawn larger than the painted one, so its cloths read
   function crossing(cx) {
-    return '<g class="scroll-live" transform="translate(' + (cx + 125) + ' 365) scale(-1 1)"><g class="scroll-crane-flight">' + sprite("crane", -85, -66, 170, 132, "scroll-crane") + '</g></g>';
+    var cloth = !!window.HJArtDir;
+    return '<g class="scroll-live" transform="translate(' + (cx + 125) + ' ' + (cloth ? 322 : 365) + ')"><g class="scroll-crane-glide"><g transform="scale(-1 1)"><g class="scroll-crane-flight">' +
+      (cloth ? clothCrane() : sprite("crane", -85, -66, 170, 132, "scroll-crane")) + '</g></g></g></g>';
+  }
+  // Faces of the folded crane, in the painting's coordinates (434 x 340), back to front:
+  // [points, cloth, shade (-1 dark .. 1 light)]
+  var CRANE_FACES = [
+    [[2, 12, 172, 110, 200, 188, 160, 250, 128, 322, 108, 300, 62, 140], "gSongTeal", -.08],    // far wing
+    [[92, 104, 108, 99, 150, 328, 136, 322], "gLinenCoarse", -.3],                              // neck, shaded side
+    [[108, 99, 118, 97, 170, 250, 165, 332, 150, 328], "gFretSilk", 0],                         // neck
+    [[368, 2, 258, 178, 282, 206], "gCloudSilk", .06],                                          // near wing, lit face
+    [[368, 2, 282, 206, 302, 216], "gLinenCoarse", -.22],                                       // near wing, edge
+    [[222, 148, 162, 200, 178, 268], "gSongOchre", -.24],                                       // body, shaded side
+    [[222, 148, 178, 268, 215, 246], "gCoinRose", 0],                                           // body, front
+    [[222, 148, 215, 246, 278, 210], "gSongOchre", .1],                                         // body, lit side
+    [[172, 272, 282, 212, 432, 295], "gSongTeal", .08],                                         // tail, top
+    [[172, 272, 432, 295, 300, 288, 248, 284], "gCoinRose", -.1],                               // tail, under
+    [[150, 330, 172, 272, 248, 284, 240, 318, 196, 338], "gLinenCoarse", -.12],                 // keel, plain linen for the plum sprig
+    [[15, 192, 86, 102, 112, 96, 118, 108, 100, 120], "gSatin-ivory", .04]                      // head and beak, in satin floss
+  ];
+  var CRANE_FOLDS = [[2, 12, 186, 150], [108, 99, 150, 328], [368, 2, 282, 206], [222, 148, 215, 246], [222, 148, 178, 268], [172, 272, 432, 295], [86, 102, 100, 120]];
+  // A sprig of plum in embroidery on the linen keel: a stem-stitched branch, five-petal blossoms in
+  // satin with gold knots at their hearts, and a bud.
+  function plumSprig(c) {
+    var x = +c[0], y = +c[1], out = '<g class="cc-plum"><path class="cc-branch" d="M' + f1(x - 13) + ' ' + f1(y + 6) + 'Q' + f1(x - 4) + ' ' + f1(y + 1.5) + ' ' + f1(x + 3) + ' ' + f1(y - 3) + 'T' + f1(x + 13) + ' ' + f1(y - 8) + 'M' + f1(x - 2) + ' ' + f1(y) + 'q2 3 6.5 3.6"/>';
+    [[-5, 1.6, 1], [4.2, -4.4, .9], [10.5, -7.2, .75]].forEach(function (b) {
+      var bx = x + b[0], by = y + b[1], r = b[2], i, a;
+      for (i = 0; i < 5; i++) { a = i * 1.2566 - 1.5708; out += '<circle class="cc-petal" cx="' + f1(bx + Math.cos(a) * 1.25 * r) + '" cy="' + f1(by + Math.sin(a) * 1.25 * r) + '" r="' + f1(1.15 * r) + '"/>'; }
+      out += '<circle class="cc-knot" cx="' + f1(bx) + '" cy="' + f1(by) + '" r="' + f1(.55 * r) + '"/>';
+    });
+    return out + '<ellipse class="cc-petal" cx="' + f1(x + 4.6) + '" cy="' + f1(y + 3.7) + '" rx=".9" ry="1.2"/></g>';
+  }
+  function clothCrane() {
+    var k = 170 * CRANE / 434, P = function (x, y) { return [f1((x - 217) * k), f1((y - 170) * k)]; };
+    function path(pts, inset) {
+      var q = [], cx = 0, cy = 0, n = pts.length / 2, i;
+      for (i = 0; i < n; i++) { cx += pts[2 * i] / n; cy += pts[2 * i + 1] / n; }
+      for (i = 0; i < n; i++) {
+        var x = pts[2 * i], y = pts[2 * i + 1], dx = cx - x, dy = cy - y, d = Math.sqrt(dx * dx + dy * dy) || 1, t = inset ? Math.min(inset / k, d * .45) / d : 0;
+        q.push(P(x + dx * t, y + dy * t).join(" "));
+      }
+      return "M" + q.join("L") + "Z";
+    }
+    var under = "", faces = "", stitches = "", clips = "";
+    CRANE_FACES.forEach(function (f, i) {
+      var d = path(f[0]);
+      under += '<path d="' + d + '"/>';
+      clips += '<clipPath id="ccPiece' + i + '"><path d="' + d + '"/></clipPath>';
+      // the cloth, its weave, the light on the fold, and the padding falling away at its cut edge
+      faces += '<path d="' + d + '" fill="url(#' + f[1] + ')"/><path class="cc-weave" d="' + d + '"/>' +
+        (f[2] ? '<path d="' + d + '" fill="' + (f[2] > 0 ? "#fff8e8" : "#1d1208") + '" opacity="' + Math.abs(f[2]).toFixed(2) + '"/>' : "") +
+        '<path class="cc-pad" d="' + d + '" clip-path="url(#ccPiece' + i + ')"/><path class="cc-cut" d="' + d + '"/>';
+      stitches += '<path class="cc-run" d="' + path(f[0], 1.5) + '"/>';
+    });
+    var folds = CRANE_FOLDS.map(function (l) { var a = P(l[0], l[1]), b = P(l[2], l[3]); return "M" + a.join(" ") + "L" + b.join(" "); }).join("");
+    var pearls = "";
+    for (var t = .14; t < .95; t += .13) { var pp = P(2 + 170 * t, 12 + 98 * t + 5); pearls += '<circle cx="' + pp[0] + '" cy="' + pp[1] + '" r=".95"/>'; }
+    var eye = P(95, 108), crown = P(106, 99);
+    return '<g class="cloth-crane"><defs>' + clips + '</defs>' +
+      '<g class="cc-lift" transform="translate(-1.4 2.2)">' + under + '</g>' + faces +
+      '<path class="cc-fold" d="' + folds + '"/><path class="cc-couch" d="' + folds + '"/>' + stitches + plumSprig(P(198, 306)) +
+      '<g class="cc-pearls" fill="url(#gPearlBead)">' + pearls + '</g>' +
+      '<ellipse cx="' + crown[0] + '" cy="' + crown[1] + '" rx="3.2" ry="2" fill="url(#gSatin-vermilion)" stroke="#6e2115" stroke-width=".3" transform="rotate(-24 ' + crown[0] + ' ' + crown[1] + ')"/>' +
+      '<circle cx="' + eye[0] + '" cy="' + eye[1] + '" r="1.15" fill="url(#gPearlBead)" stroke="#3a2a1a" stroke-width=".25"/>' +
+      '<g class="night-shade">' + under + '</g></g>';
   }
 
   function stationOf(id, stations) { for (var i = 0; i < stations.length; i++) if (stations[i].id === id) return stations[i]; return null; }

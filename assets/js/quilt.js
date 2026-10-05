@@ -8,6 +8,33 @@
   "use strict";
   if (!window.HJArtDir) return;
   document.documentElement.classList.add("fabric");
+
+  // Hanjing as one cut piece of cloth laid on the scene: round her whole outline (hair, face and hands
+  // included) a stem stitch in dark thread, a narrow selvage of the linen she was cut from, and the
+  // shadow of the padded piece below and to the right. Worked out from her silhouette as she moves,
+  // so the face, arms and clothes inside it get no extra lines.
+  (function () {
+    var NS = "http://www.w3.org/2000/svg", svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("aria-hidden", "true"); svg.setAttribute("focusable", "false");
+    svg.setAttribute("style", "position:absolute;width:0;height:0;overflow:hidden");
+    function patch(id, selvage, thread, shadow, k) {
+      return '<filter id="' + id + '" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">' +
+        '<feMorphology in="SourceAlpha" operator="dilate" radius="' + (2.1 * k) + '" result="cut"/>' +
+        '<feMorphology in="SourceAlpha" operator="dilate" radius="' + (.85 * k) + '" result="near"/>' +
+        '<feComposite in="near" in2="SourceAlpha" operator="out" result="edge"/>' +
+        '<feTurbulence type="fractalNoise" baseFrequency="1.6 .9" numOctaves="1" seed="7" result="twist"/>' +
+        '<feColorMatrix in="twist" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .55 .55" result="twistA"/>' +
+        '<feComposite in="edge" in2="twistA" operator="in" result="edgeT"/>' +
+        '<feFlood flood-color="' + thread + '"/><feComposite in2="edgeT" operator="in" result="stitch"/>' +
+        '<feFlood flood-color="' + selvage + '"/><feComposite in2="cut" operator="in" result="selvage"/>' +
+        '<feGaussianBlur in="cut" stdDeviation="' + (1.3 * k) + '"/><feOffset dx="' + (.9 * k) + '" dy="' + (1.8 * k) + '" result="drop"/>' +
+        '<feFlood flood-color="' + shadow + '"/><feComposite in2="drop" operator="in" result="shadow"/>' +
+        '<feMerge><feMergeNode in="shadow"/><feMergeNode in="selvage"/><feMergeNode in="stitch"/><feMergeNode in="SourceGraphic"/></feMerge></filter>';
+    }
+    var k = window.HJLite ? .7 : 1;
+    svg.innerHTML = '<defs>' + patch("patchEdge", "#ece2cb", "#5b3f29", "rgba(40,26,12,.38)", k) + patch("patchEdgeNight", "#8f8676", "#2a1f17", "rgba(0,0,0,.5)", k) + '</defs>';
+    (document.body || document.documentElement).appendChild(svg);
+  })();
   var sky = document.querySelector(".world .sky");
   if (!sky) return;
   var NS = "http://www.w3.org/2000/svg", host = document.createElementNS(NS, "svg");
