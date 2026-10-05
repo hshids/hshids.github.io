@@ -807,7 +807,7 @@
     var root=parsed(oldGround(width,stations));
     all(root,'.paving-slab,.paving-grain,.paving-bevel,.paving-wear,.paving,.ground-strokes,.path-grain').forEach(function(n){n.remove();});
     var edge=root.querySelector('.ground-edge');
-    edge.insertAdjacentHTML('afterend','<path class="painted-path" d="'+edge.getAttribute('d')+'L'+width+' 627H0Z" fill="url(#paintStone)"/>');
+    edge.insertAdjacentHTML('afterend','<path class="painted-path" d="'+edge.getAttribute('d')+'L'+width+' 627H0Z" fill="url(#paintStone)"/><path class="night-shade" d="'+edge.getAttribute('d')+'L'+width+' 627H0Z"/>');
     return root.innerHTML;
   };
   A.foreground=function(width) {
@@ -816,6 +816,7 @@
     water.insertAdjacentHTML('afterend','<path class="painted-water" d="'+water.getAttribute('d')+'" fill="url(#paintWater)"/>');
     root.querySelector('.pond-bank').setAttribute('fill','url(#paintBank)');
     root.querySelector('.pond-bank').insertAdjacentHTML('beforebegin','<path class="painted-bank" d="M0 627H'+width+'V800H0Z'+water.getAttribute('d')+'" fill-rule="evenodd" fill="url(#paintBank)"/>');
+    root.querySelector('.pond-bank').insertAdjacentHTML('afterend','<path class="night-shade" d="'+root.querySelector('.pond-bank').getAttribute('d')+'"/><path class="night-shade" d="M0 627H'+width+'V800H0Z'+water.getAttribute('d')+'" fill-rule="evenodd"/>');
     // in the cloth world the lotus is embroidered, shown a little larger so its stitches read
     var lk=window.HJArtDir?1.3:1,pk=window.HJArtDir?1.15:1;
     all(root,'.lotus-leaf').forEach(function(n) {

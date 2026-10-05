@@ -99,3 +99,20 @@
 }
 @media (prefers-reduced-motion: reduce) { .fabric .layer-ground .st { transition: none; } }
 
+
+/* Phones and tablets (Safari above all) keep every offscreen image small: no shadow or colour filter on
+   anything as wide as the world, the night darkening done with plain dark shades and transparency
+   instead of brightness filters, and the water's moving glints (which suit painted water, not cloth)
+   left out. Each of those filters makes the browser paint the whole element into a separate image at
+   the screen's 2-3x resolution; together they ran a phone out of memory. */
+.night-shade { display: none; pointer-events: none; }
+.fabric .pond-moving-glint, .fabric .painted-water, .fabric .pond-shallows { display: none; }
+@media (hover: none), (max-width: 760px) {
+  .fabric[data-theme] .layer-far svg.scene, .fabric[data-theme] .layer-mid svg.scene, .fabric[data-theme] .layer-near svg.scene { filter: none; }
+  .fabric[data-theme] .bg-arch .painted-sprite, .fabric[data-theme] .vegetation-image, .fabric[data-theme] .landscape-wash { filter: none; }
+  .fabric[data-theme] .painted-path, .fabric[data-theme] .pond-bank, .fabric[data-theme] .painted-bank { filter: none; }
+  .fabric[data-theme="dark"] .night-shade { display: inline; fill: #060b12; opacity: .58; }
+  .fabric[data-theme="dark"] .bg-arch { opacity: .42; }
+  .fabric[data-theme="dark"] .vegetation-image { opacity: .45; }
+  .fabric[data-theme="dark"] .landscape-wash { opacity: .36; }
+}

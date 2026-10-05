@@ -765,7 +765,8 @@
     if (window.HJArt && window.HJArt.paintSprite) {
       var tower = span / scale <= 108, pw = tower ? 80 * scale : Math.min(160 * scale, span * 1.35), ph = tower ? 168 * scale : pw * 1.05;
       var uidPaint = 'distantPaint'+f1(x)+'b'+f1(base);
-      return '<g class="bg-site '+cls+'"><defs><linearGradient id="'+uidPaint+'" x2="0" y2="1"><stop offset=".75" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient><mask id="m'+uidPaint+'" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#'+uidPaint+')"/></mask></defs><g class="bg-arch '+cls+'" mask="url(#m'+uidPaint+')">'+window.HJArt.paintSprite(tower ? 'pagoda' : 'pavilion',x-pw/2,base-ph,pw,ph)+'<g class="paint-distant-lights">'+(tower ? [0.3,.55,.77] : [.61]).map(function(py){return '<ellipse cx="'+x+'" cy="'+f1(base-ph+ph*py)+'" rx="'+f1(pw*.12)+'" ry="'+f1(ph*.025)+'" fill="url(#gHomeLight)"/>';}).join('')+'</g></g></g>';
+      var fade = ARTDIR ? '' : '<defs><linearGradient id="'+uidPaint+'" x2="0" y2="1"><stop offset=".75" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient><mask id="m'+uidPaint+'" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#'+uidPaint+')"/></mask></defs>';
+      return '<g class="bg-site '+cls+'">'+fade+'<g class="bg-arch '+cls+'"'+(ARTDIR ? '' : ' mask="url(#m'+uidPaint+')"')+'>'+window.HJArt.paintSprite(tower ? 'pagoda' : 'pavilion',x-pw/2,base-ph,pw,ph)+'<g class="paint-distant-lights">'+(tower ? [0.3,.55,.77] : [.61]).map(function(py){return '<ellipse cx="'+x+'" cy="'+f1(base-ph+ph*py)+'" rx="'+f1(pw*.12)+'" ry="'+f1(ph*.025)+'" fill="url(#gHomeLight)"/>';}).join('')+'</g></g></g>';
     }
     var uid = "feet" + f1(x) + "b" + f1(base), r = rng(Math.round(x)), foliage = "", lines = "";
     // Match the painted bank's quadratic curves, so trees at its edges cannot float above it.
@@ -1118,14 +1119,17 @@
       ridge += "C" + f1(x + 80) + " " + f1(base - 8 + r() * 14) + " " + f1(end - 80) + " " + f1(y) + " " + end + " " + f1(y);
     }
     ridge += "L" + width + " 800H0Z";
-    return '<defs><mask id="' + uid + '" maskUnits="userSpaceOnUse" x="0" y="0" width="' + width + '" height="800"><rect width="' + width + '" height="800" fill="white"/><path d="' + ridge + '" fill="black" filter="url(#gOcclusion)"/></mask></defs>';
+    // A clip, not a mask: the scenery behind the ridge is simply cut away above it. (A blurred mask the
+    // width of the world makes Safari draw the whole layer into an offscreen image, which on a phone
+    // runs it out of memory.)
+    return '<defs><clipPath id="' + uid + '" clipPathUnits="userSpaceOnUse"><path clip-rule="evenodd" d="M0 0H' + width + 'V800H0Z' + ridge + '"/></clipPath></defs>';
   }
 
   function farLayer(width) {
     var clouds = [[160, 244, 1.3], [980, 212, 1.05], [1760, 258, 1.5], [2600, 226, 1.15], [3500, 250, 1.35]].map(function (c) { return xiangyun(c[0], c[1], c[2]); }).join("");
     // A painted transparent plane still moves at the original parallax speed.
     // Mirrored repeat edges meet exactly, so the entire walkable world has continuous scenery.
-    return clouds + '<rect class="landscape-wash" width="' + width + '" height="800" fill="url(#gLandscape)"/>' + ridgeMask(width, "mFarRidge", 438, 81) + '<g mask="url(#mFarRidge)">' +
+    return clouds + '<rect class="landscape-wash" width="' + width + '" height="800" fill="url(#gLandscape)"/>' + ridgeMask(width, "mFarRidge", 438, 81) + '<g clip-path="url(#mFarRidge)">' +
       bgPalace(1320, 452, .7, "far far-soft") + bgGate(2440, 460, .62, "far far-soft") +
       bgPagoda(470, 446, .72, "far") + bgPagoda(3080, 444, .82, "far") + '</g>' + mist(width, 474, 106);
   }
@@ -1136,15 +1140,15 @@
     var arch = bgTower(900, 488, 1.12, "mid") + bgPavilion(2060, 478, 1.05, "mid") + bgTower(3300, 490, 1.02, "mid") + bgPavilion(4420, 476, 1, "mid");
     var willows = "";
     for (var wx = 1250; wx < width; wx += 1500 + r() * 800) willows += willow(wx, 500, 0.7 + r() * 0.3, "mid-willow");   // none behind the Welcome gate
-    return ridgeMask(width, "mMidFoundation", 479, 83) + '<g mask="url(#mMidFoundation)">' + arch + '</g>' + ridgeMask(width, "mMidGrove", 432, 85) + '<g mask="url(#mMidGrove)">' + trees + willows + '</g>' + mist(width, 492, 86);
+    return ridgeMask(width, "mMidFoundation", 479, 83) + '<g clip-path="url(#mMidFoundation)">' + arch + '</g>' + ridgeMask(width, "mMidGrove", 432, 85) + '<g clip-path="url(#mMidGrove)">' + trees + willows + '</g>' + mist(width, 492, 86);
   }
 
   function nearLayer(width) {
     var r = rng(41), trees = "", willows = "";
     for (var x = 200; x < width; x += 710 + r() * 620) trees += pine(x, 505 + r() * 20, 0.8 + r() * 0.4, "pine near-pine");
     for (var wx = 1650; wx < width; wx += 1900 + r() * 800) willows += willow(wx, 560, 1 + r() * 0.3, "near-willow");   // none behind the Welcome gate
-    return ridgeMask(width, "mNearFoundation", 534, 87) + '<g mask="url(#mNearFoundation)">' + bgPavilion(1570, 532, 1.2, "near") + bgTower(2850, 540, .82, "near") +
-      bgPavilion(4170, 530, 1.3, "near") + '</g>' + ridgeMask(width, "mNearGrove", 491, 89) + '<g mask="url(#mNearGrove)">' + trees + willows + '</g>' + mist(width, 538, 65);
+    return ridgeMask(width, "mNearFoundation", 534, 87) + '<g clip-path="url(#mNearFoundation)">' + bgPavilion(1570, 532, 1.2, "near") + bgTower(2850, 540, .82, "near") +
+      bgPavilion(4170, 530, 1.3, "near") + '</g>' + ridgeMask(width, "mNearGrove", 491, 89) + '<g clip-path="url(#mNearGrove)">' + trees + willows + '</g>' + mist(width, 538, 65);
   }
 
   // The DOM sky retains its interactive sun/moon and moving birds.
