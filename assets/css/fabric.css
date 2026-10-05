@@ -39,3 +39,29 @@
 .scroll-paper { fill: #f3ead6; }
 .scroll-paper-shadow { fill: rgba(40, 28, 16, .22); filter: blur(1.2px); }
 [data-theme="dark"] .scroll-paper { fill: #cdbf9f; }
+
+/* layered cloth: each band of scenery lies on the one behind it and casts a soft shadow on it,
+   like the layers of a fabric shadow box (these layers are static, so the shadow is drawn once) */
+.fabric .layer-far svg.scene { filter: drop-shadow(0 2px 2px rgba(46, 32, 18, .2)); }
+.fabric .layer-mid svg.scene { filter: drop-shadow(0 3px 3px rgba(46, 32, 18, .24)); }
+.fabric .layer-near svg.scene { filter: drop-shadow(0 4px 4px rgba(46, 32, 18, .28)); }
+.fabric[data-theme="dark"] .layer-far svg.scene { filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); }
+.fabric[data-theme="dark"] .layer-mid svg.scene { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4)); }
+.fabric[data-theme="dark"] .layer-near svg.scene { filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .45)); }
+
+/* the mist is sheer tulle */
+.tulle-cloth { fill: var(--w-mist); opacity: .5; }
+.tulle-net { opacity: .55; }
+.tulle-mesh { fill: none; stroke: #fffaf0; stroke-width: .35; }
+.tulle-edge { fill: none; stroke: #fffaf0; stroke-width: 1.2; stroke-dasharray: 1.5 2.5; opacity: .7; }
+[data-theme="dark"] .tulle-cloth { opacity: .3; }
+[data-theme="dark"] .tulle-mesh, [data-theme="dark"] .tulle-edge { stroke: #9fb0c8; }
+[data-theme="dark"] .tulle-net { opacity: .25; }
+
+/* a place lifts a little off the cloth when you point at it, like a piece about to be picked up */
+@media (hover: hover) {
+  .fabric .layer-ground .st { transition: translate .25s ease, filter .25s ease; }
+  .fabric .layer-ground .st:hover { translate: 0 -3px; filter: drop-shadow(0 6px 5px rgba(46, 32, 18, .3)); }
+}
+@media (prefers-reduced-motion: reduce) { .fabric .layer-ground .st { transition: none; } }
+

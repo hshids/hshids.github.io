@@ -930,6 +930,7 @@
       '<linearGradient id="gMid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mid);stop-opacity:.9"/><stop offset=".6" style="stop-color:var(--w-mid);stop-opacity:.4"/><stop offset="1" style="stop-color:var(--w-mid);stop-opacity:0"/></linearGradient>' +
       '<linearGradient id="gNear" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-near);stop-opacity:.95"/><stop offset=".7" style="stop-color:var(--w-near);stop-opacity:.45"/><stop offset="1" style="stop-color:var(--w-near);stop-opacity:.05"/></linearGradient>' +
       '<linearGradient id="gMist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mist);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--w-mist);stop-opacity:.85"/><stop offset="1" style="stop-color:var(--w-mist);stop-opacity:0"/></linearGradient>' +
+      (ARTDIR ? '<pattern id="gTulle" width="6" height="5.2" patternUnits="userSpaceOnUse"><path class="tulle-mesh" d="M0 2.6L1.5 0H4.5L6 2.6L4.5 5.2H1.5Z"/></pattern>' : '') +
       (ARTDIR ? '<pattern id="gWeave" width="160" height="160" patternUnits="userSpaceOnUse"><image href="assets/art/' + ARTDIR + 'weave.webp" width="160" height="160"/></pattern>' : '') +
       '<linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-ground-1)"/><stop offset="1" style="stop-color:var(--w-ground-2)"/></linearGradient>' +
       '<radialGradient id="gPouf" cx=".4" cy=".25" r=".8"><stop stop-color="var(--w-note)"/><stop offset=".7" stop-color="var(--w-fill)"/><stop offset="1" stop-color="var(--w-stone)"/></radialGradient>' +
@@ -980,7 +981,18 @@
   }
 
   function mist(width, y, h) {
+    if (ARTDIR) return tulle(width, y, h);
     return '<rect x="0" y="' + y + '" width="' + width + '" height="' + h + '" fill="url(#gMist)"/>';
+  }
+  // In the cloth world the mist is a strip of sheer tulle with a torn, fraying top edge.
+  function tulle(width, y, h) {
+    var r = rng(Math.round(y * 7) + 3), top = y + h * .3, wave = 0, pts = [];
+    for (var x = 0; x <= width + 8; x += 4 + r() * 6) {
+      wave += (r() - .5) * 3; wave *= .9;
+      pts.push(f1(Math.min(x, width)) + " " + f1(top + wave + (r() - .5) * 2.6 + Math.sin(x / 260 + y) * 6));
+    }
+    var edge = "M" + pts.join("L"), cloth = edge + "L" + width + " " + (y + h) + "L0 " + (y + h) + "Z";
+    return '<g class="tulle"><path class="tulle-cloth" d="' + cloth + '"/><path class="tulle-net" d="' + cloth + '" fill="url(#gTulle)"/><path class="tulle-edge" d="' + edge + '"/></g>';
   }
 
 
