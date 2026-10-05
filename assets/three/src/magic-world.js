@@ -243,6 +243,21 @@ function bind(){
   addEventListener('blur',()=>{held.clear();if(carry?.started)carry.item.drag.end(null);carry=null;drag=null;pointers.clear();});canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();stopped=true;cancelAnimationFrame(raf);$('#world-error').hidden=false;});
   document.addEventListener('visibilitychange',()=>{audio.pause(document.hidden);if(document.hidden){cancelAnimationFrame(raf);last=0;drag=null;pointers.clear();}else if(!stopped){last=0;raf=requestAnimationFrame(frame);}});addEventListener('resize',resize);addEventListener('pagehide',e=>{if(!e.persisted)dispose();});}
 function dispose(){if(disposed)return;disposed=true;stopped=true;cancelAnimationFrame(raf);clearTimeout(speechTimer);captionObserver?.disconnect();pathWalk?.dispose();invitation.destroy();notebook?.destroy();content?.dispose();overviewBatches?.dispose();diary?.dispose();talkNotes?.dispose();stories?.dispose();architecture?.dispose();cats?.dispose();magic?.dispose();landscape?.dispose();garden?.dispose();brush?.dispose();aa?.dispose();environment?.dispose();audio.dispose();renderer?.dispose();}
+function warmUp(){
+  const textures=[],seen=new Set(),groups=[];
+  scene.traverse(o=>{for(const m of[].concat(o.material||[]))for(const k in m){const t=m[k];if(t&&t.isTexture&&!seen.has(t)){seen.add(t);textures.push(t);}}});
+  for(const c of scene.children)groups.push(c);
+  const idle=window.requestIdleCallback?cb=>window.requestIdleCallback(cb,{timeout:400}):cb=>setTimeout(cb,80);
+  const step=()=>{
+    try{
+      for(let i=0;i<3&&textures.length;i++)renderer.initTexture(textures.shift());
+      const group=textures.length?null:groups.shift();
+      if(group)renderer.compile(group,camera,scene);
+    }catch(error){console.warn('Warm-up step skipped:',error);}
+    if(textures.length||groups.length)idle(step);
+  };
+  idle(step);
+}
 async function init(){
   renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'default'});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.10;renderer.info.autoReset=false;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;aa=createDisplayAntialias(renderer);
   scene=new THREE.Scene();scene.background=new THREE.Color('#0a172a');scene.fog=new THREE.Fog('#0a172a',180,400);camera=new THREE.PerspectiveCamera(44,1,.07,900);
@@ -267,7 +282,12 @@ async function init(){
   for(const id of notebook.ids){const event=magic.discover(id,{notify:false})||stories.discover(id,{notify:false})||(id===diary.metadata.entry.id?diary.metadata.entry:null);if(event)landscape.discover?.(event.station);}
   if(invitation.isOpen&&invitation.element.classList.contains('magic-invitation-has-read'))record(magic.discover('home',{notify:false}));
   overviewBatches=createOverviewBatches(garden.stations);const initialChapter=location.hash.slice(1);
-  bind();state.ready=true;resize();$('#loading').hidden=true;overview();if(invitation.isOpen)setOverlay('invitation');invitation.setReady(true);if(station(initialChapter))go(initialChapter);raf=requestAnimationFrame(frame);
+  bind();state.ready=true;resize();$('#loading').hidden=true;overview();if(invitation.isOpen)setOverlay('invitation');raf=requestAnimationFrame(frame);
+  invitation.setReady(true);if(station(initialChapter))go(initialChapter);
+  // While the invitation is read, quietly get the rest of the island ready a little at a time: upload
+  // its textures and compile its shaders group by group in idle moments, so flying in and walking
+  // around for the first time does not stall on each new material, and nothing blocks the letter.
+  warmUp();
   window.__HANJING_3D__={state,go,overview,enterRoom,leaveRoom,currentRoom,held,turnInPlace,get roomBlocks(){return roomBlocks;},get seated(){return seated;},standUp,focusStory,perform:action,pick,interact,renderer,scene,camera,garden,cats,actors:cats,magic,landscape,invitation,notebook,diary,stories,architecture,pathWalk,get talkNotes(){return talkNotes;},textureMemory,overviewBatches,
     metrics:()=>({calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,textures:renderer.info.memory.textures,geometries:renderer.info.memory.geometries,quality,humanModels:0}),
     get lastTap(){return lastTap;},getInteractionTargets(){scene.updateMatrixWorld(true);return interactionItems().map(i=>{const objects=(i.objects||[i.object]).filter(o=>o?.isObject3D);const p=objects.length?new THREE.Box3().setFromObject(objects[0]).getCenter(new THREE.Vector3()):new THREE.Vector3(...i.point);p.project(camera);return{id:i.id,type:i.type,station:i.station,x:(p.x*.5+.5)*canvas.clientWidth,y:(-.5*p.y+.5)*canvas.clientHeight+canvas.getBoundingClientRect().top,visible:objects.some(isPickable)&&p.z<1&&Math.abs(p.x)<1&&Math.abs(p.y)<1};});}};

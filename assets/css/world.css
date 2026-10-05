@@ -1575,8 +1575,8 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .bird { display: none; }
-  .cat-slide { animation: none !important; }
-  .cat-slide:first-of-type { opacity: 1; }
+  /* the cats' photos only cross-fade, with nothing moving, so they keep changing (a little slower) */
+  .cat-slide { animation: catSlides calc(var(--slide-dur, 15s) * 1.2) ease-in-out calc(var(--slide-delay, 0s) * 1.2) infinite !important; }
   .lotus-pond.is-stirred .pond-koi { animation: none !important; opacity: .65; }
   .koi-swim, .koi-tail, .koi-pectoral { animation: none !important; transform: none !important; }
   .painted-lids, .painted-cat-lids { opacity: 0; }
