@@ -816,13 +816,15 @@
     water.insertAdjacentHTML('afterend','<path class="painted-water" d="'+water.getAttribute('d')+'" fill="url(#paintWater)"/>');
     root.querySelector('.pond-bank').setAttribute('fill','url(#paintBank)');
     root.querySelector('.pond-bank').insertAdjacentHTML('beforebegin','<path class="painted-bank" d="M0 627H'+width+'V800H0Z'+water.getAttribute('d')+'" fill-rule="evenodd" fill="url(#paintBank)"/>');
+    // in the cloth world the lotus is embroidered, shown a little larger so its stitches read
+    var lk=window.HJArtDir?1.3:1,pk=window.HJArtDir?1.15:1;
     all(root,'.lotus-leaf').forEach(function(n) {
       var pad=n.querySelector('.leaf-shadow');
-      var x=+pad.getAttribute('cx')-2,y=+pad.getAttribute('cy')-3, r=+pad.getAttribute('rx');
+      var x=+pad.getAttribute('cx')-2,y=+pad.getAttribute('cy')-3, r=+pad.getAttribute('rx')*pk;
       n.innerHTML=sprite('pads',x-r,y-r*.48,r*2,r*.96);
     });
     all(root,'.lotus-flower').forEach(function(n) {
-      n.innerHTML='<g class="o-day">'+sprite('flower',-26,-35,52,39)+'</g><g class="o-night">'+sprite('bud',-11,-32,22,37)+'</g>';
+      n.innerHTML='<g class="o-day">'+sprite('flower',-26*lk,4-39*lk,52*lk,39*lk)+'</g><g class="o-night">'+sprite('bud',-11*lk,5-37*lk,22*lk,37*lk)+'</g>';
     });
     var k=root.querySelector('.koi-facing');
     if(k) {

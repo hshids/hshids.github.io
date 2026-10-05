@@ -92,7 +92,9 @@ FACE_SILK = {'hanjing-day', 'hanjing-night', 'hanjing-day-expression', 'hanjing-
 FUR_RIG = ('jinbingbing-',)
 FULL_EMB = {'belongings-painted': [(442, 94, 700, 389)]}   # the cooking pot is embroidered all over
 # small buildings in the distance, embroidered all over at the size they are shown: (rect, screen scale)
-EMB_REGIONS = {'garden-painted': [((1356, 478, 1545, 828), .4), ((1546, 587, 1762, 829), .45)]}
+EMB_REGIONS = {'garden-painted': [((1356, 478, 1545, 828), .4, 'building'), ((1546, 587, 1762, 829), .45, 'building'),
+                                   ((17, 98, 451, 443), .15, (.5, .64)), ((580, 110, 753, 437), .15, (.5, 1.0)), ((871, 101, 1336, 441), .1, (.47, .52))]}
+# (a lotus is given as the point its petals or leaf veins spread from, as fractions of the crop)
 
 
 def kind_of(name):
@@ -671,12 +673,12 @@ def chain_stitch(col, pts, color, w, step):
 
 
 
-def embroider(col, region, src_bgr, L, u, rng, key, width=None, length=None, cover=None, soft=False, strict=True, fine=False):
+def embroider(col, region, src_bgr, L, u, rng, key, width=None, length=None, cover=None, soft=False, strict=True, fine=False, field=None):
     """Fill a region with thick, visibly spaced stitches that follow its structure, over a darker
     underlay of the same cloth that shows through the gaps."""
     if not region.any(): return col, np.zeros(region.shape, np.float32)
     width = width or EMB_W; length = length or EMB_L; cover = cover or EMB_COVER
-    fdx, fdy = stitch_field(L, u)
+    fdx, fdy = field if field is not None else stitch_field(L, u)
     src_lab = cv2.cvtColor(np.clip(src_bgr, 0, 255).astype(np.float32) / 255, cv2.COLOR_BGR2Lab)
     if fine:   # thread painting: dense slim stitches over the painting itself, no gaps showing
         under = src_bgr
@@ -1006,16 +1008,17 @@ def fabricize(name, img, over=1):
     if kind == 'figure':
         return figure(name, bgr_f, alpha, solid, lab_o, src, u, rng)
     res = appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over)
-    for rect, sc in EMB_REGIONS.get(name, ()):
+    for rect, sc, motif in EMB_REGIONS.get(name, ()):
         x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
-        res[y0:y1, x0:x1] = distant_embroidery(img[y0:y1, x0:x1], over / sc, rng, x0 + y0)
+        res[y0:y1, x0:x1] = distant_embroidery(img[y0:y1, x0:x1], over / sc, rng, x0 + y0, motif)
     return res
 
 
-def distant_embroidery(img, u, rng, key):
-    """A small building far off, worked all over in embroidery so it still reads as stitched when
-    small: satin floss on the tiled roofs, fine silk on walls, columns and railings in the painting's
-    own colours, and a back stitch round the whole building."""
+def distant_embroidery(img, u, rng, key, motif='building'):
+    """A small motif worked all over in embroidery so it still reads as stitched when small. A
+    building far off: satin floss on the tiled roofs, fine silk on walls, columns and railings in the
+    painting's own colours. A lotus (flower, bud, leaves): satin floss over every petal and leaf,
+    following its veins. Either way a back stitch runs round the whole motif."""
     bgr_f, alpha, solid = prepare(img)
     H, W = solid.shape
     lab_o = cv2.cvtColor(np.clip(bgr_f, 0, 255) / 255, cv2.COLOR_BGR2Lab); L_o = lab_o[..., 0]
@@ -1024,10 +1027,17 @@ def distant_embroidery(img, u, rng, key):
     Lb = cv2.GaussianBlur(lab_o, (0, 0), max(.8, .6 * u))
     C = np.hypot(Lb[..., 1], Lb[..., 2]); hh = np.degrees(np.arctan2(Lb[..., 2], Lb[..., 1])) % 360
     roof = solid & (((hh > 95) & (hh < 230) & (C > 3)) | ((C < 6) & (Lb[..., 0] < 50)))
+    field = None
+    if motif != 'building':   # a lotus: petals and leaf veins spread from one point, and so do the stitches
+        roof = solid.copy()
+        yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
+        dx, dy = xx - motif[0] * W, yy - motif[1] * H
+        n = np.sqrt(dx * dx + dy * dy) + 1e-3
+        field = (dx / n, dy / n)
     k = max(3, int(round(1.2 * u)) | 1)
     roof = cv2.morphologyEx(roof.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))) > 0
-    col, _ = embroider(col, roof, src, L_o, u, rng, key, width=1.1, length=5.0, cover=.85)
-    col = silk(col, solid & ~roof, src, L_o, u, rng, .65, 3.0, .2, .07, .35, 3.0)
+    col, _ = embroider(col, roof, src, L_o, u, rng, key, width=1.1 if field is None else .9, length=5.0 if field is None else 5.5, cover=.85 if field is None else .95, field=field)
+    if motif == 'building': col = silk(col, solid & ~roof, src, L_o, u, rng, .65, 3.0, .2, .07, .35, 3.0)
     needle = Needle(H, W, u, fine=True)
     r = max(1, int(round(.8 * u)))
     m_in = cv2.erode(solid.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
