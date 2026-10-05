@@ -2,11 +2,11 @@
    cloth versions in assets/art/fabric/ (tools/fabricize.py), and assets/js/quilt.js sews the sky. */
 .fabric .world, .fabric .defs {
   --thread: #6e5539; --thread-shade: #46331f; --thread-light: #efe2c6; --quilt-shadow: rgba(46, 32, 18, .28);
-  --sea-far: #57707a; --sea-mid: #475f6b; --sea-near: #394f5c; --sea-deep: #2d424f;
+  --sea-far: #4f6b5c; --sea-mid: #405b4d; --sea-near: #334b3f; --sea-deep: #273c32;
 }
 [data-theme="dark"].fabric .world, .fabric[data-theme="dark"] .world, .fabric[data-theme="dark"] .defs {
   --thread: #cbb894; --thread-shade: #8a7858; --thread-light: #f6ecd4; --quilt-shadow: rgba(0, 0, 0, .5);
-  --sea-far: #253441; --sea-mid: #1e2b37; --sea-near: #18232e; --sea-deep: #121b24;
+  --sea-far: #1e2c26; --sea-mid: #19251f; --sea-near: #141e19; --sea-deep: #0f1713;
 }
 
 /* the backing: washed burlap by day, dark felt at night; the sky quilt lies on it */
@@ -37,22 +37,29 @@
   fill: url(#gSatinLetters); stroke: #3a2616; stroke-width: .32; paint-order: stroke; filter: url(#gRaisedThread);
 }
 
-/* the water is dark cotton appliqué, each swell shading the one behind and sewn along its top; the
+/* plaques are madder cotton, padded, with a running stitch round them; the letters on them are satin */
+.cloth-plaque-shadow { fill: rgba(30, 18, 8, .35); }
+.cloth-plaque { stroke: #3e1a0f; stroke-width: .5; }
+.cloth-plaque-stitch { fill: none; stroke: #e6c991; stroke-width: .75; stroke-dasharray: 2.6 1.7; stroke-linecap: round; opacity: .85; }
+[data-theme="dark"] .cloth-plaque { opacity: .85; }
+[data-theme="dark"] .emb-shelf, [data-theme="dark"] .emb-book { opacity: .72; }
+
+/* the water is a river of dark green cotton appliqué, each long low swell shading the one behind and sewn along its top; the
    mother-of-pearl along the crests is the highlight, set in a dark seat with a glint on its edge */
 .luodian { pointer-events: none; }
-.fabric .pond-lacquer { fill: #5f777f; }
-.sea-thread { fill: none; stroke: #7f969d; stroke-width: .7; stroke-linecap: round; opacity: .6; }
+.fabric .pond-lacquer { fill: #58715f; }
+.sea-thread { fill: none; stroke: #7c9783; stroke-width: .7; stroke-linecap: round; opacity: .6; }
 .sea-shadow { fill: #0d171e; opacity: .42; }
-.sea-cloth { stroke: #1f2e37; stroke-width: .4; }
-.sea-stitch { fill: none; stroke: #8ea6ad; stroke-width: .7; stroke-dasharray: 3.2 2.4; stroke-linecap: round; opacity: .8; }
-.sea-groove { fill: none; stroke: #121c23; stroke-linecap: round; opacity: .85; }
+.sea-cloth { stroke: #1d2c24; stroke-width: .4; }
+.sea-stitch { fill: none; stroke: #93ab98; stroke-width: .7; stroke-dasharray: 3.2 2.4; stroke-linecap: round; opacity: .8; }
+.sea-groove { fill: none; stroke: #111b16; stroke-linecap: round; opacity: .85; }
 .sea-strip { fill: none; stroke-linecap: round; }
 .sea-glint { fill: none; stroke: url(#gSea-glint); stroke-width: .7; stroke-linecap: round; }
-.sea-spray { stroke: #4d6570; stroke-width: .35; }
-.fabric[data-theme="dark"] .pond-lacquer { fill: #22303c; }
-[data-theme="dark"] .sea-thread { stroke: #3b4f5e; }
+.sea-spray { stroke: #4e6857; stroke-width: .35; }
+.fabric[data-theme="dark"] .pond-lacquer { fill: #1c2924; }
+[data-theme="dark"] .sea-thread { stroke: #34493d; }
 [data-theme="dark"] .sea-shadow { fill: #000; opacity: .55; }
-[data-theme="dark"] .sea-stitch { stroke: #536b78; }
+[data-theme="dark"] .sea-stitch { stroke: #4e6858; }
 [data-theme="dark"] .sea-strip, [data-theme="dark"] .sea-spray { opacity: .82; }
 .fabric .water-line, .fabric .water-light, .fabric .submerged-stems, .fabric .flower-reflection { display: none; }
 
@@ -99,3 +106,96 @@
 }
 @media (prefers-reduced-motion: reduce) { .fabric .layer-ground .st { transition: none; } }
 
+
+/* Phones and tablets (Safari above all) keep every offscreen image small: no shadow or colour filter on
+   anything as wide as the world, the night darkening done with plain dark shades and transparency
+   instead of brightness filters, and the water's moving glints (which suit painted water, not cloth)
+   left out. Each of those filters makes the browser paint the whole element into a separate image at
+   the screen's 2-3x resolution; together they ran a phone out of memory. */
+.night-shade { display: none; pointer-events: none; }
+.fabric .pond-moving-glint, .fabric .painted-water, .fabric .pond-shallows { display: none; }
+@media (hover: none), (max-width: 760px) {
+  .fabric[data-theme] .layer-far svg.scene, .fabric[data-theme] .layer-mid svg.scene, .fabric[data-theme] .layer-near svg.scene { filter: none; }
+  .fabric[data-theme] .bg-arch .painted-sprite, .fabric[data-theme] .vegetation-image, .fabric[data-theme] .landscape-wash { filter: none; }
+  .fabric[data-theme] .painted-path, .fabric[data-theme] .pond-bank, .fabric[data-theme] .painted-bank { filter: none; }
+  .fabric[data-theme="dark"] .night-shade { display: inline; fill: #060b12; opacity: .58; }
+  .fabric[data-theme="dark"] .bg-arch { opacity: .42; }
+  .fabric[data-theme="dark"] .vegetation-image { opacity: .45; }
+  .fabric[data-theme="dark"] .landscape-wash { opacity: .36; }
+}
+
+/* Interactive things in the cloth world show a gold thread in running stitch instead of a red frame:
+   keyboard focus, the scroll's hotspots and the little map. */
+.fabric { --stitch-gold: #b38845; }
+.fabric[data-theme="dark"] { --stitch-gold: #dcbb7a; }
+.fabric :focus-visible, .fabric .guide-fab:focus-visible { outline: 1.6px dashed var(--stitch-gold); outline-offset: 3px; border-radius: 8px; }
+.fabric .scroll-hotspot:focus-visible, .fabric .scroll-tick:hover, .fabric .scroll-tick:focus-visible { outline: 1.6px dashed var(--stitch-gold); outline-offset: 2px; }
+.fabric .scroll-map-view { box-shadow: none; border: 1.6px dashed var(--stitch-gold); opacity: .9; }
+/* Pointing at a hotspot draws no frame: the thing itself lifts off the cloth a little, as the stations do
+   (a plaque rises on its ropes, the crane rises with its shadow left behind). */
+.fabric .scroll-sign .paint-label, .fabric .scroll-sign .scroll-paper, .fabric .cloth-crane > :not(.cc-lift) { transition: translate .25s ease; }
+.fabric .cloth-crane .cc-lift { transition: opacity .25s ease; }
+@media (hover: hover) {
+  .fabric:has([data-scroll-hotspot="head"]:hover) .scroll-sign[data-chapter="head"] :is(.paint-label, .scroll-paper),
+  .fabric:has([data-scroll-hotspot="prologue"]:hover) .scroll-sign[data-chapter="prologue"] :is(.paint-label, .scroll-paper),
+  .fabric:has([data-scroll-hotspot="crossing"]:hover) .scroll-sign[data-chapter="crossing"] :is(.paint-label, .scroll-paper),
+  .fabric:has([data-scroll-hotspot="tail"]:hover) .scroll-sign[data-chapter="tail"] :is(.paint-label, .scroll-paper) { translate: 0 -3px; }
+  .fabric:has([data-scroll-hotspot="crane"]:hover) .cloth-crane > :not(.cc-lift) { translate: 1.5px -3px; }
+  .fabric:has([data-scroll-hotspot="crane"]:hover) .cloth-crane .cc-lift { opacity: .75; }
+}
+
+/* The paper crane, pieced from patterned silks: a lift shadow under the pieces, a cut edge and a
+   running stitch round each, gold thread couched along the folds, seed pearls. Tapped, it glides east,
+   turns and comes back. */
+.cc-lift { fill: rgba(40, 24, 10, .3); }
+.cc-cut { fill: none; stroke: #3b2716; stroke-width: .45; stroke-opacity: .55; stroke-linejoin: round; }
+.cc-run { fill: none; stroke: #f4e7c6; stroke-width: .55; stroke-dasharray: 1.7 1.2; stroke-linecap: round; opacity: .85; }
+.cc-fold { fill: none; stroke: url(#gGoldThread); stroke-width: 1.15; stroke-linecap: round; }
+.cc-couch { fill: none; stroke: #6b4a1c; stroke-width: 1.7; stroke-dasharray: .35 2.6; opacity: .8; }
+.cc-pearls circle { stroke: #8a8296; stroke-width: .2; }
+.fabric[data-theme="dark"] .cloth-crane { filter: brightness(.74) saturate(.85); }
+@media (hover: none), (max-width: 760px) {
+  .fabric[data-theme="dark"] .cloth-crane { filter: none; }
+  .fabric[data-theme="dark"] .cloth-crane .night-shade { opacity: .3; }
+}
+.scroll-crane-glide { transform-box: fill-box; transform-origin: center; }
+.scroll-crane-glide.is-gliding { animation: craneGlide 6.8s cubic-bezier(.45, .05, .4, 1) both; }
+@keyframes craneGlide {
+  0% { translate: 0 0; rotate: 0deg; scale: 1 1; }
+  8% { translate: -6px 5px; rotate: 3deg; scale: 1 1; }
+  42% { translate: 190px -26px; rotate: -4deg; scale: 1 1; }
+  52% { translate: 215px -18px; rotate: 0deg; scale: 1 1; }
+  58% { translate: 218px -16px; rotate: 0deg; scale: -1 1; }
+  92% { translate: 8px -4px; rotate: 2deg; scale: -1 1; }
+  97%, 100% { translate: 0 0; rotate: 0deg; scale: 1 1; }
+}
+@media (prefers-reduced-motion: reduce) { .scroll-crane-glide.is-gliding { animation: none; } }
+.cc-weave { fill: url(#gWeaveFine); }
+.cc-pad { fill: none; stroke: #24160a; stroke-width: 2.8; stroke-opacity: .2; stroke-linejoin: round; }
+.cc-branch { fill: none; stroke: #5b3b22; stroke-width: 1; stroke-linecap: round; stroke-dasharray: 1.4 .35; }
+.cc-petal { fill: #dc8293; stroke: #a8475c; stroke-width: .28; }
+.cc-knot { fill: url(#gGoldThread); stroke: #7a5418; stroke-width: .2; }
+/* the plum vase in front of Research: a small thing, so a colour filter is cheap even on a phone */
+.fabric[data-theme="dark"] .emb-floor-vase { filter: brightness(.7) saturate(.85); }
+.fabric[data-theme="dark"] .screen-accents { opacity: .8; }
+
+/* Hanjing is one cut piece of cloth on the scene (the patch filters are made in quilt.js): the
+   moving figure, the still poses drawn without the motion rig, and the writing and petting rigs. */
+.fabric .actor.char .motion-rig-human,
+.fabric .actor.char:not(.has-motion-rig) .c-root,
+.fabric .actor.char .c-reading, .fabric .actor.char .c-back, .fabric .actor.char .c-crouch, .fabric .actor.char .c-mail { filter: url(#patchEdge); }
+.fabric .actor-lighting.char .painted-writing-rig, .fabric .actor-lighting.char .painted-pet-rig { filter: url(#actor-tonal-day) url(#patchEdge); }
+.fabric[data-theme="dark"] .actor.char .motion-rig-human,
+.fabric[data-theme="dark"] .actor-lighting.char .motion-rig-human { filter: saturate(.86) url(#patchEdgeNight); }
+.fabric[data-theme="dark"] .actor.char:not(.has-motion-rig) .c-root,
+.fabric[data-theme="dark"] .actor.char .c-reading, .fabric[data-theme="dark"] .actor.char .c-back,
+.fabric[data-theme="dark"] .actor.char .c-crouch, .fabric[data-theme="dark"] .actor.char .c-mail { filter: url(#patchEdgeNight); }
+.fabric[data-theme="dark"] .actor-lighting.char .painted-writing-rig,
+.fabric[data-theme="dark"] .actor-lighting.char .painted-pet-rig { filter: url(#actor-tonal-night) saturate(.86) url(#patchEdgeNight); }
+
+/* Each station is a padded piece of cloth sewn onto the scene, so on a large screen it casts a soft
+   shadow of its thickness onto what lies behind (phones skip it: a filter there costs memory). */
+@media (hover: hover) and (min-width: 761px) {
+  .fabric .layer-ground .st { filter: drop-shadow(1px 3px 2.5px rgba(46, 32, 18, .3)); }
+  .fabric[data-theme="dark"] .layer-ground .st { filter: drop-shadow(1px 3px 2.5px rgba(0, 0, 0, .45)); }
+}

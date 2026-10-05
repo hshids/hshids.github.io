@@ -27,6 +27,18 @@ export function createContent(api) {
   }
 
   // ---------- station panels ----------
+  // The Writing panel's note on this 3D world: where its buildings, stories and small nods come from.
+  const INSPIRATION_3D = '<section id="writing-world" class="writing-inspiration"><h3>About this 3D world</h3>' +
+    '<p>The 3D site is my diary in miniature: a small island built brick by brick, where each building holds a chapter and each object hides a story. This is where its pieces come from.</p>' +
+    '<ul class="p-cards">' +
+    '<li class="p-card"><span class="p-card-tag">Architecture</span><h3>East meets West</h3><p>The halls borrow from Tang-style timber buildings, with deep eaves, bracket sets and glazed roofs, and from Chinese gardens, with a pagoda, porcelain-blue tiles and lattice fretwork. They meet European classical stone, columns and arches, the way my own life moves between Dalian and the campuses where I studied in the United States. Each school is built in its own stone and colours.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Bricks</span><h3>Built like the toys I love</h3><p>I have a big LEGO collection and have built with blocks since I was little, so the whole island is made of bricks and studs: a world you could take apart and build again.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Magic</span><h3>Candlelight and letters</h3><p>The candlelight, the crystal ball, the snowy owl carrying letters and the diary that writes back are my homage to Harry Potter, whose sets are my favourite to build.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Stories</span><h3>Where the stories come from</h3><p>Everything on the island comes from my life: Dalian and San Francisco on two shores, the plane that carried me across the Pacific in 2013, schools across the United States, the open door to my work with the UN, my six cats and two cross-country drives, Dalian seafood under a pot lid, and travels to Korea, Sweden and Denmark.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">Small nods</span><h3>Things I love</h3><p>The three knocks at the door and the rolling whiteboard are for <i>The Big Bang Theory</i>, my first glimpse of research life. The casebook is for Sherlock Holmes and murder mystery games. The whale in the deep is for my name, which sounds a little like the Chinese word for whale.</p></li>' +
+    '<li class="p-card"><span class="p-card-tag">What I hope you see</span><h3>Research, with care</h3><p>Between the play, the island holds my questions about Persona AI, AI afterlife and AI in education: how people keep their agency, and how we keep caring for each other, when technology starts to sound familiar. In the Talks hall you can leave a note on a poster, because research should be a conversation.</p></li>' +
+    '</ul></section>';
+
   function authors(list) {
     return list.map(function (a) { return a === D.person.name ? "<b>" + esc(a) + "</b>" : esc(a); }).join(", ");
   }
@@ -108,7 +120,7 @@ export function createContent(api) {
     writing: function () {
       var rn = D.person.links.rednote;
       return '<h2 id="panel-title" tabindex="-1">Writing</h2>' +
-        '<nav class="writing-index" aria-label="Writing sections"><button type="button" class="link-btn" data-writing-section="writing-tutorials">Tutorials</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-blogs">Blogs</button></nav>' +
+        '<nav class="writing-index" aria-label="Writing sections"><button type="button" class="link-btn" data-writing-section="writing-tutorials">Tutorials</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-blogs">Blogs</button><span aria-hidden="true"> / </span><button type="button" class="link-btn" data-writing-section="writing-world">About this world</button></nav>' +
         '<section id="writing-tutorials"><h3>Tutorials</h3><p class="p-muted">Beginner tutorials and cheat sheets I wrote. The tutorials themselves are written in Chinese.</p>' +
         '<ul class="p-cards">' + D.tutorials.map(function (t) {
           return '<li class="p-card" id="tut-' + t.id + '"><span class="p-card-tag">' + esc(t.label) + "</span><h3>" + extLink(t.href, t.title) + "</h3><p>" + esc(t.desc.en) + "</p>" +
@@ -118,7 +130,7 @@ export function createContent(api) {
         (rn ? '<p class="p-muted">On ' + extLink(rn, "RedNote") + ', I share everyday experiences and reflections.</p>' : "") +
         '<ul class="p-cards">' + D.writing.map(function (w) {
           return '<li class="p-card" id="post-' + w.id + '"><span class="p-card-tag">in Chinese</span><h3>' + extLink(w.href, w.title) + "</h3><p>" + esc(w.desc.en) + "</p></li>";
-        }).join("") + "</ul></section>";
+        }).join("") + "</ul></section>" + INSPIRATION_3D;
     },
 
     life: function () {

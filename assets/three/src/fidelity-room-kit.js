@@ -8,7 +8,15 @@ import {craftBoxChamfer,createCraftBoxGeometry,createCraftRoofTileGeometry,creat
 export function createRoomKit({root=new THREE.Group(),name='room',quality='high'}={}){
   const resources=new Set(),materials=createCraftMaterials({name,quality,resources}),staticMeshes=[],doors=[],rooms=[],lights=[],boxGeometries=new Map();
   let dark=false,disposed=false;const mergedMeshes=[],motions=[];
-  function resolve(role){return typeof role==='string'?(materials[role]||materials.wood):role;}
+  // 'stone~2' is the second of a few slightly different tints of 'stone': no two neighbouring bricks
+  // are quite the same colour, as in real stone and as in a well-worn brick set
+  const tints=new Map();
+  function resolve(role){
+    if(typeof role!=='string')return role;
+    const [base,k]=role.split('~');const m=materials[base]||materials.wood;if(!k)return m;
+    if(!tints.has(role)){const t=m.clone();t.name=m.name+'-tint-'+k;t.color.offsetHSL(0,(+k%2?-.02:.015),[0,-.035,.03,-.06][+k%4]);resources.add(t);tints.set(role,t);}
+    return tints.get(role);
+  }
   function mesh(name,geometry,material,position,parent=root){
     const m=new THREE.Mesh(geometry,resolve(material));m.name=name;m.position.fromArray(position);m.castShadow=!m.material.transparent;m.receiveShadow=true;
     m.userData.roomSolid=!m.material.transparent;parent.add(m);resources.add(geometry);
@@ -25,10 +33,14 @@ export function createRoomKit({root=new THREE.Group(),name='room',quality='high'
     // pale continuous core closes every joint without the old deep dark grid.
     const across=size[0]>=size[2],length=across?size[0]:size[2],height=size[1],thickness=across?size[2]:size[0];
     const core=size.slice();core[across?2:0]*=.90;box(label+'-continuous-core',core,position,'mortar',parent);
-    const rows=Math.max(1,Math.ceil(height/.46)),course=height/rows,origin=-length/2,joint=.0025;
+    // finer coursing on capable devices: half-height courses of half-length bricks
+    const fine=quality!=='low',rows=Math.max(1,Math.ceil(height/(fine?.23:.46))),course=height/rows,origin=-length/2,joint=fine?.0035:.0025;
+    let n=0;
     for(let row=0;row<rows;row++){
-      let u=origin,step=.94;
-      while(u<length/2-.001){const span=Math.min(length/2-u,u===origin&&row%2?step/2:step),dims=across?[Math.max(.001,span-joint),Math.max(.001,course-joint),thickness]:[thickness,Math.max(.001,course-joint),Math.max(.001,span-joint)],p=position.slice();p[across?0:2]+=u+span/2;p[1]+=-height/2+course*(row+.5);box(label+'-brick-'+row+'-'+u.toFixed(3),dims,p,role,parent);u+=span;}
+      let u=origin,step=fine?.47:.94;
+      // fine bricks sit 1.5 mm back from the wall face, so panels and trim laid on the face stay in front
+      const t=fine?thickness-.003:thickness;
+      while(u<length/2-.001){const span=Math.min(length/2-u,u===origin&&row%2?step/2:step),dims=across?[Math.max(.001,span-joint),Math.max(.001,course-joint),t]:[t,Math.max(.001,course-joint),Math.max(.001,span-joint)],p=position.slice();p[across?0:2]+=u+span/2;p[1]+=-height/2+course*(row+.5);box(label+'-brick-'+row+'-'+u.toFixed(3),dims,p,typeof role==='string'&&(n++*7+row*3)%4?role+'~'+((n*5+row)%4):role,parent);u+=span;}
     }
   }
   function sign(label,text,size,position,role='wood',parent=root){

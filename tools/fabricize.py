@@ -34,16 +34,18 @@ import cv2
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ART = os.path.join(ROOT, 'assets', 'art')
 OUT = os.path.join(ART, 'fabric')
+PHONE_OUT = os.path.join(ART, 'fabric-m')   # the lighter set phones load (see phone_copy)
+PHONE_MAX = 2048
 
 # screen pixels per source pixel (median over the sprites cut from each sheet)
 SCALE = {
-    'belongings-painted': 1.15, 'branch-signs-painted': 2.0, 'buildings-painted': 1.9, 'cats-painted': .2,
+    'belongings-painted': 1.15, 'branch-signs-painted': .42, 'buildings-painted': 1.9, 'cats-painted': .2,
     'cats-upright-painted': .2, 'details-painted': 1.4, 'education-willow-leaves-painted': .5, 'finishes-painted': .66,
     'gallery-screen-painted': .4, 'garden-painted': .45, 'hand-lantern-painted': .25, 'keepsakes-painted': .9,
-    'mailing-painted': .5, 'pine': .93, 'willow': .93, 'pond-phragmites-painted': .93, 'research-painted': .37,
+    'mailing-painted': .5, 'pine': .17, 'willow': .17, 'pine-ground': .2, 'willow-ground': .2, 'pond-phragmites-painted': .93, 'research-painted': .37,
     'talks-painted': .35, 'tutorial-archive-painted': .4, 'writing-screen-complete-painted': .8, 'writing-low-painted': .8,
     'writing-upright-painted': .5, 'scholar-painted': 1.6, 'reading-painted': .3, 'writing-grip-painted': .3,
-    'research-red-book-native': .3, 'mountain-wash': 1.0, 'materials-painted': 1.0, 'water-continuous-painted': 1.0,
+    'research-red-book-native': .3, 'mountain-wash': 1.0, 'materials-painted': .32, 'water-continuous-painted': 1.0,
     'hanjing-day': .45, 'hanjing-night': .45, 'hanjing-day-expression': .3, 'hanjing-night-expression': .3,
     'hanjing-night-torso': .3,
 }
@@ -63,6 +65,7 @@ DASH, GAP, THREAD = 7.0, 5.0, 2.0
 INSET = 3.0          # stitches run this far inside the cut edge
 NEEDLE_HOLES = True  # a faint dimple where the needle went through
 PILLOW = 11          # how far in from its edge a piece of cloth rises (screen px)
+PUFF, PUFF_LIGHT = 14, .4   # and the whole cut-out, padded as one piece: how far in it rises, how strongly lit
 WRINKLE = .045       # how much the large cloth pieces crease
 EMB_W, EMB_L, EMB_COVER = 3.2, 17, .6       # satin floss on roofs and leaves: width, stitch length, coverage
 EMB_DETAIL = 4.6     # pieces with this much painted texture (mean fine detail in L) can be satin floss
@@ -82,18 +85,43 @@ SILK_FEATURES = (.25, 1.8, .2, .05, .12)
 OUTLINE_DASH, OUTLINE_GAP, OUTLINE_W, OUTLINE_INSET = 2.4, .7, .55, 1.2
 SEAM_FIG, SEAM_DASH, SEAM_GAP = 26, 2.6, 1.6
 # which sheets are what
-SILK_SHEETS = {'education-willow-leaves-painted'}
+SILK_SHEETS = set()
 LANDSCAPE = {'mountain-wash', 'pine', 'willow'}   # far hills and trees: a few large pieces of plain cloth
 LAND_K, LAND_CUT, LAND_PIECE = 5, .12, 50          # how many cloths, working px per screen px, smallest piece
+GROUND_TREES = {'pine-ground': 'pine', 'willow-ground': 'willow'}   # the trees standing on the path: own copies,
+                                                   # a cloth trunk under foliage worked in satin floss
+TILED = {'materials-painted'}                      # material swatches the page repeats as patterns
+LAND_RIDGE = 7.0                                   # spacing of the damask lines that follow the hills' outlines
+BRANCHES = {'branch-signs-painted'}                # the sign trees: cloth trunks, embroidered lettering and knots
+BRANCH_DARK = 7.0                                  # painted marks this much darker than around them are embroidered
 CHARACTER_SHEETS = {'writing-grip-painted', 'reading-painted', 'mailing-painted'}
 OUTLINED = ('hanjing-', 'human-bind-', 'writing-grip', 'reading-painted', 'mailing-painted')
-FACE_SILK = {'hanjing-day', 'hanjing-night', 'hanjing-day-expression', 'hanjing-night-expression',
-             'reading-painted', 'mailing-painted', 'hanjing-hold-native', 'hanjing-night-closed-native'}
+# Faces stay the painting itself, crisp: worked in silk, a face shown this small turned to streaks and
+# read as blurred (most of all at night).
+FACE_SILK = set()
 FUR_RIG = ('jinbingbing-',)
 FULL_EMB = {'belongings-painted': [(442, 94, 700, 389)]}   # the cooking pot is embroidered all over
+LEVEL_EMB = {'research-painted': [(470, 585, 1110, 860)]}  # the Research shelves: fine level silk, like wood grain
+# The Talks audience: every person in fine silk thread painting, with no cloth pieces and no outlines
+# (cut as cloth, several people ran together into one piece with a heavy outline). Each garment keeps
+# its own material in the stitch: short and nubbly for linen, long and smooth for cotton, a firm twill
+# for denim; hair in long glossy threads. (width, length, contrast, sheen)
+FINE_EMB = {'talks-painted': [(231, 728, 1373, 921, 'people')],
+            # UC Davis's water tower: silver silk with a high sheen; its painted lettering is kept sharp
+            # and worked over in satin (the shaded side of the tank had become a dark piece over "IS")
+            'finishes-painted': [(238, 24, 590, 625, 'metal')],
+            # the four silk panels of the Writing screen, as Suzhou embroidery: plain silk ground, the
+            # flowers, leaves and bamboo in fine raised silk following their own forms
+            'writing-screen-complete-painted': [(110, 100, 230, 335, 'silkpaint'), (262, 100, 394, 335, 'silkpaint'),
+                                                (425, 100, 565, 335, 'silkpaint'), (600, 100, 727, 335, 'silkpaint')]}
+SHARP = {'finishes-painted': [(282, 158, 540, 230)]}
+FINE_STITCH = {'linen': (.5, 4.5, .13, .04), 'burlap': (.55, 4.0, .14, .03), 'cotton': (.45, 6.0, .12, .07),
+               'denim': (.5, 7.0, .15, .06), 'felt': (.45, 5.0, .12, .05)}
 # small buildings in the distance, embroidered all over at the size they are shown: (rect, screen scale)
 EMB_REGIONS = {'garden-painted': [((1356, 478, 1545, 828), .4, 'building'), ((1546, 587, 1762, 829), .45, 'building'),
-                                   ((17, 98, 451, 443), .15, (.5, .64)), ((580, 110, 753, 437), .15, (.5, 1.0)), ((871, 101, 1336, 441), .1, (.47, .52))]}
+                                   ((17, 98, 451, 443), .15, (.5, .64)), ((580, 110, 753, 437), .15, (.5, 1.0)), ((871, 101, 1336, 441), .1, (.47, .52)),
+                                   ((14, 559, 477, 842), .12, 'satin'), ((499, 494, 858, 842), .1, 'satin')],   # rocks and grass on the path
+               'education-willow-leaves-painted': [((0, 0, 1536, 1024), .05, 'satin')]}
 # (a lotus is given as the point its petals or leaf veins spread from, as fractions of the crop)
 
 
@@ -333,7 +361,7 @@ def cut_pieces(bgr_f, alpha, u, face, rig, rng, cut=None, piece_min=None):
     return pid, ws
 
 
-def land_pieces(bgr_f, alpha, u):
+def land_pieces(bgr_f, alpha, u, K=LAND_K):
     """Far hills and trees cut into a few large pieces by tone alone (pale far peaks, rocky ridges,
     green slopes, dark forest), the painted texture ignored, each shape smoothed like a scissor cut."""
     H, W = alpha.shape
@@ -345,9 +373,9 @@ def land_pieces(bgr_f, alpha, u):
     feat = cv2.GaussianBlur(lab, (0, 0), 2.2) * np.float32([1, 2.4, 2.4])
     valid = a_s > .5
     samp = feat[valid].reshape(-1, 3).astype(np.float32)
-    if len(samp) < LAND_K * 8: samp = feat.reshape(-1, 3).astype(np.float32)
+    if len(samp) < K * 8: samp = feat.reshape(-1, 3).astype(np.float32)
     cv2.setRNGSeed(7)
-    _, _, centers = cv2.kmeans(samp, LAND_K, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 40, .2), 3, cv2.KMEANS_PP_CENTERS)
+    _, _, centers = cv2.kmeans(samp, K, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 40, .2), 3, cv2.KMEANS_PP_CENTERS)
     q = ((feat.reshape(-1, 1, 3) - centers[None]) ** 2).sum(2).argmin(1).reshape(sh, sw)
     q = mode_filter(mode_filter(q, 7), 7)
     pid = merge_small(components(q, valid), (LAND_PIECE * ws * u) ** 2, lab)
@@ -702,6 +730,48 @@ def embroider(col, region, src_bgr, L, u, rng, key, width=None, length=None, cov
 
 
 # ---------------------------------------------------------------- Hanjing: face, clothes
+def garment_masks(lab, solid, u, night):
+    """Where each of Hanjing's garments is, by colour, cleaned into whole shapes: coat, shirt,
+    trousers and shoes by day; at night the qipao."""
+    Lb = cv2.GaussianBlur(lab, (0, 0), max(.8, .7 * u))
+    L, A, B = Lb[..., 0], Lb[..., 1], Lb[..., 2]
+    C = np.hypot(A, B); h = np.degrees(np.arctan2(B, A)) % 360
+    raw = {'coat': (L > 45) & (L < 86) & (h > 58) & (h < 90) & (C > 16) & (C < 46),
+           'shirt': (L > 78) & (C < 9),
+           'trousers': (L > 18) & (L < 55) & (C < 14),
+           'shoes': (L > 14) & (L < 50) & (h > 25) & (h < 70) & (C > 14) & (C < 40)}
+    if night: raw = {'qipao': L < 26}
+    k = max(3, int(round(1.4 * u)) | 1); ker = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))
+    out = {}
+    for name, m in raw.items():
+        m = cv2.morphologyEx(cv2.morphologyEx((m & solid).astype(np.uint8), cv2.MORPH_CLOSE, ker), cv2.MORPH_OPEN, ker)
+        nl, cc, st, _ = cv2.connectedComponentsWithStats(m, 8)
+        keep = np.zeros(nl, bool); keep[1:] = st[1:, cv2.CC_STAT_AREA] >= (5 * u) ** 2
+        out[name] = keep[cc] & solid
+    return out
+
+
+def layer_garments(col, masks, u):
+    """Each garment lies on the one under it as its own piece of cloth: the coat casts a soft shadow
+    on the shirt and trousers beneath it and catches light along its edge; the trousers shade the
+    shoes."""
+    order = [('coat', ('shirt', 'trousers')), ('trousers', ('shoes',))]
+    dx, dy = max(1, int(round(.9 * u))), max(1, int(round(1.4 * u)))
+    for over, unders in order:
+        if over not in masks: continue
+        o = masks[over].astype(np.float32)
+        moved = np.zeros_like(o); moved[dy:, dx:] = o[:-dy, :-dx]
+        shadow = cv2.GaussianBlur(moved, (0, 0), 1.6 * u) * (1 - o)
+        under = np.zeros_like(o)
+        for name in unders:
+            if name in masks: under = np.maximum(under, masks[name].astype(np.float32))
+        col = col * (1 - .32 * shadow * under)[..., None]
+        rim = cv2.GaussianBlur(o, (0, 0), .8 * u)
+        lit = np.clip(o - np.roll(np.roll(rim, dy, 0), dx, 1), 0, 1)   # the upper-left edge of the piece
+        col = col * (1 + .1 * lit)[..., None]
+    return col
+
+
 def garments(col, lab, solid, u, night, rng):
     """Hanjing's clothes, each in its own cloth, recognised by colour: the camel trench coat in
     gabardine twill, the white shirt in silk with a soft sheen, the trousers in herringbone suiting,
@@ -723,9 +793,11 @@ def garments(col, lab, solid, u, night, rng):
     sheen = cv2.GaussianBlur(sheen, (0, 0), 2 * u, sigmaY=6 * u)
     shirt = solid & (L > 78) & (C < 9)
     tex = np.where(shirt, 1 + (sheen - .5) * .1, tex)
-    # suiting: herringbone, the twill turning every few threads
-    bw = 2.6 * u; s_ = np.where((np.floor(x / bw) % 2) > 0, 1.0, -1.0)
-    hb = 1 + .06 * np.cos(2 * math.pi * (y + s_ * (x % bw)) / (1.3 * u))
+    # suiting: a wool herringbone, the twill turning every few threads, with a little fuzz and the
+    # soft vertical folds of a trouser leg
+    bw = 3.2 * u; s_ = np.where((np.floor(x / bw) % 2) > 0, 1.0, -1.0)
+    drape = cv2.GaussianBlur(_noise(H, W, 5 * u, rng), (0, 0), 1.5 * u, sigmaY=9 * u) - .5
+    hb = 1 + .1 * np.cos(2 * math.pi * (y + s_ * (x % bw)) / (1.7 * u)) + (_noise(H, W, max(1, .6 * u), rng) - .5) * .07 + drape * .12
     trousers = solid & (L > 18) & (L < 55) & (C < 14)
     tex = np.where(trousers, hb, tex)
     # leather: fine pebble grain and a little shine
@@ -747,6 +819,20 @@ def gold_threads(lab, solid, night):
     g = solid & (h > 60) & (h < 100) & (C > 24) & (Lb[..., 0] > 40) & (Lb[..., 0] < 92)
     g = cv2.morphologyEx(g.astype(np.uint8), cv2.MORPH_OPEN, np.ones((2, 2), np.uint8)) > 0
     return g if g.any() else None
+
+
+def head_zone(skin, feats, shape):
+    """Round each face (a skin shape with eyes and brows inside it), the box her hair can fill: a face
+    wide either side, most of a face above, down to the chin."""
+    out = np.zeros(shape, bool)
+    if skin is None or feats is None: return out
+    nz, zc, st, _ = cv2.connectedComponentsWithStats(skin.astype(np.uint8), 8)
+    marks = np.bincount(zc[feats], minlength=nz)
+    for i in range(1, nz):
+        if marks[i] < 3: continue
+        x, y, w, h = st[i, :4]
+        out[max(0, int(y - .85 * h)):int(y + 1.02 * h), max(0, int(x - .8 * w)):int(x + 1.8 * w)] = True
+    return out
 
 
 def big_face(zone, u):
@@ -850,11 +936,12 @@ def lic(fdx, fdy, noise, length, step):
     return acc / wsum
 
 
-def silk(col, region, src, L, u, rng, width, length, contrast, sheen=.06, raised=0.0, field_sigma=1.0):
+def silk(col, region, src, L, u, rng, width, length, contrast, sheen=.06, raised=0.0, field_sigma=1.0, level=False):
     """Suzhou-style thread painting over a region: the painting's own colours laid in fine parallel
     threads that follow its structure, each thread a little lighter or darker than the next, with
     the silk's sheen changing as the threads turn. With `raised`, the embroidery stands up from the
-    cloth: a soft shadow below and to the right of it, and a lit upper edge."""
+    cloth: a soft shadow below and to the right of it, and a lit upper edge. With `level`, the
+    threads all run level, as on a panel of wood worked like its grain."""
     H, W = region.shape
     ys, xs = np.nonzero(region)
     if not len(ys): return col
@@ -863,7 +950,8 @@ def silk(col, region, src, L, u, rng, width, length, contrast, sheen=.06, raised
     x0, x1 = max(0, xs.min() - pad), min(W, xs.max() + pad + 1)
     m = region[y0:y1, x0:x1]
     h, w = m.shape
-    fdx, fdy = stitch_field(L[y0:y1, x0:x1], u * field_sigma)
+    if level: fdx, fdy = np.ones((h, w), np.float32), np.zeros((h, w), np.float32)
+    else: fdx, fdy = stitch_field(L[y0:y1, x0:x1], u * field_sigma)
     wp = max(1.0, width * u)
     g = rng.random((int(h / wp) + 3, int(w / wp) + 3)).astype(np.float32)
     noise = cv2.resize(g, (int(round(g.shape[1] * wp)), int(round(g.shape[0] * wp))), interpolation=cv2.INTER_LINEAR)[:h, :w]
@@ -894,9 +982,9 @@ def tone(bgr, k=1.0, darker=False):
     return tuple(map(float, (cv2.cvtColor(lab.reshape(1, 1, 3).astype(np.float32), cv2.COLOR_Lab2BGR) * 255).reshape(3)))
 
 
-def back_stitch_line(needle, pts, bgr, u, avoid=None, width=None, dash=None, gap=None):
+def back_stitch_line(needle, pts, bgr, u, avoid=None, width=None, dash=None, gap=None, dark=False):
     """Back stitch along a closed outline, skipping the parts inside `avoid`; each stitch takes
-    its colour from the cloth just inside it."""
+    its colour from the cloth just inside it (with `dark`, always a deeper shade of it)."""
     H, W = bgr.shape[:2]
     pts = np.asarray(pts, np.float32).reshape(-1, 2)
     seg = np.sqrt(((pts[1:] - pts[:-1]) ** 2).sum(1)); Lc = np.concatenate([[0], np.cumsum(seg)])
@@ -911,7 +999,10 @@ def back_stitch_line(needle, pts, bgr, u, avoid=None, width=None, dash=None, gap
         a, b = at(d), at(d + dash)
         mx, my = int(np.clip((a[0] + b[0]) / 2, 0, W - 1)), int(np.clip((a[1] + b[1]) / 2, 0, H - 1))
         if avoid is None or not avoid[my, mx]:
-            needle.stitch(a, b, tone(bgr[my, mx]), width)
+            c = bgr[my, mx]
+            # a deeper shade on light cloth; on dark cloth (the trousers) a paler thread, so it reads as
+            # stitches and not as an inked edge
+            needle.stitch(a, b, (tone(c, 1.25, True) if float(np.mean(c)) > 95 else tone(c, .7)) if dark else tone(c), width)
         d += dash + gap
 
 
@@ -1028,7 +1119,8 @@ def distant_embroidery(img, u, rng, key, motif='building'):
     C = np.hypot(Lb[..., 1], Lb[..., 2]); hh = np.degrees(np.arctan2(Lb[..., 2], Lb[..., 1])) % 360
     roof = solid & (((hh > 95) & (hh < 230) & (C > 3)) | ((C < 6) & (Lb[..., 0] < 50)))
     field = None
-    if motif != 'building':   # a lotus: petals and leaf veins spread from one point, and so do the stitches
+    if motif == 'satin': roof = solid.copy()   # satin floss all over, along the painting's own structure
+    elif motif != 'building':   # a lotus: petals and leaf veins spread from one point, and so do the stitches
         roof = solid.copy()
         yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
         dx, dy = xx - motif[0] * W, yy - motif[1] * H
@@ -1036,7 +1128,8 @@ def distant_embroidery(img, u, rng, key, motif='building'):
         field = (dx / n, dy / n)
     k = max(3, int(round(1.2 * u)) | 1)
     roof = cv2.morphologyEx(roof.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k))) > 0
-    col, _ = embroider(col, roof, src, L_o, u, rng, key, width=1.1 if field is None else .9, length=5.0 if field is None else 5.5, cover=.85 if field is None else .95, field=field)
+    fine = field is not None or motif == 'satin'
+    col, _ = embroider(col, roof, src, L_o, u, rng, key, width=.9 if fine else 1.1, length=5.5 if fine else 5.0, cover=.95 if fine else .85, field=field)
     if motif == 'building': col = silk(col, solid & ~roof, src, L_o, u, rng, .65, 3.0, .2, .07, .35, 3.0)
     needle = Needle(H, W, u, fine=True)
     r = max(1, int(round(.8 * u)))
@@ -1094,6 +1187,8 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
     col = cv2.cvtColor(out, cv2.COLOR_Lab2BGR) * 255
     col = col * (1 + (weave(H, W, max(p, 3.6 * u), rng, soft=True) - 1) * .6)[..., None]
     col = garments(col, lab_o, solid, u, night, rng)
+    gm = garment_masks(lab_o, solid, u, night) if not face_only else {}
+    col = layer_garments(col, gm, u)
     # pieces are padded a little at their edges and lit from the upper left
     edge = np.zeros((H, W), np.uint8)
     edge[:, 1:] |= (pid[:, 1:] != pid[:, :-1]); edge[:, :-1] |= (pid[:, 1:] != pid[:, :-1])
@@ -1123,6 +1218,7 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
         region = hair[pid] & solid
         if skin is not None: region &= ~(cv2.dilate(skin.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0)
         col = silk(col, region, bgr_f, L_o, u, rng, *SILK_HAIR)
+        col = col * (1 - .1 * cv2.GaussianBlur(region.astype(np.float32), (0, 0), max(.5, .4 * u)))[..., None]   # hair a shade deeper
     gold = gold_threads(cv2.GaussianBlur(lab_o, (0, 0), max(.6, .4 * u)), solid, night)
     if gold is not None:
         if skin is not None: gold &= ~skin
@@ -1174,6 +1270,21 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
                 pts = cv2.approxPolyDP(pts.reshape(-1, 1, 2), max(1.0, 1.2 * u), True).reshape(-1, 2).astype(np.float32)
                 for run in runs_along(pts, None, outside_ok, max(1.0, .8 * u)):
                     back_stitch_line(needle, run + np.float32([x0, y0]), col, u, dash=SEAM_DASH * u, gap=SEAM_GAP * u)
+        # each garment outlined in a deeper shade of itself where it meets another garment
+        kh = max(3, int(round(3 * u)) | 1)
+        hair_px = cv2.dilate((hair[pid] & solid).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kh, kh))) > 0
+        hair_px |= head_zone(skin, feats, solid.shape)   # black hair at night is not found by its colour
+        for name, m in gm.items():
+            m = m & ~hair_px     # the hair is not a garment (dark hair can pass for suiting or black silk)
+            r = max(1, int(round(.9 * u)))
+            m_in = cv2.erode(m.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
+            cs, _ = cv2.findContours(m_in, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            inner = cv2.erode(solid.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (int(5 * u) | 1, int(5 * u) | 1))) == 0
+            av = inner if near_face is None else (inner | near_face)
+            for c in cs:
+                if cv2.contourArea(c) < (12 * u) ** 2: continue
+                pts = smooth_closed(c, max(1, int(round(1.2 * u))))
+                back_stitch_line(needle, np.vstack([pts, pts[:1]]), col, u, av, dash=1.9 * u, gap=1.15 * u, dark=True)
         # the outline: a back stitch all round her, hair and shirt included, skipping face and hands
         if name.startswith(OUTLINED):
             r = max(1, int(round(OUTLINE_INSET * u)))
@@ -1182,11 +1293,12 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
             if skin is not None:
                 kk = max(3, int(round(2.5 * u)) | 1)
                 avoid = cv2.dilate(skin.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kk, kk))) > 0
+                avoid |= head_zone(skin, feats, solid.shape)   # the hair's edge is its own loose silk
             cs, _ = cv2.findContours(m_in, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
             for c in cs:
                 if cv2.contourArea(c) < (14 * u) ** 2: continue
                 pts = smooth_closed(c, max(1, int(round(.9 * u))))
-                back_stitch_line(needle, np.vstack([pts, pts[:1]]), col, u, avoid)
+                back_stitch_line(needle, np.vstack([pts, pts[:1]]), col, u, avoid, dark=True)
     col = needle.composite(col)
     return np.dstack([np.clip(col, 0, 255), np.clip(alpha * 255, 0, 255)]).astype(np.uint8)
 
@@ -1199,8 +1311,9 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     figures, text) is worked in fine silk thread in the painting's own colours."""
     L_o = lab_o[..., 0]; H, W = solid.shape
     p = max(WEAVE * u, 2.6)
-    land = name in LANDSCAPE
-    pid_s, ws = land_pieces(bgr_f, alpha, u) if land else cut_pieces(bgr_f, alpha, u, False, False, rng)
+    branch = name in BRANCHES
+    land = name in LANDSCAPE or branch
+    pid_s, ws = land_pieces(bgr_f, alpha, u, 4 if branch else LAND_K) if land else cut_pieces(bgr_f, alpha, u, False, False, rng)
     pid = upsample_pieces(pid_s, W, H, ws)
     pid = snap_pieces(pid, np.clip(bgr_f, 0, 255).astype(np.uint8), u)
     n = int(pid.max()) + 1
@@ -1210,7 +1323,7 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     area_screen = cnt / (u * u)
     dye = mean.copy()
     dye[:, 0] = 60 + (dye[:, 0] - 60) * .92 + (rng.random(n) - .5) * 4
-    dye[:, 1:] *= 1.35 if land else 1.05   # the far cloths a little more strongly dyed than the wash
+    dye[:, 1:] *= 1.35 if (land and not branch) else 1.05   # the far cloths a little more strongly dyed than the wash
     L_fi = cv2.GaussianBlur(L_o, (0, 0), max(.5, .5 * u)) - cv2.GaussianBlur(L_o, (0, 0), 2.5 * u)
     L_lo = cv2.GaussianBlur(L_o, (0, 0), 4 * u)
     out = np.empty_like(lab_o)
@@ -1225,6 +1338,8 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     satin = (busy > EMB_DETAIL) & (((chroma < 12) & (dye[:, 0] < 62)) | ((hue > 95) & (hue < 200) & (chroma > 9))) & (area_screen >= 14 ** 2)
     satin[0] = False
     if land: satin[:] = False      # far hills and trees are plain cloth only
+    if name in GROUND_TREES:       # trees on the path: every green piece is foliage, worked in satin
+        satin = ((hue > 70) & (hue < 210) & (chroma > 5) & (area_screen >= 6 ** 2)) | satin; satin[0] = False
     det = cv2.GaussianBlur(np.abs(L_fi), (0, 0), max(.8, 1.0 * u))
     D = (det > DETAIL_T) & solid & ~satin[pid]
     k1 = max(3, int(round(2 * u)) | 1); k2 = max(3, int(round(.8 * u)) | 1)
@@ -1237,6 +1352,16 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
         x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
         D[y0:y1, x0:x1] |= solid[y0:y1, x0:x1]
         satin[np.unique(pid[y0:y1, x0:x1])] = False
+    panel = np.zeros(n, bool)
+    fine_more = np.zeros(n, bool)   # satin pieces running out of a fine-embroidery area are worked in its silk too
+    for rect in list(LEVEL_EMB.get(name, ())) + [r[:4] for r in FINE_EMB.get(name, ())]:
+        x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
+        D[y0:y1, x0:x1] = False
+        inside = np.bincount(pid[y0:y1, x0:x1].ravel(), minlength=n) / np.maximum(np.bincount(pid.ravel(), minlength=n), 1)
+        touched = np.unique(pid[y0:y1, x0:x1])
+        if len(rect) == 4 and rect in [r[:4] for r in FINE_EMB.get(name, ())]: fine_more[touched] |= satin[touched]
+        panel |= inside > .5; satin[touched] = False
+    fine_more[0] = False
     D &= ~satin[pid]
     share = np.bincount(pid.ravel(), weights=D.ravel().astype(np.float64), minlength=n) / np.maximum(np.bincount(pid.ravel(), minlength=n), 1)
     # cloth
@@ -1279,6 +1404,25 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     gx = cv2.Sobel(hgt, cv2.CV_32F, 1, 0, ksize=3) / 8; gy = cv2.Sobel(hgt, cv2.CV_32F, 0, 1, ksize=3) / 8
     lit = np.clip(-(gx * -.55 + gy * -.83) * R, -1.6, 1.6)
     col = col * (1 + .2 * lit)[..., None] * (.82 + .18 * np.clip(dist / (2.2 * u), 0, 1) ** .7)[..., None]
+    if not solid.all() and name not in TILED:
+        # the whole cut-out is stuffed too, like a quilted piece: it rises from its outer edge, lit from
+        # the upper left and turning under at the very edge, so a building or a prop reads as one padded
+        # piece of cloth with thickness, the way the hills do
+        ds = cv2.distanceTransform(solid.astype(np.uint8), cv2.DIST_L2, 5)
+        Rs = PUFF * u
+        hs = cv2.GaussianBlur(1 - (1 - np.clip(ds / Rs, 0, 1)) ** 2, (0, 0), max(.8, .6 * u))
+        sx_ = cv2.Sobel(hs, cv2.CV_32F, 1, 0, ksize=3) / 8; sy_ = cv2.Sobel(hs, cv2.CV_32F, 0, 1, ksize=3) / 8
+        lit_s = np.clip(-(sx_ * -.55 + sy_ * -.83) * Rs, -1.6, 1.6)
+        col = col * (1 + PUFF_LIGHT * lit_s)[..., None] * (.8 + .2 * np.clip(ds / (2.2 * u), 0, 1) ** .6)[..., None]
+        del ds, hs, sx_, sy_, lit_s
+    if land and not branch:
+        # damask in the hills' cloth: tone-on-tone lines in the weave that follow each piece's outline,
+        # like the ridges and folds of a range, fading toward its middle, over faint long wavy bands
+        ring = np.cos(2 * math.pi * dist / (LAND_RIDGE * u)) * np.exp(-dist / (LAND_RIDGE * 3.2 * u))
+        yy_, xx_ = np.mgrid[0:H, 0:W].astype(np.float32)
+        band = np.cos(2 * math.pi * (yy_ + 5 * u * np.sin(xx_ / (38 * u))) / (14 * u))
+        col = col * (1 + .05 * ring + .018 * band)[..., None]
+        del ring, yy_, xx_, band
     rank = np.zeros(n, np.float32); rank[np.argsort(-cnt)] = np.arange(n); rank[0] = -1
     Rk = rank[pid]
     dx, dy = int(round(1.1 * u)), int(round(1.7 * u))
@@ -1288,7 +1432,64 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     del Rk, Rs, cast, gx, gy, lit, dist, edge, hgt
     # embroidery: satin floss on roofs and leaves, fine silk on all the detail
     col, c_satin = embroider(col, satin[pid] & solid, src, L_o, u, rng, sum(map(ord, name)) * 131)
+    if branch:
+        dark = (cv2.GaussianBlur(L_o, (0, 0), max(.6, .4 * u)) - cv2.GaussianBlur(L_o, (0, 0), 3.5 * u) < -BRANCH_DARK) & solid
+        k = max(3, int(round(.8 * u)) | 1)
+        dark = cv2.morphologyEx(dark.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+        nl, cc, st, _ = cv2.connectedComponentsWithStats(dark, 8)
+        big = np.zeros(nl, bool); big[1:] = st[1:, cv2.CC_STAT_AREA] >= (2.5 * u) ** 2
+        col, _ = embroider(col, big[cc], src, L_o, u, rng, sum(map(ord, name)) * 17, width=1.0, length=4.0, cover=.95)
     col = silk(col, D & solid, src, L_o, u, rng, *SILK_DETAIL)
+    for rect in LEVEL_EMB.get(name, ()):
+        x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
+        m = np.zeros_like(solid); m[y0:y1, x0:x1] = solid[y0:y1, x0:x1]
+        col = silk(col, m, src, L_o, u, rng, .6, 9.0, .14, .05, 0.0, level=True)
+    for rect in FINE_EMB.get(name, ()):
+        x0, y0, x1, y1 = [int(round(v * over)) for v in rect[:4]]
+        box = np.zeros_like(solid); box[y0:y1, x0:x1] = True
+        box &= solid; box |= fine_more[pid] & solid
+        if rect[4] == 'metal':
+            col = silk(col, box, src, L_o, u, rng, .4, 5.5, .12, .16, 0.0, 1.5)
+            continue
+        if rect[4] == 'silkpaint':
+            sub = cv2.GaussianBlur(lab_o, (0, 0), max(.8, .5 * u))
+            ground = np.median(sub[y0:y1, x0:x1].reshape(-1, 3), axis=0)
+            motif = box & (np.sqrt((((sub - ground) * [.7, 1, 1]) ** 2).sum(2)) > 12)
+            k = max(3, int(round(.8 * u)) | 1)
+            motif = cv2.morphologyEx(motif.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (k, k)))
+            nl, cc, st, _ = cv2.connectedComponentsWithStats(motif, 8)   # the silk's own mottling is not a motif
+            keep = np.zeros(nl, bool); keep[1:] = st[1:, cv2.CC_STAT_AREA] >= (4 * u) ** 2
+            motif = keep[cc]
+            col = silk(col, box & ~motif, src, L_o, u, rng, .7, 9.0, .05, .05, 0.0, 3.0, level=True)   # the plain silk ground
+            col = silk(col, motif, src, L_o, u, rng, .4, 5.0, .17, .1, .3, 1.2)
+            del sub
+            continue
+        Lb = cv2.GaussianBlur(lab_o, (0, 0), max(.8, .6 * u))
+        Cb = np.hypot(Lb[..., 1], Lb[..., 2]); hb = np.degrees(np.arctan2(Lb[..., 2], Lb[..., 1])) % 360
+        hair = box & (Lb[..., 0] < 30) & (Cb < 10)
+        wood = box & ~hair & (Cb > 20) & (hb > 30) & (hb < 85)    # the stage floor and the benches: level, like grain
+        kind_px = np.array(['felt'] + cloth[1:])[pid]
+        for c, prm in FINE_STITCH.items():
+            col = silk(col, box & ~hair & ~wood & (kind_px == c), src, L_o, u, rng, *prm, 0.0, 2.0)
+        col = silk(col, wood, src, L_o, u, rng, .6, 9.0, .12, .05, 0.0, level=True)
+        col = silk(col, hair, src, L_o, u, rng, *SILK_HAIR, 0.0, 1.2)
+        del Lb, Cb, hb, kind_px
+    for rect in SHARP.get(name, ()):
+        # painted lettering: the painting's own crisp letters, worked over in satin across each stroke,
+        # standing a little proud of the silk with a soft shadow below
+        x0, y0, x1, y1 = [int(round(v * over)) for v in rect]
+        sub = lab_o[y0:y1, x0:x1]
+        ink = (np.hypot(sub[..., 1], sub[..., 2]) > 14) & (sub[..., 0] < 55)
+        ink = cv2.morphologyEx(ink.astype(np.uint8), cv2.MORPH_OPEN, np.ones((2, 2), np.uint8)).astype(np.float32)
+        a = cv2.GaussianBlur(ink, (0, 0), max(.4, .25 * u))
+        h_, w_ = a.shape
+        xx_ = np.arange(w_, dtype=np.float32)[None, :]
+        satin_ = 1 + .1 * np.cos(2 * math.pi * (xx_ + .35 * np.arange(h_, dtype=np.float32)[:, None]) / max(1.2, .8 * u))
+        dy_, dx_ = max(1, int(round(.8 * u))), max(1, int(round(.5 * u)))
+        sh = np.zeros_like(a); sh[dy_:, dx_:] = a[:-dy_, :-dx_]
+        sh = cv2.GaussianBlur(sh * (1 - a), (0, 0), max(.5, .5 * u))
+        letters = bgr_f[y0:y1, x0:x1] * satin_[..., None]
+        col[y0:y1, x0:x1] = (col[y0:y1, x0:x1] * (1 - .35 * sh)[..., None]) * (1 - a[..., None]) + letters * a[..., None]
     # the outer edge is frayed
     out_alpha = alpha.copy()
     if not solid.all():
@@ -1297,7 +1498,12 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
     needle = Needle(H, W, u)
     # blanket stitch round the large plain pieces, where they lie on a larger piece or the edge
     inset = INSET * u; probe = inset + 2.2 * u
-    sewn = (area_screen >= BLANKET_MIN ** 2) & ~satin & (share < .35); sewn[0] = False
+    calm = np.zeros((H, W), bool)
+    for rect in FINE_EMB.get(name, ()):
+        x0, y0, x1, y1 = [int(round(v * over)) for v in rect[:4]]
+        calm[max(0, y0 - 6):y1 + 6, max(0, x0 - 6):x1 + 6] = True
+    sewn = (area_screen >= BLANKET_MIN ** 2) & ~satin & (share < .35) & ~panel; sewn[0] = False
+    if name in TILED: sewn[:] = False   # tiled material: its pieces run on past the crop, so no edging
     for k in range(1, n):
         if not sewn[k]: continue
         ix = order[bounds[k]:bounds[k + 1]]
@@ -1312,7 +1518,7 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
 
         def outside_ok(pt, nv, k=k):
             X0, Y0 = int(pt[0]) + x0, int(pt[1]) + y0
-            if 0 <= X0 < W and 0 <= Y0 < H and D[Y0, X0]: return False   # no stitches across the embroidery
+            if 0 <= X0 < W and 0 <= Y0 < H and (D[Y0, X0] or calm[Y0, X0]): return False   # no stitches across the embroidery
             for sgn in (1, -1):
                 q = pt + nv * probe * sgn
                 X, Y = int(q[0]) + x0, int(q[1]) + y0
@@ -1421,7 +1627,7 @@ def main(names):
     os.makedirs(OUT, exist_ok=True)
     for n in names or world_images():
         base = n[:-5] if n.endswith('.webp') else n
-        src = os.path.join(ART, base + '.webp')
+        src = os.path.join(ART, GROUND_TREES.get(base, base) + '.webp')
         if not os.path.exists(src): print('missing', n); continue
         t0 = time.time()
         img = cv2.imread(src, cv2.IMREAD_UNCHANGED)
@@ -1432,8 +1638,30 @@ def main(names):
         out = os.path.join(OUT, base + '.webp')
         cv2.imwrite(out, res, [cv2.IMWRITE_WEBP_QUALITY, 86])
         print('wrote %s %dx%d %d KB (%.1fs)' % (os.path.relpath(out, ROOT), res.shape[1], res.shape[0], os.path.getsize(out) // 1024, time.time() - t0), flush=True)
+        phone_copy(base + '.webp')
+
+
+def phone_copy(fname):
+    """The phone set (assets/art/fabric-m/): every cloth picture back at its painting's own size
+    (the extra resolution sewn for large desktop screens is dropped) and never wider or taller than
+    PHONE_MAX, so a phone decodes a fraction of the pixels."""
+    os.makedirs(PHONE_OUT, exist_ok=True)
+    src = os.path.join(OUT, fname)
+    img = cv2.imread(src, cv2.IMREAD_UNCHANGED)
+    base = fname[:-5]
+    k = 1 / oversample(base) if os.path.exists(os.path.join(ART, GROUND_TREES.get(base, base) + '.webp')) else 1
+    k = min(k, PHONE_MAX / max(img.shape[:2]))
+    if k < .999: img = cv2.resize(img, None, fx=k, fy=k, interpolation=cv2.INTER_AREA)
+    cv2.imwrite(os.path.join(PHONE_OUT, fname), img, [cv2.IMWRITE_WEBP_QUALITY, 84])
+
+
+def phone_set():
+    for f in sorted(os.listdir(OUT)):
+        if f.endswith('.webp'): phone_copy(f)
+    print('phone set: %d files, %d KB' % (len(os.listdir(PHONE_OUT)), sum(os.path.getsize(os.path.join(PHONE_OUT, f)) for f in os.listdir(PHONE_OUT)) // 1024))
 
 
 if __name__ == '__main__':
-    if sys.argv[1:] == ['--tiles']: os.makedirs(OUT, exist_ok=True); tiles()
+    if sys.argv[1:] == ['--tiles']: os.makedirs(OUT, exist_ok=True); tiles(); phone_set()
+    elif sys.argv[1:] == ['--phone']: phone_set()
     else: main(sys.argv[1:])

@@ -205,14 +205,16 @@ export async function createFaithfulResearch({data,quality='high'}={}){
     kit.box('research-scroll-binding-knot-'+i,[.006,.004,.012],[x,y+.048,z+.025],'cloth',scrollGroup);
   }
   for(let i=0;i<3;i++)silkVolume(i);
-  const plant=new THREE.Group();plant.name='research-complete-potted-plant';plant.position.set(1.58,floorY+.12,-1.62);root.add(plant);
+  // The potted plant sits on the bottom shelf of the right bookcase as a small ornament, beside the
+  // silk scrolls, scaled to fit under the shelf above (it once stood alone in the middle of the floor).
+  const plantX=2.42,plantZ=-3.66,plantScale=.62;
+  const plant=new THREE.Group();plant.name='research-complete-potted-plant';plant.position.set(plantX,cases[1].bottom+.0325,plantZ);plant.scale.setScalar(plantScale);root.add(plant);
   kit.round('research-plant-closed-pot-body',.16,.25,[0,.125,0],'green',plant,12);kit.round('research-pot-rim',.177,.034,[0,.255,0],'green',plant,12);kit.round('research-real-dark-soil',.142,.015,[0,.258,0],'darkWood',plant,12);
   const foliage=new THREE.Group();foliage.name='research-solid-leaf-and-stem-bundle';foliage.position.y=.266;plant.add(foliage);
   const leafG=new THREE.IcosahedronGeometry(1,quality==='low'?0:1);resources.add(leafG);let plantMotion=0;
   for(let i=0;i<7;i++){const a=i*2.399,p=new THREE.Mesh(leafG,kit.materials.green);p.name='research-closed-faceted-leaf-'+i;p.scale.set(.055,.155,.035);p.position.set(Math.sin(a)*.088,.114+(i%3)*.055,Math.cos(a)*.075);p.rotation.z=Math.sin(a)*.49;p.rotation.x=Math.cos(a)*.35;p.castShadow=p.receiveShadow=true;foliage.add(p);kit.round('research-leaf-bearing-stem-'+i,.011,.15,[Math.sin(a)*.045,.067,Math.cos(a)*.04],'green',foliage,6);}
-  kit.box('research-plant-grounded-foot',[.38,.12,.38],[1.58,floorY+.06,-1.62],'stone');collider('research-plant-with-bearing-pot',[1.39,floorY,-1.81],[1.77,floorY+.72,-1.43]);
   interactables.push({id:'research-bamboo-notes',type:'research-notes',title:'Bamboo notes',object:bambooGroup,point:[deskX,deskY+.1,deskZ],stand:[deskX,floorY,-.68],onInteract(){plantMotion=.65;}});
-  interactables.push({id:'research-potted-plant',type:'research-notes',title:'A small pause between papers',object:plant,point:[1.58,floorY+.58,-1.62],stand:[1.58,floorY,-.98],onInteract(){plantMotion=1;}});
+  interactables.push({id:'research-potted-plant',type:'research-notes',title:'A small pause between papers',object:plant,point:[plantX,cases[1].bottom+.3,plantZ],stand:[plantX,floorY,-2.9],onInteract(){plantMotion=1;}});
   // Local short-range pendants stay within their room; opaque walls do not emit.
   const practical=[];
   for(const[i,x,z,y]of[[0,-1.65,-2.25,2.12],[1,1.65,-2.25,2.12],[2,0,-2.40,4.40]]){

@@ -481,6 +481,9 @@
     return materialHint(path,kind,delay);
   }
   function label(x,y,text,width) {
+    // in the cloth world a plaque is a piece of madder cotton, padded, with a running stitch round it
+    if (window.HJArtDir) return '<g class="paint-label cloth-label" transform="translate('+x+' '+y+')"><rect class="cloth-plaque-shadow" x="'+(-width/2+1.2)+'" y="-11" width="'+width+'" height="24" rx="3"/>'+
+      '<rect class="cloth-plaque" x="'+(-width/2)+'" y="-12.5" width="'+width+'" height="24" rx="3" style="fill:url(#gPlaqueCloth)"/><rect class="cloth-plaque-stitch" x="'+(-width/2+2.6)+'" y="-9.9" width="'+(width-5.2)+'" height="18.8" rx="1.8"/><text text-anchor="middle" y="4">'+text+'</text></g>';
     return '<g class="paint-label" transform="translate('+x+' '+y+')">'+sprite('plaquePanel',-width/2,-13,width,26)+materialHint('M'+(-width*.18)+' 9.2q'+(width*.18)+' -.35 '+(width*.36)+' 0','hint-wood',width/25)+'<text text-anchor="middle" y="4">'+text+'</text></g>';
   }
   // A shared painted wood sample gives the narrow support beams the same material as the carved signs.
@@ -519,19 +522,227 @@
     return station('home',forecourt(-313,155,542,560,8)+sprite('gate',-333,288.668,510,272)+label(-78,405,'WELCOME',122)+
       '<g class="board" data-open="news">'+sprite('board',153,420.347,112,140)+sourceHint('board',[153,420.347,112,140],[['M',744,701],['Q',772,699,801,701]],'hint-wood',1.7)+'<rect class="hit" x="153" y="420.347" width="112" height="140"/><g class="paint-board-heading" transform="translate(209.2 460.7) skewX(-1.1)"><text class="paint-board-title" text-anchor="middle">NEWS</text></g></g>'+glow(51,454.668,50),[-350,280,640,283]);
   };
+  // In the cloth world the Research shelves hold small things in mixed media: books in satin floss
+  // with couched gold bands and a mother-of-pearl label, a mother-of-pearl vase with an abalone inlay,
+  // a gold rim and seed pearls holding an embroidered plant, bamboo slips tied with gold thread, and
+  // silk scrolls with silver knobs. Inline styles, so the plain world's book colours do not apply.
+  function q(n) { return Math.round(n*10)/10; }
+  // A set of old thread-bound volumes standing together, as one: three slim volumes in fine satin
+  // (indigo, slate, sepia or jade covers) with ivory page edges between them, a white title slip,
+  // the binding thread showing at top and bottom, and two bone clasps on the case that holds them.
+  function clothBook(i,w,h) {
+    var c=['indigo','slate','sepia','jade'][i%4], n=3, vw=(w-.4)/n, out='<g class="emb-book">';
+    out+='<rect x="0" y="'+q(-h)+'" width="'+q(w)+'" height="'+q(h)+'" rx=".4" style="fill:#e9dcc0;stroke:#2a1d12;stroke-width:.3"/>';
+    for (var k=0;k<n;k++) {
+      var x=.2+k*vw;
+      out+='<rect x="'+q(x+.15)+'" y="'+q(-h+.3)+'" width="'+q(vw-.3)+'" height="'+q(h-.6)+'" style="fill:url(#gSatin-'+c+')"/>'+
+        '<path d="M'+q(x+.6)+' '+q(-h+1.3)+'H'+q(x+vw-.6)+'M'+q(x+.6)+' '+q(-h+2.3)+'H'+q(x+vw-.6)+'M'+q(x+.6)+' -2.3H'+q(x+vw-.6)+'M'+q(x+.6)+' -1.3H'+q(x+vw-.6)+'" style="fill:none;stroke:#efe4cc;stroke-width:.28;opacity:.8"/>';
+    }
+    out+='<rect x="'+q(.2+vw+vw*.28)+'" y="'+q(-h*.84)+'" width="'+q(vw*.44)+'" height="'+q(h*.42)+'" style="fill:#f6efe0;stroke:#b9a989;stroke-width:.15"/>'+
+      '<path d="M'+q(.2+vw*1.5)+' '+q(-h*.8)+'V'+q(-h*.47)+'" style="fill:none;stroke:#3b2c22;stroke-width:.3;stroke-dasharray:.9 .5"/>'+
+      '<circle cx="'+q(w-.1)+'" cy="'+q(-h*.66)+'" r=".55" style="fill:url(#gPearlBead)"/><circle cx="'+q(w-.1)+'" cy="'+q(-h*.3)+'" r=".55" style="fill:url(#gPearlBead)"/></g>';
+    return out;
+  }
+  function pearlVase(x,y) {
+    var leaves='', pearls='';
+    [[-34,13],[-14,15.5],[6,16.5],[26,14],[44,11.5]].forEach(function(l){ var a=l[0]*Math.PI/180, len=l[1], ex=Math.sin(a)*len, ey=-15.4-Math.cos(a)*len;
+      leaves+='<path d="M0 -15.4Q'+q(ex*.5-Math.cos(a)*2.6)+' '+q((ey-15.4)/2-Math.sin(a)*2.6)+' '+q(ex)+' '+q(ey)+'Q'+q(ex*.5+Math.cos(a)*2.6)+' '+q((ey-15.4)/2+Math.sin(a)*2.6)+' 0 -15.4Z" style="fill:url(#gSatin-leaf);stroke:#2b4520;stroke-width:.3"/>'+
+        '<path d="M0 -15.4L'+q(ex*.92)+' '+q(-15.4+(ey+15.4)*.92)+'" style="fill:none;stroke:#a9c98c;stroke-width:.3;opacity:.8"/>'; });
+    for (var k=-4;k<=4;k++) pearls+='<circle cx="'+q(k*1.25)+'" cy="'+q(-11.6+Math.abs(k)*.18)+'" r=".55" style="fill:url(#gPearlBead)"/>';
+    return '<g class="emb-vase" transform="translate('+x+' '+y+')"><ellipse cx="0" cy="0" rx="8" ry="1.2" style="fill:#2a1a0e;opacity:.35"/>'+leaves+
+      '<path d="M-3.6 0C-7.6 -2 -8.3 -8 -5.7 -11.5C-4.3 -13.2 -3.1 -14.2 -3.3 -15.6H3.3C3.1 -14.2 4.3 -13.2 5.7 -11.5C8.3 -8 7.6 -2 3.6 0Z" style="fill:url(#gNacreSmall);stroke:#3b2c22;stroke-width:.45"/>'+
+      '<path d="M-4.6 -4.2Q0 -9.6 4.6 -4.2Q0 -6.4 -4.6 -4.2Z" style="fill:url(#gAbaloneSmall);stroke:#3b2c22;stroke-width:.25"/>'+
+      '<path d="M-2.2 -13.6Q-5.2 -9 -3.6 -2.4" style="fill:none;stroke:#fff;stroke-width:.5;opacity:.7"/>'+
+      '<path d="M-3.5 -15.6H3.5M-3.9 -.3H3.9" style="fill:none;stroke:url(#gGoldThread);stroke-width:1.1;stroke-linecap:round"/>'+pearls+'</g>';
+  }
+  function bambooSlips(x,y,w) {
+    var slips='', n=13, sw=(w-10)/n;
+    for (var k=0;k<n;k++) slips+='<rect x="'+q(8+k*sw)+'" y="-15" width="'+q(sw-.5)+'" height="15" rx=".4" style="fill:url(#gSatin-ivory);stroke:#8a7650;stroke-width:.25"/>';
+    return '<g class="emb-slips" transform="translate('+x+' '+y+')"><ellipse cx="'+q(w/2)+'" cy="0" rx="'+q(w/2)+'" ry="1.1" style="fill:#2a1a0e;opacity:.3"/>'+
+      '<rect x="0" y="-15.6" width="9" height="15.6" rx="4.2" style="fill:url(#gNacreSmall);stroke:#3b2c22;stroke-width:.4"/>'+slips+
+      '<path d="M2 -10.6H'+q(w-1)+'M2 -4.6H'+q(w-1)+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9;stroke-linecap:round"/>'+
+      '<circle cx="'+q(w-.6)+'" cy="-10.6" r=".8" style="fill:url(#gPearlBead)"/><circle cx="'+q(w-.6)+'" cy="-4.6" r=".8" style="fill:url(#gPearlBead)"/></g>';
+  }
+  function scrollStack(x,y) {
+    var rolls='';
+    [['celadon',-4.6,0],['plum',-10,1.2],['ivory',-15.4,-.6]].forEach(function(r){ var cy=r[1], dx=r[2];
+      rolls+='<rect x="'+q(-10+dx)+'" y="'+q(cy-2.6)+'" width="20" height="5.2" rx="2.6" style="fill:url(#gSatin-'+r[0]+');stroke:#3b2c22;stroke-width:.35"/>'+
+        '<circle cx="'+q(-10.6+dx)+'" cy="'+q(cy)+'" r="1.7" style="fill:url(#gSilverKnob)"/><circle cx="'+q(10.6+dx)+'" cy="'+q(cy)+'" r="1.7" style="fill:url(#gSilverKnob)"/>'; });
+    return '<g class="emb-scrolls" transform="translate('+x+' '+y+')"><ellipse cx="0" cy="0" rx="12" ry="1.1" style="fill:#2a1a0e;opacity:.3"/>'+rolls+
+      '<path d="M1.5 -18.2Q3 -9 1.6 -1.6" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9;stroke-linecap:round"/><circle cx="1.6" cy="-1.4" r=".9" style="fill:url(#gPearlBead)"/></g>';
+  }
+
+  // More for the shelves, all embroidered: a bamboo tube of slips, a black lacquer brush pot inlaid
+  // with mother-of-pearl, a round silk fan with a sprig of plum, a mother-of-pearl gourd bottle, a jade
+  // disc on its stand, a lacquer box with a shell-inlaid lid, two volumes lying flat, a rolled bundle
+  // of slips. Each sits on the shelf at (x, y); sizes are in the world's units.
+  function st(f,stroke,w){ return 'style="fill:'+f+(stroke?';stroke:'+stroke+';stroke-width:'+(w||.3):'')+'"'; }
+  function shelfShadow(w){ return '<ellipse cx="0" cy="0" rx="'+q(w/2)+'" ry="1" style="fill:#2a1a0e;opacity:.3"/>'; }
+  function bambooTube(x,y) {
+    var slips='';
+    [[-2.8,-25],[-1.4,-27.5],[0,-24],[1.4,-26.5],[2.8,-23.5]].forEach(function(s){ slips+='<rect x="'+q(s[0]-.6)+'" y="'+s[1]+'" width="1.2" height="'+q(-s[1]-12)+'" '+st('url(#gSatin-ivory)','#8a7650',.18)+'/>'; });
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(12)+slips+
+      '<path d="M-3.4 -24.6Q0 -26.2 3.4 -24.6" style="fill:none;stroke:#a8322a;stroke-width:.55"/>'+
+      '<rect x="-4.6" y="-17" width="9.2" height="17" rx="1" '+st('url(#gSatin-bamboo)','#5c4c22',.35)+'/>'+
+      '<path d="M-4.6 -11.4H4.6M-4.6 -4.6H4.6" style="fill:none;stroke:#4f6a2e;stroke-width:.9"/><path d="M-4.6 -11.4H4.6M-4.6 -4.6H4.6" style="fill:none;stroke:url(#gGoldThread);stroke-width:.35"/>'+
+      '<path d="M-2.6 -15.6V-1.4" style="fill:none;stroke:#fff6d8;stroke-width:.5;opacity:.45"/></g>';
+  }
+  function brushPot(x,y) {
+    var b='';
+    [[-3,-27,-6],[ -1,-29,-2],[1.4,-28,3],[3.4,-26,7]].forEach(function(r){ var tx=r[0]+r[2]*.35;
+      b+='<path d="M'+r[0]+' -10L'+q(tx)+' '+q(r[1]+5)+'" style="fill:none;stroke:#c4a46a;stroke-width:1.4"/><path d="M'+q(tx-1)+' '+q(r[1]+5.4)+'Q'+q(tx)+' '+q(r[1]-.6)+' '+q(tx+1)+' '+q(r[1]+5.4)+'Z" style="fill:#d9c6a4;stroke:#2a2420;stroke-width:.3"/><path d="M'+q(tx-.4)+' '+q(r[1]+1.4)+'Q'+q(tx)+' '+q(r[1]-.6)+' '+q(tx+.4)+' '+q(r[1]+1.4)+'Z" style="fill:#2a2420"/>'; });
+    var shards='';
+    [[-3.6,-11],[-1.2,-12.6],[1.6,-10.4],[3.4,-12.2],[-2.4,-6.4],[.6,-7.6],[3,-5.4],[-.8,-3.6]].forEach(function(p,i){ shards+='<path d="M'+q(p[0])+' '+q(p[1]-1)+'l1 .9-.8 1.1-1.2-.7z" style="fill:url(#'+(i%3?'gAbaloneSmall':'gNacreSmall')+')"/>'; });
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(14)+b+
+      '<path d="M-6 -14.4H6V-.8Q0 .4 -6 -.8Z" '+st('url(#gSatin-lacquer)','#0c0908',.35)+'/>'+shards+
+      '<path d="M-6.2 -14.4H6.2M-6 -.9Q0 .3 6 -.9" style="fill:none;stroke:url(#gGoldThread);stroke-width:.75;stroke-linecap:round"/></g>';
+  }
+  function plumTwig(d, blossoms, bw) {
+    var out='<path d="'+d+'" style="fill:none;stroke:#4a2f1c;stroke-width:'+(bw||.75)+';stroke-linecap:round"/>'+
+      (bw ? '<path d="'+d+'" style="fill:none;stroke:#8a6244;stroke-width:'+q(bw*.35)+';stroke-dasharray:1.6 .5;stroke-linecap:round"/>' : '');
+    blossoms.forEach(function(b){ for (var i=0;i<5;i++){ var a=i*1.2566-1.5708; out+='<circle cx="'+q(b[0]+Math.cos(a)*b[2])+'" cy="'+q(b[1]+Math.sin(a)*b[2])+'" r="'+q(b[2]*.95)+'" style="fill:url(#gSatin-'+(b[3]||'blossom')+');stroke:#a8475c;stroke-width:.15"/>'; }
+      out+='<circle cx="'+b[0]+'" cy="'+b[1]+'" r="'+q(b[2]*.62)+'" style="fill:'+(b[3]==='snow'?'#c9b9a0':'#b04a5e')+';opacity:.55"/><circle cx="'+b[0]+'" cy="'+b[1]+'" r="'+q(b[2]*.42)+'" style="fill:url(#gGoldThread)"/>'; });
+    return out;
+  }
+  function roundFan(x,y) {
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(12)+
+      '<path d="M-4 0H4L2.4 -2.2H-2.4Z" '+st('url(#gSatin-sepia)','#2a1d12',.25)+'/><path d="M0 -2.2V-8" style="fill:none;stroke:#6b4a2c;stroke-width:1"/>'+
+      '<circle cx="0" cy="-17.6" r="9.8" '+st('url(#gSatin-ivory)')+'/>'+
+      plumTwig('M-7 -12Q-2 -15 1 -20T6.4 -24.4M-1.6 -16.4Q1.6 -14.4 4.6 -14.8',[[1.2,-20.2,1.25],[5.4,-23.6,1],[4.4,-14.9,1.05,'snow'],[-3.6,-14.2,.9]])+
+      '<circle cx="0" cy="-17.6" r="9.8" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9"/>'+
+      '<path d="M0 -7.8q-2.2 2.4 -1.6 6.2M-1.6 -1.8l-.7 2.4M-1.6 -1.8l.5 2.5" style="fill:none;stroke:#a8322a;stroke-width:.45"/></g>';
+  }
+  function gourdBottle(x,y) {
+    var pearls=''; for (var k=-3;k<=3;k++) pearls+='<circle cx="'+q(k*1.1)+'" cy="'+q(-10.4+Math.abs(k)*.15)+'" r=".5" style="fill:url(#gPearlBead)"/>';
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(11)+
+      '<path d="M-1.4 -19.4C-1.4 -17.6 -4.4 -16.6 -4.4 -13.6S-2 -10.4 -2 -10.4C-6.4 -9.4 -6.6 -1.6 -3.4 0H3.4C6.6 -1.6 6.4 -9.4 2 -10.4C2 -10.4 4.4 -10.6 4.4 -13.6S1.4 -17.6 1.4 -19.4Z" '+st('url(#gNacreSmall)','#3b2c22',.35)+'/>'+
+      '<path d="M-3.4 -5.6Q0 -8.4 3.4 -5.6Q0 -6.6 -3.4 -5.6Z" style="fill:url(#gAbaloneSmall)"/><path d="M-2.6 -15.6Q-3.4 -13.4 -2.2 -12" style="fill:none;stroke:#fff;stroke-width:.45;opacity:.75"/>'+
+      '<path d="M-1.6 -19.4H1.6" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9;stroke-linecap:round"/>'+pearls+'</g>';
+  }
+  function jadeDisc(x,y) {
+    var dots='';
+    for (var a=0;a<6.28;a+=.52) for (var r of [4.4,6]) dots+='<circle cx="'+q(Math.cos(a+(r>5?.26:0))*r)+'" cy="'+q(-13+Math.sin(a+(r>5?.26:0))*r)+'" r=".42" style="fill:#d9ead9;opacity:.75"/>';
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(14)+
+      '<path d="M-6 0H6L4.4 -3.4H-4.4Z" '+st('url(#gSatin-sepia)','#2a1d12',.25)+'/><path d="M-3.2 -3.4V-6M3.2 -3.4V-6" style="fill:none;stroke:#5e4530;stroke-width:.9"/>'+
+      '<path d="M0 -21.2A8.2 8.2 0 1 1 -.01 -21.2ZM0 -15.8A2.8 2.8 0 1 0 .01 -15.8Z" fill-rule="evenodd" '+st('url(#gSatin-celadon)','#3e6b55',.35)+'/>'+dots+
+      '<path d="M0 -21.2V-24.6" style="fill:none;stroke:#a8322a;stroke-width:.6"/><circle cx="0" cy="-24.8" r=".7" style="fill:url(#gPearlBead)"/></g>';
+  }
+  function lacquerBox(x,y) {
+    var inlay=plumTwig('M-6 -7.4Q-1 -9.6 5.4 -8.2',[]).replace('#4a2f1c','#d9c9a0'), petals='';
+    [[-2.6,-8.6],[2.4,-8.4]].forEach(function(c){ for (var i=0;i<5;i++){ var a=i*1.2566-1.5708; petals+='<circle cx="'+q(c[0]+Math.cos(a)*.95)+'" cy="'+q(c[1]+Math.sin(a)*.95)+'" r=".85" style="fill:url(#'+(i%2?'gAbaloneSmall':'gNacreSmall')+')"/>'; } });
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(20)+
+      '<rect x="-9.4" y="-6.2" width="18.8" height="6.2" rx=".6" '+st('url(#gSatin-lacquer)','#0c0908',.35)+'/>'+
+      '<rect x="-10" y="-10.6" width="20" height="4.6" rx=".9" '+st('url(#gSatin-lacquer)','#0c0908',.35)+'/>'+inlay+petals+
+      '<path d="M-10 -6.1H10M-9.4 -.2H9.4" style="fill:none;stroke:url(#gGoldThread);stroke-width:.55"/><circle cx="0" cy="-3.4" r=".75" style="fill:url(#gPearlBead)"/></g>';
+  }
+  function flatBooks(x,y) {
+    var out='<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(22);
+    [['indigo',0,-3.2,0],['jade',-3.2,-3,1.2]].forEach(function(b){
+      out+='<rect x="'+q(-10.6+b[3])+'" y="'+q(b[1]+b[2])+'" width="21" height="3" rx=".3" '+st('url(#gSatin-'+b[0]+')','#1b1410',.25)+'/>'+
+        '<path d="M'+q(-10.4+b[3])+' '+q(b[1]+b[2]+.4)+'H'+q(10.2+b[3])+'" style="fill:none;stroke:#efe4cc;stroke-width:.3;opacity:.7"/>'+
+        '<rect x="'+q(-6+b[3])+'" y="'+q(b[1]+b[2]+.9)+'" width="6" height="1.3" style="fill:#f6efe0"/>'; });
+    return out+'</g>';
+  }
+  function slipRoll(x,y) {
+    return '<g class="emb-item" transform="translate('+x+' '+y+')">'+shelfShadow(18)+
+      '<rect x="-9" y="-9.6" width="18" height="9.2" rx="4.6" '+st('url(#gSatin-bamboo)','#5c4c22',.35)+'/>'+
+      '<path d="M-9 -7.6H9M-9 -5H9M-9 -2.4H9" style="fill:none;stroke:#86733a;stroke-width:.3"/>'+
+      '<path d="M-3.4 -9.6V-.4M3.6 -9.6V-.4" style="fill:none;stroke:#a8322a;stroke-width:.7"/>'+
+      '<ellipse cx="9" cy="-5" rx="2.2" ry="4.6" '+st('url(#gSatin-bamboo)','#5c4c22',.3)+'/><path d="M9 -8.4a1.6 3.4 0 1 1 0 6.8a1 2.2 0 1 1 0 -4.4" style="fill:none;stroke:#5c4c22;stroke-width:.3"/></g>';
+  }
+  // The floor vase in front of Research: a meiping, the plum vase, standing on a low embroidered
+  // stand on the path. Its body is covered in plates of mother-of-pearl, each a little different in
+  // its lustre (pearl white, rose, green, violet, a gold one now and then) with dark seams between
+  // them; a ruyi collar of black lacquer outlined in couched gold and hung with seed pearls, gold at
+  // lip, waist and foot. In it, branches of red and white plum in satin floss with gold knots at their
+  // hearts and vermilion buds.
+  var VASE_BODY = 'M-11 -8C-13 -30 -25 -48 -23 -62C-21 -72 -10 -76 -6 -78L-6 -82L-7.6 -84.4H7.6L6 -82L6 -78C10 -76 21 -72 23 -62C25 -48 13 -30 11 -8Z';
+  function vaseWidth(y) {   // the half-width of the body at height y (y from -84 to -8)
+    var pts=[[-84.4,7.6],[-78,6],[-74,13],[-68,20],[-62,23],[-54,22.2],[-46,19.6],[-38,16.6],[-30,14.4],[-20,12.4],[-8,11]];
+    for (var i=1;i<pts.length;i++) if (y<=pts[i][0]) { var a=pts[i-1], b=pts[i], t=(y-a[0])/(b[0]-a[0]); return a[1]+(b[1]-a[1])*t; }
+    return 11;
+  }
+  function floorVase(x,y) {
+    // a cracked-ice net of shell plates: a jittered grid whose plates share corners, clipped to the body
+    var plates='', seed=11, rnd=function(){ seed=(seed*16807)%2147483647; return (seed-1)/2147483646; };
+    var lustre=['gVaseNacreA','gVaseNacreB','gVaseNacreC','gVaseNacreA','gVaseNacreD','gVaseNacreB','gVaseNacreE'];
+    var V=[], cols=17, rows=26, x0=-24, y0=-80, dx=3, dy=2.9;
+    for (var r=0;r<=rows;r++){ V[r]=[]; for (var c=0;c<=cols;c++) V[r][c]=[x0+c*dx+(r%2)*dx/2+(c&&c<cols?(rnd()-.5)*1.5:0), y0+r*dy+(r&&r<rows?(rnd()-.5)*1.3:0)]; }
+    for (var r2=0;r2<rows;r2++) for (var c2=0;c2<cols;c2++) {
+      var a1=V[r2][c2], b1=V[r2][c2+1], c1=V[r2+1][c2+1], d1=V[r2+1][c2], my=(a1[1]+c1[1])/2, mx=(a1[0]+c1[0])/2;
+      if (my>-7 || Math.abs(mx)>vaseWidth(my)+2) continue;
+      plates+='<path d="M'+q(a1[0])+' '+q(a1[1])+'L'+q(b1[0])+' '+q(b1[1])+'L'+q(c1[0])+' '+q(c1[1])+'L'+q(d1[0])+' '+q(d1[1])+'Z" style="fill:url(#'+lustre[Math.floor(rnd()*lustre.length)]+')"/>';
+    }
+    plates='<clipPath id="vaseBody"><path d="'+VASE_BODY+'"/></clipPath><g clip-path="url(#vaseBody)" style="stroke:#6a5a6c;stroke-width:.22;stroke-opacity:.7">'+plates+'</g>';
+    var pearls=''; for (var k2=0;k2<=16;k2++){ var a=Math.PI*(k2/16), cx=-19*Math.cos(a), cy=-60.6+(k2%4===2?2.6:.4)+Math.sin(a)*1.6; pearls+='<circle cx="'+q(cx)+'" cy="'+q(cy)+'" r=".95" style="fill:url(#gPearlBead)"/>'; }
+    var collar='M-17.4 -70'+[-14,-7,0,7].map(function(c){ return 'Q'+q(c-3.4)+' -64 '+q(c)+' -62.4Q'+q(c+3.4)+' -64 '+q(c+3.5)+' -70'; }).join('')+'Q'+q(13)+' -64 17.4 -62.4L19 -70Q0 -79 -19 -70Z';
+    var branches=plumTwig('M0 -84Q-6 -100 -16 -112T-34 -146M-16 -112Q-24 -116 -30 -120M-24 -130Q-30 -134 -28 -140M-8 -98Q2 -110 4 -126T18 -152M4 -126Q12 -128 20 -134M12 -142Q6 -148 8 -156M2 -84Q12 -94 24 -102T40 -124M30 -110Q38 -108 42 -104',
+      [[-34,-146,2.4],[-30,-120,2.2],[-21,-125,2,'snow'],[-12,-108,2.3],[18,-152,2.2],[20,-134,2.3,'snow'],[6,-120,2.1],[12,-142,2],[24,-102,2.4],[40,-124,2.2,'snow'],[33,-112,2.1],[-26,-136,1.9],[-28,-140,1.8,'snow'],[8,-156,1.9],[42,-104,2],[-5,-101,1.9,'snow'],[30,-118,1.8]], 1.7);
+    var buds=''; [[-38,-152],[-33,-128],[22,-158],[26,-140],[44,-130],[14,-128],[-6,-94],[30,-108],[-18,-118],[2,-112],[36,-100],[-31,-132]].forEach(function(b){ buds+='<circle cx="'+b[0]+'" cy="'+b[1]+'" r="1.4" style="fill:url(#gSatin-vermilion);stroke:#6e2115;stroke-width:.2"/>'; });
+    return '<g class="emb-floor-vase" transform="translate('+x+' '+y+')">'+
+      '<ellipse cx="0" cy="1" rx="27" ry="3" style="fill:#2a1a0e;opacity:.32"/>'+
+      '<path d="M-21 0H21L18 -7.6H-18Z" '+st('url(#gSatin-sepia)','#2a1d12',.4)+'/><path d="M-18 -7.6H18M-20 -1.4H20" style="fill:none;stroke:url(#gGoldThread);stroke-width:.8"/>'+
+      '<path d="M-14 -3.6Q-10 -6 -6 -3.6M6 -3.6Q10 -6 14 -3.6" style="fill:none;stroke:#c9a352;stroke-width:.5"/>'+
+      branches+buds+
+      '<path d="'+VASE_BODY+'" style="fill:#3a3340;stroke:#2a2228;stroke-width:.6"/>'+plates+
+      // the body's roundness: shade on the right, a soft sheen down the left
+      '<path d="M7 -76C17 -70 22 -60 19 -44C16 -30 11 -18 9.6 -8.6H11C13 -30 25 -48 23 -62C21 -72 10 -76 6 -78Z" style="fill:#2c2238;opacity:.32"/>'+
+      '<path d="M-15 -67C-20 -56 -19 -42 -12 -20" style="fill:none;stroke:#fff;stroke-width:2.2;opacity:.42;stroke-linecap:round"/>'+
+      '<path d="M-21.4 -42Q0 -44.4 21.4 -42M-15.6 -24Q0 -25.8 15.6 -24" style="fill:none;stroke:url(#gGoldThread);stroke-width:.95"/>'+
+      '<path d="'+collar+'" style="fill:url(#gSatin-lacquer)"/><path d="'+collar+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:1.05"/>'+pearls+
+      '<path d="M-7.6 -84.4H7.6M-6 -78.4H6M-11.4 -8.6H11.4" style="fill:none;stroke:url(#gGoldThread);stroke-width:1.2;stroke-linecap:round"/>'+
+      '<path d="'+VASE_BODY+'" style="fill:none;stroke:#2a2228;stroke-width:.5"/></g>';
+  }
+
+  // The Writing screen's silks, picked out in precious materials where a hand embroiderer would:
+  // gold knots and a seed pearl in the hearts of the plum, pearls and gold stamens in the orchids,
+  // couched gold at the bamboo's joints, a coil of gold ringed with pearls in the yellow
+  // chrysanthemum and slivers of mother-of-pearl in the pale one, and a couched gold edge round each
+  // panel of silk. Positions are in the painting's own pixels, mapped onto the screen as drawn.
+  function screenAccents(top) {
+    var W=function(sx,sy){ return [q(-204+(sx-81)*518/779), q(top+(sy-57)*(223*476/454)/476)]; }, out='<g class="screen-accents">';
+    [[113,226],[265,391],[428,561],[603,723]].forEach(function(px){ var a=W(px[0]+3,128), b=W(px[1]-3,330);
+      out+='<path d="M'+a[0]+' '+a[1]+'V'+b[1]+'H'+b[0]+'V'+a[1]+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:.7"/><path d="M'+a[0]+' '+a[1]+'V'+b[1]+'H'+b[0]+'V'+a[1]+'" style="fill:none;stroke:#6b4a1c;stroke-width:1;stroke-dasharray:.25 2.2;opacity:.7"/>'; });
+    [[188.5,164.5],[201,139.5],[151,189.5],[188.5,192],[131,229.5],[178.5,249.5],[206,229.5],[176,287],[156,262]].forEach(function(c,i){ var p=W(c[0],c[1]);
+      for (var k=0;k<5;k++){ var a=k*1.2566+i; out+='<circle cx="'+q(+p[0]+Math.cos(a)*1.25)+'" cy="'+q(+p[1]+Math.sin(a)*1.25)+'" r=".38" style="fill:url(#gGoldThread)"/>'; }
+      out+='<circle cx="'+p[0]+'" cy="'+p[1]+'" r=".72" style="fill:url(#gPearlBead)"/>'; });
+    [[323.5,167],[353.5,188],[326,222]].forEach(function(c){ var p=W(c[0],c[1]), x=+p[0], y=+p[1];
+      out+='<path d="M'+x+' '+y+'l-1.6 -2.4M'+x+' '+y+'l1.7 -2.2M'+x+' '+y+'l.1 -2.8" style="fill:none;stroke:url(#gGoldThread);stroke-width:.4;stroke-linecap:round"/>'+
+        '<ellipse cx="'+q(x)+'" cy="'+q(y+1.4)+'" rx="1.5" ry=".9" style="fill:url(#gNacreSmall);stroke:#b9a989;stroke-width:.15"/><circle cx="'+x+'" cy="'+y+'" r="1" style="fill:url(#gPearlBead)"/>'; });
+    [[503,182],[503,227],[503,267],[503,292],[472,257],[472,287]].forEach(function(c){ var p=W(c[0],c[1]);
+      out+='<path d="M'+q(+p[0]-2.2)+' '+p[1]+'h4.4" style="fill:none;stroke:url(#gGoldThread);stroke-width:.9;stroke-linecap:round"/><path d="M'+q(+p[0]-2.2)+' '+p[1]+'h4.4" style="fill:none;stroke:#6b4a1c;stroke-width:1.2;stroke-dasharray:.22 1.1"/>'; });
+    var cy=W(656,159.5), x0=+cy[0], y0=+cy[1], coil='M'+x0+' '+y0;
+    for (var t=0;t<4*Math.PI;t+=.35) coil+='L'+q(x0+Math.cos(t)*t*.4)+' '+q(y0+Math.sin(t)*t*.3);
+    out+='<path d="'+coil+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:.65"/>';
+    for (var k2=0;k2<14;k2++){ var a2=k2*.449; out+='<circle cx="'+q(x0+Math.cos(a2)*6.6)+'" cy="'+q(y0+Math.sin(a2)*5)+'" r=".7" style="fill:url(#gPearlBead)"/>'; }
+    var pc=W(648.5,234.5), px=+pc[0], py=+pc[1];
+    for (var k3=0;k3<11;k3++){ var a3=-Math.PI*1.05+k3*Math.PI*1.1/10, r3=6.4; out+='<ellipse cx="'+q(px+Math.cos(a3)*r3)+'" cy="'+q(py+Math.sin(a3)*r3*.7)+'" rx="2.6" ry=".55" transform="rotate('+q(a3*180/Math.PI)+' '+q(px+Math.cos(a3)*r3)+' '+q(py+Math.sin(a3)*r3*.7)+')" style="fill:url(#gNacreSmall);stroke:#c9bba3;stroke-width:.12"/>'; }
+    out+='<circle cx="'+q(px)+'" cy="'+q(py)+'" r="1.3" style="fill:url(#gGoldThread)"/><circle cx="'+q(px)+'" cy="'+q(py)+'" r=".6" style="fill:url(#gPearlBead)"/>';
+    var bud=W(681,189.5); out+='<circle cx="'+bud[0]+'" cy="'+bud[1]+'" r=".8" style="fill:url(#gPearlBead)"/>';
+    return out+'</g>';
+  }
+
   A.stations.research = function (pubs,themes) {
     var root = parsed(old.research(pubs,themes)), body = forecourt(-280,282,549,560,7)+sprite('researchHouse',-300,177.235,600,384), rowX=[-120,-120,-120];
     all(root,'.book').forEach(function(b,i) {
       var n=['ancientBlue','ancientJade','ancientOchre'][i%3];
       var dims = b.querySelector('rect'), w = +dims.getAttribute('width'), h = +dims.getAttribute('height');
-      var bw=w*.73, bh=Math.min(28,h*.7);
-      b.querySelector('.book-in').innerHTML = sprite(n,0,-bh,bw,bh)+materialHint('M'+(bw*.17)+' '+(-bh*.81)+'L'+(bw*.82)+' '+(-bh*.81)+'M'+(bw*.22)+' '+(-bh*.22)+'L'+(bw*.78)+' '+(-bh*.22),'hint-book',i*.41)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
+      var bw=window.HJArtDir ? w*.52 : w*.73, bh=Math.min(28,h*.7);
+      b.querySelector('.book-in').innerHTML = (window.HJArtDir ? clothBook(i,bw,bh) : sprite(n,0,-bh,bw,bh))+materialHint('M'+(bw*.17)+' '+(-bh*.81)+'L'+(bw*.82)+' '+(-bh*.81)+'M'+(bw*.22)+' '+(-bh*.22)+'L'+(bw*.78)+' '+(-bh*.22),'hint-book',i*.41)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
       // Shelves in the painting are shallow and spaced evenly through the interior.
       var tr = b.getAttribute('transform'), row = tr.match(/translate\((-?[\d.]+) ([\d.]+)/);
       if (row) { var ri={436:0,482:1,528:2}[row[2]], y=[436.435,467.435,500.935][ri]; b.setAttribute('transform','translate('+rowX[ri]+' '+y+')'); rowX[ri]+=bw+2; }
       body += html(b);
     });
-    body += sprite('plant',84,472.235,28,28)+sprite('bamboo',-37,481.235,69,20)+sprite('scrollBundle',46,474.235,25,27)+'<text class="paint-inset-title" x="0" y="288.235" text-anchor="middle">RESEARCH</text>';
+    if (window.HJArtDir) {
+      // the rest of each shelf, after the books, holds the embroidered things, spread evenly
+      var spread = function (ri, y, items) { var x0 = rowX[ri] + 4, x1 = 122, tot = items.reduce(function (a, it) { return a + it[1]; }, 0), gap = Math.max(2, (x1 - x0 - tot) / items.length), x = x0 + gap / 2, out = '';
+        items.forEach(function (it) { var cx = q(x + it[1] / 2), k = it[2] || 1; out += k === 1 ? it[0](cx, y) : '<g transform="translate(' + cx + ' ' + y + ') scale(' + k + ') translate(' + (-cx) + ' ' + (-y) + ')">' + it[0](cx, y) + '</g>'; x += it[1] + gap; }); return out; };
+      body += '<g class="emb-shelf">' + spread(0, 436.235, [[bambooTube, 10], [brushPot, 13, .92], [roundFan, 21], [gourdBottle, 15, 1.3]]) +
+        spread(1, 467.235, [[jadeDisc, 18, 1.05], [lacquerBox, 30, 1.45], [flatBooks, 30, 1.35], [slipRoll, 30, 1.4]]) +
+        '<g transform="translate(98 500.235) scale(1.25) translate(-98 -500.235)">' + pearlVase(98,500.235) + '</g>' + bambooSlips(-37,501.235,69) + scrollStack(58,501.235) + '</g>' + floorVase(212, 560);
+    } else body += sprite('plant',84,472.235,28,28)+sprite('bamboo',-37,481.235,69,20)+sprite('scrollBundle',46,474.235,25,27);
+    body += '<text class="paint-inset-title" x="0" y="288.235" text-anchor="middle">RESEARCH</text>';
     return station('research',body+glow(-182,473.235,45)+glow(182,473.235,45)+glow(-93,291.235,32)+glow(93,291.235,32),[-300,170,600,393]);
   };
   A.stations.talks = function (videos,posters) {
@@ -569,7 +780,7 @@
     // Keep the four silk paintings, desk and cushion; the separate archive replaces the old open rack.
     // The restored source has a complete chrysanthemum panel and no old
     // empty rack. No rectangular cut is allowed through its silk or frame.
-    body += sprite('writingLow',-204,337-lift,518,223*476/454,'writing-interior','M81 57H860V533H81ZM294 460V537H525V460Z')+sprite('writingCushion',-204+(298-81)*518/779,337-lift+(443-57)*223/454,225*518/779,68*223/454,'writing-cushion-paint');
+    body += sprite('writingLow',-204,337-lift,518,223*476/454,'writing-interior','M81 57H860V533H81ZM294 460V537H525V460Z')+sprite('writingCushion',-204+(298-81)*518/779,337-lift+(443-57)*223/454,225*518/779,68*223/454,'writing-cushion-paint')+(window.HJArtDir ? screenAccents(337-lift) : '');
     // Follow the embroidered rim in the painting itself, rather than placing
     // another marker down on the paving beneath the low writing cushion.
     var seatRim='M-56 530C-58 520.8 -27 515.8 14.2 515.8C55.4 515.8 87.4 520.8 85.4 530C83.3 538 -21.8 542.3 -56 530Z';
@@ -807,7 +1018,7 @@
     var root=parsed(oldGround(width,stations));
     all(root,'.paving-slab,.paving-grain,.paving-bevel,.paving-wear,.paving,.ground-strokes,.path-grain').forEach(function(n){n.remove();});
     var edge=root.querySelector('.ground-edge');
-    edge.insertAdjacentHTML('afterend','<path class="painted-path" d="'+edge.getAttribute('d')+'L'+width+' 627H0Z" fill="url(#paintStone)"/>');
+    edge.insertAdjacentHTML('afterend','<path class="painted-path" d="'+edge.getAttribute('d')+'L'+width+' 627H0Z" fill="url(#paintStone)"/><path class="night-shade" d="'+edge.getAttribute('d')+'L'+width+' 627H0Z"/>');
     return root.innerHTML;
   };
   A.foreground=function(width) {
@@ -816,6 +1027,7 @@
     water.insertAdjacentHTML('afterend','<path class="painted-water" d="'+water.getAttribute('d')+'" fill="url(#paintWater)"/>');
     root.querySelector('.pond-bank').setAttribute('fill','url(#paintBank)');
     root.querySelector('.pond-bank').insertAdjacentHTML('beforebegin','<path class="painted-bank" d="M0 627H'+width+'V800H0Z'+water.getAttribute('d')+'" fill-rule="evenodd" fill="url(#paintBank)"/>');
+    root.querySelector('.pond-bank').insertAdjacentHTML('afterend','<path class="night-shade" d="'+root.querySelector('.pond-bank').getAttribute('d')+'"/><path class="night-shade" d="M0 627H'+width+'V800H0Z'+water.getAttribute('d')+'" fill-rule="evenodd"/>');
     // in the cloth world the lotus is embroidered, shown a little larger so its stitches read
     var lk=window.HJArtDir?1.3:1,pk=window.HJArtDir?1.15:1;
     all(root,'.lotus-leaf').forEach(function(n) {
