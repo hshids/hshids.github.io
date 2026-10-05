@@ -1,8 +1,8 @@
 // Knock, knock, knock: entering the crystal world the way a certain physicist
-// knocks on a door, three knocks and a name, three times, every visit. The knocks
-// are synthesized with Web Audio (no files) and the name is spoken by the
-// browser's own voice when it has one; both start from the visitor's click so
-// browsers allow sound. Any click or key skips it.
+// knocks on a door, three knocks and a name, three times, every visit. Only the
+// knocks are heard (synthesized with Web Audio, no files, started by the
+// visitor's click so browsers allow sound); the name appears silently in
+// writing after each three. Any click or key skips it.
 
 const SEEN = 'hj-crystal-knocked-v1';
 
@@ -37,7 +37,7 @@ function chime(ctx, out, t, pitch = 1) {
 /** Plays the knock and shows it; resolves when it ends or is skipped. */
 export function knockToEnter({doc = document, reduced = false, name = 'Hanjing', mount} = {}) {
   try { localStorage.setItem(SEEN, '1'); } catch {}
-  const rounds = 3, gap = 1.75;
+  const rounds = 3, gap = 1.55;
   const host = mount || doc.querySelector('#world') || doc.body;
   const el = doc.createElement('div');
   el.className = 'magic-knock'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
@@ -49,21 +49,6 @@ export function knockToEnter({doc = document, reduced = false, name = 'Hanjing',
     const AC = doc.defaultView.AudioContext || doc.defaultView.webkitAudioContext;
     if (AC) { ctx = new AC(); master = ctx.createGain(); master.gain.value = 0.32; master.connect(ctx.destination); ctx.resume?.(); }
   } catch { ctx = null; }
-  // the spoken name: unlocked now, inside the click (Safari only lets speech start from a gesture)
-  let synth = null, voice = null;
-  try {
-    synth = doc.defaultView.speechSynthesis || null;
-    if (synth) {
-      synth.cancel();
-      const warm = new doc.defaultView.SpeechSynthesisUtterance(' '); warm.volume = 0; synth.speak(warm);
-      const voices = synth.getVoices();
-      voice = voices.find(v => /^en[-_](US|GB)/i.test(v.lang) && /female|samantha|karen|serena|zira|aria|jenny/i.test(v.name)) || voices.find(v => /^en/i.test(v.lang)) || null;
-    }
-  } catch { synth = null; }
-  const say = () => {
-    if (!synth) return;
-    try { const u = new doc.defaultView.SpeechSynthesisUtterance(name); u.lang = 'en-US'; if (voice) u.voice = voice; u.rate = 0.92; u.pitch = 1.05; u.volume = 0.9; synth.speak(u); } catch {}
-  };
   const timers = [];
   const later = (ms, fn) => timers.push(doc.defaultView.setTimeout(fn, ms));
   const t0 = ctx ? ctx.currentTime + 0.12 : 0;
@@ -78,8 +63,7 @@ export function knockToEnter({doc = document, reduced = false, name = 'Hanjing',
       });
     }
     const call = r * gap + 0.72;
-    if (ctx && !synth) chime(ctx, master, t0 + call, 1 + r * 0.06);   // a bell for the name where the browser cannot speak
-    later((call + 0.12) * 1000, () => { nameEl.textContent = name + (r < rounds - 1 ? ',' : '.'); nameEl.classList.remove('is-pop'); void nameEl.offsetWidth; nameEl.classList.add('is-pop'); say(); });
+    later((call + 0.12) * 1000, () => { nameEl.textContent = name + (r < rounds - 1 ? ',' : '.'); nameEl.classList.remove('is-pop'); void nameEl.offsetWidth; nameEl.classList.add('is-pop'); });
     later((r * gap + gap - 0.05) * 1000, () => { if (r < rounds - 1) { knocks.textContent = ''; nameEl.textContent = ''; } });
   }
   const end = rounds * gap + 0.35;
@@ -90,7 +74,6 @@ export function knockToEnter({doc = document, reduced = false, name = 'Hanjing',
     const finish = () => {
       if (done) return; done = true;
       timers.forEach(id => doc.defaultView.clearTimeout(id));
-      try { synth?.cancel(); } catch {}
       doc.removeEventListener('keydown', finish, true);
       el.classList.add('is-leaving');
       doc.defaultView.setTimeout(() => { el.remove(); try { ctx?.close(); } catch {} }, 650);
