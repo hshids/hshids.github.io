@@ -1,6 +1,7 @@
 /*
  * The handscroll layer for the 2D world: the walk is read as one long story, from a title at its
- * head, Dalian, the gate and the 2013 crossing, through the stations, to "to be continued".
+ * head, the gate, Dalian (home, and the paper crane setting off east in 2013), through the stations,
+ * to "to be continued".
  *
  * Everything drawn here reuses the world's realistic paintings: the chapter signs are built exactly
  * like the EDUCATION sign (painted branch, hemp ropes, carved plaque), the shore uses the painted
@@ -26,13 +27,11 @@
     { id: "head", at: 560, sign: "HANJING'S WORLD", width: 176, label: "Hanjing's World",
       say: "Welcome to my world! Walk right, or tap Ask Me to chat.",
       chips: { en: ["Who are you?", "What do you research?"], zh: ["你是谁？", "你研究什么？"] } },
-    { id: "prologue", at: 1080, sign: "DALIAN", width: 120, label: "Dalian, my hometown",
-      say: "Dalian, my seaside hometown. Ask me about it!",
-      chips: { en: ["Tell me about Dalian", "What do you like to eat?"], zh: ["说说大连", "你喜欢吃什么？"] } },
     { id: "home", label: "Welcome" },
-    { id: "crossing", at: 2760, sign: "2013", width: 96, label: "2013, the crossing",
-      say: "2013: I crossed the Pacific. Ask me how it went!",
-      chips: { en: ["Tell me about your high school years", "Where have you lived?"], zh: ["说说你的高中", "你在哪些地方生活过？"] } },
+    // the first stop of the story is home: Dalian, where the paper crane sets off east across the Pacific
+    { id: "dalian", at: 2760, sign: "DALIAN", width: 120, label: "Dalian, my hometown",
+      say: "Dalian, my seaside hometown. It all began here. Ask me about it!",
+      chips: { en: ["Tell me about Dalian", "Tell me about your high school years"], zh: ["说说大连", "说说你的高中"] } },
     { id: "education", label: "Education" },
     { id: "research", label: "Research" },
     { id: "talks", label: "Talks" },
@@ -47,7 +46,8 @@
   // story waits in Ask Me.
   var HOTSPOTS = [];
   CHAPTERS.forEach(function (ch) { if (ch.sign) HOTSPOTS.push({ id: ch.id, x: ch.at + 62, y: 422, w: Math.max(130, ch.width), h: 276, label: ch.label + ": tap to hear the story", say: ch.say, chips: ch.chips }); });
-  HOTSPOTS.push({ id: "crane", x: 3025, y: window.HJArtDir ? 322 : 365, w: window.HJArtDir ? 220 : 170, h: window.HJArtDir ? 170 : 130, label: "The paper crane: tap to see it fly east and hear the 2013 crossing", say: CHAPTERS[3].say, chips: CHAPTERS[3].chips });
+  HOTSPOTS.push({ id: "crane", x: 3025, y: window.HJArtDir ? 322 : 365, w: window.HJArtDir ? 220 : 170, h: window.HJArtDir ? 170 : 130, label: "The paper crane: tap to see it fly east and hear the 2013 crossing", say: "2013: from Dalian I flew east across the Pacific. Ask me how it went!",
+    chips: { en: ["Tell me about your high school years", "Where have you lived?"], zh: ["说说你的高中", "你在哪些地方生活过？"] } });
 
   function defs() {
     return '<radialGradient id="scrollContact"><stop offset="0" stop-color="#2a2016" stop-opacity=".3"/><stop offset=".6" stop-color="#2a2016" stop-opacity=".12"/><stop offset="1" stop-color="#2a2016" stop-opacity="0"/></radialGradient>' +
@@ -185,7 +185,7 @@
       return '<button type="button" class="paper-control scroll-hotspot" data-scroll-hotspot="' + h.id + '" aria-label="' + esc(h.label) + '" style="left:calc(var(--s) * ' + (h.x - h.w / 2) + 'px);bottom:calc(var(--s) * ' + (VH - h.y - h.h / 2) + 'px);width:calc(var(--s) * ' + h.w + 'px);height:calc(var(--s) * ' + h.h + 'px)"></button>';
     }).join("");
   }
-  function hotspot(id) { for (var i = 0; i < HOTSPOTS.length; i++) if (HOTSPOTS[i].id === id) { if (id !== "crane") told[id] = true; else told.crossing = true; return HOTSPOTS[i]; } return null; }
+  function hotspot(id) { for (var i = 0; i < HOTSPOTS.length; i++) if (HOTSPOTS[i].id === id) { if (id !== "crane") told[id] = true; else told.dalian = true; return HOTSPOTS[i]; } return null; }
 
   // A small map of the scroll at the bottom of the screen: a mark per chapter and the part in view.
   function mapMarkup(stations) {
