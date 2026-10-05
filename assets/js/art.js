@@ -10,6 +10,8 @@
   "use strict";
 
   var GY = 560;   // ground line
+  // The 2D world sets this to "fabric/" for its cloth versions of the paintings.
+  var ARTDIR = window.HJArtDir || "";
   var VH = 800;   // scene height
 
   // Small seeded PRNG so the scenery is the same on every visit.
@@ -582,7 +584,7 @@
   function pine(x, y, s, cls) {
     s = s || 1;
     var distant = !/ground-pine/.test(cls || "");
-    return '<g class="pine ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/pine.webp" x="-57" y="-108.4" width="120" height="110"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
+    return '<g class="pine ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/' + ARTDIR + 'pine.webp" x="-57" y="-108.4" width="120" height="110"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
   }
 
   function treeFooting(distant) {
@@ -888,7 +890,7 @@
   }
   function willow(x, base, s, cls) {
     var distant = !/ground-willow/.test(cls || "");
-    return '<g class="willow ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(base) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/willow.webp" x="-74" y="-147" width="138" height="148"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
+    return '<g class="willow ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(base) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/' + ARTDIR + 'willow.webp" x="-74" y="-147" width="138" height="148"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
   }
 
   // Wooden hanging sign used as each station's label.
@@ -917,17 +919,18 @@
     }
     var materials = ["Plaster", "Limestone", "Timber", "Vermilion", "Slate", "Linen"].map(function (name, i) {
       var w = i === 5 ? 24 : 180, h = w * 2 / 3;
-      return '<pattern id="g' + name + '" width="' + w + '" height="' + h + '" patternUnits="userSpaceOnUse"><image class="material-image" href="assets/art/material-' + i + '.webp" width="' + w + '" height="' + h + '" preserveAspectRatio="none"/></pattern>';
+      return '<pattern id="g' + name + '" width="' + w + '" height="' + h + '" patternUnits="userSpaceOnUse"><image class="material-image" href="assets/art/' + ARTDIR + 'material-' + i + '.webp" width="' + w + '" height="' + h + '" preserveAspectRatio="none"/></pattern>';
     }).join("");
     return '<defs>' + materials + '<radialGradient id="gKoiPearl" cx=".4" cy=".35" r=".8"><stop stop-color="#f2ebd5"/><stop offset=".65" stop-color="#d6d9c4"/><stop offset="1" stop-color="#a6bbac"/></radialGradient><radialGradient id="gHomeLight"><stop stop-color="#ffd394" stop-opacity=".65"/><stop offset="1" stop-color="#f0aa54" stop-opacity="0"/></radialGradient><filter id="gOcclusion" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="2"/></filter>' +
       '<linearGradient id="gTreeRoots" gradientUnits="userSpaceOnUse" x1="0" x2="0" y1="-20" y2="2"><stop stop-color="white"/><stop offset=".45" stop-color="#aaa"/><stop offset="1" stop-color="black"/></linearGradient><mask id="mTreeRoots" maskUnits="userSpaceOnUse" x="-100" y="-180" width="200" height="190"><rect x="-100" y="-180" width="200" height="190" fill="url(#gTreeRoots)"/></mask>' +
       '<pattern id="gMineral" width="160" height="128" patternUnits="userSpaceOnUse"><g class="mineral-flecks">' + marks + '</g><path class="mineral-wash" d="M12 28l18 -7 14 9 -7 11 -20 -3ZM84 84l26 -8 16 9 -8 12 -27 -2Z"/></pattern>' +
       '<pattern id="gClay" width="90" height="68" patternUnits="userSpaceOnUse"><path class="clay-grain" d="M8 12l14 -3M31 16l17 2M52 8l23 3M18 48l12 -4M45 56l23 -2M73 40l8 1M9 29l6 1M61 27l9 -2"/></pattern>' +
-      '<pattern id="gLandscape" width="3600" height="800" patternUnits="userSpaceOnUse"><image href="assets/art/mountain-wash.webp" y="12" width="1800" height="600"/><image href="assets/art/mountain-wash.webp" y="12" width="1800" height="600" transform="translate(3600 0) scale(-1 1)"/></pattern>' +
+      '<pattern id="gLandscape" width="3600" height="800" patternUnits="userSpaceOnUse"><image href="assets/art/' + ARTDIR + 'mountain-wash.webp" y="12" width="1800" height="600"/><image href="assets/art/' + ARTDIR + 'mountain-wash.webp" y="12" width="1800" height="600" transform="translate(3600 0) scale(-1 1)"/></pattern>' +
       '<linearGradient id="gFar" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-far);stop-opacity:.75"/><stop offset=".55" style="stop-color:var(--w-far);stop-opacity:.35"/><stop offset="1" style="stop-color:var(--w-far);stop-opacity:0"/></linearGradient>' +
       '<linearGradient id="gMid" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mid);stop-opacity:.9"/><stop offset=".6" style="stop-color:var(--w-mid);stop-opacity:.4"/><stop offset="1" style="stop-color:var(--w-mid);stop-opacity:0"/></linearGradient>' +
       '<linearGradient id="gNear" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-near);stop-opacity:.95"/><stop offset=".7" style="stop-color:var(--w-near);stop-opacity:.45"/><stop offset="1" style="stop-color:var(--w-near);stop-opacity:.05"/></linearGradient>' +
       '<linearGradient id="gMist" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-mist);stop-opacity:0"/><stop offset=".5" style="stop-color:var(--w-mist);stop-opacity:.85"/><stop offset="1" style="stop-color:var(--w-mist);stop-opacity:0"/></linearGradient>' +
+      (ARTDIR ? '<pattern id="gWeave" width="132" height="132" patternUnits="userSpaceOnUse"><image href="assets/art/' + ARTDIR + 'weave.webp" width="132" height="132"/></pattern>' : '') +
       '<linearGradient id="gGround" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--w-ground-1)"/><stop offset="1" style="stop-color:var(--w-ground-2)"/></linearGradient>' +
       '<radialGradient id="gPouf" cx=".4" cy=".25" r=".8"><stop stop-color="var(--w-note)"/><stop offset=".7" stop-color="var(--w-fill)"/><stop offset="1" stop-color="var(--w-stone)"/></radialGradient>' +
       '<radialGradient id="gGlow"><stop offset="0" style="stop-color:var(--w-glow)"/><stop offset="1" style="stop-color:var(--w-glow);stop-opacity:0"/></radialGradient>' +
@@ -1089,6 +1092,7 @@
       '<path class="paving" d="' + paving + '"/>' +
       '<path class="ground-strokes" d="' + strokes + '"/>' +
       '<path class="path-grain" d="' + band + '" fill="url(#gMineral)"/>' +
+      (ARTDIR ? '<path class="cloth-weave" d="' + band + '" fill="url(#gWeave)"/>' : '') +
       '<g class="tufts">' + tufts + "</g>" +
       '<g class="deco">' + deco + "</g>";
   }
@@ -1187,7 +1191,7 @@
       }
     }
     return '<path class="pond-bank" d="' + bank + 'L' + width + ' 800H0Z"/><path class="bank-grain" d="' + bank + 'L' + width + ' 800H0Z"/><g class="bank-grasses">' + bankGrass + '</g>' +
-      '<g class="lotus-pond"><path class="pond" d="' + waterShape + '"/><path class="pond-shallows" d="' + waterShape + '"/><path class="pond-edge" d="' + shore + '"/>' +
+      '<g class="lotus-pond"><path class="pond" d="' + waterShape + '"/><path class="pond-shallows" d="' + waterShape + '"/>' + (ARTDIR ? '<path class="cloth-weave" d="' + waterShape + '" fill="url(#gWeave)"/>' : '') + '<path class="pond-edge" d="' + shore + '"/>' +
       '<path class="shore-waterline" d="' + shoreMarks + '"/><path class="submerged-stems" d="' + bed + '"/>' + waterLines +
       '<g id="water-light" class="water-light"><ellipse cx="0" cy="756" rx="115" ry="40" fill="url(#gWaterLight)"/><g class="water-sparkle">' + lightLines + '</g></g>' + reflections +
       '<g class="pond-koi" transform="translate(420 763)">' + koi() + '</g>' +

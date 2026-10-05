@@ -4,9 +4,9 @@
  *
  * Everything drawn here reuses the world's realistic paintings: the chapter signs are built exactly
  * like the EDUCATION sign (painted branch, hemp ropes, carved plaque), the shore uses the painted
- * rocks and grasses, and the crossing uses the painted paper crane. Chapter lines are spoken by
- * Hanjing rather than printed on the painting. World units: the scene is 800 tall and the walking
- * line is at y = 560.
+ * rocks and grasses, and the crossing uses the painted paper crane. Each chapter gets one short
+ * line from Hanjing; the full story is told in Ask Me. World units: the scene is 800 tall and the
+ * walking line is at y = 560.
  */
 (function () {
   "use strict";
@@ -24,12 +24,15 @@
   // the path, and Hanjing says the chapter's line when she reaches it.
   var CHAPTERS = [
     { id: "head", at: 560, sign: "HANJING'S WORLD", width: 176, label: "Hanjing's World",
-      say: "Welcome to my world! Walk right and it unrolls, one chapter of my life at a time." },
+      say: "Welcome to my world! Walk right, or tap Ask Me to chat.",
+      chips: { en: ["Who are you?", "What do you research?"], zh: ["你是谁？", "你研究什么？"] } },
     { id: "prologue", at: 1080, sign: "DALIAN", width: 120, label: "Dalian, my hometown",
-      say: "This is where it starts: Dalian, my seaside hometown. I still miss the steamed seafood there." },
+      say: "Dalian, my seaside hometown. Ask me about it!",
+      chips: { en: ["Tell me about Dalian", "What do you like to eat?"], zh: ["说说大连", "你喜欢吃什么？"] } },
     { id: "home", label: "Welcome" },
     { id: "crossing", at: 2760, sign: "2013", width: 96, label: "2013, the crossing",
-      say: "In 2013 I crossed the Pacific for high school. I landed at a boarding school in upstate New York and lived two of my three years there in an old stone hall. It was a happy time, with lots of friends. I thought New York City would be close. It was three and a half hours away." },
+      say: "2013: I crossed the Pacific. Ask me how it went!",
+      chips: { en: ["Tell me about your high school years", "Where have you lived?"], zh: ["说说你的高中", "你在哪些地方生活过？"] } },
     { id: "education", label: "Education" },
     { id: "research", label: "Research" },
     { id: "talks", label: "Talks" },
@@ -37,12 +40,14 @@
     { id: "life", label: "Life" },
     { id: "contact", label: "Contact" },
     { id: "tail", at: 10000, sign: "TO BE CONTINUED", width: 176, label: "To be continued",
-      say: "To be continued. I'm still painting this part, so come back and see what's new." }
+      say: "To be continued. Ask me anything!",
+      chips: { en: ["What's new?", "How can I contact you?"], zh: ["最近有什么新动态？", "怎么联系你？"] } }
   ];
-  // Tapping a sign, or the paper crane, walks Hanjing over to tell its story.
+  // Tapping a sign, or the paper crane, walks Hanjing over; she says one line and the rest of the
+  // story waits in Ask Me.
   var HOTSPOTS = [];
-  CHAPTERS.forEach(function (ch) { if (ch.sign) HOTSPOTS.push({ id: ch.id, x: ch.at + 62, y: 422, w: Math.max(130, ch.width), h: 276, label: ch.label + ": tap to hear the story", say: ch.say }); });
-  HOTSPOTS.push({ id: "crane", x: 3025, y: 365, w: 170, h: 130, label: "The paper crane: tap to hear the 2013 crossing", say: CHAPTERS[3].say });
+  CHAPTERS.forEach(function (ch) { if (ch.sign) HOTSPOTS.push({ id: ch.id, x: ch.at + 62, y: 422, w: Math.max(130, ch.width), h: 276, label: ch.label + ": tap to hear the story", say: ch.say, chips: ch.chips }); });
+  HOTSPOTS.push({ id: "crane", x: 3025, y: 365, w: 170, h: 130, label: "The paper crane: tap to hear the 2013 crossing", say: CHAPTERS[3].say, chips: CHAPTERS[3].chips });
 
   function defs() {
     return '<radialGradient id="scrollContact"><stop offset="0" stop-color="#2a2016" stop-opacity=".3"/><stop offset=".6" stop-color="#2a2016" stop-opacity=".12"/><stop offset="1" stop-color="#2a2016" stop-opacity="0"/></radialGradient>' +
@@ -55,7 +60,17 @@
     var x = ch.at, w = ch.width, px = x + 62, ropeL = px - w / 2 + 22, ropeR = px + w / 2 - 22;
     var arm = ART.paintRope ? ART.paintRope(x + 41, 321.7, ropeL, 345, true) + ART.paintRope(Math.min(x + 90, ropeR - 10), 318.7, ropeR, 345, true) : "";
     return '<g class="scroll-sign" data-chapter="' + ch.id + '">' + sprite("branchEducation", x, 284.7, 112, 276) + arm +
+      (window.HJArtDir ? paperStrip(px, 362, w + 34, 26, ch.at) : "") +
       (ART.paintLabel ? ART.paintLabel(px, 358, esc(ch.sign), w) : "") + "</g>";
+  }
+  // In the cloth world, a strip of torn paper is layered under each plaque, a little askew.
+  function paperStrip(cx, cy, w, h, seed) {
+    var r = function () { seed = (seed * 16807 + 11) % 2147483647; return (seed - 1) / 2147483646; };
+    var top = "", bottom = "", x;
+    for (x = -w / 2; x <= w / 2; x += 3 + r() * 4) top += "L" + f1(x) + " " + f1(-h / 2 + (r() - .5) * 3.2);
+    for (x = w / 2; x >= -w / 2; x -= 3 + r() * 4) bottom += "L" + f1(x) + " " + f1(h / 2 + (r() - .5) * 3.2);
+    var d = "M" + f1(-w / 2) + " " + f1(-h / 2) + top + "L" + f1(w / 2 + (r() - .5) * 4) + " 0" + bottom + "L" + f1(-w / 2 + (r() - .5) * 4) + " 0Z";
+    return '<g transform="translate(' + f1(cx) + ' ' + f1(cy) + ') rotate(' + f1((r() - .5) * 7) + ')"><path class="scroll-paper-shadow" d="' + d + '" transform="translate(1.5 2)"/><path class="scroll-paper" d="' + d + '"/></g>';
   }
 
   // Prologue: painted shore rocks and grasses by the water's edge.

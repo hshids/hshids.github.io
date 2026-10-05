@@ -207,7 +207,7 @@
     { id: "greet", w: 1, re: /^(hi|hello|hey|yo|hiya|good (morning|afternoon|evening)|你好|您好|嗨|哈喽|哈啰|hello there)[\s!！.。~～]*$/i },
     { id: "identity", w: 2, re: /(^\s*what are you\s*[?？!.]*$|are you (the |a )?(real|actual|human|person|bot|robot|ai|chatgpt|llm|hanjing)|real hanjing|real person|是真人|你是ai|你是 ai|机器人|你是真的|是ai吗|是不是ai|是不是真人|how do you work|how does (this|the) (work|guide)|\bllm\b|chatgpt)/i },
     { id: "about", w: 1.5, re: /(who are you|who is (hanjing|she)|about (yourself|hanjing|her)\b|introduce (yourself|hanjing|her)|tell me about (you|yourself|hanjing)\s*[?？!.]*$|你是谁|介绍一下(你|自己)?|自我介绍|她是谁)/i },
-    { id: "private", w: 3, re: /(how old|your age|birthday|where are you from|hometown|married|boyfriend|girlfriend|husband|wife|partner|salary|home address|phone number|多大了|几岁|年龄|生日|哪里人|老家|结婚|男朋友|女朋友|对象|工资|住址|电话号码)/i },
+    { id: "private", w: 3, re: /(how old|your age|birthday|married|boyfriend|girlfriend|husband|wife|partner|salary|home address|phone number|多大了|几岁|年龄|生日|结婚|男朋友|女朋友|对象|工资|住址|电话号码)/i },
     { id: "favorite", w: 1.6, re: /(favou?rite|best paper|most proud|代表作|最喜欢|最满意|最好的)/i },
     { id: "contact", w: 1.4, re: /(contact|e-?mail|reach (you|her)|get in touch|linkedin|github|collaborat|hire|hiring|recruit|internship|intern\b|job market|job\b|position|联系|邮箱|邮件|合作|实习|招聘|领英|求职|找工作)/i },
     { id: "cv", w: 1.6, re: /(\bcv\b|resume|résumé|curriculum vitae|简历)/i },
@@ -627,6 +627,20 @@
       focusId ? { focus: { life: focusId }, action: focusId === "cats" ? "meow" : undefined } : null);
   }
 
+  // The two chapters at the head of the 2D scroll: home by the sea, and the 2013 crossing.
+  function hometown(lang) {
+    return A(lang, lang === "zh"
+      ? "大连是我的家乡，一座在中国东北、靠海的港口城市。我最想念的是那一大盘蒸海鲜：皮皮虾、飞蟹、蚬子、海螺和虾，满满一盘。到现在，它还是我最喜欢的食物。"
+      : "Dalian is my hometown, a port city by the sea in northeast China. What I miss most is a big platter of steamed seafood: mantis shrimp, swimming crabs, clams, sea snails and shrimp. It's still my favorite food in the world.",
+      "", lang === "zh" ? ["说说你的高中", "你喜欢吃什么？"] : ["Tell me about your high school years", "What do you like to eat?"]);
+  }
+  function highSchool(lang) {
+    return A(lang, lang === "zh"
+      ? "2013 年，我跨过太平洋去读高中，落脚在纽约州北部的一所寄宿学校。三年里有两年住在一栋老石头楼里。那段时间特别开心，交了很多朋友。有个小插曲：我原以为纽约市就在旁边，结果开车要三个半小时。"
+      : "In 2013 I crossed the Pacific for high school and landed at a boarding school in upstate New York. I lived two of my three years there in an old stone hall. It was such a happy time, with lots of friends. Funny thing: I thought New York City would be close. It was three and a half hours away.",
+      "", lang === "zh" ? ["你在哪些地方生活过？", "说说大连"] : ["Where have you lived?", "Tell me about Dalian"]);
+  }
+
   function lifeJourney(lang) {
     var travel = D.life.filter(function (l) { return l.id === "travel"; })[0];
     return A(lang, travel.journey.map(function (stop) { return pick(lang, stop); }).join("\n\n"), "",
@@ -771,6 +785,8 @@
 
     // Personal memories supplied by Hanjing, separate from the academic degree summary.
     if (/\b(jin\s?bing\s?bing|bing\s?bing|da\s?huang|xiao\s?hei(?:\s?hei)?|tuan\s?zi|guo\s?zi)\b|金饼饼|大黄|小黑|团子|果子/i.test(q)) return life(lang, "cats");
+    if (/(\bdalian\b|where are you from|where('s| is) your home ?town|\bhome ?town\b|大连|哪里人|老家|家乡)/i.test(q) && !/(research|papers?|研究|论文)/i.test(q)) return hometown(lang);
+    if (/(high school|boarding school|crossed the pacific|\b2013\b|高中|寄宿学校)/i.test(q) && !/(research|papers?|研究|论文)/i.test(q)) return highSchool(lang);
     if (/(where (do you live|are you (based|living|located))|where have you lived|places (you have|you've) (lived|called home)|high school|upstate new york|\balbany\b|\bdmv\b|davis.{0,30}(ocean|beach|coast)|life (journey|story)|你现在(在哪|住)|现在住在哪|生活过|住过哪些|高中|奥尔巴尼|戴维斯.{0,8}(海|沙滩))/i.test(q) && !/(research|papers?|研究|论文)/i.test(q)) return lifeJourney(lang);
 
     var hits = search(q).hits;

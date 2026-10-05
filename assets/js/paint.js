@@ -4,7 +4,7 @@
   var A = window.HJArt, serial = 0;
   var mobilePaintResources=matchMedia('(pointer: coarse), (max-width: 699px)').matches;
   function paintingSource(name) {
-    var theme=/^hanjing-(day|night)(?:-|$)/.exec(name),src='assets/art/'+name+'.webp';
+    var theme=/^hanjing-(day|night)(?:-|$)/.exec(name),src='assets/art/'+(window.HJArtDir||'')+name+'.webp';
     if(mobilePaintResources&&theme&&(theme[1]==='night')!==(document.documentElement.dataset.theme==='dark'))
       return 'data-paint-theme="'+(theme[1]==='night'?'dark':'light')+'" data-paint-src="'+src+'"';
     return 'href="'+src+'"';
@@ -309,7 +309,7 @@
   A.character = character;
   // Petting has its own two-joint chain. Its entire texture stays in one mesh,
   // so moving the elbow cannot uncover the knee or replace a sleeve with a cap.
-  var petRigs=[],petArtBase=new URL('../art/',document.currentScript.src);
+  var petRigs=[],petArtBase=new URL('../art/'+(window.HJArtDir||''),document.currentScript.src);
   // Touch/mobile browsers need no petting context or meshes before the action.
   var lazyPetResources=matchMedia('(pointer: coarse), (max-width: 699px)').matches;
   function petRig(root){
@@ -485,7 +485,7 @@
   // A shared painted wood sample gives the narrow support beams the same material as the carved signs.
   function timberSupport(shape,grain) {
     var id='paintWood'+(++serial);
-    return '<g class="paint-timber"><defs><pattern id="'+id+'" width="48" height="12" patternUnits="userSpaceOnUse"><svg width="48" height="12" viewBox="1604 424 376 82" preserveAspectRatio="none" style="width:48px;height:12px;overflow:hidden"><image href="assets/art/finishes-painted.webp" width="2172" height="724"/></svg></pattern></defs>'+      '<path class="paint-sign-support" d="'+shape+'" fill="url(#'+id+')"/>'+      '<path d="'+grain+'" fill="none" stroke="#d2ac78" stroke-width=".55" opacity=".46" pointer-events="none"/>'+      '<path d="'+grain+'" fill="none" stroke="#3f291b" stroke-width=".35" transform="translate(1.6 1.6)" opacity=".54" pointer-events="none"/></g>';
+    return '<g class="paint-timber"><defs><pattern id="'+id+'" width="48" height="12" patternUnits="userSpaceOnUse"><svg width="48" height="12" viewBox="1604 424 376 82" preserveAspectRatio="none" style="width:48px;height:12px;overflow:hidden"><image href="assets/art/'+(window.HJArtDir||'')+'finishes-painted.webp" width="2172" height="724"/></svg></pattern></defs>'+      '<path class="paint-sign-support" d="'+shape+'" fill="url(#'+id+')"/>'+      '<path d="'+grain+'" fill="none" stroke="#d2ac78" stroke-width=".55" opacity=".46" pointer-events="none"/>'+      '<path d="'+grain+'" fill="none" stroke="#3f291b" stroke-width=".35" transform="translate(1.6 1.6)" opacity=".54" pointer-events="none"/></g>';
   }
   // Hemp stays fine at scene scale; its tiny diagonal strands catch the same warm light as the timber.
   function hempRope(x1,y1,x2,y2,knots) {

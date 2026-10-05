@@ -24,14 +24,19 @@ assets/js/art.js      ← SVG drawings: the avatar (and her pose drawings), JinB
                         architecture kit (tangRoof, dougong, architrave, columns, lattice, terrace), each
                         place, and the layered backdrop (distant palaces, pagodas, towers, clouds)
 assets/js/world.js    ← the interactive engine (walking, camera, panels, lecture hall, galleries)
-assets/js/scroll-story.js ← the handscroll: chapter order and positions, calligraphy inscriptions and seals, the
-                        Dalian prologue, the 2013 crossing, Tibbits Hall, the rollers, the scroll map and the air
+assets/js/scroll-story.js ← the handscroll: chapter order and positions, the painted chapter signs, the Dalian
+                        prologue, the 2013 crossing (paper crane), the ground mist and the scroll map
+assets/js/quilt.js    ← the cloth base of the 2D world: the sky quilt, its torn and frayed edges, seams and patches
 assets/js/paint.js    ← painted scenes, material details, facial features and dedicated poses
 assets/js/rig.js      ← continuous 2D joints for painted sleeves, arms, legs and cat paws
 assets/js/gesture-hands.js ← painted gesture hands attached to the moving wrists
 assets/js/basic.js    ← renders basic.html from data.js
-assets/css/world.css, assets/css/basic.css
-assets/art/           ← painted parallax mountains and WebP material swatches used inside the SVGs
+assets/css/world.css, assets/css/basic.css, assets/css/fabric.css (the cloth look of the 2D world)
+assets/art/           ← the original paintings (sprite sheets, character textures, mountains, materials);
+                        the 3D page and the basic version use these
+assets/art/fabric/    ← the same paintings sewn as fabric collage, made by tools/fabricize.py; the 2D world
+                        loads these (window.HJArtDir = "fabric/" in index.html)
+tools/fabricize.py    ← rebuilds assets/art/fabric/ from assets/art/
 images/…              ← photos (each gallery folder has a thumbs/ subfolder)
 files/…               ← PDFs (posters, slides)
 tutorials/, blog/     ← the original tutorial and blog pages (unchanged)
@@ -136,7 +141,22 @@ python3 -m http.server 8000
 | Esc | Close panels, lightboxes and the lecture hall; in an empty chat box, fold the chat away |
 | Scroll map (bottom) | Jump to a chapter; the view glides along the scroll while the figures fade into the mist and walk back in |
 
-The walk reads as one handscroll: a title, a prologue for Dalian, the gate, the 2013 crossing (tap the paper crane and Hanjing tells the high-school story), then the schools, research, talks, writing, life and the letters, ending with "to be continued". New chapters reuse the painted sprites so they match the stations, and all on-page text is English; Chinese appears only when a visitor chats with Mini-Hanjing in Chinese. To move a station or add a chapter, edit `LAYOUT`, `CHAPTERS` and `HOTSPOTS` in `assets/js/scroll-story.js`; `assets/css/scroll-story.css` holds its look, including the album-leaf panel.
+The walk reads as one handscroll: a title, a prologue for Dalian, the gate, the 2013 crossing (the paper crane), then the schools, research, talks, writing, life and the letters, ending with "to be continued". At each chapter sign Hanjing says one short line, and the chapter's questions appear in Ask Me, where the story is told in conversation. New chapters reuse the painted sprites so they match the stations, and all on-page text is English; Chinese appears only when a visitor chats with Mini-Hanjing in Chinese. To move a station or add a chapter, edit `LAYOUT` and `CHAPTERS` in `assets/js/scroll-story.js`; `assets/css/scroll-story.css` holds the travel fade and the scroll map.
+
+## The fabric collage look (2D world)
+
+The 2D world is a patchwork of cloth: every painting is rebuilt offline as pieces of cotton, linen, washed burlap, plaid brocade, printed cloth and satin embroidery, each piece dyed with the painting's own colour and printed with its detail, sewn down with running stitches along the edges where it lies on top, with frayed outer edges, loose threads and a few patches with cross-stitched corners. The sky is a linen quilt on a burlap backing (felt at night) with torn edges, and the drawn ground and water get the same weave.
+
+After changing or adding a painting in `assets/art/`, rebuild the cloth versions:
+
+```bash
+pip install numpy opencv-python-headless
+python3 tools/fabricize.py                 # every image (a few minutes)
+python3 tools/fabricize.py buildings-painted pine   # or just some
+python3 tools/fabricize.py --tiles         # the weave, burlap and felt swatches
+```
+
+`SCALE` at the top of the script records how large each sheet appears on screen, so stitches and weave come out the same size everywhere; sheets shown enlarged are sewn at 1.5x their size. The look is tuned with the constants below it (piece size, stitch length, thread width).
 
 Mini-Hanjing answers like a conversation: a few sentences and a follow-up question, with any long list folded under a "Show me" button (`fold()` in `assets/js/guide.js`).
 

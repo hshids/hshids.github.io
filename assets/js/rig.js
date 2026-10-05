@@ -3,7 +3,7 @@
   'use strict';
   var A=window.HJArt, rigs=[], images={}, reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
   var mobileResources=matchMedia('(pointer: coarse)').matches||matchMedia('(max-width: 699px)').matches;
-  var artBase=new URL('../art/',document.currentScript.src);
+  var artBase=new URL('../art/'+(window.HJArtDir||''),document.currentScript.src);
   function clamp(n,a,b){return Math.max(a,Math.min(b,n));}
   function identity(){return [1,0,0,1,0,0];}
   function clearDayCarry(root){root._rigDayCarry=null;root.classList.remove('day-laptop-carry');}
