@@ -831,6 +831,8 @@
     return root.innerHTML;
   };
   A.paintSprite=sprite;
+  // The handscroll's chapter signs are built from the same painted branch, hemp rope and carved plaque.
+  A.paintLabel=label;A.paintRope=hempRope;
   // Sun and moon retain their existing pointer and keyboard controls.
   var celestial=document.querySelector('#sun svg');
   if(celestial) {

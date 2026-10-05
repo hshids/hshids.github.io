@@ -180,7 +180,6 @@
     });
     waterLightEl = $("#water-light");
     if (ART.scroll) {
-      ART.scroll.atmosphere(worldEl);
       scrollMapEl = document.createElement("nav");
       scrollMapEl.className = "scroll-map"; scrollMapEl.setAttribute("aria-label", "The scroll, chapter by chapter");
       scrollMapEl.innerHTML = ART.scroll.mapMarkup(STATIONS);
@@ -447,6 +446,8 @@
     render();
     updateNear();
     checkSpot();
+    // reaching a chapter sign on foot: Hanjing says its line, once per visit
+    if (ART.scroll && Math.abs(state.vel) > 20 && !(state.trip && state.trip.say)) { var chapter = ART.scroll.reached(state.x); if (chapter) bubble(charEl, chapter.say, Math.max(4500, chapter.say.length * 55)); }
     if (busy || state.keys.left || state.keys.right) state.raf = requestAnimationFrame(tick);
     else { state.raf = 0; state.last = 0; }
   }
@@ -507,6 +508,7 @@
       state.target = state.x; state.vel = 0; state.trip = null;
       charEl.classList.remove("is-walking", "is-running");
       charEl.classList.add("is-travelling"); catEl.classList.add("is-travelling"); worldEl.classList.add("is-unrolling");
+      $$(".actor .bubble").forEach(function (b) { clearTimeout(b._t); b.classList.remove("show"); });
       state.glide = { t: 0, dur: clamp(Math.abs(toCam - state.cam) / 2400, .9, 1.9), fromCam: state.cam, toCam: toCam,
         fromX: state.x, fromCatX: state.catX, landX: landX, destination: destination, direction: direction, trip: trip, focus: state.focusX };
       state.focusX = null;
