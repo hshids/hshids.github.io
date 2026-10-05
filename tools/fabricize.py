@@ -77,7 +77,11 @@ EMB_DETAIL = 4.6     # pieces whose painted texture is busier than this (mean fi
 QUILT, QUILT_MIN = 0, 70    # quilting rows across large plain pieces: spacing and smallest piece (screen px)
 FLAT_PRINT = .3      # how much of the painting's fine detail stays printed on the flat cloth
 APP_MIN, APP_DE, APP_EDGE = 22, 10, 12  # scene pieces: smallest piece (screen px), merge colour step, edge guard
-SCENE_CUT = 'coarse'   # 'coarse': large pieces snapped to the painted outlines; 'appliqué': flat cut-cloth shapes
+SCENE_CUT = 'patch'    # 'patch': plain appliqué cloth pieces + embroidery; 'coarse': printed pieces; 'appliqué': scissor-cut shapes
+PATCH_CUT, PATCH_MIN = .55, 12 
+PATCH_DETAIL = 5.2   # appliqué: pieces with this much painted detail (windows, brackets, carving) are embroidered
+DETAIL_W, DETAIL_L, DETAIL_COVER = .7, 3.6, 3.2   # their fine stitches  # appliqué: a finer cut (windows, doors and pillars are pieces of their own)
+BLANKET_MIN, BLANKET_STEP = 34, 6.4   # pieces at least this big get blanket stitch; its spacing (screen px)
 SCISSORS = 2.6       # outlines are simplified to straight cuts within this tolerance (screen px)
 
 
@@ -314,12 +318,12 @@ def nearest_fill(pid, cover):
     return np.where(cover & ~src, near, pid).astype(np.int32)
 
 
-def cut_pieces(bgr_f, alpha, u, face, rig, rng):
+def cut_pieces(bgr_f, alpha, u, face, rig, rng, cut=None, piece_min=None):
     """Cut the picture into a few large pieces of cloth. The cut is made at a coarse scale (a working
     pixel is about three screen pixels), so fine painted texture such as roof tiles, bark or leaves
     does not split a piece: a whole roof stays one piece, with its tiles printed on it."""
     H, W = bgr_f.shape[:2]
-    ws = float(np.clip(CUT / u, .03, 1.0))                 # working pixels per source pixel
+    ws = float(np.clip((cut or CUT) / u, .03, 1.0))       # working pixels per source pixel
     sc = ws * u                                            # working pixels per screen pixel
     sw, sh = max(8, int(round(W * ws))), max(8, int(round(H * ws)))
     small = cv2.resize(bgr_f, (sw, sh), interpolation=cv2.INTER_AREA)
@@ -338,7 +342,7 @@ def cut_pieces(bgr_f, alpha, u, face, rig, rng):
     q = ((feat.reshape(-1, 1, 3) - centers[None]) ** 2).sum(2).argmin(1).reshape(sh, sw)
     q = mode_filter(q, 3)
     lab_small = cv2.cvtColor(sm8.astype(np.float32) / 255, cv2.COLOR_BGR2Lab)
-    piece_min = PIECE_MIN * (.45 if rig or face else 1)
+    piece_min = (piece_min or PIECE_MIN) * (.45 if rig or face else 1)
     min_px = (piece_min * sc) ** 2
     pid = merge_small(components(q, valid), min_px, lab_small)
     pid = merge_similar(pid, lab_small, MERGE_DE * (.6 if face else 1), EDGE_MAX)
@@ -506,6 +510,28 @@ class Needle:
 
     def coverage(self):
         return np.clip(self.thread[..., 3], 0, 1)
+
+
+def blanket(needle, pts, color, pid, k, inset, u):
+    """Blanket stitch, the appliqué stitch: bars across the cut edge, joined by a thread that runs
+    along the very edge of the piece."""
+    H, W = pid.shape
+    seg = np.sqrt(((pts[1:] - pts[:-1]) ** 2).sum(1)); Lc = np.concatenate([[0], np.cumsum(seg)])
+    step = BLANKET_STEP * u
+    if Lc[-1] < step * 2: return
+    prev = None
+    for d in np.arange(step * .5, Lc[-1], step):
+        i = int(np.clip(np.searchsorted(Lc, d) - 1, 0, len(seg) - 1)); v = (d - Lc[i]) / max(seg[i], 1e-6)
+        p = pts[i] * (1 - v) + pts[i + 1] * v
+        t = pts[i + 1] - pts[i]; t = t / (np.hypot(*t) + 1e-6); nrm = np.float32([-t[1], t[0]])
+        q = p + nrm * (inset + u)
+        X, Y = int(q[0]), int(q[1])
+        if 0 <= X < W and 0 <= Y < H and pid[Y, X] == k: nrm = -nrm          # point it outwards
+        edge = p + nrm * inset * .9
+        w = needle.w * .75
+        needle.stitch(p - nrm * inset * .2, edge, color, w)
+        if prev is not None and np.hypot(*(edge - prev)) < step * 2.2: needle.stitch(prev, edge, color, w)
+        prev = edge
 
 
 def runs_along(pts, inside, outside_ok, step):
@@ -999,9 +1025,11 @@ def fabricize(name, img, over=1):
         pid_s, ws = appliqué_pieces(bgr_f, alpha, u, rng)
         pid, _ = cut_with_scissors(pid_s, ws, W, H, u, alpha)
     else:
-        pid_s, ws = cut_pieces(bgr_f, alpha, u, face, rig, rng)
+        patch = kind == 'scene' and SCENE_CUT == 'patch'
+        pid_s, ws = cut_pieces(bgr_f, alpha, u, face, rig, rng, *((PATCH_CUT, PATCH_MIN) if patch else ()))
         pid = upsample_pieces(pid_s, W, H, ws)
-        pid = snap_pieces(pid, np.clip(bgr_f, 0, 255).astype(np.uint8), u)
+        if not patch: pid = snap_pieces(pid, np.clip(bgr_f, 0, 255).astype(np.uint8), u)
+    patch = kind == 'scene' and SCENE_CUT == 'patch'
     n = int(pid.max()) + 1
     lab_o = cv2.cvtColor(np.clip(bgr_f, 0, 255) / 255, cv2.COLOR_BGR2Lab)
     w8 = solid.ravel().astype(np.float64)
@@ -1023,6 +1051,13 @@ def fabricize(name, img, over=1):
         out = np.empty_like(lab_o)
         out[..., 0] = dye[pid, 0] + kl * (L_lo - mean[pid, 0]) + kf * L_fi
         out[..., 1:] = dye[pid, 1:] * (1 - kc) + cv2.GaussianBlur(lab_o[..., 1:], (0, 0), max(.6, .6 * u)) * kc
+        del L_lo
+    elif patch:
+        # appliqué: every piece is one plain dyed cloth, with just a little of the painting's light
+        L_lo = cv2.GaussianBlur(L_o, (0, 0), 4 * u)
+        out = np.empty_like(lab_o)
+        out[..., 0] = dye[pid, 0] + .15 * (L_lo - mean[pid, 0])
+        out[..., 1:] = dye[pid, 1:]
         del L_lo
     elif SCENE_CUT != 'appliqué':
         # flat colour straight from the painting, area by area (edge-preserving mean shift), with a
@@ -1048,7 +1083,8 @@ def fabricize(name, img, over=1):
     if rig:   # on the character, only the hair: dark, warm and textured (not the grey trousers)
         emb &= (dye[:, 0] < 55) & (np.hypot(dye[:, 1], dye[:, 2]) > 15) & (busy > 6)
     else:     # in the scenery: roof tiles, stone, leaves, and anything very busy
-        emb &= roofish | leafy | (busy > EMB_STRONG)
+        emb &= roofish | leafy | (busy > EMB_STRONG) | (patch & (busy > PATCH_DETAIL))
+    satin = emb & (roofish | leafy)       # coarse floss; the rest of the embroidery is fine thread painting
     emb[0] = False
     if os.environ.get('FAB_DEBUG'):
         for k in np.argsort(-area_screen)[:25]:
@@ -1060,6 +1096,8 @@ def fabricize(name, img, over=1):
     yy, xx = np.mgrid[0:H, 0:W].astype(np.float32)
     looms = {}
 
+    ak = 1.7 if patch else 1.0     # plain appliqué cloth shows its weave more
+
     def loom(c):
         if c not in looms:
             if c == 'linen': w = 1 + (weave(H, W, p * 1.1, rng, slub=True) - 1) * .42
@@ -1068,7 +1106,7 @@ def fabricize(name, img, over=1):
             elif c == 'burlap': w = 1 + (weave(H, W, p * 1.5, rng, coarse=True, slub=True) - 1) * .45
             elif c == 'felt': w = 1 + (_noise(H, W, max(1, .7 * u), rng) - .5) * .14 + (_noise(H, W, 6 * u, rng) - .5) * .08
             else: w = 1 + (weave(H, W, p * .85, rng) - 1) * .3          # gingham and plaid: cotton
-            looms[c] = w.astype(np.float32)
+            looms[c] = (1 + (w - 1) * ak).astype(np.float32)
         return looms[c]
     cloth = ['none'] * n
     for k in range(1, n): cloth[k] = cloth_v3(dye[k], area_screen[k], rng, rig)
@@ -1137,8 +1175,8 @@ def fabricize(name, img, over=1):
     hgt = cv2.GaussianBlur(hgt, (0, 0), max(.6, .35 * u))
     gx = cv2.Sobel(hgt, cv2.CV_32F, 1, 0, ksize=3) / 8; gy = cv2.Sobel(hgt, cv2.CV_32F, 0, 1, ksize=3) / 8
     lit = -(gx * -.55 + gy * -.83) * R
-    amp = .2 if rig or face else .3
-    ao = (.86 + .14 * hgt) if rig or face else (.7 + .3 * np.clip(dist / (2.2 * u), 0, 1) ** .7)
+    amp = .2 if rig or face else (.17 if patch else .3)
+    ao = (.86 + .14 * hgt) if rig or face else ((.84 + .16 * np.clip(dist / (2.2 * u), 0, 1) ** .7) if patch else (.7 + .3 * np.clip(dist / (2.2 * u), 0, 1) ** .7))
     col = col * (1 + amp * np.clip(lit, -1.6, 1.6))[..., None] * ao[..., None]
     if kind == 'scene' and not name.startswith(FUR):
         # the cloth is not ironed: soft folds wander across the large pieces
@@ -1156,6 +1194,12 @@ def fabricize(name, img, over=1):
     Rs = np.full_like(Rk, -1); Rs[dy:, dx:] = Rk[:H - dy, :W - dx]
     cast = cv2.GaussianBlur(((Rs > Rk) & solid).astype(np.float32), (0, 0), 1.3 * u)
     col = col * (1 - (.3 if not rig else .18) * cast)[..., None]
+    if patch:   # each cut piece shows its raw, fraying edge where it lies on a larger one
+        kr = max(3, int(round(2.8 * u)) | 1)
+        under_big = (cv2.erode(Rk, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kr, kr))) < Rk) & solid
+        fib = _noise(H, W, max(1.0, .6 * u), rng)
+        fr = under_big & (fib > .38)
+        col[fr] = col[fr] * .86 + 30 * fib[fr][:, None]
     del Rk, Rs, cast, gx, gy, lit, dist, edge
     emb_cover = None
     src = cv2.GaussianBlur(np.clip(bgr_f, 0, 255), (0, 0), max(.6, .8 * u))
@@ -1188,6 +1232,11 @@ def fabricize(name, img, over=1):
         if skin is not None: region &= ~(cv2.dilate(skin.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0)
         if rig:   # hair: fine, dense thread painting along its flow
             col, emb_cover = embroider(col, region, src, L_o, u, rng, sum(map(ord, name)) * 131, HAIR_W, HAIR_L, HAIR_COVER, True, False, True)
+        elif patch:   # roofs and leaves in coarse floss; windows, brackets and carving in fine stitches
+            r1 = region & satin[pid]; r2 = region & ~satin[pid]
+            col, c1 = embroider(col, r1, src, L_o, u, rng, sum(map(ord, name)) * 131)
+            col, c2 = embroider(col, r2, src, L_o, u, rng, sum(map(ord, name)) * 173, DETAIL_W, DETAIL_L, DETAIL_COVER, True, False, True)
+            emb_cover = np.maximum(c1, c2)
         else:
             col, emb_cover = embroider(col, region, src, L_o, u, rng, sum(map(ord, name)) * 131)
     gold = gold_threads(cv2.GaussianBlur(lab_o, (0, 0), max(.6, .4 * u)), solid, 'night' in name) if name.startswith(HUMAN) else None
@@ -1263,7 +1312,10 @@ def fabricize(name, img, over=1):
             pts = smooth_closed(smooth_closed(c, max(2, int(round(2.6 * u)))), max(2, int(round(1.6 * u))))
             pts = cv2.approxPolyDP(pts.reshape(-1, 1, 2), max(1.0, 1.6 * u), True).reshape(-1, 2).astype(np.float32)
             for run in runs_along(pts, None, outside_ok, max(1.0, .8 * u)):
-                needle.run(run + np.float32([x0, y0]), thr, rng)
+                if patch and area_screen[k] >= BLANKET_MIN ** 2:
+                    blanket(needle, run + np.float32([x0, y0]), thr, pid, k, inset, u)
+                else:
+                    needle.run(run + np.float32([x0, y0]), thr, rng)
 
     if kind == 'scene' and not fur:
         for k in range(1, n):
