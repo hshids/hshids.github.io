@@ -99,7 +99,7 @@ BRANCHES = {'branch-signs-painted', 'contact-tree'}   # the sign trees: cloth tr
 SUBSHEETS = {'details-painted': [('contact-tree', (6, 411, 644, 870), .655)]}
 # Trees whose leaves are layered cloth: each clump a padded piece in its own green, lying over the
 # branches with a shadow, the leaves in it picked out in satin floss. 'patch' or 'satin' leaves.
-FOLIAGE = {'contact-tree': 'satin'}
+FOLIAGE = {'contact-tree': 'goldsilk'}   # 'goldsilk': leaves in fine gold silk thread
 BRANCH_DARK = 7.0                                  # painted marks this much darker than around them are embroidered
 CHARACTER_SHEETS = {'writing-grip-painted', 'reading-painted', 'mailing-painted'}
 OUTLINED = ('hanjing-', 'human-bind-', 'writing-grip', 'reading-painted', 'mailing-painted')
@@ -1441,9 +1441,22 @@ def appliqué(name, bgr_f, alpha, solid, lab_o, src, u, rng, over):
         nl, cc, st, _ = cv2.connectedComponentsWithStats(leaf, 8)
         keep = np.zeros(nl, bool); keep[1:] = st[1:, cv2.CC_STAT_AREA] >= (3 * u) ** 2
         leaf = keep[cc] & solid
+        if FOLIAGE[name] == 'goldsilk' and leaf.any():
+            # the leaves in fine silk thread of old gold, deep in the shade and pale where the light falls,
+            # following each leaf's own form; fine stitches, no heavy floss
+            Ls = cv2.GaussianBlur(L_o, (0, 0), max(.6, .5 * u))
+            lo_, hi_ = np.percentile(Ls[leaf], 8), np.percentile(Ls[leaf], 92)
+            t = np.clip((Ls - lo_) / max(hi_ - lo_, 1), 0, 1)[..., None]
+            stops = np.float32([[30, 5, 30], [52, 7, 44], [74, 4, 50]])
+            gold_lab = np.where(t < .5, stops[0] + (stops[1] - stops[0]) * (t / .5), stops[1] + (stops[2] - stops[1]) * ((t - .5) / .5))
+            gold = cv2.cvtColor(gold_lab.astype(np.float32), cv2.COLOR_Lab2BGR) * 255
+            src_gold = np.where(leaf[..., None], gold, src)
+            col = np.where(leaf[..., None], gold, col)
+            col = silk(col, leaf, src_gold, L_o, u, rng, .32, 3.2, .22, .14, .3, 1.0)
+            del Ls, t, gold_lab, gold, src_gold
         # the leaves' own greens, as three cloths (shade, mid and sunlit), each keeping the weave it has
         ys_, xs_ = np.nonzero(leaf)
-        if len(ys_) > 50:
+        if FOLIAGE[name] == 'patch' and len(ys_) > 50:
             samp = Lb[ys_, xs_].astype(np.float32)
             _, lab_k, cen = cv2.kmeans(samp, 3, None, (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 20, .5), 3, cv2.KMEANS_PP_CENTERS)
             cen[:, 1:] *= 1.12
