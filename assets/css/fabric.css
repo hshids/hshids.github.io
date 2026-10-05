@@ -41,18 +41,17 @@
   fill: url(#gSatinLetters); stroke: #3a2616; stroke-width: .32; paint-order: stroke; filter: url(#gRaisedThread);
 }
 
-/* mother-of-pearl inlaid in the water: shell pieces with fine grooves, catching the light */
-.pond-lacquer { fill: #0f3236; opacity: .26; pointer-events: none; }
-[data-theme="dark"] .pond-lacquer { fill: #050d12; opacity: .45; }
-.nacre { stroke: rgba(176, 140, 72, .85); stroke-width: .45; }
-.nacre-groove { fill: none; stroke: rgba(104, 88, 62, .5); stroke-width: .3; }
-.nacre-heart { fill: #d6b26a; }
+/* the water is mother-of-pearl inlaid in lacquer: bands of wave scales, every scale built from
+   concentric pieces of shell set in dark lacquer grooves, the bands parted by gold-edged strips */
 .luodian { pointer-events: none; }
-.luodian-cluster { opacity: .92; animation: nacreSheen 9s ease-in-out infinite; animation-delay: var(--nacre-delay, 0s); }
-@keyframes nacreSheen { 0%, 100% { opacity: .8; } 50% { opacity: 1; } }
-[data-theme="dark"] .nacre { stroke: rgba(236, 222, 190, .45); }
-[data-theme="dark"] .nacre-groove { stroke: rgba(236, 222, 190, .35); }
-@media (prefers-reduced-motion: reduce) { .luodian-cluster { animation: none; } }
+.sg-shell { stroke: #20302f; stroke-width: .45; }
+.luodian-band { opacity: .95; }
+.luodian-seam { fill: #172628; }
+.luodian-gold { fill: none; stroke: #c8a364; stroke-width: .7; opacity: .9; }
+[data-theme="dark"] .luodian-band { opacity: .4; }
+[data-theme="dark"] .luodian-seam { fill: #070d10; }
+.fabric .water-line, .fabric .water-light { display: none; }
+
 
 /* torn paper strips layered under the chapter plaques */
 .scroll-paper { fill: #f3ead6; }
