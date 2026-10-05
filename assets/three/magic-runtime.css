@@ -54,3 +54,12 @@
 .is-walking .chapter-caption { max-width:300px;background:#132935d9;border-color:#88917570; }
 .world-prompt:disabled { opacity:.65;cursor:default; }
 @media(max-width:700px) { .is-walking .chapter-caption { max-width:240px; } }
+
+/* walking inside a room: the key hint on desktop, an arrow pad on touch screens */
+.world-controls .controls-in, .world-3d.is-inside-room .world-controls .controls-out { display:none; }
+.world-3d.is-inside-room .world-controls .controls-in { display:inline; }
+.room-pad { display:none;position:absolute;z-index:6;left:20px;bottom:calc(118px + env(safe-area-inset-bottom));grid-template-columns:repeat(3,42px);grid-template-rows:repeat(2,42px);gap:4px; }
+.room-pad button { width:42px;height:42px;border:1px solid #a5895570;border-radius:3px;background:#142935e0;color:#f1e7cb;font:14px/1 Inter,sans-serif;touch-action:none;user-select:none;-webkit-user-select:none; }
+.room-pad button:active { background:#2a4a52; }
+.room-pad [data-move="f"] { grid-column:2;grid-row:1; } .room-pad [data-move="l"] { grid-column:1;grid-row:2; } .room-pad [data-move="b"] { grid-column:2;grid-row:2; } .room-pad [data-move="r"] { grid-column:3;grid-row:2; }
+@media (hover:none), (pointer:coarse) { .world-3d.is-inside-room .room-pad { display:grid; } }
