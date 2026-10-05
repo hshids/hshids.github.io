@@ -1,10 +1,10 @@
 /* The 2D world as a fabric collage. Loaded by index.html only; the paintings themselves are the
    cloth versions in assets/art/fabric/ (tools/fabricize.py), and assets/js/quilt.js sews the sky. */
 .fabric .world, .fabric .defs {
-  --thread: #6e5539; --thread-shade: #46331f; --thread-light: #efe2c6; --quilt-panel: rgba(255, 252, 240, .34); --quilt-shadow: rgba(46, 32, 18, .28);
+  --thread: #6e5539; --thread-shade: #46331f; --thread-light: #efe2c6; --quilt-shadow: rgba(46, 32, 18, .28);
 }
 [data-theme="dark"].fabric .world, .fabric[data-theme="dark"] .world, .fabric[data-theme="dark"] .defs {
-  --thread: #cbb894; --thread-shade: #8a7858; --thread-light: #f6ecd4; --quilt-panel: rgba(70, 86, 110, .22); --quilt-shadow: rgba(0, 0, 0, .5);
+  --thread: #cbb894; --thread-shade: #8a7858; --thread-light: #f6ecd4; --quilt-shadow: rgba(0, 0, 0, .5);
 }
 
 /* the backing: washed burlap by day, dark felt at night; the sky quilt lies on it */
@@ -12,14 +12,9 @@
 .fabric[data-theme="dark"] .sky { background: url(../art/fabric/felt.webp) 0 0 / 168px repeat, #1c222e; }
 .quilt { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
 .quilt-shadow { fill: var(--quilt-shadow); transform: translate(2px, 3px); filter: blur(2px); }
-.quilt-panel { fill: var(--quilt-panel); }
 .quilt-weave { opacity: .9; }
 .fabric[data-theme="dark"] .quilt-weave { opacity: .7; }
-.quilt-seam { fill: none; stroke: rgba(255, 255, 255, .18); stroke-width: 1; }
-.quilt-seam-shadow { fill: none; stroke: rgba(40, 28, 16, .16); stroke-width: 3; transform: translateY(1.6px); filter: blur(1.2px); }
-.fabric[data-theme="dark"] .quilt-seam { stroke: rgba(255, 255, 255, .08); }
-.fabric[data-theme="dark"] .quilt-seam-shadow { stroke: rgba(0, 0, 0, .45); }
-/* sewn lines are twisted thread: a striped ply, round ends, a shadow where they sit on the cloth */
+/* the binding is twisted thread: a striped ply, round ends, a shadow where it sits on the cloth */
 .quilt-stitch { fill: none; stroke: url(#gTwist); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 5 3.4; opacity: .9; filter: drop-shadow(.4px .7px .4px rgba(30, 20, 10, .4)); }
 .quilt-fringe { fill: none; stroke: var(--thread-light); stroke-width: 1; stroke-linecap: round; opacity: .75; }
 .fabric[data-theme="dark"] .quilt-fringe { stroke: #8e9bb0; opacity: .5; }
@@ -34,25 +29,28 @@
 [data-theme="dark"] .cloth-weave { opacity: .6; }
 .fabric .ground-edge { stroke: url(#gTwist); stroke-width: 1.5; stroke-dasharray: 5 3.4; stroke-linecap: round; opacity: .85; }
 .fabric .paving { stroke: url(#gTwist); stroke-width: .9; stroke-dasharray: 3.6 2.6; stroke-linecap: round; opacity: .55; }
-.fabric .water-line { stroke: url(#gNacre2); stroke-width: 1.1; stroke-dasharray: 6 4; stroke-linecap: round; }
 
 /* station names are satin-stitched letters, outlined and standing a little off the plaque */
 .fabric .paint-label text, .fabric .paint-inset-title, .fabric .paint-board-title, .fabric .st-contact .paint-label text {
   fill: url(#gSatinLetters); stroke: #3a2616; stroke-width: .32; paint-order: stroke; filter: url(#gRaisedThread);
 }
 
-/* mother-of-pearl inlaid in the water: shell pieces with fine grooves, catching the light */
-.pond-lacquer { fill: #0f3236; opacity: .26; pointer-events: none; }
-[data-theme="dark"] .pond-lacquer { fill: #050d12; opacity: .45; }
-.nacre { stroke: rgba(176, 140, 72, .85); stroke-width: .45; }
-.nacre-groove { fill: none; stroke: rgba(104, 88, 62, .5); stroke-width: .3; }
-.nacre-heart { fill: #d6b26a; }
+/* the water is mother-of-pearl inlaid in lacquer: rolling waves of shell strips over a backing of
+   finely stitched sea; pearl and shell blues part the strips, no gold */
 .luodian { pointer-events: none; }
-.luodian-cluster { opacity: .92; animation: nacreSheen 9s ease-in-out infinite; animation-delay: var(--nacre-delay, 0s); }
-@keyframes nacreSheen { 0%, 100% { opacity: .8; } 50% { opacity: 1; } }
-[data-theme="dark"] .nacre { stroke: rgba(236, 222, 190, .45); }
-[data-theme="dark"] .nacre-groove { stroke: rgba(236, 222, 190, .35); }
-@media (prefers-reduced-motion: reduce) { .luodian-cluster { animation: none; } }
+.fabric .pond-lacquer { fill: #b7cbd9; }
+.sea-thread { fill: none; stroke: #8fa9c0; stroke-width: .7; stroke-linecap: round; opacity: .55; }
+.sea-body { stroke: #22395a; stroke-width: .6; }
+.sea-groove { fill: none; stroke: #2b4769; stroke-linecap: round; }
+.sea-strip { fill: none; stroke-linecap: round; }
+.sea-spray { stroke: #6f8fb0; stroke-width: .35; }
+[data-theme="dark"] .fabric .pond-lacquer, .fabric[data-theme="dark"] .pond-lacquer { fill: #18263a; }
+[data-theme="dark"] .sea-thread { stroke: #3c5674; }
+.sea-night { display: none; }
+[data-theme="dark"] .sea-night { display: inline; fill: #0a1424; opacity: .42; }
+[data-theme="dark"] .sea-groove, [data-theme="dark"] .sea-body { stroke: #0b1524; }
+.fabric .water-line, .fabric .water-light, .fabric .submerged-stems, .fabric .flower-reflection { display: none; }
+
 
 /* torn paper strips layered under the chapter plaques */
 .scroll-paper { fill: #f3ead6; }
@@ -67,6 +65,18 @@
 .fabric[data-theme="dark"] .layer-far svg.scene { filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .35)); }
 .fabric[data-theme="dark"] .layer-mid svg.scene { filter: drop-shadow(0 3px 3px rgba(0, 0, 0, .4)); }
 .fabric[data-theme="dark"] .layer-near svg.scene { filter: drop-shadow(0 4px 4px rgba(0, 0, 0, .45)); }
+
+/* the far hills and trees are large pieces of cloth and the far buildings are embroidered, so they are
+   shown nearly opaque (the tulle mist still lies over their feet) */
+.fabric .landscape-wash { opacity: .9; }
+.fabric[data-theme="dark"] .landscape-wash { opacity: .78; }
+.fabric .vegetation-image { filter: saturate(.8); }
+.fabric .bg-arch, .fabric .bg-arch.mid, .fabric .bg-arch.near { opacity: .92; }
+.fabric .bg-arch.far-soft { opacity: .82; filter: none; }
+.fabric .bg-arch .painted-sprite { filter: saturate(.85); }
+.fabric[data-theme="dark"] .bg-arch { opacity: .8; }
+.fabric[data-theme="dark"] .vegetation-image { filter: brightness(.42) saturate(.45); }
+.fabric[data-theme="dark"] .bg-arch .painted-sprite { filter: brightness(.45) saturate(.6); }
 
 /* the mist is sheer tulle */
 .tulle-cloth { fill: var(--w-mist); opacity: .5; }

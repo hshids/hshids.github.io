@@ -72,3 +72,8 @@
   .garden-body .panel::after { right: 58px; height: 52px; }
 }
 @media (prefers-reduced-motion: reduce) { .garden-body .world-speech { animation: none; } }
+
+/* the food wheel in the storybook panel is always on light paper, so its names stay readable */
+.garden-body .panel .slice.s0 { fill: #f1e6cc; } .garden-body .panel .slice.s1 { fill: #e2cfa9; } .garden-body .panel .slice.s2 { fill: #d3b48a; }
+.garden-body .panel .slice { stroke: #f6ecd3; }
+.garden-body .panel .wheel text { fill: #2a2117; }

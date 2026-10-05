@@ -258,6 +258,11 @@ export async function createFaithfulHomeWritingLife({data=window.HJ_DATA,quality
     const gx=2.90,gz=-3.10,gy=floorY+1.08;
     const cinema=createCatCinema({root:s.root,resources:s.kit.resources,floorY,x:gx,z:gz,screenY:1.08,low:quality==='low'});
     cinema.obstacles.forEach(o=>obstacle(s,o.id,o.size,o.position));
+    // the two velvet seats can be sat in: the eye drops into the seat, facing the screen
+    cinema.seats.forEach((dx,i)=>{const sx=gx+dx,sz=gz+cinema.rowZ;
+      pick(s,'life-cinema-seat-'+i,'seat',[sx,floorY+.24,sz+.04],[.24,.36,.30],'Take a seat',{life:'cats'},[sx,floorY,sz+.55]).seat={
+        eye:[sx,floorY+.98,sz+.26],look:[gx,floorY+1.08,gz+.052],stand:[gx+dx*.6,floorY+1.55,sz+.80],
+        line:i?'Front row, with popcorn. Now showing: six cats.':'This one says Reserved. XiaoHei won’t mind if I keep it warm. Now showing: six cats.'};});
     const photos=(data?.cats||[]).map(cat=>({src:quality==='low'?cat.photos?.[0]?.replace('images/cats/','images/cats/thumbs/'):cat.photos?.[0],name:cat.name,id:cat.id})),cv=document.createElement('canvas');cv.width=768;cv.height=676;const pc=cv.getContext('2d');pc.fillStyle='#e8deca';pc.fillRect(0,0,768,676);const photoFailures=[];
     await Promise.all(photos.map((cat,i)=>new Promise(resolve=>{const image=new Image();image.onload=()=>{const x=i%3*256,y=Math.floor(i/3)*338,w=256,h=338,scale=Math.max(w/image.width,h/image.height);pc.save();pc.beginPath();pc.rect(x,y,w,h);pc.clip();pc.drawImage(image,x+(w-image.width*scale)/2,y+(h-image.height*scale)/2,image.width*scale,image.height*scale);pc.restore();resolve();};image.onerror=()=>{photoFailures.push(cat.src);resolve();};image.src=worldAssetURL(cat.src);})));const texture=new THREE.CanvasTexture(cv);texture.colorSpace=THREE.SRGBColorSpace;s.kit.resources.add(texture);
     const photo=s.props.print('life-supported-actual-cat-photograph',texture,1.15,1.43,[gx,gy,gz+.052]),pg=photo.geometry;cinema.patchScreen(photo.material,[1.15,1.43]);let photoIndex=-1,cutAt=0;animated.push(t=>{const index=Math.floor(t/2.5)%Math.max(1,photos.length);if(index!==photoIndex)cutAt=t;cinema.update(t,dark,t-cutAt);if(index===photoIndex)return;photoIndex=index;const uv=pg.attributes.uv,base=[[0,1],[1,1],[0,0],[1,0]];for(let i=0;i<uv.count;i++)uv.setXY(i,(index%3+base[i][0])/3,1-(Math.floor(index/3)+1-base[i][1])/2);uv.needsUpdate=true;});

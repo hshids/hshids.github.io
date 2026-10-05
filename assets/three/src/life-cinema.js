@@ -187,7 +187,7 @@ export function createCatCinema({root, resources, floorY, x, z, screenY = 1.08, 
   bulbs.castShadow = false; bulbs.raycast = () => {}; group.add(bulbs);
 
   // the front row: two cat-sized theatre seats on a shared walnut rail, facing the screen
-  const rowZ = 0.5, seatW = 0.25;
+  const rowZ = 0.9, seatW = 0.25;   // far enough back that, seated, the whole screen is in view
   const rounded = (w, h, d, r) => { const sh = new THREE.Shape(); const x0 = -w / 2, y0 = -h / 2; sh.moveTo(x0 + r, y0); sh.lineTo(x0 + w - r, y0); sh.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r); sh.lineTo(x0 + w, y0 + h - r); sh.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h); sh.lineTo(x0 + r, y0 + h); sh.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r); sh.lineTo(x0, y0 + r); sh.quadraticCurveTo(x0, y0, x0 + r, y0);
     const g = new THREE.ExtrudeGeometry(sh, {depth: d, bevelEnabled: true, bevelSize: 0.008, bevelThickness: 0.008, bevelSegments: 2, curveSegments: 5}); g.translate(0, 0, -d / 2); return g; };
   const rrect = (path, w, h, r) => { const x0 = -w / 2, y0 = -h / 2; path.moveTo(x0 + r, y0); path.lineTo(x0 + w - r, y0); path.quadraticCurveTo(x0 + w, y0, x0 + w, y0 + r); path.lineTo(x0 + w, y0 + h - r); path.quadraticCurveTo(x0 + w, y0 + h, x0 + w - r, y0 + h); path.lineTo(x0 + r, y0 + h); path.quadraticCurveTo(x0, y0 + h, x0, y0 + h - r); path.lineTo(x0, y0 + r); path.quadraticCurveTo(x0, y0, x0 + r, y0); return path; };
@@ -268,5 +268,5 @@ export function createCatCinema({root, resources, floorY, x, z, screenY = 1.08, 
     {id: 'life-cinema-stage-and-screen', size: [stageW + 0.06, 2.5, stageD + 0.08], position: [x, floorY + 1.25, z + sz0]},
     {id: 'life-cinema-front-row', size: [0.66, 0.5, 0.32], position: [x, floorY + 0.25, z + rowZ + 0.03]},
   ];
-  return {group, obstacles, screenZ: 0.052, patchScreen, update};
+  return {group, obstacles, screenZ: 0.052, rowZ, seats: [-0.5, 0.5].map(k => k * (seatW + 0.035)), patchScreen, update};
 }
