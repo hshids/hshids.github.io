@@ -62,13 +62,12 @@ const STORIES = Object.freeze([
       friends:'It was my first time living at school, far from home, and it was a happy time with many new friends. Our mascot was an owl, so the owl post in this world is a small nod to those years too.',
       city:'I thought New York City would be close. It was about three and a half hours down the road, so the city always stayed a little farther away than I imagined.'}},
   {id:'wider-compass',station:'education',title:'The compass that says wider',mode:'souvenir',
-    clue:'Turn a small compass through four places: Upstate New York, Davis, DC and Bethlehem. It is a collection of feelings, not a second résumé.',
+    clue:'Turn a small compass through three places: Davis, DC and Bethlehem. It is a collection of feelings, not a second résumé.',
     note:'At my Lehigh interview, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.',
     anchor:[-3.98,.006,.18],indoor:false,
     support:'The original Education physical stone forecourt, clear of the Davis miniature and its bicycle.',
-    controls:[['newyork','Upstate New York'],['davis','Davis'],['dc','DC'],['wider','Bethlehem']],
-    pages:{newyork:'My first boarding-school chapter was in upstate New York, near Albany, and it was a happy one. I thought New York City would be close; it was actually about three and a half hours away.',
-      davis:'I arrived expecting Davis to be by the sea. It was not, but the quiet campus life and friendships became their own kind of home.',
+    controls:[['davis','Davis'],['dc','DC'],['wider','Bethlehem']],
+    pages:{davis:'I arrived expecting Davis to be by the sea. It was not, but the quiet campus life and friendships became their own kind of home.',
       dc:'Georgetown brought a city chapter, with travel and stories I enjoyed sharing. People liked those little glimpses of life.',
       wider:'Lehigh lives in Bethlehem, Pennsylvania, an old steel town along the Lehigh River. At my interview there, I was asked whether I wanted to go wider or deeper. I chose wider, and interdisciplinary work has kept taking me further.'}},
   {id:'cats-across-america',station:'life',title:'Two crossings, with cats',mode:'souvenir',
@@ -484,8 +483,8 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
       box(s.id+'-closed-brass-compass-hand',[.011,.007,.139],[0,0,0],colors.gold,needle,.002);
       disc(s.id+'-bearing-compass-centre-rivet',.012,.009,[0,.004,0],mats.brass,needle);
       label(s.id+'-compass-bearing-caption','WIDER',.21,.047,[0,.045,.148],body);s.compass=needle;
-      for(let i=0;i<4;i++){
-        const key=s.spec.controls[i][0],a=i*Math.PI/2,
+      for(let i=0;i<s.spec.controls.length;i++){
+        const key=s.spec.controls[i][0],a=-Math.PI/2+i*Math.PI/2,
           token=disc(s.id+'-'+key+'-compass-chapter-token',.021,.013,[Math.sin(a)*.139,.0315,Math.cos(a)*.096],i%2?mats.green:mats.blue,body);
         register(s,key,s.spec.controls[i][1],token,()=>select(s.id,key));
       }
@@ -506,7 +505,7 @@ export function createHiddenStories({stations=[],quality='high',reduced=false,on
     };
     s.animate=(t,dt)=>{
       s.keepsake?.animate(t,dt,s.progress.length?s.page:null);
-      if(s.compass){const index=s.spec.controls.findIndex(v=>v[0]===s.page),target=Math.max(0,index)*Math.PI/2;
+      if(s.compass){const index=s.spec.controls.findIndex(v=>v[0]===s.page),target=-Math.PI/2+Math.max(0,index)*Math.PI/2;
         s.compass.rotation.y=reduced?target:THREE.MathUtils.damp(s.compass.rotation.y,target,8,dt);}
       if(s.routes){
         s.routeElapsed=Math.min(3.8,s.routeElapsed+dt);

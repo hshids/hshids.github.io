@@ -104,6 +104,8 @@ object (`begin`, `move(ray)`, `end(ray)`) are carried on pointer-down instead of
 turning the camera, and tapping still works. `buildHoosacNY` in
 `magic-keepsakes.js` is the Tibbits Hall keepsake in the Welcome hall.
 
+`magic-carvings.js` adds carved detail to each building exterior: a stepped stone base with a relief band, a carved or painted frieze under the eaves, door lintels with pins and sparrow braces, framed windows with crowns, a brick door canopy on the study, and drifting petals by the gate and the cats' home. Keep displayed text in the 3D world in English.
+
 The Lantern Theatre note sends straight to the site's email address through
 FormSubmit (`sendReflection` in `magic-guestbook.js`). The very first note
 triggers a one-time activation email to that inbox; until the link in it is

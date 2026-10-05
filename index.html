@@ -26,6 +26,9 @@
     <link rel="alternate" href="3d.html" title="Interactive 3D">
     <link rel="canonical" href="https://hshids.github.io/index.html?world">
     <script>
+        // The 2D world is sewn from cloth: its paintings load from assets/art/fabric/
+        // (made by tools/fabricize.py). Other pages keep the original paintings.
+        window.HJArtDir = "fabric/";
         // Returning visitors who chose the basic version go straight there;
         // the theme is applied before first paint to avoid a flash.
         (function () {
@@ -52,7 +55,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="assets/css/world.css?v=motion-continuity-v15">
+    <link rel="stylesheet" href="assets/css/world.css?v=talk-v1">
     <link rel="stylesheet" href="assets/three/version-links.css?v=complete-rooms-v2">
     <link rel="stylesheet" href="assets/css/profile-motion.css?v=mobile-stability-v16">
     <link rel="stylesheet" href="assets/css/day-laptop.css?v=day-carry-v17">
@@ -67,7 +70,8 @@
     <link rel="stylesheet" href="assets/css/campus-portrait-v9.css?v=motion-world-v12">
     <link rel="stylesheet" href="assets/css/bow-depth-v10.css?v=motion-world-v12">
     <link rel="stylesheet" href="assets/css/interaction-hints-v11.css?v=motion-world-v12">
-    <link rel="stylesheet" href="assets/css/scroll-story.css?v=scroll-v9">
+    <link rel="stylesheet" href="assets/css/scroll-story.css?v=signs-v1">
+    <link rel="stylesheet" href="assets/css/fabric.css?v=cloth-v4">
 </head>
 
 <body>
@@ -238,22 +242,23 @@
 
     <script src="assets/js/data.js?v=family-stories-v6"></script>
     <script src="assets/js/rituals.js?v=material-v3"></script>
-    <script src="assets/js/guide.js?v=family-stories-v6"></script>
-    <script src="assets/js/art.js?v=motion-world-v12"></script>
-    <script src="assets/js/paint.js?v=mobile-stability-v16"></script>
+    <script src="assets/js/guide.js?v=cloth-v1"></script>
+    <script src="assets/js/art.js?v=cloth-v4"></script>
+    <script src="assets/js/paint.js?v=cloth-v4"></script>
     <script src="assets/js/campus-portrait-v9.js?v=motion-world-v12"></script>
-    <script src="assets/js/water-life.js?v=motion-world-v12"></script>
+    <script src="assets/js/water-life.js?v=cloth-v1"></script>
     <script src="assets/js/landscape-scene-v9.js?v=motion-world-v12"></script>
-    <script src="assets/js/gesture-hands.js?v=mobile-stability-v16"></script>
+    <script src="assets/js/gesture-hands.js?v=cloth-v1"></script>
     <script src="assets/js/cat-motion-v9.js?v=day-carry-v17"></script>
     <script src="assets/js/bow-depth-v10.js?v=motion-world-v12"></script>
     <script src="assets/js/walk-gait-v12.js?v=motion-continuity-v15"></script>
     <script src="assets/js/day-laptop.js?v=day-carry-v17"></script>
-    <script src="assets/js/rig.js?v=day-carry-v17"></script>
+    <script src="assets/js/rig.js?v=cloth-v1"></script>
     <script src="assets/js/actor-light.js?v=motion-world-v12"></script>
     <script src="assets/js/sky-life.js?v=motion-world-v12"></script>
-    <script src="assets/js/scroll-story.js?v=scroll-v8"></script>
-    <script src="assets/js/world.js?v=scroll-v6"></script>
+    <script src="assets/js/quilt.js?v=cloth-v4"></script>
+    <script src="assets/js/scroll-story.js?v=cloth-v1"></script>
+    <script src="assets/js/world.js?v=cloth-v1"></script>
 </body>
 
 </html>

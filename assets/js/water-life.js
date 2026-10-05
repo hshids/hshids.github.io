@@ -30,7 +30,7 @@
     // Footing fragments sample the middle of the original masonry painting.
     // Reusing paintStone at y=627 wraps onto its pale top cap and would draw
     // a repeated white dashed ledge instead of darker stones against earth.
-    var footStone = '<svg class="painted-sprite" width="452" height="48" viewBox="38 145 1463 155" preserveAspectRatio="none" style="width:452px;height:48px;overflow:hidden"><image href="assets/art/materials-painted.webp" width="1536" height="1024"/></svg>';
+    var footStone = '<svg class="painted-sprite" width="452" height="48" viewBox="38 145 1463 155" preserveAspectRatio="none" style="width:452px;height:48px;overflow:hidden"><image href="assets/art/' + (window.HJArtDir || "") + 'materials-painted.webp" width="1536" height="1024"/></svg>';
     root.insertAdjacentHTML("beforeend", '<defs><pattern id="paintFootstone" patternUnits="userSpaceOnUse" width="904" height="48" y="616">' + footStone + '<g transform="translate(904 0) scale(-1 1)">' + footStone + '</g></pattern><linearGradient id="wall-bank-contact" gradientUnits="userSpaceOnUse" x1="0" y1="621" x2="0" y2="640"><stop stop-color="#333d30" stop-opacity="0"/><stop offset=".33" stop-color="#333d30" stop-opacity=".32"/><stop offset=".58" stop-color="#333d30" stop-opacity=".2"/><stop offset="1" stop-color="#333d30" stop-opacity="0"/></linearGradient><pattern id="fine-pond-current" patternUnits="userSpaceOnUse" width="920" height="168" y="683">' + ripples + '</pattern></defs>');
     return root.innerHTML;
   };
@@ -57,7 +57,7 @@
       var x = +node.getAttribute("x") + +node.getAttribute("width") * .5;
       var y = 795.5 + rand() * 1.8;
       var style = '--plant-time:' + number(5.8 + rand() * 3.1) + 's;--plant-delay:-' + number(rand() * 9) + 's;--reed-angle:' + number(1.10 + rand() * .62) + 'deg';
-      node.outerHTML = '<g class="pond-reed-root" transform="translate(' + number(x) + ' ' + number(y) + ')"><title>Common reed — Phragmites australis</title><ellipse class="reed-water-contact" cx="0" cy="1.5" rx="' + number(w * .17) + '" ry="1.7"/><g class="reed-sway" style="' + style + '"><image class="painted-reed-plant" href="assets/art/pond-phragmites-painted.webp" x="' + number(-w * .5) + '" y="' + number(-1470 * h / 1536) + '" width="' + number(w) + '" height="' + number(h) + '"/></g></g>';
+      node.outerHTML = '<g class="pond-reed-root" transform="translate(' + number(x) + ' ' + number(y) + ')"><title>Common reed — Phragmites australis</title><ellipse class="reed-water-contact" cx="0" cy="1.5" rx="' + number(w * .17) + '" ry="1.7"/><g class="reed-sway" style="' + style + '"><image class="painted-reed-plant" href="assets/art/' + (window.HJArtDir || "") + 'pond-phragmites-painted.webp" x="' + number(-w * .5) + '" y="' + number(-1470 * h / 1536) + '" width="' + number(w) + '" height="' + number(h) + '"/></g></g>';
     });
 
     // Movement is readable at ordinary scene scale. Rooted flowers and their

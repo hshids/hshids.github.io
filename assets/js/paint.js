@@ -4,7 +4,7 @@
   var A = window.HJArt, serial = 0;
   var mobilePaintResources=matchMedia('(pointer: coarse), (max-width: 699px)').matches;
   function paintingSource(name) {
-    var theme=/^hanjing-(day|night)(?:-|$)/.exec(name),src='assets/art/'+name+'.webp';
+    var theme=/^hanjing-(day|night)(?:-|$)/.exec(name),src='assets/art/'+(window.HJArtDir||'')+name+'.webp';
     if(mobilePaintResources&&theme&&(theme[1]==='night')!==(document.documentElement.dataset.theme==='dark'))
       return 'data-paint-theme="'+(theme[1]==='night'?'dark':'light')+'" data-paint-src="'+src+'"';
     return 'href="'+src+'"';
@@ -59,6 +59,7 @@
     ancientOpen: ["scholar",26,629,612,924], bamboo: ["scholar",615,610,1178,950], scrollBundle: ["scholar",1199,571,1518,954],
     talkHall: ["talks",16,84,1574,920], posterFrame: ["finishes",737,88,1428,675]
   };
+  crops.kitchenWindow=['buildings',1079,742,1163,824];
   crops.writingLow=['lowWriting',81,57,860,533]; crops.writingCushion=['keepsakes',298,443,523,511];
   crops.dayWrite=['writers',88,18,925,882]; crops.nightWrite=['writers',978,29,1707,876];
   crops.theaterCurtain=['talks',371,420,433,743];
@@ -309,7 +310,7 @@
   A.character = character;
   // Petting has its own two-joint chain. Its entire texture stays in one mesh,
   // so moving the elbow cannot uncover the knee or replace a sleeve with a cap.
-  var petRigs=[],petArtBase=new URL('../art/',document.currentScript.src);
+  var petRigs=[],petArtBase=new URL('../art/'+(window.HJArtDir||''),document.currentScript.src);
   // Touch/mobile browsers need no petting context or meshes before the action.
   var lazyPetResources=matchMedia('(pointer: coarse), (max-width: 699px)').matches;
   function petRig(root){
@@ -485,7 +486,7 @@
   // A shared painted wood sample gives the narrow support beams the same material as the carved signs.
   function timberSupport(shape,grain) {
     var id='paintWood'+(++serial);
-    return '<g class="paint-timber"><defs><pattern id="'+id+'" width="48" height="12" patternUnits="userSpaceOnUse"><svg width="48" height="12" viewBox="1604 424 376 82" preserveAspectRatio="none" style="width:48px;height:12px;overflow:hidden"><image href="assets/art/finishes-painted.webp" width="2172" height="724"/></svg></pattern></defs>'+      '<path class="paint-sign-support" d="'+shape+'" fill="url(#'+id+')"/>'+      '<path d="'+grain+'" fill="none" stroke="#d2ac78" stroke-width=".55" opacity=".46" pointer-events="none"/>'+      '<path d="'+grain+'" fill="none" stroke="#3f291b" stroke-width=".35" transform="translate(1.6 1.6)" opacity=".54" pointer-events="none"/></g>';
+    return '<g class="paint-timber"><defs><pattern id="'+id+'" width="48" height="12" patternUnits="userSpaceOnUse"><svg width="48" height="12" viewBox="1604 424 376 82" preserveAspectRatio="none" style="width:48px;height:12px;overflow:hidden"><image href="assets/art/'+(window.HJArtDir||'')+'finishes-painted.webp" width="2172" height="724"/></svg></pattern></defs>'+      '<path class="paint-sign-support" d="'+shape+'" fill="url(#'+id+')"/>'+      '<path d="'+grain+'" fill="none" stroke="#d2ac78" stroke-width=".55" opacity=".46" pointer-events="none"/>'+      '<path d="'+grain+'" fill="none" stroke="#3f291b" stroke-width=".35" transform="translate(1.6 1.6)" opacity=".54" pointer-events="none"/></g>';
   }
   // Hemp stays fine at scene scale; its tiny diagonal strands catch the same warm light as the timber.
   function hempRope(x1,y1,x2,y2,knots) {
@@ -774,6 +775,8 @@
   });
   A.stations.life = function(catThumbs) {
     var body = forecourt(-358,364,552,560,7)+sprite('house',-371,243,742,317)+label(0,357,'LIFE',95);
+    // a lit lattice window in the kitchen wall, behind the pot
+    body += sprite('kitchenWindow',-280,383,75,73,'kitchen-window');
     body += '<g class="life-item suitcase" data-life="travel">'+sprite('case',151,493,77,67)+sourceHint('case',[151,493,77,67],[['M',87,191],['L',103,192],['L',103,202]],'hint-metal',2.4)+'<rect class="hit" x="151" y="493" width="77" height="67"/></g>';
     body += '<g class="life-item stove" data-life="food" transform="translate(-238 560)">'+jointedProp('stove',[-40,-92,80,92],[{path:'M-32 -95H33V-74Q0 -68 -32 -74Z',cls:'pot-lid-group',pivot:'0px -76px'}])+sourceHint('stove',[-40,-92,80,92],[['M',490,163],['Q',536,171,588,166]],'hint-metal',.8)+'<rect class="hit" x="-40" y="-92" width="80" height="92"/><g class="steam"><path d="M-8 -92c-8 -10 8 -16 0 -28"/><path d="M6 -92c-8 -10 8 -16 0 -28"/></g></g>';
     body += '<g class="life-item nap" data-life="cats" transform="translate(0 -6)">'+sprite('pouf',-24,542,94,21)+sleeper()+'<path class="pouf-piping" d="M-20 553Q23 565 66 553"/></g>';
@@ -831,6 +834,8 @@
     return root.innerHTML;
   };
   A.paintSprite=sprite;
+  // The handscroll's chapter signs are built from the same painted branch, hemp rope and carved plaque.
+  A.paintLabel=label;A.paintRope=hempRope;
   // Sun and moon retain their existing pointer and keyboard controls.
   var celestial=document.querySelector('#sun svg');
   if(celestial) {

@@ -304,7 +304,7 @@ export function buildTwoShores(parent, {resources, reduced = false, low = false}
 
   // brass name plates on the front of the box
   const plates = makeKit('keepsake-two-shores-plates', resources);
-  plates.add(L.geometry(L.plate('DALIAN', {sub: '大连 · my hometown'}), 0.12, 0.03), L.mat, {p: [-0.11, 0.029, 0.1306]});
+  plates.add(L.geometry(L.plate('DALIAN', {sub: 'my hometown'}), 0.12, 0.03), L.mat, {p: [-0.11, 0.029, 0.1306]});
   plates.add(L.geometry(L.plate('SAN FRANCISCO', {size: 27, sub: 'a familiar feeling'}), 0.12, 0.03), L.mat, {p: [0.11, 0.029, 0.1306]});
   plates.build(root);
 

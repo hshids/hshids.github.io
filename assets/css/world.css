@@ -1841,3 +1841,14 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 
 /* Receding physical paving planes share the painted stone under moonlight. */
 [data-theme="dark"] .paint-forecourt, [data-theme="dark"] .mailbox-footing { filter: brightness(.64) saturate(.75); }
+
+/* Ask Me: longer material folds under one line, so a reply reads like talking */
+.g-more { margin-top: 6px; }
+.g-more > summary { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; list-style: none; font-size: 13px; font-weight: 600; color: var(--accent); padding: 4px 10px; border: 1px solid var(--line-2); border-radius: 999px; background: var(--bg); }
+.g-more > summary::-webkit-details-marker { display: none; }
+.g-more > summary::after { content: "›"; transition: transform .2s; }
+.g-more[open] > summary::after { transform: rotate(90deg); }
+.g-more[open] > summary { margin-bottom: 8px; }
+.g-more > :not(summary) { animation: gMoreIn .25s ease; }
+@keyframes gMoreIn { from { opacity: 0; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .g-more > :not(summary) { animation: none; } }
