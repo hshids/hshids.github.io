@@ -137,8 +137,7 @@
 .fabric .cloth-crane .cc-lift { transition: opacity .25s ease; }
 @media (hover: hover) {
   .fabric:has([data-scroll-hotspot="head"]:hover) .scroll-sign[data-chapter="head"] :is(.paint-label, .scroll-paper),
-  .fabric:has([data-scroll-hotspot="prologue"]:hover) .scroll-sign[data-chapter="prologue"] :is(.paint-label, .scroll-paper),
-  .fabric:has([data-scroll-hotspot="crossing"]:hover) .scroll-sign[data-chapter="crossing"] :is(.paint-label, .scroll-paper),
+  .fabric:has([data-scroll-hotspot="dalian"]:hover) .scroll-sign[data-chapter="dalian"] :is(.paint-label, .scroll-paper),
   .fabric:has([data-scroll-hotspot="tail"]:hover) .scroll-sign[data-chapter="tail"] :is(.paint-label, .scroll-paper) { translate: 0 -3px; }
   .fabric:has([data-scroll-hotspot="crane"]:hover) .cloth-crane > :not(.cc-lift) { translate: 1.5px -3px; }
   .fabric:has([data-scroll-hotspot="crane"]:hover) .cloth-crane .cc-lift { opacity: .75; }
