@@ -527,12 +527,21 @@
   // a gold rim and seed pearls holding an embroidered plant, bamboo slips tied with gold thread, and
   // silk scrolls with silver knobs. Inline styles, so the plain world's book colours do not apply.
   function q(n) { return Math.round(n*10)/10; }
+  // A set of old thread-bound volumes standing together, as one: three slim volumes in fine satin
+  // (indigo, slate, sepia or jade covers) with ivory page edges between them, a white title slip,
+  // the binding thread showing at top and bottom, and two bone clasps on the case that holds them.
   function clothBook(i,w,h) {
-    var c=['indigo','jade','ochre','plum','vermilion'][i%5];
-    return '<g class="emb-book"><rect x="0" y="'+q(-h)+'" width="'+q(w)+'" height="'+q(h)+'" rx=".7" style="fill:url(#gSatin-'+c+');stroke:#2a1d12;stroke-width:.35"/>'+
-      '<path d="M.6 '+q(-h+1.5)+'H'+q(w-.6)+'M.6 '+q(-1.7)+'H'+q(w-.6)+'" style="fill:none;stroke:url(#gGoldThread);stroke-width:.85;stroke-linecap:round"/>'+
-      '<rect x="'+q(w*.2)+'" y="'+q(-h*.8)+'" width="'+q(w*.6)+'" height="'+q(Math.min(6.5,h*.26))+'" rx=".5" style="fill:url(#gNacreSmall);stroke:#b08a3e;stroke-width:.3"/>'+
-      '<circle cx="'+q(w/2)+'" cy="'+q(-h*.34)+'" r="'+q(Math.min(1.05,w*.09))+'" style="fill:url(#gPearlBead);stroke:#8d8496;stroke-width:.15"/></g>';
+    var c=['indigo','slate','sepia','jade'][i%4], n=3, vw=(w-.4)/n, out='<g class="emb-book">';
+    out+='<rect x="0" y="'+q(-h)+'" width="'+q(w)+'" height="'+q(h)+'" rx=".4" style="fill:#e9dcc0;stroke:#2a1d12;stroke-width:.3"/>';
+    for (var k=0;k<n;k++) {
+      var x=.2+k*vw;
+      out+='<rect x="'+q(x+.15)+'" y="'+q(-h+.3)+'" width="'+q(vw-.3)+'" height="'+q(h-.6)+'" style="fill:url(#gSatin-'+c+')"/>'+
+        '<path d="M'+q(x+.6)+' '+q(-h+1.3)+'H'+q(x+vw-.6)+'M'+q(x+.6)+' '+q(-h+2.3)+'H'+q(x+vw-.6)+'M'+q(x+.6)+' -2.3H'+q(x+vw-.6)+'M'+q(x+.6)+' -1.3H'+q(x+vw-.6)+'" style="fill:none;stroke:#efe4cc;stroke-width:.28;opacity:.8"/>';
+    }
+    out+='<rect x="'+q(.2+vw+vw*.28)+'" y="'+q(-h*.84)+'" width="'+q(vw*.44)+'" height="'+q(h*.42)+'" style="fill:#f6efe0;stroke:#b9a989;stroke-width:.15"/>'+
+      '<path d="M'+q(.2+vw*1.5)+' '+q(-h*.8)+'V'+q(-h*.47)+'" style="fill:none;stroke:#3b2c22;stroke-width:.3;stroke-dasharray:.9 .5"/>'+
+      '<circle cx="'+q(w-.1)+'" cy="'+q(-h*.66)+'" r=".55" style="fill:url(#gPearlBead)"/><circle cx="'+q(w-.1)+'" cy="'+q(-h*.3)+'" r=".55" style="fill:url(#gPearlBead)"/></g>';
+    return out;
   }
   function pearlVase(x,y) {
     var leaves='', pearls='';
@@ -568,7 +577,7 @@
     all(root,'.book').forEach(function(b,i) {
       var n=['ancientBlue','ancientJade','ancientOchre'][i%3];
       var dims = b.querySelector('rect'), w = +dims.getAttribute('width'), h = +dims.getAttribute('height');
-      var bw=w*.73, bh=Math.min(28,h*.7);
+      var bw=window.HJArtDir ? w*.52 : w*.73, bh=Math.min(28,h*.7);
       b.querySelector('.book-in').innerHTML = (window.HJArtDir ? clothBook(i,bw,bh) : sprite(n,0,-bh,bw,bh))+materialHint('M'+(bw*.17)+' '+(-bh*.81)+'L'+(bw*.82)+' '+(-bh*.81)+'M'+(bw*.22)+' '+(-bh*.22)+'L'+(bw*.78)+' '+(-bh*.22),'hint-book',i*.41)+'<rect class="hit book-hit" x="0" y="'+(-bh)+'" width="'+bw+'" height="'+bh+'"/>';
       // Shelves in the painting are shallow and spaced evenly through the interior.
       var tr = b.getAttribute('transform'), row = tr.match(/translate\((-?[\d.]+) ([\d.]+)/);

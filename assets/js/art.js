@@ -11,7 +11,7 @@
 
   var GY = 560;   // ground line
   // The 2D world sets this to "fabric/" for its cloth versions of the paintings.
-  var ARTDIR = window.HJArtDir || "";
+  var ARTDIR = window.HJArtDir || "", LITE = !!window.HJLite;
   var VH = 800;   // scene height
 
   // Small seeded PRNG so the scenery is the same on every visit.
@@ -584,7 +584,7 @@
   function pine(x, y, s, cls) {
     s = s || 1;
     var distant = !/ground-pine/.test(cls || "");
-    return '<g class="pine ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/' + ARTDIR + 'pine.webp" x="-57" y="-108.4" width="120" height="110"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
+    return '<g class="pine ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(y) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/' + ARTDIR + (ARTDIR && !distant ? 'pine-ground' : 'pine') + '.webp" x="-57" y="-108.4" width="120" height="110"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
   }
 
   function treeFooting(distant) {
@@ -765,8 +765,8 @@
     if (window.HJArt && window.HJArt.paintSprite) {
       var tower = span / scale <= 108, pw = tower ? 80 * scale : Math.min(160 * scale, span * 1.35), ph = tower ? 168 * scale : pw * 1.05;
       var uidPaint = 'distantPaint'+f1(x)+'b'+f1(base);
-      var fade = ARTDIR ? '' : '<defs><linearGradient id="'+uidPaint+'" x2="0" y2="1"><stop offset=".75" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient><mask id="m'+uidPaint+'" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#'+uidPaint+')"/></mask></defs>';
-      return '<g class="bg-site '+cls+'">'+fade+'<g class="bg-arch '+cls+'"'+(ARTDIR ? '' : ' mask="url(#m'+uidPaint+')"')+'>'+window.HJArt.paintSprite(tower ? 'pagoda' : 'pavilion',x-pw/2,base-ph,pw,ph)+'<g class="paint-distant-lights">'+(tower ? [0.3,.55,.77] : [.61]).map(function(py){return '<ellipse cx="'+x+'" cy="'+f1(base-ph+ph*py)+'" rx="'+f1(pw*.12)+'" ry="'+f1(ph*.025)+'" fill="url(#gHomeLight)"/>';}).join('')+'</g></g></g>';
+      var fade = LITE ? '' : '<defs><linearGradient id="'+uidPaint+'" x2="0" y2="1"><stop offset=".75" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient><mask id="m'+uidPaint+'" maskContentUnits="objectBoundingBox"><rect width="1" height="1" fill="url(#'+uidPaint+')"/></mask></defs>';
+      return '<g class="bg-site '+cls+'">'+fade+'<g class="bg-arch '+cls+'"'+(LITE ? '' : ' mask="url(#m'+uidPaint+')"')+'>'+window.HJArt.paintSprite(tower ? 'pagoda' : 'pavilion',x-pw/2,base-ph,pw,ph)+'<g class="paint-distant-lights">'+(tower ? [0.3,.55,.77] : [.61]).map(function(py){return '<ellipse cx="'+x+'" cy="'+f1(base-ph+ph*py)+'" rx="'+f1(pw*.12)+'" ry="'+f1(ph*.025)+'" fill="url(#gHomeLight)"/>';}).join('')+'</g></g></g>';
     }
     var uid = "feet" + f1(x) + "b" + f1(base), r = rng(Math.round(x)), foliage = "", lines = "";
     // Match the painted bank's quadratic curves, so trees at its edges cannot float above it.
@@ -891,7 +891,7 @@
   }
   function willow(x, base, s, cls) {
     var distant = !/ground-willow/.test(cls || "");
-    return '<g class="willow ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(base) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/' + ARTDIR + 'willow.webp" x="-74" y="-147" width="138" height="148"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
+    return '<g class="willow ' + (cls || "") + '" transform="translate(' + f1(x) + ' ' + f1(base) + ') scale(' + s + ')">' + treeFooting(distant) + '<g' + (distant ? ' mask="url(#mTreeRoots)"' : '') + '><image class="vegetation-image" href="assets/art/' + ARTDIR + (ARTDIR && !distant ? 'willow-ground' : 'willow') + '.webp" x="-74" y="-147" width="138" height="148"/></g>' + (distant ? '' : treeRootCover()) + '</g>';
   }
 
   // Wooden hanging sign used as each station's label.
@@ -1006,7 +1006,8 @@
     // satin floss: close parallel stitches, a lighter and a darker thread in each repeat
     [["indigo", "#26385f", "#3d5487", "#16223e"], ["jade", "#2f6352", "#4b8a73", "#1d4236"], ["ochre", "#9a6a28", "#c38e43", "#6c4718"],
      ["plum", "#6b2f4a", "#8f4a68", "#45182e"], ["vermilion", "#a23a2a", "#c95a43", "#6e2115"], ["ivory", "#e9dcc0", "#f8efdc", "#c8b894"],
-     ["celadon", "#9cbca8", "#bfd8c7", "#6f9581"], ["leaf", "#4f7a3c", "#6f9d55", "#33552a"]].forEach(function (c) {
+     ["celadon", "#9cbca8", "#bfd8c7", "#6f9581"], ["leaf", "#4f7a3c", "#6f9d55", "#33552a"],
+     ["slate", "#3e4a55", "#56636f", "#2a333b"], ["sepia", "#5e4530", "#7a5c40", "#3e2c1c"]].forEach(function (c) {
       out += '<pattern id="gSatin-' + c[0] + '" width="1.3" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(' + (c[0] === "leaf" ? 38 : 0) + ')"><rect width="1.3" height="5" fill="' + c[1] + '"/><rect x=".15" width=".5" height="5" fill="' + c[2] + '" opacity=".55"/><rect x="1.05" width=".22" height="5" fill="' + c[3] + '" opacity=".6"/></pattern>';
     });
     return out;
@@ -1142,17 +1143,20 @@
       ridge += "C" + f1(x + 80) + " " + f1(base - 8 + r() * 14) + " " + f1(end - 80) + " " + f1(y) + " " + end + " " + f1(y);
     }
     ridge += "L" + width + " 800H0Z";
-    // A clip, not a mask: the scenery behind the ridge is simply cut away above it. (A blurred mask the
-    // width of the world makes Safari draw the whole layer into an offscreen image, which on a phone
-    // runs it out of memory.)
+    // On a desktop a soft mask lets each layer fade behind the ridge in front of it. On a phone it is a
+    // plain clip: a blurred mask the width of the world makes Safari draw the whole layer into an
+    // offscreen image, which runs a phone out of memory.
+    if (!LITE) return '<defs><mask id="' + uid + '" maskUnits="userSpaceOnUse" x="0" y="0" width="' + width + '" height="800"><rect width="' + width + '" height="800" fill="white"/><path d="' + ridge + '" fill="black" filter="url(#gOcclusion)"/></mask></defs>';
     return '<defs><clipPath id="' + uid + '" clipPathUnits="userSpaceOnUse"><path clip-rule="evenodd" d="M0 0H' + width + 'V800H0Z' + ridge + '"/></clipPath></defs>';
+  }
+  function behindRidge(uid) { return (LITE ? 'clip-path' : 'mask') + '="url(#' + uid + ')"';
   }
 
   function farLayer(width) {
     var clouds = [[160, 244, 1.3], [980, 212, 1.05], [1760, 258, 1.5], [2600, 226, 1.15], [3500, 250, 1.35]].map(function (c) { return xiangyun(c[0], c[1], c[2]); }).join("");
     // A painted transparent plane still moves at the original parallax speed.
     // Mirrored repeat edges meet exactly, so the entire walkable world has continuous scenery.
-    return clouds + '<rect class="landscape-wash" width="' + width + '" height="800" fill="url(#gLandscape)"/>' + ridgeMask(width, "mFarRidge", 438, 81) + '<g clip-path="url(#mFarRidge)">' +
+    return clouds + '<rect class="landscape-wash" width="' + width + '" height="800" fill="url(#gLandscape)"/>' + ridgeMask(width, "mFarRidge", 438, 81) + '<g ' + behindRidge('mFarRidge') + '>' +
       bgPalace(1320, 452, .7, "far far-soft") + bgGate(2440, 460, .62, "far far-soft") +
       bgPagoda(470, 446, .72, "far") + bgPagoda(3080, 444, .82, "far") + '</g>' + mist(width, 474, 106);
   }
@@ -1163,15 +1167,15 @@
     var arch = bgTower(900, 488, 1.12, "mid") + bgPavilion(2060, 478, 1.05, "mid") + bgTower(3300, 490, 1.02, "mid") + bgPavilion(4420, 476, 1, "mid");
     var willows = "";
     for (var wx = 1250; wx < width; wx += 1500 + r() * 800) willows += willow(wx, 500, 0.7 + r() * 0.3, "mid-willow");   // none behind the Welcome gate
-    return ridgeMask(width, "mMidFoundation", 479, 83) + '<g clip-path="url(#mMidFoundation)">' + arch + '</g>' + ridgeMask(width, "mMidGrove", 432, 85) + '<g clip-path="url(#mMidGrove)">' + trees + willows + '</g>' + mist(width, 492, 86);
+    return ridgeMask(width, "mMidFoundation", 479, 83) + '<g ' + behindRidge('mMidFoundation') + '>' + arch + '</g>' + ridgeMask(width, "mMidGrove", 432, 85) + '<g ' + behindRidge('mMidGrove') + '>' + trees + willows + '</g>' + mist(width, 492, 86);
   }
 
   function nearLayer(width) {
     var r = rng(41), trees = "", willows = "";
     for (var x = 200; x < width; x += 710 + r() * 620) trees += pine(x, 505 + r() * 20, 0.8 + r() * 0.4, "pine near-pine");
     for (var wx = 1650; wx < width; wx += 1900 + r() * 800) willows += willow(wx, 560, 1 + r() * 0.3, "near-willow");   // none behind the Welcome gate
-    return ridgeMask(width, "mNearFoundation", 534, 87) + '<g clip-path="url(#mNearFoundation)">' + bgPavilion(1570, 532, 1.2, "near") + bgTower(2850, 540, .82, "near") +
-      bgPavilion(4170, 530, 1.3, "near") + '</g>' + ridgeMask(width, "mNearGrove", 491, 89) + '<g clip-path="url(#mNearGrove)">' + trees + willows + '</g>' + mist(width, 538, 65);
+    return ridgeMask(width, "mNearFoundation", 534, 87) + '<g ' + behindRidge('mNearFoundation') + '>' + bgPavilion(1570, 532, 1.2, "near") + bgTower(2850, 540, .82, "near") +
+      bgPavilion(4170, 530, 1.3, "near") + '</g>' + ridgeMask(width, "mNearGrove", 491, 89) + '<g ' + behindRidge('mNearGrove') + '>' + trees + willows + '</g>' + mist(width, 538, 65);
   }
 
   // The DOM sky retains its interactive sun/moon and moving birds.

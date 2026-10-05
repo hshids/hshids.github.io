@@ -28,7 +28,10 @@
     <script>
         // The 2D world is sewn from cloth: its paintings load from assets/art/fabric/
         // (made by tools/fabricize.py). Other pages keep the original paintings.
-        window.HJArtDir = "fabric/";
+        // Phones and tablets get the light mode: a smaller copy of the cloth (fabric-m/) and simpler
+        // edges and shading, so Safari stays within a phone's memory. Desktops get every detail.
+        window.HJLite = (function () { try { return matchMedia("(hover: none), (max-width: 760px)").matches; } catch (e) { return false; } })();
+        window.HJArtDir = window.HJLite ? "fabric-m/" : "fabric/";
         // Returning visitors who chose the basic version go straight there;
         // the theme is applied before first paint to avoid a flash.
         (function () {
@@ -71,7 +74,7 @@
     <link rel="stylesheet" href="assets/css/bow-depth-v10.css?v=motion-world-v12">
     <link rel="stylesheet" href="assets/css/interaction-hints-v11.css?v=motion-world-v12">
     <link rel="stylesheet" href="assets/css/scroll-story.css?v=signs-v1">
-    <link rel="stylesheet" href="assets/css/fabric.css?v=cloth-v9">
+    <link rel="stylesheet" href="assets/css/fabric.css?v=cloth-v10">
 </head>
 
 <body>
@@ -243,8 +246,8 @@
     <script src="assets/js/data.js?v=family-stories-v6"></script>
     <script src="assets/js/rituals.js?v=material-v3"></script>
     <script src="assets/js/guide.js?v=cloth-v1"></script>
-    <script src="assets/js/art.js?v=cloth-v9"></script>
-    <script src="assets/js/paint.js?v=cloth-v7"></script>
+    <script src="assets/js/art.js?v=cloth-v10"></script>
+    <script src="assets/js/paint.js?v=cloth-v8"></script>
     <script src="assets/js/campus-portrait-v9.js?v=motion-world-v12"></script>
     <script src="assets/js/water-life.js?v=cloth-v1"></script>
     <script src="assets/js/landscape-scene-v9.js?v=motion-world-v12"></script>
