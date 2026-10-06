@@ -40098,7 +40098,7 @@ function Gp({
   function C(K) {
     if (ne) return;
     const he = G !== !!K;
-    G = !!K, b.disabled = !G, b.setAttribute("aria-busy", String(!G)), b.classList.toggle("is-loading", !G), G && b.style.setProperty("--progress", "100%"), w.textContent = G ? "Open my world" : "Opening the gates…", he && R && (y.textContent = G ? "The world is ready. You can enter whenever you like." : "The world is opening. You can read the letter while you wait.");
+    G = !!K, b.disabled = !G, b.setAttribute("aria-busy", String(!G)), b.classList.toggle("is-loading", !G), G && (b.style.setProperty("--progress", "100%"), b.setAttribute("aria-valuenow", "100")), w.textContent = G ? "Open my world" : "Opening the gates…", he && R && (y.textContent = G ? "The world is ready. You can enter whenever you like." : "The world is opening. You can read the letter while you wait.");
   }
   function V() {
     ne || !R || (f.hidden = !0, x.hidden = !1, p.setAttribute("aria-expanded", "true"), h.classList.add("magic-invitation-has-read"), m.scrollTop = 0, X(v), P || (P = !0, t?.({ source: "invitation" })));
@@ -43657,7 +43657,7 @@ function L4(o) {
     talks: function() {
       var g = [-2.5, 2, -1.5, 3, -2, 1.5, -3, 2.5, -1];
       return '<h2 id="panel-title" tabindex="-1">Talks &amp; Posters</h2><p class="p-lede">Take a seat and pick a talk. The lights will dim.</p><h3>On stage</h3><ul class="talk-list">' + e.videos.map(function(M, k) {
-        return '<li><button type="button" class="talk-card" data-talkopen="' + k + '"><span class="talk-thumb"><img src="' + s(M.thumb) + '" alt="" loading="lazy"><span class="talk-play" aria-hidden="true">▶</span></span><span class="talk-venue">' + s(M.venue) + '</span><span class="talk-title">' + s(M.title) + "</span></button></li>";
+        return '<li><button type="button" class="talk-card" data-talkopen="' + k + '"><span class="talk-thumb"><img src="' + s(M.thumb) + '" alt="" loading="lazy"><span class="talk-play" aria-hidden="true">▶</span></span><span class="talk-venue">' + s(M.venue) + '</span><span class="talk-title">' + s(M.title) + "</span>" + (M.note ? '<span class="talk-credit">' + s(M.note) + "</span>" : "") + "</button></li>";
       }).join("") + '</ul><h3 id="posters">Posters &amp; slides</h3><ul class="poster-grid">' + e.posters.map(function(M, k) {
         return '<li><button type="button" class="poster-card" data-posterimg="' + k + '"><img src="' + s(M.thumb) + '" alt="" loading="lazy"><span class="poster-venue">' + s(M.venue) + '</span><span class="poster-title">' + s(t.pubById[M.paper].title) + "</span></button></li>";
       }).join("") + '</ul><h3 id="photos">From the conference floor</h3><p class="p-muted">CSSSA 2025 · ICWSM 2026 · AIED 2026</p><ul class="photo-wall">' + e.conferencePhotos.map(function(M, k) {
@@ -43850,7 +43850,7 @@ function L4(o) {
   function oe(g = 0) {
     re = (g + e.videos.length) % e.videos.length;
     const M = e.videos[re];
-    o.theater(!0), document.body.classList.add("theater-open"), ae(M.title, '<div class="three-theater"><p class="theater-venue">' + s(M.venue) + '</p><div class="three-screen" id="th-screen"><img src="' + s(M.thumb) + '" alt="Talk preview"><button type="button" class="btn btn-primary" id="th-start">▶ Start the talk</button></div><nav class="three-program" aria-label="Talk program">' + e.videos.map((k, B) => '<button type="button" data-talk="' + B + '" aria-current="' + (B === re) + '"><span>' + s(k.venue) + "</span>" + s(k.title) + "</button>").join("") + "</nav></div>");
+    o.theater(!0), document.body.classList.add("theater-open"), ae(M.title, '<div class="three-theater"><p class="theater-venue">' + s(M.venue) + (M.note ? " · " + s(M.note) : "") + '</p><div class="three-screen" id="th-screen"><img src="' + s(M.thumb) + '" alt="Talk preview"><button type="button" class="btn btn-primary" id="th-start">▶ Start the talk</button></div><nav class="three-program" aria-label="Talk program">' + e.videos.map((k, B) => '<button type="button" data-talk="' + B + '" aria-current="' + (B === re) + '"><span>' + s(k.venue) + "</span>" + s(k.title) + "</button>").join("") + "</nav></div>");
   }
   function Q() {
     const g = e.videos[re];

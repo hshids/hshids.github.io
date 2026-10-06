@@ -107,7 +107,7 @@
 
     html += section("talks", "Talks & Posters",
       "<h3>Recorded talks</h3><ul class=\"pubs\">" + D.videos.map(function (v) {
-        return '<li class="pub"><div class="pub-title">' + esc(v.title) + '</div><div class="pub-venue">' + esc(v.venue) + "</div>" +
+        return '<li class="pub"><div class="pub-title">' + esc(v.title) + '</div><div class="pub-venue">' + esc(v.venue) + (v.note ? " · " + esc(v.note) : "") + "</div>" +
           '<div class="pub-links"><button type="button" data-video="talk:' + esc(v.paper) + '">▶ watch the talk</button></div>' +
           '<div class="video-slot" id="talk-' + esc(v.paper) + '"></div></li>';
       }).join("") + "</ul>" +

@@ -1514,7 +1514,7 @@
   S.talks = function (videos, posters) {
     var y = GY;
     var slides = videos.map(function (v, i) {
-      return '<image class="slide slide-' + i + '" href="' + esc(v.thumb) + '" x="-246" y="334" width="282" height="159" preserveAspectRatio="xMidYMid slice" style="animation-delay:' + (i * 4) + 's"/>';
+      return '<image class="slide slide-' + i + '" href="' + esc(v.thumb) + '" x="-246" y="334" width="282" height="159" preserveAspectRatio="xMidYMid slice" style="' + talkSlideStyle(i, videos.length) + '"/>';
     }).join("");
     var seats = "", r = rng(131);
     for (var row = 0; row < 2; row++) {
@@ -1978,8 +1978,22 @@
       '<text x="47" y="33" text-anchor="middle">?</text></svg>';
   }
 
+  // The talk screen shows each recorded talk for 4 s in turn. The keyframes depend on how many talks
+  // there are, so they are written once per count; fixed percentages would let the slides overlap (and
+  // hide the first one) or leave a dark gap as talks are added.
+  function talkSlideStyle(i, n) {
+    var dur = Math.max(2, n) * 4, name = "talkSlides" + dur;
+    if (!document.getElementById(name)) {
+      var pct = function (s) { return (s / dur * 100).toFixed(2) + "%"; }, st = document.createElement("style");
+      st.id = name;
+      st.textContent = "@keyframes " + name + " { 0%, " + pct(3.84) + " { opacity: 1; } " + pct(4.32) + ", " + pct(dur - .48) + " { opacity: 0; } 100% { opacity: 1; } }";
+      document.head.appendChild(st);
+    }
+    return "--slide-name:" + name + ";--slide-dur:" + dur + "s;--slide-delay:" + (i * 4) + "s";
+  }
+
   window.HJArt = {
-    GY: GY, VH: VH, rng: rng, defs: gradients,
+    GY: GY, VH: VH, rng: rng, defs: gradients, talkSlideStyle: talkSlideStyle,
     character: character, portrait: portrait, cat: cat, audienceFigure: audienceFigure,
     sky: skyLayer, far: farLayer, mid: midLayer, near: nearLayer,
     ground: ground, foreground: foreground, stations: S, paperSpots: PAPER_SPOTS, screenPlants: SCREEN_PLANTS,

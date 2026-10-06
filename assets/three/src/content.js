@@ -173,7 +173,7 @@ export function createContent(api) {
         '<p class="p-lede">Take a seat and pick a talk. The lights will dim.</p>' +
         '<h3>On stage</h3><ul class="talk-list">' + D.videos.map(function (v, i) {
           return '<li><button type="button" class="talk-card" data-talkopen="' + i + '"><span class="talk-thumb"><img src="' + esc(v.thumb) + '" alt="" loading="lazy"><span class="talk-play" aria-hidden="true">▶</span></span>' +
-            '<span class="talk-venue">' + esc(v.venue) + '</span><span class="talk-title">' + esc(v.title) + "</span></button></li>";
+            '<span class="talk-venue">' + esc(v.venue) + '</span><span class="talk-title">' + esc(v.title) + "</span>" + (v.note ? '<span class="talk-credit">' + esc(v.note) + "</span>" : "") + "</button></li>";
         }).join("") + "</ul>" +
         '<h3 id="posters">Posters &amp; slides</h3><ul class="poster-grid">' + D.posters.map(function (p, i) {
           return '<li><button type="button" class="poster-card" data-posterimg="' + i + '"><img src="' + esc(p.thumb) + '" alt="" loading="lazy">' +
@@ -386,7 +386,7 @@ export function createContent(api) {
   function openTheater(i=0){
     talkIdx=(i+D.videos.length)%D.videos.length;const v=D.videos[talkIdx];
     api.theater(true);document.body.classList.add('theater-open');
-    openModal(v.title, '<div class="three-theater"><p class="theater-venue">'+esc(v.venue)+'</p><div class="three-screen" id="th-screen"><img src="'+esc(v.thumb)+'" alt="Talk preview"><button type="button" class="btn btn-primary" id="th-start">▶ Start the talk</button></div><nav class="three-program" aria-label="Talk program">'+D.videos.map((q,k)=>'<button type="button" data-talk="'+k+'" aria-current="'+(k===talkIdx)+'"><span>'+esc(q.venue)+'</span>'+esc(q.title)+'</button>').join('')+'</nav></div>');
+    openModal(v.title, '<div class="three-theater"><p class="theater-venue">'+esc(v.venue)+(v.note?' · '+esc(v.note):'')+'</p><div class="three-screen" id="th-screen"><img src="'+esc(v.thumb)+'" alt="Talk preview"><button type="button" class="btn btn-primary" id="th-start">▶ Start the talk</button></div><nav class="three-program" aria-label="Talk program">'+D.videos.map((q,k)=>'<button type="button" data-talk="'+k+'" aria-current="'+(k===talkIdx)+'"><span>'+esc(q.venue)+'</span>'+esc(q.title)+'</button>').join('')+'</nav></div>');
   }
   function startTalk(){
     const v=D.videos[talkIdx];let html='';

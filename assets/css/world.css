@@ -1575,8 +1575,9 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
   .bird { display: none; }
-  /* the cats' photos only cross-fade, with nothing moving, so they keep changing (a little slower) */
+  /* the cats' photos (a little slower) and the talk slides only cross-fade, with nothing moving, so they keep changing */
   .cat-slide { animation: catSlides calc(var(--slide-dur, 15s) * 1.2) ease-in-out calc(var(--slide-delay, 0s) * 1.2) infinite !important; }
+  .slide { animation: var(--slide-name, slides) var(--slide-dur, 12s) var(--slide-delay, 0s) infinite !important; }
   .lotus-pond.is-stirred .pond-koi { animation: none !important; opacity: .65; }
   .koi-swim, .koi-tail, .koi-pectoral { animation: none !important; transform: none !important; }
   .painted-lids, .painted-cat-lids { opacity: 0; }
@@ -1589,9 +1590,10 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 .stage-edge { stroke: var(--w-gold); stroke-width: 2; }
 .screen-talk { cursor: pointer; }
 .screen-frame { fill: #111; stroke: var(--w-line); stroke-width: 2; }
-.slide { opacity: 0; animation: slides 12s infinite; }
+.slide { opacity: 0; animation: var(--slide-name, slides) var(--slide-dur, 12s) var(--slide-delay, 0s) infinite; }
 .slide-0 { opacity: 1; }
-@keyframes slides { 0%, 30% { opacity: 1; } 34%, 96% { opacity: 0; } 100% { opacity: 1; } }
+/* art.js (talkSlideStyle) gives each talk a 4 s turn and writes the keyframes for the number of talks */
+@keyframes slides { 0%, 24% { opacity: 1; } 27%, 97% { opacity: 0; } 100% { opacity: 1; } }
 .screen-glare { fill: rgba(255, 255, 255, .08); }
 .screen-talk:hover .screen-frame { stroke: var(--w-accent); stroke-width: 4; }
 .beam { fill: var(--w-beam); }
@@ -1624,13 +1626,14 @@ body:has(.st-contact.is-acting,.st-education.is-acting,.st-life.is-acting) #char
 
 /* talks panel */
 .talk-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-.talk-card { display: grid; grid-template-columns: 132px 1fr; grid-template-rows: auto 1fr; column-gap: 12px; width: 100%; text-align: left; padding: 8px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--bg); cursor: pointer; color: var(--ink); }
+.talk-card { display: grid; grid-template-columns: 132px 1fr; grid-template-rows: auto auto 1fr; column-gap: 12px; width: 100%; text-align: left; padding: 8px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--bg); cursor: pointer; color: var(--ink); }
 .talk-card:hover { border-color: var(--accent); }
-.talk-thumb { grid-row: 1 / 3; position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; background: #111; }
+.talk-thumb { grid-row: 1 / 4; position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16 / 9; background: #111; }
 .talk-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .talk-play { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font-size: 22px; background: rgba(0, 0, 0, .25); }
 .talk-venue { font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; color: var(--accent); font-weight: 600; }
 .talk-title { font: 600 14px/1.3 var(--font-display); }
+.talk-credit { grid-column: 2; font-size: 11.5px; line-height: 1.35; color: var(--muted); font-style: italic; margin-top: 3px; }
 .poster-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .poster-card { width: 100%; padding: 6px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--bg); cursor: pointer; text-align: left; color: var(--ink); }
 .poster-card:hover { border-color: var(--accent); }

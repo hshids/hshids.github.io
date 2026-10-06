@@ -66,6 +66,9 @@ Add `{ date: "Oct 2026", en: "…", zh: "…", paper: "<paper id>" }` at the top
 ### Add a talk video
 1. Upload the video to Google Drive and set sharing to **Anyone with the link → Viewer**.
 2. Add `{ paper, drive: "<file id>", thumb, title, venue }` to `videos`. The file id is the part of the share link between `/d/` and `/view`.
+3. Optional: add `note: "…"` to say how the video was made (the AIES one says it was generated with Gemini from the poster). It shows on the talk card, in the theater and on the basic page.
+
+The 2D Talks hall cycles through every thumbnail on its screen; the loop gets longer by 4 seconds for each talk you add.
 
 The video plays in the lecture hall through Drive's embedded player. If playback stutters, compress the file (for example `ffmpeg -i in.mp4 -vf scale=-2:720 -crf 28 -preset slow -c:a aac -b:a 96k out.mp4`), re-upload it, and swap the id.
 

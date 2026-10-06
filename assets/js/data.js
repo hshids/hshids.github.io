@@ -795,6 +795,7 @@ window.HJ_DATA = {
    *     linkedin: "https://www.linkedin.com/posts/...",               // link-out (always works)
    *     embed: "https://www.linkedin.com/embed/feed/update/urn:li:..." } // from “Embed this post”
    * YouTube: { paper: "...", title: "...", youtube: "https://youtu.be/VIDEO_ID" }
+   * Any of them can carry a short `note` shown with the talk (for example how the video was made).
    */
   videos: [
     { paper: "who-gets-credit", drive: "1RcvT4t2lLVgGDG28kfh8wDOy0kr-qV2S", thumb: "images/talks/who-gets-credit.jpg",
@@ -802,7 +803,10 @@ window.HJ_DATA = {
     { paper: "designing-safety", drive: "1ebqSK1dKOPiPprcQFx82D4kv32BOh_sw", thumb: "images/talks/designing-safety.jpg",
       title: "Designing for Safety in Sensitive Online Spaces", venue: "ACM WebSci 2026" },
     { paper: "alignment-in-time", drive: "1tfT0H80TEhxTJmCsSepJhtPaIP_Jm4K4", thumb: "images/talks/alignment-in-time.jpg",
-      title: "From Accuracy to Appropriate Reliance: A Peak-End Perspective on Long-Horizon Automation Experience", venue: "AutomationXP26 Workshop @ CHI 2026" }
+      title: "From Accuracy to Appropriate Reliance: A Peak-End Perspective on Long-Horizon Automation Experience", venue: "AutomationXP26 Workshop @ CHI 2026" },
+    { paper: "borrowed-authority", drive: "1cO8uP0zh18KAhoSdqsYOEpfryhaZcoCL", thumb: "images/talks/borrowed-authority.jpg",
+      title: "The Voices We Trust: When AI Borrows Authority", venue: "AIES 2026 Student Program",
+      note: "Video generated with Gemini from my AIES poster" }
   ],
 
   // Posters and slides shown at the Talks & Posters hall.
