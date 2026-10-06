@@ -52,6 +52,26 @@ function findKeepsake(){const entries=stories?.metadata.entries.filter(e=>e.stat
 function refreshPrompt(){if(seated){$('#prompt-label').textContent='Stand up';$('#world-prompt').disabled=false;return;}if(state.mode==='walk'){const s=pathWalk.getState();$('#prompt-label').textContent=s.done?'Choose the next path':s.paused?'Walk this path':'Pause and look around';$('#world-prompt').disabled=s.done;return;}$('#world-prompt').disabled=false;const label=state.mode==='interior'&&state.near==='writing'?'Write to the diary':state.mode==='interior'&&state.near==='talks'?'Leave a thought':state.near==='home'?'Read Hanjing’s letter':'Read '+(station()?.label||'this place');$('#prompt-label').textContent=label;}
 function stopWalking(){pathWalk?.stop();walkStatus='';walkFocus=null;container.classList.remove('is-walking');$('#walk-reverse-btn').hidden=true;$('#walk-next').hidden=true;$('#walk-next').replaceChildren();$('#world-prompt').disabled=false;}
 function walkingBlockers(){return landscape.getRoadBlockers();}
+// The orbiting camera never passes into a building: when another chapter's walls or roof (or a hill)
+// stand between the place in view and the camera, the camera stops just in front of them, like a
+// camera on a spring arm. Only large opaque pieces count, so trees and lamps never make it jump.
+const camRay=new THREE.Raycaster(),camDir=new THREE.Vector3(),camLastEye=new THREE.Vector3(Infinity,0,0),camLastTarget=new THREE.Vector3();let camSolids=null,camFit=Infinity;
+function cameraSolids(){
+  if(camSolids)return camSolids;camSolids=[];
+  const add=(id,root)=>{const meshes=[];root.updateWorldMatrix(true,true);root.traverse(o=>{if(!o.isMesh||o.userData?.interaction||!o.visible)return;const m=[].concat(o.material)[0];if(!m||m.visible===false||(m.transparent&&m.opacity<.9))return;const g=o.geometry;if(!g.boundingSphere)g.computeBoundingSphere();const tris=(g.index?g.index.count:g.attributes.position.count)/3;if(g.boundingSphere.radius*o.matrixWorld.getMaxScaleOnAxis()<.9||tris>60000)return;meshes.push(o);});
+    if(meshes.length)camSolids.push({id,box:new THREE.Box3().setFromObject(root),meshes});};
+  for(const st of garden.stations)add(st.id,st.root);
+  return camSolids;
+}
+function keepCameraOutside(){
+  if(camLastEye.distanceToSquared(cameraEye)<1e-6&&camLastTarget.distanceToSquared(target)<1e-6){if(camFit<Infinity)cameraEye.copy(target).addScaledVector(camDir,camFit);return;}
+  camLastEye.copy(cameraEye);camLastTarget.copy(target);camFit=Infinity;
+  camDir.subVectors(cameraEye,target);const len=camDir.length();if(len<1)return;camDir.divideScalar(len);
+  camRay.set(target,camDir);camRay.near=.3;camRay.far=len;camRay.camera=camera;
+  let best=Infinity;
+  for(const g of cameraSolids()){if(g.id===state.near||!camRay.ray.intersectsBox(g.box))continue;const hit=camRay.intersectObjects(g.meshes,false)[0];if(hit&&hit.distance<best)best=hit.distance;}
+  if(best<Infinity){camFit=Math.max(.6,best-.7);cameraEye.copy(target).addScaledVector(camDir,camFit);}
+}
 function extraWorldBlockers(){return [...magic.colliders,...stories.colliders].map(c=>{const s=station(c.station),record={...c,min:s.worldPoint(c.min),max:s.worldPoint(c.max),world:true};Object.defineProperty(record,'disabled',{enumerable:true,get:()=>!!c.disabled});return record;});}
 function beginWalk(road){if(!road||!state.ready)return false;if(state.mode==='interior'){say('Return to the miniature, then choose a stone path outside.');return false;}const result=pathWalk.begin({...road,cameraPosition:camera.position,cameraTarget:target});if(!result.ok){say(result.message);return false;}closeNewPages();content.closePanel();content.expandGuide(false);notebook?.close();state.mode='walk';state.roomId=null;walkLookYaw=walkLookPitch=0;walkFov=low?68:62;walkStatus='';walkFocus=null;container.classList.remove('is-inside-room');container.classList.add('is-walking');garden.setActive('overview');cats.bingbing.visible=false;cats.xiaohei.visible=true;$('#walk-reverse-btn').hidden=false;$('#walk-next').hidden=true;$('#chapter-eyebrow').textContent='ON THE PATH · DRAG TO LOOK AROUND';syncWalkUI(pathWalk.getState());canvas.focus({preventScroll:true});history.replaceState(null,'',location.pathname+location.search);return true;}
 function toggleWalk(){const s=pathWalk.getState();if(s.done)return;if(s.paused)pathWalk.resume();else pathWalk.pause();refreshPrompt();}
@@ -202,6 +222,7 @@ function frame(now){if(stopped||document.hidden)return;if(paused&&!qaRenderOnce)
     // seated: the eye stays in the seat and turning only turns the head
     if(seated){target.copy(seated.eye).sub(new THREE.Vector3(Math.sin(state.yaw)*Math.cos(state.pitch)*state.distance,Math.sin(state.pitch)*state.distance,Math.cos(state.yaw)*Math.cos(state.pitch)*state.distance));desired.copy(target);}
     cameraEye.copy(target).add(new THREE.Vector3(Math.sin(state.yaw)*Math.cos(state.pitch)*state.distance,Math.sin(state.pitch)*state.distance,Math.cos(state.yaw)*Math.cos(state.pitch)*state.distance));
+    if(state.mode==='chapter'&&!seated)keepCameraOutside();
   }
   const fov=state.mode==='walk'?walkFov:state.mode==='interior'?(seated?(low?80:70):(low?72:62)):44;const nextFov=state.mode==='walk'&&!reduced?THREE.MathUtils.damp(camera.fov,fov,5,dt||1/60):fov;if(Math.abs(camera.fov-nextFov)>.001){camera.fov=nextFov;camera.updateProjectionMatrix();}
   const room=currentRoom();if(room){const b=room.bounds;cameraEye.x=THREE.MathUtils.clamp(cameraEye.x,b.min[0]+.16,b.max[0]-.16);cameraEye.y=THREE.MathUtils.clamp(cameraEye.y,b.min[1]+.35,b.max[1]-.18);cameraEye.z=THREE.MathUtils.clamp(cameraEye.z,b.min[2]+.16,b.max[2]-.16);}
@@ -304,7 +325,7 @@ async function init(){
   // its textures and compile its shaders group by group in idle moments, so flying in and walking
   // around for the first time does not stall on each new material, and nothing blocks the letter.
   warmUp();
-  window.__HANJING_3D__={state,go,overview,enterRoom,leaveRoom,currentRoom,held,turnInPlace,get roomBlocks(){return roomBlocks;},get seated(){return seated;},standUp,focusStory,perform:action,pick,interact,renderer,scene,camera,garden,cats,actors:cats,magic,landscape,invitation,notebook,diary,stories,architecture,pathWalk,get talkNotes(){return talkNotes;},textureMemory,overviewBatches,
+  window.__HANJING_3D__={THREE,state,go,overview,enterRoom,leaveRoom,currentRoom,held,turnInPlace,get roomBlocks(){return roomBlocks;},get seated(){return seated;},standUp,focusStory,perform:action,pick,interact,renderer,scene,camera,garden,cats,actors:cats,magic,landscape,invitation,notebook,diary,stories,architecture,pathWalk,get talkNotes(){return talkNotes;},textureMemory,overviewBatches,
     metrics:()=>({calls:renderer.info.render.calls,triangles:renderer.info.render.triangles,textures:renderer.info.memory.textures,geometries:renderer.info.memory.geometries,quality,humanModels:0}),
     get lastTap(){return lastTap;},getInteractionTargets(){scene.updateMatrixWorld(true);return interactionItems().map(i=>{const objects=(i.objects||[i.object]).filter(o=>o?.isObject3D);const p=objects.length?new THREE.Box3().setFromObject(objects[0]).getCenter(new THREE.Vector3()):new THREE.Vector3(...i.point);p.project(camera);return{id:i.id,type:i.type,station:i.station,x:(p.x*.5+.5)*canvas.clientWidth,y:(-.5*p.y+.5)*canvas.clientHeight+canvas.getBoundingClientRect().top,visible:objects.some(isPickable)&&p.z<1&&Math.abs(p.x)<1&&Math.abs(p.y)<1};});}};
   if(new URLSearchParams(location.search).has('qa'))window.__CRYSTAL_QA__={pause:value=>{paused=!!value;qaRenderOnce=true;},renderOnce(){qaRenderOnce=true;},advanceWalk(dt){const pose=pathWalk.update(state.overlay?0:dt);qaRenderOnce=true;return pose?pathWalk.getState():null;},walkRoom(keys,seconds){held.clear();for(const k of keys)held.add(k);for(let t=0;t<seconds;t+=1/60)stepInRoom(1/60);held.clear();target.copy(desired);qaRenderOnce=true;const flat=Math.cos(state.pitch)*state.distance;return[target.x+Math.sin(state.yaw)*flat,target.z+Math.cos(state.yaw)*flat];},finishCamera(){if(state.mode!=='walk'){target.copy(desired);state.distance=wantedDistance;}else{camera.fov=walkFov;camera.updateProjectionMatrix();}qaRenderOnce=true;},get content(){return content;},get scene(){return scene;},get enchant(){return enchant;},get renderer(){return renderer;},get camera(){return camera;},get diary(){return diary;},get casebook(){return casebook;},get caseClues(){return caseClues;},get talkNotes(){return talkNotes;}};
