@@ -129,7 +129,9 @@
 .fabric { --stitch-gold: #b38845; }
 .fabric[data-theme="dark"] { --stitch-gold: #dcbb7a; }
 .fabric :focus-visible, .fabric .guide-fab:focus-visible { outline: 1.6px dashed var(--stitch-gold); outline-offset: 3px; border-radius: 8px; }
-.fabric .scroll-hotspot:focus-visible, .fabric .scroll-tick:hover, .fabric .scroll-tick:focus-visible { outline: 1.6px dashed var(--stitch-gold); outline-offset: 2px; }
+.fabric .scroll-tick:hover, .fabric .scroll-tick:focus-visible { outline: 1.6px dashed var(--stitch-gold); outline-offset: 2px; }
+/* the scroll's hotspots draw no frame when focused either: the crane's motes brighten, a plaque lifts and glows */
+.fabric .scroll-hotspot:focus-visible { outline: none; }
 .fabric .scroll-map-view { box-shadow: none; border: 1.6px dashed var(--stitch-gold); opacity: .9; }
 /* Pointing at a hotspot draws no frame: the thing itself lifts off the cloth a little, as the stations do
    (a plaque rises on its ropes, the crane rises with its shadow left behind). */
@@ -140,6 +142,7 @@
   .fabric:has([data-scroll-hotspot="dalian"]:hover) .scroll-sign[data-chapter="dalian"] :is(.paint-label, .scroll-paper),
   .fabric:has([data-scroll-hotspot="tail"]:hover) .scroll-sign[data-chapter="tail"] :is(.paint-label, .scroll-paper) { translate: 0 -3px; }
   .fabric:has([data-scroll-hotspot="crane"]:hover) .cloth-crane > :not(.cc-lift) { translate: 1.5px -3px; }
+  .fabric:has([data-scroll-hotspot="crane"]:hover) .cc-sparks { opacity: 1; }
   .fabric:has([data-scroll-hotspot="crane"]:hover) .cloth-crane .cc-lift { opacity: .75; }
 }
 
@@ -198,3 +201,13 @@
   .fabric .layer-ground .st { filter: drop-shadow(1px 3px 2.5px rgba(46, 32, 18, .3)); }
   .fabric[data-theme="dark"] .layer-ground .st { filter: drop-shadow(1px 3px 2.5px rgba(0, 0, 0, .45)); }
 }
+
+/* The crane's motes of light */
+.cc-sparks { opacity: .75; transition: opacity .35s ease; pointer-events: none; }
+.cc-spark { transform-box: fill-box; transform-origin: center; animation: ccTwinkle 2.8s ease-in-out infinite; }
+@keyframes ccTwinkle { 0%, 100% { opacity: 0; scale: .45; translate: 0 2px; } 40% { opacity: 1; scale: 1.15; translate: 0 -1px; } 70% { opacity: .5; scale: .85; translate: 0 -3px; } }
+.fabric:has([data-scroll-hotspot="crane"]:focus-visible) .cc-sparks, .scroll-crane-glide.is-gliding .cc-sparks { opacity: 1; }
+.fabric:has([data-scroll-hotspot="head"]:focus-visible) .scroll-sign[data-chapter="head"] :is(.paint-label, .scroll-paper),
+.fabric:has([data-scroll-hotspot="dalian"]:focus-visible) .scroll-sign[data-chapter="dalian"] :is(.paint-label, .scroll-paper),
+.fabric:has([data-scroll-hotspot="tail"]:focus-visible) .scroll-sign[data-chapter="tail"] :is(.paint-label, .scroll-paper) { translate: 0 -3px; filter: drop-shadow(0 0 4px rgba(255, 216, 140, .95)); }
+@media (prefers-reduced-motion: reduce) { .cc-spark { animation: none; opacity: .7; } }

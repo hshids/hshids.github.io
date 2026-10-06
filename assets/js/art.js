@@ -1032,6 +1032,7 @@
       '<path d="M1 7V1h6v4.6H3.2V3.1h2.1" fill="none" stroke="#a8432f" stroke-width=".75" stroke-linecap="square"/></pattern>';
     out += '<pattern id="gCoinRose" width="8" height="8" patternUnits="userSpaceOnUse"><rect width="8" height="8" fill="#b4847a"/>' + weft(8, 8, "#4a2620", .2) +
       '<g fill="none" stroke="#f0d8a8" stroke-width=".45"><circle r="4"/><circle cx="8" r="4"/><circle cy="8" r="4"/><circle cx="8" cy="8" r="4"/><circle cx="4" cy="4" r="4"/></g></pattern>';
+    out += '<radialGradient id="gSpark"><stop offset="0" stop-color="#fffbe6"/><stop offset=".22" stop-color="#ffe39a"/><stop offset=".45" stop-color="#eebc4c" stop-opacity=".75"/><stop offset=".72" stop-color="#e2a835" stop-opacity=".22"/><stop offset="1" stop-color="#e2a835" stop-opacity="0"/></radialGradient>';
     out += '<pattern id="gWeaveFine" width="1.6" height="1.6" patternUnits="userSpaceOnUse"><path d="M0 .4h1.6" stroke="#fff" stroke-opacity=".22" stroke-width=".5"/><path d="M1.2 0v1.6" stroke="#000" stroke-opacity=".16" stroke-width=".45"/></pattern>';
     out += '<pattern id="gLinenCoarse" width="3" height="3" patternUnits="userSpaceOnUse"><rect width="3" height="3" fill="#dccfb2"/><path d="M0 .7h3M0 2.2h3" stroke="#fff" stroke-opacity=".28" stroke-width=".7"/><path d="M.8 0v3M2.3 0v3" stroke="#6e5c40" stroke-opacity=".2" stroke-width=".6"/></pattern>';
     // satin floss: close parallel stitches, a lighter and a darker thread in each repeat

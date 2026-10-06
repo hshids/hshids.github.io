@@ -143,12 +143,24 @@ export function createInvitation({
     }
   }
 
+  // How far the world has been built (0..1), shown as the enter button filling like a lantern being lit,
+  // with the step and percentage in its label until it is ready.
+  function setProgress(fraction, step) {
+    if (destroyed || readyState) return;
+    const pct = Math.max(0, Math.min(100, Math.round(fraction * 100)));
+    enterButton.style.setProperty('--progress', pct + '%');
+    enterButton.setAttribute('aria-valuenow', String(pct));
+    enterLabel.textContent = (step || 'Opening the gates') + '… ' + pct + '%';
+  }
+
   function setReady(value) {
     if (destroyed) return;
     const changed = readyState !== Boolean(value);
     readyState = Boolean(value);
     enterButton.disabled = !readyState;
     enterButton.setAttribute('aria-busy', String(!readyState));
+    enterButton.classList.toggle('is-loading', !readyState);
+    if (readyState) enterButton.style.setProperty('--progress', '100%');
     enterLabel.textContent = readyState ? 'Open my world' : 'Opening the gates…';
     if (changed && openState) status.textContent = readyState ? 'The world is ready. You can enter whenever you like.' : 'The world is opening. You can read the letter while you wait.';
   }
@@ -255,7 +267,7 @@ export function createInvitation({
 
   mount.append(element);
   setReady(readyState);
-  const api = { element, open, read, close, setReady, destroy,
+  const api = { element, open, read, close, setReady, setProgress, destroy,
     get isOpen() { return openState; }, get isReady() { return readyState; } };
   if (autoOpen) open();
   return api;
