@@ -211,3 +211,18 @@
 .fabric:has([data-scroll-hotspot="dalian"]:focus-visible) .scroll-sign[data-chapter="dalian"] :is(.paint-label, .scroll-paper),
 .fabric:has([data-scroll-hotspot="tail"]:focus-visible) .scroll-sign[data-chapter="tail"] :is(.paint-label, .scroll-paper) { translate: 0 -3px; filter: drop-shadow(0 0 4px rgba(255, 216, 140, .95)); }
 @media (prefers-reduced-motion: reduce) { .cc-spark { animation: none; opacity: .7; } }
+
+/* The mortarboard: black wool appliqué with a small ring of running stitch, gold-thread button, cord and tassel */
+.cloth-cap .cap-lift { fill: rgba(20, 14, 8, .35); }
+.cloth-cap .cap-wool { fill: #23201e; stroke: #0d0b0a; stroke-width: .25; stroke-linejoin: round; }
+.cloth-cap .cap-edge { fill: #141211; }
+.cloth-cap .cap-board { fill: #2b2725; }
+.cloth-cap .cap-shade { fill: url(#gWeaveFine); opacity: .28; }
+.cloth-cap .cap-sheen { fill: url(#gWeaveFine); opacity: .32; }
+.cloth-cap .cap-fold { fill: none; stroke: #4a4440; stroke-width: .3; stroke-linecap: round; opacity: .8; }
+.cloth-cap .cap-run { fill: none; stroke: #e9dcc0; stroke-width: .32; stroke-dasharray: .9 .55; stroke-linecap: round; opacity: .9; }
+.cloth-cap .cap-cord { fill: none; stroke: url(#gGoldThread); stroke-width: .75; stroke-linecap: round; }
+.cloth-cap .cap-button { fill: url(#gGoldThread); stroke: #7a5418; stroke-width: .15; }
+.cloth-cap .cap-tassel { fill: none; stroke: url(#gGoldThread); stroke-width: .3; stroke-linecap: round; }
+.cloth-cap .cap-knot { fill: url(#gGoldThread); stroke: #7a5418; stroke-width: .15; }
+.cloth-cap .cap-band { fill: none; stroke: #8f6520; stroke-width: .8; }
