@@ -63,6 +63,15 @@ function cameraSolids(){
   for(const st of garden.stations)add(st.id,st.root);
   return camSolids;
 }
+// Inside one of this chapter's own buildings or roofs (zoomed in close): walls close by on every side
+// and something overhead. Then the camera backs out until it is outside again.
+const camAxes=[[1,0,0],[-1,0,0],[0,0,1],[0,0,-1]].map(a=>new THREE.Vector3(...a)),camUp=new THREE.Vector3(0,1,0),camProbe=new THREE.Raycaster(),camPoint=new THREE.Vector3();
+function insideBuilding(g,p){
+  if(!g.box.containsPoint(p))return false;camProbe.camera=camera;camProbe.near=0;
+  camProbe.far=7;camProbe.set(p,camUp);if(!camProbe.intersectObjects(g.meshes,false).length)return false;
+  camProbe.far=5.5;for(const a of camAxes){camProbe.set(p,a);if(!camProbe.intersectObjects(g.meshes,false).length)return false;}
+  return true;
+}
 function keepCameraOutside(){
   if(camLastEye.distanceToSquared(cameraEye)<1e-6&&camLastTarget.distanceToSquared(target)<1e-6){if(camFit<Infinity)cameraEye.copy(target).addScaledVector(camDir,camFit);return;}
   camLastEye.copy(cameraEye);camLastTarget.copy(target);camFit=Infinity;
@@ -71,6 +80,10 @@ function keepCameraOutside(){
   let best=Infinity;
   for(const g of cameraSolids()){if(g.id===state.near||!camRay.ray.intersectsBox(g.box))continue;const hit=camRay.intersectObjects(g.meshes,false)[0];if(hit&&hit.distance<best)best=hit.distance;}
   if(best<Infinity){camFit=Math.max(.6,best-.7);cameraEye.copy(target).addScaledVector(camDir,camFit);}
+  const own=cameraSolids().find(g=>g.id===state.near);
+  if(own&&insideBuilding(own,cameraEye)){
+    for(let d=cameraEye.distanceTo(target)+.5;d<70;d+=.5){camPoint.copy(target).addScaledVector(camDir,d);if(!insideBuilding(own,camPoint)){wantedDistance=Math.max(wantedDistance,d+.4);state.distance=Math.max(state.distance,d+.4);camFit=Infinity;cameraEye.copy(target).addScaledVector(camDir,state.distance);break;}}
+  }
 }
 function extraWorldBlockers(){return [...magic.colliders,...stories.colliders].map(c=>{const s=station(c.station),record={...c,min:s.worldPoint(c.min),max:s.worldPoint(c.max),world:true};Object.defineProperty(record,'disabled',{enumerable:true,get:()=>!!c.disabled});return record;});}
 function beginWalk(road){if(!road||!state.ready)return false;if(state.mode==='interior'){say('Return to the miniature, then choose a stone path outside.');return false;}const result=pathWalk.begin({...road,cameraPosition:camera.position,cameraTarget:target});if(!result.ok){say(result.message);return false;}closeNewPages();content.closePanel();content.expandGuide(false);notebook?.close();state.mode='walk';state.roomId=null;walkLookYaw=walkLookPitch=0;walkFov=low?68:62;walkStatus='';walkFocus=null;container.classList.remove('is-inside-room');container.classList.add('is-walking');garden.setActive('overview');cats.bingbing.visible=false;cats.xiaohei.visible=true;$('#walk-reverse-btn').hidden=false;$('#walk-next').hidden=true;$('#chapter-eyebrow').textContent='ON THE PATH · DRAG TO LOOK AROUND';syncWalkUI(pathWalk.getState());canvas.focus({preventScroll:true});history.replaceState(null,'',location.pathname+location.search);return true;}

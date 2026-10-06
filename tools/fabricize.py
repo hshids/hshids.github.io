@@ -831,6 +831,31 @@ def gold_threads(lab, solid, night):
     return g if g.any() else None
 
 
+def head_mask(alpha, u):
+    """Each standing figure's head (crown to chin, a little wider than the face), feathered: found from
+    the figure's own silhouette, so it works in every pose sheet. Pieces too short to be a whole figure
+    (an arm, a hand, a face sheet) are left alone."""
+    H, W = alpha.shape
+    solid = (alpha > .5).astype(np.uint8)
+    out = np.zeros((H, W), np.float32)
+    nl, cc, st, _ = cv2.connectedComponentsWithStats(solid, 8)
+    for i in range(1, nl):
+        x, y, w, h, area = st[i]
+        if h < .55 * H:
+            continue
+        hh = .17 * h
+        top = cc[y:int(y + .05 * h)] == i
+        cols = np.nonzero(top.any(0))[0]
+        if not len(cols):
+            continue
+        cx = float(cols.mean())
+        y1 = int(y + hh); x0 = max(0, int(cx - .72 * hh)); x1 = min(W, int(cx + .72 * hh))
+        out[y:y1, x0:x1] = np.maximum(out[y:y1, x0:x1], (cc[y:y1, x0:x1] == i).astype(np.float32))
+    k = max(1.0, 1.6 * u)
+    out = cv2.GaussianBlur(out, (0, 0), k) * (alpha > .02)
+    return np.clip(out * 1.4, 0, 1)
+
+
 def head_zone(skin, feats, shape):
     """Round each face (a skin shape with eyes and brows inside it), the box her hair can fill: a face
     wide either side, most of a face above, down to the chin."""
@@ -1236,9 +1261,11 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
     gold = gold_threads(cv2.GaussianBlur(lab_o, (0, 0), max(.6, .4 * u)), solid, night)
     if gold is not None:
         if skin is not None: gold &= ~skin
-        col = silk(col, gold, src, L_o, u, rng, *SILK_GOLD)
-        gl = cv2.GaussianBlur(gold.astype(np.float32), (0, 0), max(.5, .3 * u))[..., None]
-        col = col * (1 + .1 * gl) + 8 * gl
+        # the gold leaves on the qipao keep their painted shapes, crisp, with a little more shine
+        kg = max(3, int(round(2.4 * u)) | 1)
+        whole = cv2.dilate(gold.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kg, kg))) > 0
+        gl = cv2.GaussianBlur((whole & solid).astype(np.float32), (0, 0), max(.5, .4 * u))[..., None]
+        col = col * (1 - gl) + bgr_f * (1.05 * gl) + 4 * gl
     # a still face turned to us is embroidered: fine silk following the face, eyes, brows, nose
     # and lips in finer, slightly raised stitches; jaw lines and shading get no thread
     if name in FACE_SILK and skin is not None and feats is not None and big_face(skin, u):
@@ -1289,6 +1316,7 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
         hair_px = cv2.dilate((hair[pid] & solid).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (kh, kh))) > 0
         hair_px |= head_zone(skin, feats, solid.shape)   # black hair at night is not found by its colour
         for name, m in gm.items():
+            if night: break      # one garment at night: her outline is the edge of the qipao (no loops round the gold leaves)
             m = m & ~hair_px     # the hair is not a garment (dark hair can pass for suiting or black silk)
             r = max(1, int(round(.9 * u)))
             m_in = cv2.erode(m.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r + 1, 2 * r + 1)))
@@ -1314,6 +1342,11 @@ def figure(name, bgr_f, alpha, solid, lab_o, src, u, rng):
                 pts = smooth_closed(c, max(1, int(round(.9 * u))))
                 back_stitch_line(needle, np.vstack([pts, pts[:1]]), col, u, avoid, dark=True)
     col = needle.composite(col)
+    if not face_only:
+        # her head, face and hair, stays the painting itself in every pose: cut as cloth, the hair and
+        # the qipao ran together over the forehead in some frames and darkened the face
+        hm = head_mask(alpha, u)[..., None]
+        col = col * (1 - hm) + bgr_f * hm
     return np.dstack([np.clip(col, 0, 255), np.clip(alpha * 255, 0, 255)]).astype(np.uint8)
 
 
