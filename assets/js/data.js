@@ -160,7 +160,7 @@ window.HJ_DATA = {
         en: "AI can now speak in the voice of people who have died, including family members, pets and even well-known experts. I study who holds authority over these representations after they are created, and what operators owe to the people who rely on them.",
         zh: "AI 已经能以逝者的声音说话，家人、宠物，甚至知名专家都可以。我研究这些“数字复活”被创建之后由谁拥有权威，以及运营者对依赖它们的人负有什么责任。"
       },
-      keywords: "persona afterlife afterlives resurrection deceased posthumous griefbot grief death consent digital immortality 分身 逝者 复活 数字永生 来生 人格"
+      keywords: "persona afterlife afterlives resurrection deceased posthumous griefbot grief death consent digital immortality memorial bereavement pet 分身 逝者 复活 数字永生 来生 人格"
     },
     {
       id: "platforms",
@@ -196,6 +196,33 @@ window.HJ_DATA = {
    * Videos live in the `videos` list further down.
    */
   publications: [
+    {
+      id: "afterglow",
+      title: "Afterglow: A Place-Based Memorial Ecology for AI-Mediated Pet Bereavement",
+      authors: ["Hanjing Shi", "Dominic DiFranzo"],
+      date: "2026-09-30",
+      year: 2026,
+      type: "preprint",
+      venue: "arXiv preprint arXiv:2609.38729",
+      venueShort: "arXiv 2026",
+      theme: "persona",
+      links: { arxiv: "https://arxiv.org/abs/2609.38729", pdf: "https://arxiv.org/pdf/2609.38729" },
+      methods: ["Research through Design", "Formative survey (N=57)", "Roundtable walkthroughs (20 participants)"],
+      summary: {
+        en: "Afterglow is a mobile memorial world for people grieving a pet. It connects private remembrance, human witnessing and symbolic messages from the pet, and was shaped by a survey (N=57) and six online roundtable walkthroughs with 20 participants.",
+        zh: "Afterglow 是一个为失去宠物的人设计的移动端纪念世界，把私人的怀念、他人的见证和来自宠物的象征性讯息连在一起。设计参考了一份问卷（N=57）和六场线上圆桌走查，共 20 位参与者。"
+      },
+      intro: {
+        en: "This one is about losing a pet. 🐾 That grief is real, but people rarely get much room for it. AI can give the bond a voice again, and that is also the risk: a comforting reply can start to forgive you, or ask for your attention. So we designed Afterglow, a little mobile world where you can remember privately, be witnessed by other people and receive symbolic messages from your pet. A survey of 57 people shaped the first version, and 20 participants walked through two versions in six online roundtables. What came out of it is Legible Restraint, limits on what the pet's voice can claim that hold whoever or whatever is speaking, and Designing for Goodbye, so remembering stays open without you having to keep coming back to prove you care.",
+        zh: "这篇讲的是失去宠物。🐾 这份哀伤是真实的，却很少被给予空间。AI 可以让这段牵绊重新“开口说话”，而这恰恰也是风险：一句安慰的回复可能开始“原谅”你，或者向你索要关注。所以我们设计了 Afterglow，一个小小的移动端世界，你可以在里面私下怀念，被别人见证，也能收到来自宠物的象征性讯息。57 人的问卷塑造了第一版，20 位参与者在六场线上圆桌里走查了两个版本。我们由此提出“可见的克制”（Legible Restraint）：无论是谁、以什么方式在说话，宠物的声音能主张什么都有清楚的边界；以及“为告别而设计”（Designing for Goodbye）：怀念一直都在，但你不必一次次回来证明自己的在乎。"
+      },
+      takeaway: {
+        en: "Legible Restraint: limits on relational authority, such as a pet's voice forgiving you or asking for your attention, should survive changes in speaker, generation context, trigger logic, data use and participation. Its consequence over time, Designing for Goodbye, keeps remembrance available without making continued use a condition of care.",
+        zh: "“可见的克制”：关系性权威的边界（比如宠物的声音“原谅”你或向你索要关注）应当在说话者、生成情境、触发逻辑、数据使用和参与方式改变时依然成立。它在时间上的延伸是“为告别而设计”：让怀念始终可及，却不把持续使用当作在乎的条件。"
+      },
+      keywords: "afterglow petopia pet pets memorial bereavement grief loss griefbot continuing bonds witnessing research through design legible restraint designing for goodbye 宠物 纪念 离别 去世 哀伤 悼念",
+      abstract: "Pet bereavement often receives little social recognition. Generative AI can give a continuing bond a responsive voice, but a comforting reply may also claim authority to forgive or request attention. We investigate how a memorial can support connection without turning remembrance into obligation. Through Research through Design, we developed Afterglow, a mobile world connecting private remembrance, human witnessing, and symbolic Pet messages. A formative survey (N=57) informed the initial design, followed by six online roundtable walkthroughs with 20 unique participants across two prototype iterations. Our interpretive analysis develops tensions between returnable connection and emotional obligation, recognizable likeness and ontological clarity, and protective intervention and surveillant authority. We contribute Legible Restraint, a cross-layer requirement that limits on relational authority survive changes in speaker, generation context, trigger logic, data use, and participation. Its temporal consequence, Designing for Goodbye, keeps remembrance available without making continued use a condition of care."
+    },
     {
       id: "pathway-lab",
       title: "Pathway Lab: A Design Probe for Redirecting Adolescent Peer Conflict Before It Becomes Bullying",
@@ -726,11 +753,12 @@ window.HJ_DATA = {
       title: "Afterglow Petopia",
       status: "review",
       theme: "persona",
+      paper: "afterglow", // the published preprint, shown with the project in the guide
       en: "Designing AI-mediated memorial systems for pet bereavement, and studying how generative agents and multimodal memorial artifacts can help people remember their pets and make sense of a bond that continues.",
       zh: "为失去宠物的人设计 AI 纪念系统，研究生成式智能体和多模态纪念物怎样帮助人们记住自己的宠物，理解这段关系在离别之后如何延续。",
       intro: {
-        en: "This one is under review right now, so fingers crossed! 🤞🐾 Afterglow Petopia is about losing a pet. I'm designing AI memorial systems and studying how generative agents and multimodal keepsakes can help people remember their pets and make sense of a bond that keeps going.",
-        zh: "这个项目正在审稿中，一起祈祷吧！🤞🐾 Afterglow Petopia 关于失去宠物这件事。我在设计 AI 纪念系统，研究生成式智能体和多模态纪念物怎样帮人们记住自己的宠物，理解这份仍在延续的牵绊。"
+        en: "This one is under review right now, so fingers crossed! 🤞🐾 Afterglow Petopia is about losing a pet. I'm designing AI memorial systems and studying how generative agents and multimodal keepsakes can help people remember their pets and make sense of a bond that keeps going. The first paper, “Afterglow”, is now up on arXiv.",
+        zh: "这个项目正在审稿中，一起祈祷吧！🤞🐾 Afterglow Petopia 关于失去宠物这件事。我在设计 AI 纪念系统，研究生成式智能体和多模态纪念物怎样帮人们记住自己的宠物，理解这份仍在延续的牵绊。第一篇论文《Afterglow》的预印本已经发在 arXiv 上了。"
       },
       keywords: "afterglow petopia pet pets memorial bereavement grief loss griefbot generative agents multimodal remember 宠物 纪念 离别 哀伤 悼念"
     },
@@ -769,6 +797,9 @@ window.HJ_DATA = {
     { date: "2026", paper: "pathway-lab",
       en: "Poster at CSCW 2026: “Pathway Lab”, a design probe for redirecting adolescent peer conflict before it becomes bullying.",
       zh: "CSCW 2026 海报《Pathway Lab》，一个在青少年冲突演变成霸凌之前，引导他们转向的设计探针。" },
+    { date: "2026-09", paper: "afterglow",
+      en: "New preprint “Afterglow”: a place-based memorial for people grieving a pet, designed so remembering never turns into an obligation.",
+      zh: "新预印本《Afterglow》，一个为失去宠物的人设计的纪念空间，让怀念不会变成一种负担。" },
     { date: "2026-09", paper: "his-name",
       en: "New preprint “His Name, Their Judgment” asks what happens when AI personas speak for a deceased expert.",
       zh: "新预印本《His Name, Their Judgment》，探讨当 AI 分身替逝去的专家“说话”时会发生什么。" },
