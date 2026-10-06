@@ -72,6 +72,15 @@ function insideBuilding(g,p){
   camProbe.far=5.5;for(const a of camAxes){camProbe.set(p,a);if(!camProbe.intersectObjects(g.meshes,false).length)return false;}
   return true;
 }
+// Too close to one of this chapter's own pieces: something within reach of the lens's view (its centre
+// or a corner) would be cut open by the near plane. Then the camera backs off a little.
+const camF=new THREE.Vector3(),camR=new THREE.Vector3(),camU=new THREE.Vector3(),camRayDir=new THREE.Vector3();
+function tooClose(g,p,look){
+  camF.subVectors(look,p).normalize();camR.crossVectors(camF,camUp);if(camR.lengthSq()<1e-6)camR.set(1,0,0);camR.normalize();camU.crossVectors(camR,camF);
+  const tv=Math.tan(THREE.MathUtils.degToRad(camera.fov/2)),th=tv*camera.aspect;camProbe.camera=camera;camProbe.near=0;camProbe.far=.38;
+  for(const [a,b] of [[0,0],[1,1],[1,-1],[-1,1],[-1,-1]]){camRayDir.copy(camF).addScaledVector(camR,a*th).addScaledVector(camU,b*tv).normalize();camProbe.set(p,camRayDir);if(camProbe.intersectObjects(g.meshes,false).length)return true;}
+  return false;
+}
 function keepCameraOutside(){
   if(camLastEye.distanceToSquared(cameraEye)<1e-6&&camLastTarget.distanceToSquared(target)<1e-6){if(camFit<Infinity)cameraEye.copy(target).addScaledVector(camDir,camFit);return;}
   camLastEye.copy(cameraEye);camLastTarget.copy(target);camFit=Infinity;
@@ -81,6 +90,9 @@ function keepCameraOutside(){
   for(const g of cameraSolids()){if(g.id===state.near||!camRay.ray.intersectsBox(g.box))continue;const hit=camRay.intersectObjects(g.meshes,false)[0];if(hit&&hit.distance<best)best=hit.distance;}
   if(best<Infinity){camFit=Math.max(.6,best-.7);cameraEye.copy(target).addScaledVector(camDir,camFit);}
   const own=cameraSolids().find(g=>g.id===state.near);
+  if(own&&own.box.containsPoint(cameraEye)&&!insideBuilding(own,cameraEye)&&tooClose(own,cameraEye,target)){
+    for(let d=cameraEye.distanceTo(target)+.25;d<cameraEye.distanceTo(target)+6;d+=.25){camPoint.copy(target).addScaledVector(camDir,d);if(!tooClose(own,camPoint,target)){wantedDistance=Math.max(wantedDistance,d);state.distance=Math.max(state.distance,d);camFit=Infinity;cameraEye.copy(target).addScaledVector(camDir,state.distance);break;}}
+  }
   if(own&&insideBuilding(own,cameraEye)){
     for(let d=cameraEye.distanceTo(target)+.5;d<70;d+=.5){camPoint.copy(target).addScaledVector(camDir,d);if(!insideBuilding(own,camPoint)){wantedDistance=Math.max(wantedDistance,d+.4);state.distance=Math.max(state.distance,d+.4);camFit=Infinity;cameraEye.copy(target).addScaledVector(camDir,state.distance);break;}}
   }
