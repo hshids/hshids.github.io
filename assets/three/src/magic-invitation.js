@@ -160,7 +160,7 @@ export function createInvitation({
     enterButton.disabled = !readyState;
     enterButton.setAttribute('aria-busy', String(!readyState));
     enterButton.classList.toggle('is-loading', !readyState);
-    if (readyState) enterButton.style.setProperty('--progress', '100%');
+    if (readyState) { enterButton.style.setProperty('--progress', '100%'); enterButton.setAttribute('aria-valuenow', '100'); }
     enterLabel.textContent = readyState ? 'Open my world' : 'Opening the gates…';
     if (changed && openState) status.textContent = readyState ? 'The world is ready. You can enter whenever you like.' : 'The world is opening. You can read the letter while you wait.';
   }

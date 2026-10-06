@@ -845,7 +845,7 @@
         .map(function (f) { return '<button type="button" class="filter" data-filter="' + f[0] + '" aria-pressed="' + (f[0] === "all") + '">' + f[1] + " <span>" + c[f[0]] + "</span></button>"; }).join("");
       var talks = D.videos.length ? '<section class="p-talks"><h3>Talks & videos</h3><ul>' + D.videos.map(function (v) {
         var p = G.pubById[v.paper];
-        return '<li><button type="button" class="link-btn" data-video="' + esc(v.paper) + '">▶ ' + esc(v.title || (p && p.title) || "Video") + "</button></li>";
+        return '<li><button type="button" class="link-btn" data-video="' + esc(v.paper) + '">▶ ' + esc(v.title || (p && p.title) || "Video") + "</button>" + (v.note ? ' <span class="p-muted">(' + esc(v.note) + ")</span>" : "") + "</li>";
       }).join("") + "</ul></section>" : "";
       return '<h2 id="panel-title" tabindex="-1">' + (SITE_LANG === "zh" ? "研究" : "Research") + "</h2>" +
         '<p class="p-lede">' + (SITE_LANG === "zh"
@@ -930,7 +930,7 @@
         '<p class="p-lede">Take a seat and pick a talk. The lights will dim.</p>' +
         '<h3>On stage</h3><ul class="talk-list">' + D.videos.map(function (v, i) {
           return '<li><button type="button" class="talk-card" data-talkopen="' + i + '"><span class="talk-thumb"><img src="' + esc(v.thumb) + '" alt="" loading="lazy"><span class="talk-play" aria-hidden="true">▶</span></span>' +
-            '<span class="talk-venue">' + esc(v.venue) + '</span><span class="talk-title">' + esc(v.title) + "</span></button></li>";
+            '<span class="talk-venue">' + esc(v.venue) + '</span><span class="talk-title">' + esc(v.title) + "</span>" + (v.note ? '<span class="talk-credit">' + esc(v.note) + "</span>" : "") + "</button></li>";
         }).join("") + "</ul>" +
         '<h3 id="posters">Posters &amp; slides</h3><ul class="poster-grid">' + D.posters.map(function (p, i) {
           return '<li><button type="button" class="poster-card" data-posterimg="' + i + '"><img src="' + esc(p.thumb) + '" alt="" loading="lazy">' +
@@ -1464,7 +1464,7 @@
     theater.classList.remove("is-playing");
     $(".th-avatar", theater).classList.remove("is-talking");
     $("#th-title").textContent = v.title;
-    $("#th-venue").textContent = v.venue;
+    $("#th-venue").textContent = v.venue + (v.note ? " · " + v.note : "");
     $("#th-screen").innerHTML = '<img src="' + esc(v.thumb) + '" alt="">' +
       '<button type="button" class="th-start"><span aria-hidden="true">▶</span> Start the talk</button>';
     $$(".th-item", theater).forEach(function (b) { b.setAttribute("aria-current", +b.dataset.talk === talkIdx ? "true" : "false"); });

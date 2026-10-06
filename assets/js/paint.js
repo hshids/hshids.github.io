@@ -776,7 +776,7 @@
     var body = forecourt(-358,200,540,560,7)+sprite('talkHall',-365,231.376,570,331);
     // Live slides still advance on the painted projection wall.
     var projection='<g class="screen-talk"><rect class="screen-frame painted-projection-wall" x="-189" y="383.376" width="214" height="98" rx="1"/>';
-    videos.forEach(function(v,i){projection+='<image class="slide slide-'+i+'" href="'+v.thumb+'" x="-189" y="383.376" width="214" height="98" preserveAspectRatio="xMidYMid meet" style="animation-delay:'+(i*4)+'s"/>';});
+    videos.forEach(function(v,i){projection+='<image class="slide slide-'+i+'" href="'+v.thumb+'" x="-189" y="383.376" width="214" height="98" preserveAspectRatio="xMidYMid meet" style="'+A.talkSlideStyle(i,videos.length)+'"/>';});
     body+=projection+materialHint('M-105 481.5q24 -.2 48 0','hint-wood',1.9)+'</g>';
     posters.slice(0,2).forEach(function(p,i){var w=i?105:137,h=i?135:130,x=i?325:205,y=560-h+(i ? .690 : .664);
       body+='<g class="easel" data-poster="'+p.paper+'" transform="translate('+x+' 0)"><title>Poster · '+p.venue+'</title>'+sprite('posterFrame',-w/2,y,w,h)+'<image href="'+p.thumb+'" x="'+(-w*.34)+'" y="'+(y+h*.105)+'" width="'+(w*.68)+'" height="'+(h*.605)+'" preserveAspectRatio="xMidYMid meet"/>'+sourceHint('posterFrame',[-w/2,y,w,h],[['M',930,535],['Q',982,533,1043,535]],'hint-wood',2.6+i)+'</g>';
