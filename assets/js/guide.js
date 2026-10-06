@@ -382,15 +382,15 @@
   function projects(lang) {
     var list = D.projects || [];
     return A(lang, lang === "zh"
-      ? "现在锅里有三样！🍳 一个在审稿：给失去宠物的人做的 AI 纪念系统 Afterglow Petopia；两个在进行中：和青少年一起设计网络安全聊天机器人，还有一个关于网上厌女言论的提醒实验。都还没公开，细节可以直接问真人版的我。"
-      : "Three things are cooking right now! 🍳 One is under review, Afterglow Petopia, an AI memorial system for people grieving a pet. Two are in progress: co-designing a cyber safety chatbot, and a nudge study on online misogyny. None are public yet, so for details, ask the human me.",
+      ? "现在锅里有三样！🍳 一个在审稿：给失去宠物的人做的 AI 纪念系统 Afterglow Petopia；两个在进行中：和青少年一起设计网络安全聊天机器人，还有一个关于网上厌女言论的提醒实验。Afterglow 的预印本已经在 arXiv 上了，另外两个还没公开，细节可以直接问真人版的我。"
+      : "Three things are cooking right now! 🍳 One is under review, Afterglow Petopia, an AI memorial system for people grieving a pet. Two are in progress: co-designing a cyber safety chatbot, and a nudge study on online misogyny. The Afterglow preprint is now on arXiv; the other two are not public yet, so for details, ask the human me.",
       fold(lang, { en: "What are they?", zh: "具体是哪些？" }, list.map(function (p) { return projectCard(p, lang); }).join("")),
       lang === "zh" ? ["你研究什么？", "最近有什么新动态？"] : ["What do you research?", "What's new?"], "research", { focus: { projects: true } });
   }
 
   function projectDetail(p, lang) {
     var mail = D.person.links.email;
-    var html = projectCard(p, lang) +
+    var html = projectCard(p, lang) + (p.paper && pubById[p.paper] ? paperCard(pubById[p.paper], lang) : "") +
       (mail ? '<div class="g-actions"><a class="g-btn" href="mailto:' + esc(mail) + '">✉️ ' + (lang === "zh" ? "给 Hanjing 发邮件" : "Email Hanjing") + "</a></div>" : "");
     return A(lang, pick(lang, p.intro || p) + "\n\n" + pick(lang, HUMAN_ONE), html,
       lang === "zh" ? ["正在做的项目", "你研究什么？"] : ["Current projects", "What do you research?"], "research", { focus: { project: p.id } });
