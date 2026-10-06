@@ -256,3 +256,19 @@
 @keyframes magic-knock-pop { from { opacity: 0; transform: scale(.7) translateY(8px); } }
 .magic-knock-skip { position: absolute; bottom: calc(28px + env(safe-area-inset-bottom)); left: 0; right: 0; margin: 0; text-align: center; font: 400 11px/1.4 Inter, sans-serif; letter-spacing: .08em; color: #d9c9a3aa; }
 @media (prefers-reduced-motion: reduce) { .magic-knock-rings { display: none; } .is-pop { animation: none; } }
+
+/* Progress while the island is built: the enter button fills like a lantern being lit, and the loading
+   screen has a thin gold thread that grows (it shimmers until the first step is known). */
+.magic-enter-world.is-loading { position: relative; overflow: hidden; }
+.magic-enter-world.is-loading::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--progress, 4%); background: linear-gradient(90deg, rgba(214, 170, 92, .22), rgba(240, 204, 128, .42)); box-shadow: 1px 0 6px rgba(255, 214, 140, .55); transition: width .5s ease; pointer-events: none; }
+.magic-enter-world.is-loading > * { position: relative; }
+/* a slow sweep of light that keeps moving even while the page is busy building (it runs on the
+   compositor: transform only) */
+.magic-enter-world.is-loading::after { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 38%; background: linear-gradient(90deg, transparent, rgba(255, 236, 190, .3), transparent); animation: enterSweep 1.9s linear infinite; pointer-events: none; will-change: transform; }
+@keyframes enterSweep { from { transform: translateX(-100%); } to { transform: translateX(270%); } }
+.world-loading .loading-bar { position: relative; width: min(220px, 60vw); height: 3px; margin: 12px auto 8px; border-radius: 3px; background: rgba(252, 240, 215, .16); overflow: hidden; }
+.world-loading .loading-bar > span { position: absolute; inset: 0 auto 0 0; width: 30%; border-radius: 3px; background: linear-gradient(90deg, #c9a352, #f3d48e); box-shadow: 0 0 8px rgba(243, 212, 142, .7); animation: loadingShimmer 1.6s ease-in-out infinite; will-change: transform; }
+.world-loading .loading-bar.is-known > span { width: var(--progress, 0%); animation: none; transition: width .5s ease; }
+.world-loading .loading-bar.is-known::after { content: ""; position: absolute; inset: 0 auto 0 0; width: 30%; background: linear-gradient(90deg, transparent, rgba(255, 246, 214, .7), transparent); animation: loadingShimmer 1.6s linear infinite; will-change: transform; }
+@keyframes loadingShimmer { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+@media (prefers-reduced-motion: reduce) { .world-loading .loading-bar > span, .world-loading .loading-bar::after, .magic-enter-world.is-loading::after { animation: none; } }

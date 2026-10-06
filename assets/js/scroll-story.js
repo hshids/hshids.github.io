@@ -88,7 +88,7 @@
   function crossing(cx) {
     var cloth = !!window.HJArtDir;
     return '<g class="scroll-live" transform="translate(' + (cx + 125) + ' ' + (cloth ? 322 : 365) + ')"><g class="scroll-crane-glide"><g transform="scale(-1 1)"><g class="scroll-crane-flight">' +
-      (cloth ? clothCrane() : sprite("crane", -85, -66, 170, 132, "scroll-crane")) + '</g></g></g></g>';
+      (cloth ? clothCrane() + craneSparks() : sprite("crane", -85, -66, 170, 132, "scroll-crane")) + '</g></g></g></g>';
   }
   // Faces of the folded crane, in the painting's coordinates (434 x 340), back to front:
   // [points, cloth, shade (-1 dark .. 1 light)]
@@ -117,6 +117,18 @@
       out += '<circle class="cc-knot" cx="' + f1(bx) + '" cy="' + f1(by) + '" r="' + f1(.55 * r) + '"/>';
     });
     return out + '<ellipse class="cc-petal" cx="' + f1(x + 4.6) + '" cy="' + f1(y + 3.7) + '" rx=".9" ry="1.2"/></g>';
+  }
+  // Motes of light round the crane instead of a frame: they twinkle faintly to say it can be tapped,
+  // brighten when it is pointed at or focused, and fly with it when it glides.
+  var CRANE_SPARKS = [[2, 12], [46, 36], [90, 58], [180, 104], [250, 92], [300, 60], [368, 2], [340, 150], [432, 295], [400, 250], [372, 300], [300, 306], [196, 338], [128, 330], [60, 250], [15, 192], [58, 130], [222, 140]];
+  function craneSparks() {
+    var k = 170 * CRANE / 434, out = '<g class="cc-sparks" aria-hidden="true">';
+    CRANE_SPARKS.forEach(function (pt, i) {
+      var x = (pt[0] - 217) * k, y = (pt[1] - 170) * k, d = Math.sqrt(x * x + y * y) || 1, push = 7 + (i % 3) * 2.5;
+      x += x / d * push; y += y / d * push;
+      out += '<circle class="cc-spark" cx="' + f1(x) + '" cy="' + f1(y) + '" r="' + f1(3.4 + (i % 4) * .8) + '" fill="url(#gSpark)" style="animation-delay:' + f1(-i * .43) + 's;animation-duration:' + f1(2.4 + (i % 5) * .35) + 's"/>';
+    });
+    return out + '</g>';
   }
   function clothCrane() {
     var k = 170 * CRANE / 434, P = function (x, y) { return [f1((x - 217) * k), f1((y - 170) * k)]; };

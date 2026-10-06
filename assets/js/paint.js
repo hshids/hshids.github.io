@@ -270,7 +270,7 @@
       }
       // Keep the original hat's aspect ratio. Its crown rim overlaps the
       // upper hairline; the board and tassel remain one physical painted cap.
-      return '<g class="p-cap"><g class="p-cap-mount"><g class="p-cap-in"><g class="p-cap-fit">'+sprite('cap',40.44,-6,43,43*273/343,'painted-cap')+'</g></g></g></g>';
+      return '<g class="p-cap"><g class="p-cap-mount"><g class="p-cap-in"><g class="p-cap-fit">'+(window.HJArtDir ? clothCap(40.44,-6,43/343) : sprite('cap',40.44,-6,43,43*273/343,'painted-cap'))+'</g></g></g></g>';
     }
     return '<svg class="hj-char-svg painted-character" viewBox="0 0 120 200" aria-hidden="true" focusable="false"><g class="c-flip"><ellipse class="c-shadow" cx="60" cy="193" rx="29" ry="3"/><g class="c-root">'+outfit(false)+outfit(true)+'</g><g class="c-reading">'+reading(false)+reading(true)+'</g><g class="c-back">'+otherPose(false,true)+otherPose(true,true)+'</g><g class="c-crouch">'+otherPose(false,false)+otherPose(true,false)+'</g><g class="c-mail">'+mailPose(false)+mailPose(true)+'</g>'+faceFeatures(uid)+graduationCap()+'</g></svg>';
   }
@@ -720,6 +720,33 @@
     out+='<circle cx="'+q(px)+'" cy="'+q(py)+'" r="1.3" style="fill:url(#gGoldThread)"/><circle cx="'+q(px)+'" cy="'+q(py)+'" r=".6" style="fill:url(#gPearlBead)"/>';
     var bud=W(681,189.5); out+='<circle cx="'+bud[0]+'" cy="'+bud[1]+'" r=".8" style="fill:url(#gPearlBead)"/>';
     return out+'</g>';
+  }
+
+  // The mortarboard in the cloth world: the board and the skull cap are black wool appliqué, each with
+  // a small ring of running stitch just inside its edge; the button, cord and tassel are worked in gold
+  // thread. Drawn in vector at the painting's outline (343 x 273), so its stitches stay crisp however
+  // small the cap is shown.
+  function clothCap(x0,y0,k) {
+    var P=function(pts){ return 'M'+pts.map(function(p){ return q(x0+p[0]*k)+' '+q(y0+p[1]*k); }).join('L')+'Z'; };
+    var inset=function(pts,d){ var cx=0,cy=0; pts.forEach(function(p){cx+=p[0]/pts.length;cy+=p[1]/pts.length;}); return pts.map(function(p){ var dx=cx-p[0],dy=cy-p[1],l=Math.sqrt(dx*dx+dy*dy)||1; return [p[0]+dx/l*d,p[1]+dy/l*d]; }); };
+    var skull=[[88,90],[66,150],[100,185],[158,210],[232,188],[268,148],[255,92],[185,118]];
+    var board=[[0,60],[160,0],[343,58],[185,112]];
+    var edgeL=[[0,60],[185,112],[185,121],[0,68]], edgeR=[[185,112],[343,58],[343,66],[185,121]];
+    var L=function(a,b){ return 'M'+q(x0+a[0]*k)+' '+q(y0+a[1]*k)+'L'+q(x0+b[0]*k)+' '+q(y0+b[1]*k); };
+    var strands='';
+    for (var i=0;i<15;i++){ var t=i/14, sx=284+t*24, ex=268+t*64+(i%2?2:-2); strands+='M'+q(x0+sx*k)+' '+q(y0+148*k)+'Q'+q(x0+(sx+ex)/2*k+(i%3-1)*.4)+' '+q(y0+205*k)+' '+q(x0+ex*k)+' '+q(y0+(262+(i%3)*4)*k); }
+    return '<g class="cloth-cap painted-cap">'+
+      '<path class="cap-lift" d="'+P(skull)+P(board)+'" transform="translate(.35 .6)"/>'+
+      '<path class="cap-wool" d="'+P(skull)+'"/><path class="cap-shade" d="'+P(skull)+'"/>'+
+      '<path class="cap-fold" d="'+L([100,112],[100,184])+L([185,121],[160,208])+L([240,112],[232,186])+'"/>'+
+      '<path class="cap-run" d="'+P(inset(skull,7))+'"/>'+
+      '<path class="cap-wool cap-edge" d="'+P(edgeL)+P(edgeR)+'"/>'+
+      '<path class="cap-wool cap-board" d="'+P(board)+'"/><path class="cap-sheen" d="'+P(board)+'"/>'+
+      '<path class="cap-run" d="'+P(inset(board,9))+'"/>'+
+      '<path class="cap-cord" d="M'+q(x0+188*k)+' '+q(y0+50*k)+'Q'+q(x0+262*k)+' '+q(y0+62*k)+' '+q(x0+290*k)+' '+q(y0+76*k)+'Q'+q(x0+298*k)+' '+q(y0+82*k)+' '+q(x0+297*k)+' '+q(y0+118*k)+'"/>'+
+      '<ellipse class="cap-button" cx="'+q(x0+183*k)+'" cy="'+q(y0+48*k)+'" rx="'+q(14*k)+'" ry="'+q(7*k)+'"/>'+
+      '<path class="cap-tassel" d="'+strands+'"/>'+
+      '<circle class="cap-knot" cx="'+q(x0+296*k)+'" cy="'+q(y0+128*k)+'" r="'+q(11*k)+'"/><path class="cap-band" d="'+L([284,145],[308,145])+'"/></g>';
   }
 
   A.stations.research = function (pubs,themes) {

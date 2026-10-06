@@ -258,20 +258,35 @@ function warmUp(){
   };
   idle(step);
 }
+// Building the island takes a few seconds on the visitor's own device; between the large steps the
+// page gets a frame to show how far it has come (the enter button fills, the loading bar grows).
+const nextFrame=()=>new Promise(r=>requestAnimationFrame(()=>setTimeout(r,0)));
+async function progress(fraction,step){
+  const pct=Math.round(fraction*100),bar=document.querySelector('#loading .loading-bar'),label=document.querySelector('#loading-step');
+  if(bar){bar.classList.add('is-known');bar.style.setProperty('--progress',pct+'%');bar.setAttribute('aria-valuenow',String(pct));}
+  if(label)label.textContent=step+'… '+pct+'%';
+  invitation?.setProgress?.(fraction,step);
+  await nextFrame();
+}
 async function init(){
+  await progress(.08,'Lighting the lanterns');
   renderer=new THREE.WebGLRenderer({canvas,antialias:false,powerPreference:'default'});renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.10;renderer.info.autoReset=false;renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;aa=createDisplayAntialias(renderer);
   scene=new THREE.Scene();scene.background=new THREE.Color('#0a172a');scene.fog=new THREE.Fog('#0a172a',180,400);camera=new THREE.PerspectiveCamera(44,1,.07,900);
   const pmrem=new THREE.PMREMGenerator(renderer),environmentRoom=new RoomEnvironment();environment=pmrem.fromScene(environmentRoom,.04,.1,100,{size:low?64:128}).texture;scene.environment=environment;scene.environmentIntensity=.30;pmrem.dispose();environmentRoom.dispose();
   key=new THREE.DirectionalLight('#c5d6eb',.88);key.position.set(-18,38,19);key.target.position.set(10,0,-13);key.castShadow=true;key.shadow.mapSize.set(low?512:1024,low?512:1024);Object.assign(key.shadow.camera,{left:-43,right:43,top:40,bottom:-32,near:.1,far:130});key.shadow.bias=-.00006;key.shadow.normalBias=.009;
   const hemi=new THREE.HemisphereLight('#a3bccd','#574b3e',.36),fill=new THREE.DirectionalLight('#e5c7a2',.12);fill.position.set(35,12,8);fill.target.position.set(10,0,-13);scene.environmentIntensity=.23;scene.add(key,key.target,hemi,fill,fill.target);
   interiorLight=new THREE.PointLight('#ffd298',4.2,8,2);interiorLight.castShadow=true;interiorLight.shadow.mapSize.set(low?128:256,low?128:256);interiorLight.shadow.normalBias=.012;interiorLight.visible=false;scene.add(interiorLight);
+  await progress(.16,'Raising the halls');
   [garden,cats]=await Promise.all([createFaithfulWorldScene({data:window.HJ_DATA,quality}),createMagicCats({quality,reduced})]);scene.add(garden.root,cats.root);garden.setTheme(true);
+  await progress(.55,'Hiding the keepsakes');
   magic=createMagicChapters({stations:garden.stations,data:window.HJ_DATA,quality,reduced,onDiscover:record});magic.setTheme(true);scene.add(magic.root);
   architecture=createMagicArchitecture({stations:garden.stations,quality,reduced});
   stories=createHiddenStories({stations:garden.stations,quality,reduced,onDiscover:record,onOverlay:setOverlay,onGo:returnToDiscovery});
   diary=createInkDiary({station:station('writing'),quality,reduced,onOverlay:setOverlay,onDiscover:record});
   talkNotes=createTalkNotes({station:station('talks'),data:window.HJ_DATA,quality,reduced,onOverlay:setOverlay});
+  await progress(.7,'Shaping the hills and the sea');
   landscape=await createMagicLandscape({quality,reduced,stations:garden.stations,extraBlockers:extraWorldBlockers(),floorAt:garden.floorAt,isPassable:garden.passable});landscape.setTheme(true);scene.add(landscape.root);
+  await progress(.84,'Waking the owl and the whale');
   enchant=createEnchantment({scene,renderer,landscape,garden,quality,reduced,onStory:(id,storyId)=>returnToDiscovery(id,storyId),onOwl(){go('contact');say('Hoo hoo! The owl post runs day and night. Leave Hanjing a letter anytime.');},onWhiteboard(){say('A little nod to The Big Bang Theory. It was my first glimpse of research life, and I have watched it more times than I can count. Somewhere between the whiteboards and the takeout, research started to look like a wonderful way to live. These days my own board mixes the physics with attention, gradients and a few questions that keep me up at night.');},onLetters(){say('Letters, letters everywhere. I am always waiting for yours. The owl post by the Letter Tree delivers day and night, and the Lantern Theatre sends notes straight to me.');},onIceberg(){say('An iceberg. Even after a PhD, I have seen only the tip of it. Most of what there is to know is still under the water, and that is exactly what I want to keep exploring.');},onPagoda(){say('A porcelain pagoda, after the Porcelain Tower of Nanjing. Stories of that tower reached France and inspired the Trianon de Porcelaine at Versailles, with its blue and white roof. I love that kind of dream, East and West imagining each other, so it became the style of this whole little world.');},onWhale(){say('A whale in the deep. My name, Hanjing, sounds a little like the Chinese word for whale. Whales carry an ancient kind of wisdom and keep diving toward the unknown. And there is only one whale here, because the search for answers can be a little lonely. I keep swimming anyway.');}});scene.add(enchant.root);
   caseClues=createCaseClues({low,reduced,onFound(clue,point){const result=casebook?.find(clue);if(result?.fresh)enchant?.burst(point);say(result?.line||clue.say);}});scene.add(caseClues.root);
   pathWalk=createPathWalk({routes:landscape.walkRoutes,reduced,eyeHeight:1.55,speed:1.6,arrivalDuration:1.3,blockers:walkingBlockers,aerialBlockers:garden.stations.map(s=>{s.root.updateWorldMatrix(true,true);const b=new THREE.Box3().setFromObject(s.root);return{id:s.id+'-roof',min:b.min.toArray(),max:b.max.toArray()};}),groundAt:(x,z)=>Math.max(.002,garden.floorAt(x,z)),isPassable:garden.passable});
@@ -281,6 +296,7 @@ async function init(){
   casebook=createCasebook({data:window.HJ_DATA,onOverlay:setOverlay,onGo:id=>go(id)});
   for(const id of notebook.ids){const event=magic.discover(id,{notify:false})||stories.discover(id,{notify:false})||(id===diary.metadata.entry.id?diary.metadata.entry:null);if(event)landscape.discover?.(event.station);}
   if(invitation.isOpen&&invitation.element.classList.contains('magic-invitation-has-read'))record(magic.discover('home',{notify:false}));
+  await progress(.95,'Opening the gates');
   overviewBatches=createOverviewBatches(garden.stations);const initialChapter=location.hash.slice(1);
   bind();state.ready=true;resize();$('#loading').hidden=true;overview();if(invitation.isOpen)setOverlay('invitation');raf=requestAnimationFrame(frame);
   invitation.setReady(true);if(station(initialChapter))go(initialChapter);
